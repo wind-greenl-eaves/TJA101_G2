@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @Query 					- 用於定義自訂的 SQL 查詢。
  * @nativeQuery = true 		- 表示使用原生 SQL 查詢。
  * @Optional<T> 			- Spring Data JPA 的 Optional 包裝類型，用於處理可能不存在的查詢結果(NullPointerException)。
+ * @JpaSpecificationExecutor<T> - 允許使用動態查詢條件，提供更靈活的查詢方式。
  */
 @Repository
 public interface MemberRepository extends JpaRepository<MemberEntity, Long>,JpaSpecificationExecutor<MemberEntity> {
@@ -32,8 +33,7 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long>,JpaS
 	Optional<MemberEntity> findByEmail(@Param("email") String email);
 	/**
 	 * 【R - 檢查存在】檢查指定的帳號或信箱是否存在。 
-	 * 使用 `SELECT EXISTS(...)`，效能比 `SELECT COUNT(*)` 更好，
-	 * 因為資料庫找到第一筆匹配的資料後就會立刻回傳，不會繼續掃描。
+	 * 使用 `SELECT EXISTS(...)`，效能比 `SELECT COUNT(*)` 更好，因為資料庫找到第一筆匹配的資料後就會立刻回傳，不會繼續掃描。
 	 */
 	@Query(value = "SELECT EXISTS(SELECT 1 FROM member WHERE account = :account OR email = :email)", nativeQuery = true)
 	boolean existsByAccountOrEmail(@Param("account") String account, @Param("email") String email);

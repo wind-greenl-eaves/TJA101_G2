@@ -1,0 +1,185 @@
+/* 定義奶茶色系的變數，方便統一管理 */
+:root {
+    --milk-tea-bg: #F5EFE6; /* 背景色 - 柔和米白 */
+    --milk-tea-card: #FFFFFF; /* 卡片背景 - 純白 */
+    --milk-tea-primary: #A87C7C; /* 主題色 - 乾燥玫瑰粉 */
+    --milk-tea-secondary: #E8D5C4; /* 輔助色 - 淺卡其 */
+    --milk-tea-text: #6B4F4F; /* 主要文字顏色 - 深棕色 */
+    --milk-tea-header: #8D7B68; /* 標題列顏色 - 暖棕色 */
+    --milk-tea-shadow: rgba(141, 123, 104, 0.15); /* 陰影顏色 */
+    --milk-tea-success: #82a37c; /* 成功按鈕 - 更柔和的抹茶綠 */
+    --milk-tea-danger: #D08770; /* 刪除按鈕 - 橘紅色 */
+    --milk-tea-info: #A2B5BB; /* 查詢按鈕 - 灰藍色 */
+}
+
+body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background-color: var(--milk-tea-bg);
+    color: var(--milk-tea-text);
+    padding-top: 80px;
+}
+
+.container {
+    max-width: 1390px;
+}
+
+/* 卡片統一樣式 */
+.card {
+    margin-bottom: 2rem;
+    border: 1px solid var(--milk-tea-secondary);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--milk-tea-shadow);
+    background-color: var(--milk-tea-card);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px var(--milk-tea-shadow);
+}
+
+.card-header {
+    background-color: var(--milk-tea-header);
+    color: white;
+    font-weight: 500;
+    border-top-left-radius: 11px;
+    border-top-right-radius: 11px;
+    border-bottom: none;
+}
+
+/* 導航欄樣式 */
+.navbar {
+    background-color: var(--milk-tea-header) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+
+/* ----- 表格樣式優化 (開始) ----- */
+
+.table {
+    border-collapse: separate; /* 讓 border-radius 生效 */
+    border-spacing: 0;
+    width: 100%;
+}
+
+/* 表格儲存格 */
+.table td, .table th {
+    padding: 0.9rem;
+    vertical-align: middle;
+    border-top: 1px solid var(--milk-tea-secondary);
+}
+
+/* 表頭樣式 */
+.table thead th {
+     background-color: #777; /* 根據圖片使用深灰色 */
+     color: white;
+     font-weight: 500;
+     border-bottom: 0;
+}
+
+/* 讓表頭有圓角 */
+.table thead th:first-child {
+    border-top-left-radius: 8px;
+}
+.table thead th:last-child {
+    border-top-right-radius: 8px;
+}
+
+/* 表格條紋樣式 */
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(141, 123, 104, 0.05); /* 使用淡淡的棕色作為條紋 */
+}
+
+/* 滑鼠懸停樣式 */
+.table-hover tbody tr:hover {
+    background-color: var(--milk-tea-secondary);
+    color: var(--milk-tea-text);
+}
+
+/* 表格中的按鈕 */
+.table .btn {
+    border-radius: 4px; /* 改為較小的圓角，更像圖片 */
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    transition: opacity 0.2s ease;
+}
+.table .btn:hover {
+    transform: none; /* 移除 hover 放大效果 */
+    opacity: 0.85;
+}
+
+/* ----- 表格樣式優化 (結束) ----- */
+
+
+/* 按鈕統一樣式 */
+.btn {
+    border-radius: 20px;
+    font-weight: 500;
+    padding: 8px 20px;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+}
+
+/* 主要按鈕 (送出查詢) */
+.btn-primary {
+    background-color: var(--milk-tea-primary);
+    color: white;
+}
+.btn-primary:hover {
+    background-color: #936a6a;
+    color: white;
+}
+
+/* 各式功能按鈕 */
+.btn-info {
+     background-color: var(--milk-tea-info);
+     color: white;
+}
+.btn-info:hover {
+     background-color: #8fa5ac;
+     color: white;
+}
+.btn-success {
+     background-color: var(--milk-tea-success);
+     color: white;
+}
+ .btn-success:hover {
+     background-color: #70916b;
+     color: white;
+}
+.btn-danger {
+    background-color: var(--milk-tea-danger);
+    color: white;
+}
+.btn-danger:hover {
+    background-color: #c0735a;
+    color: white;
+}
+.btn-warning {
+    background-color: #E8D5C4;
+    color: var(--milk-tea-text) !important;
+}
+ .btn-warning:hover {
+    background-color: #d9c3b0;
+}
+
+/* 錯誤訊息 */
+.alert-danger {
+    background-color: #F8D7DA;
+    color: #721C24;
+    border-color: #F5C6CB;
+}
+
+/* 表單控制項 */
+.form-control {
+    border-radius: 8px;
+    border: 1px solid var(--milk-tea-secondary);
+}
+.form-control:focus {
+    border-color: var(--milk-tea-primary);
+    box-shadow: 0 0 0 0.2rem rgba(168, 124, 124, 0.25);
+}

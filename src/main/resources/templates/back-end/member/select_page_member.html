@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>會員資料管理 - 溫馨奶茶風</title>
+
+    <!-- 引入 Bootstrap CSS -->
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <!-- 引入 Font Awesome 提供圖示 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- 引入 Google Fonts 提供更柔和的字體 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- 連結到外部的 CSS 樣式檔案 -->
+    <link rel="stylesheet" th:href="@{/css/member/style.css}" />
+
+</head>
+
+<body>
+
+    <!-- 頂部導航欄 -->
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <div class="navbar-brand d-flex align-items-center">
+                <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-3">
+                <span style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 會員資料管理</span>
+            </div>
+            <a class="btn btn-outline-light" th:href="@{/}">
+                <i class="fas fa-home"></i> 回首頁
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+
+        <!-- 錯誤訊息顯示區 -->
+        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-circle"></i> <span th:utext="${errorMessage}"></span>
+        </div>
+
+        <div class="row">
+
+            <!-- 左側：查詢與管理功能區 (HTML結構不變) -->
+            <div class="col-lg-4">
+                <!-- 單一條件查詢卡片 -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-search"></i> 單一條件查詢
+                    </div>
+                    <div class="card-body">
+                        <form method="post" th:action="@{/member/getOneForDisplay}" class="mb-3">
+                            <div class="form-group">
+                                <label for="account">輸入會員登入帳號:</label>
+                                <input type="text" id="account" name="account" class="form-control" th:value="${param.account}">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-paper-plane"></i> 送出查詢</button>
+                        </form>
+                        <hr>
+                        <form method="post" th:action="@{/member/getOneForDisplay}" th:if="${memberListData != null}">
+                            <div class="form-group">
+                                <label for="accountSelect">選擇會員姓名:</label>
+                                <select id="accountSelect" name="account" class="form-control">
+                                     <option th:each="member : ${memberListData}" th:value="${member.account}" th:text="${member.username} + ' (' + ${member.account} + ')'" />
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-info btn-block"><i class="fas fa-hand-pointer"></i> 選擇查詢</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 複合查詢卡片 -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-filter"></i> 萬用複合查詢
+                    </div>
+                    <div class="card-body">
+                        <form method="post" th:action="@{/member/listMembers_ByCompositeQuery}">
+                            <div class="form-group">
+                                <label for="username">會員姓名 (模糊):</label>
+                                <input type="text" id="username" name="username" class="form-control">
+                            </div>
+                             <div class="form-group">
+                                <label for="email">電子郵件 (精確):</label>
+                                <input type="text" id="email" name="email" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">連絡電話 (模糊):</label>
+                                <input type="text" id="phone" name="phone" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-success btn-block"><i class="fas fa-check-double"></i> 執行複合查詢</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 新增會員入口 -->
+                 <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-user-plus"></i> 會員管理
+                    </div>
+                    <div class="card-body">
+                        <a th:href="@{/member/addMember}" class="btn btn-warning btn-block font-weight-bold">
+                           <i class="fas fa-plus-circle"></i> 新增會員資料
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側：查詢結果顯示區 -->
+            <div class="col-lg-8">
+                
+                <!-- 單一查詢結果顯示區 -->
+                <div class="card" th:if="${member != null}">
+                    <div class="card-header" style="background-color: var(--milk-tea-info);">
+                        <i class="fas fa-user"></i> 單筆查詢結果
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th scope="row" style="background-color: var(--milk-tea-bg);">會員編號</th>
+                                <td th:text="${member.memberId}"></td>
+                            </tr>
+                            <tr>
+                                <th scope="row" style="background-color: var(--milk-tea-bg);">會員姓名</th>
+                                <td th:text="${member.username}"></td>
+                            </tr>
+                            <tr>
+                                <th scope="row" style="background-color: var(--milk-tea-bg);">登入帳號</th>
+                                <td th:text="${member.account}"></td>
+                            </tr>
+                            <!-- 【保留處】單筆查詢結果中依然顯示密碼 -->
+                            <tr>
+                                <th scope="row" style="background-color: var(--milk-tea-bg); color: red; font-weight: bold;">登入密碼</th>
+                                <td th:text="${member.password}" style="color: red; font-weight: bold;"></td>
+                            </tr>
+                            <tr>
+                                <th scope="row" style="background-color: var(--milk-tea-bg);">電子郵件</th>
+                                <td th:text="${member.email}"></td>
+                            </tr>
+                            <tr>
+                                <th scope="row" style="background-color: var(--milk-tea-bg);">連絡電話</th>
+                                <td th:text="${member.phone}"></td>
+                            </tr>
+                             <tr>
+                                <th scope="row" style="background-color: var(--milk-tea-bg);">生日</th>
+                                <td th:text="${#temporals.format(member.birthday, 'yyyy-MM-dd')}"></td>
+                            </tr>
+                            <tr>
+                                <th scope="row" style="background-color: var(--milk-tea-bg);">註冊時間</th>
+                                <td th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 列表查詢結果顯示區 -->
+                <div class="card" th:if="${memberListData != null and not #lists.isEmpty(memberListData)}">
+                    <div class="card-header">
+                        <i class="fas fa-users"></i> 會員列表
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>會員編號</th>
+                                        <th>會員姓名</th>
+                                        <th>登入帳號</th>
+                                        <!-- ★★★★★【修改處 1】移除密碼的表頭 ★★★★★ -->
+                                        <th>電子郵件</th>
+                                        <th>連絡電話</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="member : ${memberListData}">
+                                        <td th:text="${member.memberId}"></td>
+                                        <td th:text="${member.username}"></td>
+                                        <td th:text="${member.account}"></td>
+                                        <!-- ★★★★★【修改處 2】移除密碼的欄位 ★★★★★ -->
+                                        <td th:text="${member.email}"></td>
+                                        <td th:text="${member.phone}"></td>
+                                        <td>
+                                            <form method="post" th:action="@{/member/getOne_For_Update}" style="display: inline;">
+                                                <input type="hidden" name="memberId" th:value="${member.memberId}" />
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-edit"></i> 修改
+                                                </button>
+                                            </form>
+                                            <form method="post" th:action="@{/member/delete}" style="display: inline;">
+                                                <input type="hidden" name="memberId" th:value="${member.memberId}" />
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash-alt"></i> 刪除
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入必要的 JavaScript -->
+    <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/popper.js/1.14.3/umd/popper.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+</body>
+</html>
