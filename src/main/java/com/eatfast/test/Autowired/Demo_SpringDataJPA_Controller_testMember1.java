@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.eatfast.member.model.MemberEntity;
-import com.eatfast.member.model.MemberService;
+import com.eatfast.member.service.MemberService;
 
 /**
  * 開發階段專用的 CRUD 功能測試控制器。這個 Controller 的主要目的，是提供一個簡單的網址入口，

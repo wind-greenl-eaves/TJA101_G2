@@ -1,0 +1,230 @@
+	<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>早餐店專案首頁</title>
+
+<link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+
+<style>
+    body {
+        font-family: 'Noto Sans TC', sans-serif;
+        background-color: #f8f9fa;
+        color: #343a40;
+        /* 因為還原後的導航欄比較高，增加頂部間距來避免內容被遮擋 */
+        padding-top: 180px; 
+    }
+
+    /* 【還原】定義圖片中 "Hello" 字樣的顏色 */
+    .hello-color {
+        color: #FFEB3B; /* 改為明亮的黃色 */
+        font-weight: bold;
+    }
+    
+    /* 【新增】定義技術棧文字的綠色樣式 */
+    .tech-stack-green {
+        color: #65fe08; /* 改為更明亮的綠色 */
+        font-weight: bold;
+    }
+
+    /* 主內容區域 */
+    .starter-template {
+        text-align: center;
+        padding: 2rem 1.5rem;
+    }
+    
+    /* 【修改】中間標題區域的樣式 */
+    .custom-title-section {
+        margin-bottom: 1.5rem;
+        font-weight: bold;
+    }
+    .title-line-1 {
+        color: red;
+        font-size: 2rem;
+    }
+    .title-line-2 {
+        font-size: 2rem;
+    }
+    /* 為超連結設定基本樣式 */
+    .title-line-2 a {
+        text-decoration: none; /* 預設移除底線 */
+        transition: opacity 0.2s ease-in-out; /* 平滑過渡效果 */
+    }
+    /* 滑鼠懸停時的效果 */
+    .title-line-2 a:hover {
+        opacity: 0.7; /* 讓顏色稍微變淡 */
+        text-decoration: underline; /* 滑鼠移上去時顯示底線 */
+    }
+    .title-line-2 .red-part {
+        color: red;
+    }
+    .title-line-2 .blue-part {
+        color: blue;
+    }
+    .title-line-2 .black-part {
+        color: #343a40; /* 使用標準文字顏色 */
+    }
+
+    /* Call-to-Action 按鈕樣式 */
+    .btn-custom-action {
+        font-weight: 500;
+        font-size: 1.1rem;
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0,0,0,.1);
+    }
+    .btn-custom-action:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0,0,0,.15);
+    }
+
+    /* 列表容器 */
+    .lists-container {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        margin-top: 40px;
+        gap: 30px;
+    }
+
+    /* 卡片樣式 */
+    .list-box {
+        border: none;
+        padding: 30px;
+        border-radius: 12px;
+        background-color: #ffffff;
+        width: 100%;
+        max-width: 48%;
+        box-shadow: 0 4px 12px rgba(0,0,0,.08);
+        transition: all 0.3s ease;
+    }
+    
+    @media (max-width: 992px) {
+        .list-box {
+            max-width: 90%;
+        }
+    }
+
+    .list-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,.1);
+    }
+
+    .list-box h3 {
+        font-weight: 700;
+        color: #007bff;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .list-box li {
+        padding: 8px 0;
+        color: #495057;
+        list-style: none;
+        position: relative;
+        padding-left: 25px;
+    }
+    
+    .list-box li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #28a745;
+        font-weight: bold;
+    }
+
+    /* 頁腳 */
+    .footer {
+        text-align: center;
+        padding: 30px 0;
+        margin-top: 50px;
+        background-color: #343a40;
+        color: #adb5bd;
+    }
+
+</style>
+
+</head>
+<body>
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top justify-content-center" th:fragment="mynavbar">
+    <div align="center">
+        <h2 style="font-size: 30px; width: max-content; color: white;">
+            <span class="hello-color" th:text="'Hello, ' + ${message} +' : '"></span> 
+            <span class="tech-stack-green">Spring Boot + Spring MVC + Thymeleaf</span>
+            (
+               <img width="95px" height="80px" th:src="@{/images/spring boot.png}" alt="Spring Boot Logo"> + 
+               <img width="95px" height="80px" th:src="@{/images/spring mvc.png}" alt="Spring MVC Logo"> + 
+               <img width="110px" height="30px" th:src="@{/images/thymeleaf.png}" alt="Thymeleaf Logo">
+            )
+        </h2>
+        <h3>
+            <a class="navbar-brand" href="https://start.spring.io/" target="_blank">
+               Spring Boot Quickstart 官網 : https://start.spring.io 
+            </a>
+        </h3>
+    </div>
+</nav>
+    
+<main role="main" class="container">
+    <div class="starter-template">
+        
+        <div class="custom-title-section">
+            <h2 class="title-line-1"><b>前端展示層(View) - 搭配Thymeleaf模板引擎 - 改用HTML</b></h2>
+            <h1 class="title-line-2">
+                <!-- 【修改】將 span 替換為 a 標籤，並加入超連結 -->
+                <a href="https://spring.io/projects/spring-boot" target="_blank" class="red-part"><b>Spring Boot</b></a>
+                <span class="black-part"><b> + </b></span>
+                <a href="https://maven.apache.org/" target="_blank" class="blue-part"><b>Maven</b></a>
+                <span class="black-part"><b> -> </b></span>
+                <a href="https://docs.spring.io/spring-framework/reference/" target="_blank" class="red-part"><b>Spring MVC</b></a>
+                <span class="black-part"><b> + </b></span>
+                <a href="https://www.thymeleaf.org/" target="_blank" class="blue-part"><b>Thymeleaf</b></a>
+                <span class="black-part"><b> -> </b></span>
+                <a href="https://www.tibame.com/course/33" target="_blank" class="blue-part"><b>Java WebApp</b></a>
+            </h1>
+        </div>
+        
+        <hr><br>
+        <a th:href="@{/member/select_page}" class="btn btn-custom-action">Click here to Spring MVC + Thymeleaf Project</a>
+    </div>
+       
+    <div class="lists-container">
+    
+        <div class="list-box">
+            <h3>開發順序</h3>
+            <ol>
+                <li th:each="step : ${myList}" th:utext="${step}"></li>
+            </ol>
+        </div>
+       
+        <div class="list-box">
+            <h3>專案技術棧</h3>
+            <ul>
+                <li th:each="info : ${quickstartInfo}" th:utext="${info}"></li>
+            </ul>
+        </div>
+        
+    </div>
+</main>
+
+<footer class="footer">
+    <div class="container">
+        <span>&copy; 2025 緯育TJA101早餐店專題. All Rights Reserved.</span>
+    </div>
+</footer>
+
+</body>
+</html>

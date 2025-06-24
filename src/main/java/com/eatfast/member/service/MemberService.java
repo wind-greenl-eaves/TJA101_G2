@@ -1,4 +1,4 @@
-package com.eatfast.member.model;
+package com.eatfast.member.service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -7,11 +7,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import com.eatfast.member.model.MemberEntity;
+import com.eatfast.member.model.MemberRepository;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -23,11 +27,12 @@ import jakarta.persistence.criteria.Root;
  * 它封裝了資料存取的細節，向上層提供清晰的業務方法。
  * @Service - 標記這是一個服務層的組件，Spring 會自動管理它的生命週期。
  * @readOnly = true - 標記此方法為只讀，避免不必要的事務開銷。
+ * @Optional<T> - Spring Data JPA 的 Optional 包裝類型，用於處理可能不存在的查詢結果(NullPointerException)。
  */
 @Service
 public class MemberService {
 	
-    // 注入 MemberRepository。這是唯一的依賴，Service 層變得更乾淨。
+    // 注入 MemberRepository。
     @Autowired
     private MemberRepository memberRepository;
     /**
@@ -58,12 +63,12 @@ public class MemberService {
     }
     /**
      * 根據會員ID查詢會員。
-     * @return 找到的會員物件；如果找不到，則回傳 null。
+     * @return 一個包含會員物件的 Optional；如果找不到，則回傳一個空的 Optional。
      */
     @Transactional(readOnly = true)
-    public MemberEntity getMemberById(Long memberId) {
-        Optional<MemberEntity> optionalMember = memberRepository.findById(memberId);
-        return optionalMember.orElse(null);
+    public Optional<MemberEntity> getMemberById(Long memberId) {
+        // 直接回傳 Repository 回傳的 Optional，保持風格一致
+        return memberRepository.findById(memberId);
     }
     /**
      * 根據會員帳號查詢會員。

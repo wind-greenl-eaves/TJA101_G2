@@ -1,4 +1,4 @@
-package com.eatfast.member.model;
+package com.eatfast.member.service;
 
 import java.util.List;
 import java.util.Map;
@@ -9,6 +9,9 @@ import org.hibernate.SessionFactory; // 引入 SessionFactory
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.eatfast.member.model.MemberEntity;
+import com.eatfast.member.model.MemberRepository;
 
 import hibernate.util.CompositeQuery.HibernateUtil_CompositeQuery_Member; // 引入剛才建立的工具類
 
