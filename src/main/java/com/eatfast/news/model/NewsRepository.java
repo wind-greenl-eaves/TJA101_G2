@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface NewsRepository extends JpaRepository<NewsEntity, Long> {
-//測試用06/26
+//權限測試用
     // 1️ 依照標題模糊查詢
     List<NewsEntity> findByTitleContaining(String keyword);
 
