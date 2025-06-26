@@ -86,7 +86,7 @@ public class MemberEntity {
     @NotBlank(message = "連絡電話不可為空", groups = {CreateValidation.class, UpdateValidation.class})
     // 使用正則表達式驗證電話號碼格式，符合台灣手機號碼格式 09xx-xxxxxx。
     @Pattern(regexp = "^09\\d{2}-\\d{6}$", message = "電話號碼格式不正確，應為 09xx-xxxxxx", groups = {CreateValidation.class, UpdateValidation.class})
-    @Column(name = "phone", length = 20)
+    @Column(name = "phone", nullable = false, length = 20)
     private String phone;
 
     /** 生日 */

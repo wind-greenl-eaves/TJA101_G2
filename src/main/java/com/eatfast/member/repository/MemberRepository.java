@@ -1,7 +1,6 @@
-// MemberRepository.java (After Refactoring)
 package com.eatfast.member.repository;
 
-import com.eatfast.member.model.MemberEntity; // 確保引入 MemberEntity
+import com.eatfast.member.model.MemberEntity;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -9,7 +8,12 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-// import org.springframework.transaction.annotation.Transactional; // @Transactional 通常建議放在 Service 層管理
+
+// ★★★★★會員資料存取層 (Repository)
+// 負責與資料庫進行交互，提供 CRUD 操作和自定義查詢方法。
+// 使用 Spring Data JPA 的 JpaRepository 和 JpaSpecificationExecutor 來簡化資料存取操作。
+// JpaRepository 提供基本的 CRUD 操作，而 JpaSpecificationExecutor 則允許使用動態查詢。
+// @Repository 標記這是一個資料存取層的組件，Spring 會自動管理它的生命週期。
 
 @Repository
 public interface MemberRepository extends JpaRepository<MemberEntity, Long>, JpaSpecificationExecutor<MemberEntity> {
@@ -25,16 +29,22 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long>, Jpa
 	// 框架會自動生成高效的 EXISTS 查詢
 	boolean existsByAccountOrEmail(String account, String email);
 
-	// 【D - 刪除】Spring Data JPA 也支援衍生刪除方法
+	// 【D - 硬刪除】Spring Data JPA 也支援衍生刪除方法 但這樣的寫法會執行物理刪除，與 Entity 的軟刪除邏輯衝突。
 	// @Transactional 建議移至 Service 層統一管理交易範圍
-	@Modifying // 對於非 SELECT 操作，@Modifying 是必要的
-	int deleteByAccount(String account);
+//	@Modifying // 對於非 SELECT 操作，@Modifying 是必要的
+//	int deleteByAccount(String account);
 
-	// 【U - 更新】對於自訂更新，建議使用 JPQL (Java Persistence Query Language) 而非原生 SQL
-	// 這樣能保持資料庫可移植性，同時 m.phone 和 m.memberId 會受到編譯期檢查
+	// 【D - 軟刪除】
+	// 原本的 deleteByAccount 會執行物理刪除，與 Entity 的軟刪除邏輯衝突。
+	// 已修改為使用 JPQL 執行軟刪除（更新 is_enabled 旗標），確保刪除行為一致。
+	@Modifying(clearAutomatically = true)
+	@Query("UPDATE MemberEntity m SET m.isEnabled = false WHERE m.account = :account")
+	int softDeleteByAccount(@Param("account") String account);
+
+	// 【U - 更新】
+	// 加上 clearAutomatically = true，在執行更新後自動清除持久性上下文，避免記憶體中的 Entity 物件與資料庫狀態不一致。
 	// 不可變：UPDATE, SET, WHERE 是 JPQL 關鍵字
-	// 可變：MemberEntity, m, m.phone, m.memberId, :phone, :memberId 是根據您的模型和參數定義的
-	@Modifying
+	@Modifying(clearAutomatically = true)
 	@Query("UPDATE MemberEntity m SET m.phone = :phone WHERE m.memberId = :memberId")
 	int updatePhoneById(@Param("memberId") Long memberId, @Param("phone") String phone);
 }

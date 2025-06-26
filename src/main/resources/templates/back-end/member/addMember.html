@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
-    <!-- 連結到外部的 CSS 樣式檔案 -->
+    <!-- ★【重點】連結到你設計的外部 CSS 樣式檔案 -->
     <link rel="stylesheet" th:href="@{/css/member/style.css}" />
 </head>
 <body>
@@ -23,7 +23,7 @@
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
         <div class="container">
             <div class="navbar-brand d-flex align-items-center">
-                <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-3">
+                <img th:src="@{/images/eatfasticon.png}" alt="EatFast 圖示" width="40" height="40" class="mr-3">
                 <span style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 新增會員</span>
             </div>
             <a class="btn btn-outline-light" th:href="@{/}">
@@ -47,7 +47,7 @@
                 -->
                 <form method="post" th:action="@{/member/insert}" th:object="${memberEntity}">
                     
-                    <!-- 顯示後端驗證錯誤訊息的地方 -->
+                    <!-- ★【重點】顯示後端驗證的所有錯誤訊息 -->
                     <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger" role="alert">
                          <b>請修正以下錯誤:</b>
                          <ul>
@@ -79,11 +79,28 @@
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="phone">連絡電話:</label>
-                            <input type="text" id="phone" class="form-control" th:field="*{phone}" />
+                            <input type="text" id="phone" class="form-control" th:field="*{phone}" placeholder="格式: 09xx-xxxxxx" />
                         </div>
                         <div class="form-group col-md-6">
                             <label for="birthday">生日:</label>
                             <input type="date" id="birthday" class="form-control" th:field="*{birthday}" />
+                        </div>
+                    </div>
+                    
+                    <!-- ★【新增功能】性別欄位 -->
+                    <div class="form-group">
+                        <label>性別:</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{gender}" id="genderM" value="M">
+                            <label class="form-check-label" for="genderM">男性</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{gender}" id="genderF" value="F">
+                            <label class="form-check-label" for="genderF">女性</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{gender}" id="genderO" value="O">
+                            <label class="form-check-label" for="genderO">其他</label>
                         </div>
                     </div>
                     
