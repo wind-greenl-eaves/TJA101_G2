@@ -7,15 +7,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+// 引入 SLF4J 日誌框架
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.eatfast.member.model.MemberEntity;
-import com.eatfast.member.model.MemberRepository;
+import com.eatfast.member.repository.MemberRepository; 
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -26,85 +27,87 @@ import jakarta.persistence.criteria.Root;
  * ★★★★★會員服務層 (Service)負責處理會員相關的業務邏輯，並作為 Controller 和 Repository 之間的中介。
  * 它封裝了資料存取的細節，向上層提供清晰的業務方法。
  * @Service - 標記這是一個服務層的組件，Spring 會自動管理它的生命週期。
- * @readOnly = true - 標記此方法為只讀，避免不必要的事務開銷。
- * @Optional<T> - Spring Data JPA 的 Optional 包裝類型，用於處理可能不存在的查詢結果(NullPointerException)。
+ * @Transactional(readOnly = true) - 在類別層級設定，預設所有公開方法都處於「唯讀」交易中，以提升查詢效能。
+ * 需要寫入資料的方法則需單獨標記 @Transactional 來覆寫此設定。
  */
 @Service
+@Transactional(readOnly = true) 
 public class MemberService {
+
+    // 建立日誌物件 (Logger)，'log' 是約定俗成的變數名稱
+    private static final Logger log = LoggerFactory.getLogger(MemberService.class);
 	
-    // 注入 MemberRepository。
-    @Autowired
-    private MemberRepository memberRepository;
+    private final MemberRepository memberRepository;
+
+//    /**
+//     * 使用建構子注入 MemberRepository。
+//     * 這是 Spring 官方推薦的最佳實踐，能讓依賴關係更明確且易於單元測試。
+//     * @param memberRepository Spring 容器會自動傳入 MemberRepository 的實例。
+//     */
+    public MemberService(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
+    }
+
     /**
      * 新增或更新一筆會員資料。
-     * Spring Data JPA 的 save() 方法會自動判斷：
-     * 如果傳入的 MemberEntity 的主鍵 (memberId) 為 null，則執行新增 (INSERT)；
-     * 如果主鍵存在，則執行更新 (UPDATE)。
-     * @param memberEntity 要儲存的會員物件。
-     * @return 儲存後 (包含新ID) 的會員物件。
      */
     @Transactional
     public MemberEntity saveOrUpdateMember(MemberEntity memberEntity) {
         return memberRepository.save(memberEntity);
     }
+
     /**
      * 根據會員ID刪除會員。
+     * 因為我們在 Entity 中使用了 @SQLDelete，此操作會觸發軟刪除。
      */
     @Transactional
     public void deleteMemberById(Long memberId) {
         memberRepository.deleteById(memberId);
     }
+
     /**
      * 根據會員帳號刪除會員。
      */
-    @Transactional
+    @Transactional 
     public void deleteMemberByAccount(String account) {
         memberRepository.deleteByAccount(account);
     }
+
     /**
      * 根據會員ID查詢會員。
-     * @return 一個包含會員物件的 Optional；如果找不到，則回傳一個空的 Optional。
      */
-    @Transactional(readOnly = true)
     public Optional<MemberEntity> getMemberById(Long memberId) {
-        // 直接回傳 Repository 回傳的 Optional，保持風格一致
         return memberRepository.findById(memberId);
     }
+
     /**
      * 根據會員帳號查詢會員。
-     * @return 一個包含會員物件的 Optional；如果找不到，則回傳一個空的 Optional。
      */
-    @Transactional(readOnly = true)
     public Optional<MemberEntity> getMemberByAccount(String account) {
         return memberRepository.findByAccount(account);
     }
+
     /**
      * 檢查指定的帳號或電子郵件是否已經存在。
-     * @return 如果任一項已存在，回傳 true；否則回傳 false。
      */
-    @Transactional(readOnly = true)
     public boolean memberExists(String account, String email) {
         return memberRepository.existsByAccountOrEmail(account, email);
     }
+
     /**
      * 查詢所有會員資料。
-     * @return 包含所有會員的列表。
      */
-    @Transactional(readOnly = true)
     public List<MemberEntity> getAllMembers() {
         return memberRepository.findAll();
     }
+
     /**
      * ★★★★★【複合查詢】根據多個動態條件查詢會員 (使用 JPA Specification)。★★★★★
      * @param map [可變] 一個 Map，其 Key 是查詢欄位(如 "username")，Value 是查詢值的字串陣列。
      * @return 符合查詢條件的會員列表。
      */
-    @Transactional(readOnly = true)
     public List<MemberEntity> getAllMembers(Map<String, String[]> map) {
         
-        // 這是「匿名內部類別」的寫法。
-        // 直接 new 一個 Specification 介面，並在大括號中實作它唯一的方法 toPredicate。
-    	// Specification 是一個 JPA 的查詢條件組合器，
         Specification<MemberEntity> spec = new Specification<MemberEntity>() {
             
             @Override
@@ -114,6 +117,9 @@ public class MemberService {
             
                 for (Map.Entry<String, String[]> entry : map.entrySet()) {
                     String key = entry.getKey();
+                    if (entry.getValue() == null || entry.getValue().length == 0) {
+                        continue;
+                    }
                     String value = entry.getValue()[0]; 
 
                     if (!StringUtils.hasText(value)) {
@@ -125,7 +131,9 @@ public class MemberService {
                             try {
                                 predicates.add(criteriaBuilder.equal(root.get("memberId"), Long.valueOf(value)));
                             } catch (NumberFormatException e) {
-                                // 忽略無效輸入
+                                // 使用 Logger 紀錄警告訊息，而不是吞掉錯誤。
+                                // {} 是參數佔位符，會安全地將 value 填入。
+                                log.warn("複合查詢時，傳入的 memberId 格式無效: '{}'，此查詢條件已被忽略。", value);
                             }
                             break;
                         case "username":
@@ -145,7 +153,8 @@ public class MemberService {
                                 LocalDate birthday = LocalDate.parse(value);
                                 predicates.add(criteriaBuilder.equal(root.get("birthday"), birthday));
                             } catch (DateTimeParseException e) {
-                                System.err.println("生日日期格式錯誤: " + value);
+                               // 紀錄日期格式錯誤的警告。
+                               log.warn("複合查詢時，傳入的 birthday 日期格式無效: '{}'，此查詢條件已被忽略。", value);
                             }
                             break;
                     }
@@ -155,7 +164,6 @@ public class MemberService {
             }
         };
 
-        // 將組合好的查詢條件 (spec) 交給 Repository 執行，這部分呼叫不變。
         return memberRepository.findAll(spec);
     }
 }
