@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>公告管理 - 溫馨奶茶風</title>
+
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/member/style.css}" />
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <div class="container">
+        <div class="navbar-brand d-flex align-items-center">
+            <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-3">
+            <span style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 公告管理</span>
+        </div>
+        <a class="btn btn-outline-light" th:href="@{/}">
+            <i class="fas fa-home"></i> 回首頁
+        </a>
+    </div>
+</nav>
+
+<div class="container mt-4">
+
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-circle"></i> <span th:utext="${errorMessage}"></span>
+    </div>
+
+    <div class="row">
+        <!-- 左側：查詢與新增 -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-search"></i> 查詢公告
+                </div>
+                <div class="card-body">
+                    <form method="get" th:action="@{/news/search}" class="mb-3">
+                        <div class="form-group">
+                            <label for="keyword">輸入標題關鍵字:</label>
+                            <input type="text" id="keyword" name="keyword" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-search"></i> 搜尋
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <i class="fas fa-plus-circle"></i> 新增公告
+                </div>
+                <div class="card-body">
+                    <a th:href="@{/news/add}" class="btn btn-warning btn-block font-weight-bold">
+                        <i class="fas fa-plus"></i> 新增公告
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側：公告列表 -->
+        <div class="col-lg-8">
+            <div class="card" th:if="${newsList != null and not #lists.isEmpty(newsList)}">
+                <div class="card-header">
+                    <i class="fas fa-newspaper"></i> 公告列表
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>公告ID</th>
+                                    <th>員工編號</th>
+                                    <th>標題</th>
+                                    <th>上架時間</th>
+                                    <th>下架時間</th>
+                                    <th>狀態</th>
+                                    <th>內文</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="news : ${newsList}">
+                                    <td th:text="${news.newsId}"></td>
+                                    <td th:text="${news.employeeId}"></td>
+                                    <td th:text="${news.title}"></td>
+                                    <td th:text="${#temporals.format(news.startTime, 'yyyy-MM-dd HH:mm')}"></td>
+                                    <td th:text="${news.endTime != null ? #temporals.format(news.endTime, 'yyyy-MM-dd HH:mm') : '無'}"></td>
+                                    <td th:text="${news.status == 1 ? '啟用' : '停用'}"></td>
+                                    <td th:text="${#strings.abbreviate(news.content, 50)}"></td>
+                                    <td>
+                                        <form method="get" th:action="@{'/news/edit/' + ${news.newsId}}" style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="fas fa-edit"></i> 修改
+                                            </button>
+                                        </form>
+                                        <form method="post" th:action="@{/news/delete}" style="display: inline;"
+                                              onsubmit="return confirm('確定要刪除這則公告嗎？');">
+                                            <input type="hidden" name="newsId" th:value="${news.newsId}" />
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash-alt"></i> 刪除
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+<script th:src="@{/webjars/popper.js/1.14.3/umd/popper.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+
+</body>
+</html>
