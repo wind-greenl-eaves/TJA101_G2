@@ -12,23 +12,37 @@
 
 
 <style>
+    /* 【新增】定義全站色彩變數 */
+    :root {
+        --bg-color: #FDFBF6;      /* 背景色 - 杏仁白 */
+        --container-bg: #F5EFE6; /* 容器背景 - 燕麥色 */
+        --primary-color: #A67B5B; /* 主題色 - 奶茶棕 */
+        --primary-hover: #8C684A; /* 主題懸停色 - 深焙奶茶 */
+        --text-color: #5D534A;    /* 主要文字 - 炭焙棕 */
+        --text-deep: #3C2A21;     /* 極深咖啡色，用於強調 */
+        --border-color: #DED0B6;  /* 邊框色 - 餅乾米 */
+        --accent-color: #E1A87A;  /* 點綴色 - 焦糖橘 */
+    }
+
     body {
         font-family: 'Noto Sans TC', sans-serif;
-        background-color: #f8f9fa;
-        color: #343a40;
-        /* 因為還原後的導航欄比較高，增加頂部間距來避免內容被遮擋 */
+        background-color: var(--bg-color); /* 【套用】背景色 */
+        color: var(--text-color);          /* 【套用】主要文字顏色 */
         padding-top: 180px; 
     }
 
-    /* 【還原】定義圖片中 "Hello" 字樣的顏色 */
+    /* 【調整】頂部導航欄，使用深色背景以突顯內容 */
+    .navbar-custom-style {
+        background-color: var(--text-deep) !important; /* 使用Important覆蓋Bootstrap預設 */
+    }
+
     .hello-color {
-        color: #FFEB3B; /* 改為明亮的黃色 */
+        color: var(--accent-color); /* 【套用】點綴色 */
         font-weight: bold;
     }
     
-    /* 【新增】定義技術棧文字的綠色樣式 */
     .tech-stack-green {
-        color: #65fe08; /* 改為更明亮的綠色 */
+        color: var(--accent-color); /* 【套用】點綴色 */
         font-weight: bold;
     }
 
@@ -38,53 +52,51 @@
         padding: 2rem 1.5rem;
     }
     
-    /* 【修改】中間標題區域的樣式 */
     .custom-title-section {
         margin-bottom: 1.5rem;
         font-weight: bold;
     }
     .title-line-1 {
-        color: red;
+        color: var(--primary-color); /* 【套用】主題色 */
         font-size: 2rem;
     }
     .title-line-2 {
         font-size: 2rem;
     }
-    /* 為超連結設定基本樣式 */
     .title-line-2 a {
-        text-decoration: none; /* 預設移除底線 */
-        transition: opacity 0.2s ease-in-out; /* 平滑過渡效果 */
+        text-decoration: none;
+        transition: opacity 0.2s ease-in-out;
     }
-    /* 滑鼠懸停時的效果 */
     .title-line-2 a:hover {
-        opacity: 0.7; /* 讓顏色稍微變淡 */
-        text-decoration: underline; /* 滑鼠移上去時顯示底線 */
+        opacity: 0.7;
+        text-decoration: underline;
     }
     .title-line-2 .red-part {
-        color: red;
+        color: var(--primary-color); /* 【套用】主題色 */
     }
     .title-line-2 .blue-part {
-        color: blue;
+        color: var(--accent-color); /* 【套用】點綴色 */
     }
     .title-line-2 .black-part {
-        color: #343a40; /* 使用標準文字顏色 */
+        color: var(--text-color); /* 【套用】主要文字顏色 */
     }
 
-    /* Call-to-Action 按鈕樣式 */
+    /* 【調整】Call-to-Action 按鈕樣式 */
     .btn-custom-action {
         font-weight: 500;
         font-size: 1.1rem;
-        color: #fff;
-        background-color: #007bff;
-        border-color: #007bff;
+        color: var(--bg-color);                   /* 【套用】文字使用背景色 */
+        background-color: var(--primary-color);   /* 【套動】按鈕背景使用主題色 */
+        border-color: var(--primary-color);       /* 【套動】邊框同上 */
         padding: 0.75rem 1.5rem;
         border-radius: 50px;
         transition: all 0.3s ease;
         box-shadow: 0 4px 6px rgba(0,0,0,.1);
     }
     .btn-custom-action:hover {
-        background-color: #0056b3;
-        border-color: #0056b3;
+        color: var(--bg-color);
+        background-color: var(--primary-hover); /* 【套用】懸停色 */
+        border-color: var(--primary-hover);     /* 【套用】懸停色 */
         transform: translateY(-2px);
         box-shadow: 0 6px 8px rgba(0,0,0,.15);
     }
@@ -98,12 +110,12 @@
         gap: 30px;
     }
 
-    /* 卡片樣式 */
+    /* 【調整】卡片樣式 */
     .list-box {
-        border: none;
+        border: 1px solid var(--border-color); /* 【套用】邊框色 */
         padding: 30px;
         border-radius: 12px;
-        background-color: #ffffff;
+        background-color: var(--container-bg); /* 【套用】容器背景色 */
         width: 100%;
         max-width: 48%;
         box-shadow: 0 4px 12px rgba(0,0,0,.08);
@@ -123,15 +135,15 @@
 
     .list-box h3 {
         font-weight: 700;
-        color: #007bff;
-        border-bottom: 2px solid #e9ecef;
+        color: var(--text-deep); /* 【套用】深色文字，用於強調 */
+        border-bottom: 2px solid var(--border-color); /* 【套用】邊框色 */
         padding-bottom: 15px;
         margin-bottom: 20px;
     }
     
     .list-box li {
         padding: 8px 0;
-        color: #495057;
+        color: var(--text-color); /* 【套用】主要文字顏色 */
         list-style: none;
         position: relative;
         padding-left: 25px;
@@ -141,17 +153,17 @@
         content: '✓';
         position: absolute;
         left: 0;
-        color: #28a745;
+        color: var(--primary-color); /* 【套用】主題色 */
         font-weight: bold;
     }
 
-    /* 頁腳 */
+    /* 【調整】頁腳樣式 */
     .footer {
         text-align: center;
         padding: 30px 0;
         margin-top: 50px;
-        background-color: #343a40;
-        color: #adb5bd;
+        background-color: var(--text-deep); /* 【套用】深色背景 */
+        color: var(--container-bg);         /* 【套用】淺色文字 */
     }
 
 </style>
@@ -159,7 +171,8 @@
 </head>
 <body>
 
-<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top justify-content-center" th:fragment="mynavbar">
+<!-- 【調整】將 Bootstrap 的 bg-dark 替換為我們自定義的 navbar-custom-style -->
+<nav class="navbar navbar-expand-md navbar-dark fixed-top justify-content-center navbar-custom-style" th:fragment="mynavbar">
     <div align="center">
         <h2 style="font-size: 30px; width: max-content; color: white;">
             <span class="hello-color" th:text="'Hello, ' + ${message} +' : '"></span> 
@@ -184,7 +197,6 @@
         <div class="custom-title-section">
             <h2 class="title-line-1"><b>前端展示層(View) - 搭配Thymeleaf模板引擎 - 改用HTML</b></h2>
             <h1 class="title-line-2">
-                <!-- 【修改】將 span 替換為 a 標籤，並加入超連結 -->
                 <a href="https://spring.io/projects/spring-boot" target="_blank" class="red-part"><b>Spring Boot</b></a>
                 <span class="black-part"><b> + </b></span>
                 <a href="https://maven.apache.org/" target="_blank" class="blue-part"><b>Maven</b></a>
@@ -198,6 +210,12 @@
         </div>
         
         <hr><br>
+        <!-- 【確認】此處的連結是關鍵。
+             th:href="@{/member/select_page}" 會產生一個指向 "/member/select_page" 的 URL。
+             這個 URL 會被 `MemberController` 中的 `@GetMapping("/select_page")` 方法攔截，
+             該方法最終會回傳 "back-end/member/select_page_member" 這個視圖名稱，
+             進而成功渲染 `select_page_member.html` 頁面。
+             所以，這個連結是完全正確的。 -->
         <a th:href="@{/member/select_page}" class="btn btn-custom-action">Click here to Spring MVC + Thymeleaf Project</a>
     </div>
        

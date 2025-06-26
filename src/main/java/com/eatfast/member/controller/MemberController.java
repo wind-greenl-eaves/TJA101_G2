@@ -1,7 +1,7 @@
 package com.eatfast.member.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
@@ -11,103 +11,125 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
 import com.eatfast.member.model.MemberEntity;
 import com.eatfast.member.service.MemberService;
 
 /**
  * 會員功能控制器 (Controller)
  * 負責處理所有與會員資料相關的 HTTP 請求，例如查詢、新增等。
+ * @RequestMapping("/member") - 【重點註記: 類別層級路徑】
+ * - 此註解設定了這個 Controller 的「基底路徑」。
+ * - 所有在此類別中的方法，其最終 URL 都會以 "/member" 作為開頭。
  */
 @Controller
 @RequestMapping("/member")
 public class MemberController {
 
-    // 自動注入 MemberService，用來處理實際的業務邏輯。
-    @Autowired
-    MemberService memberService;
+    private final MemberService memberService;
+
+    public MemberController(MemberService memberService) {
+        this.memberService = memberService;
+    }
     
     /**
-     * 顯示會員查詢及列表頁面。
-     * @param model 用於將會員列表傳遞到前端。
-     * @return 會員查詢頁面的視圖名稱。
+     * 【功能】: 顯示會員資料管理主頁面。
+     * - 此方法為使用者進入會員管理功能的「入口」。
+     * - 會預先載入所有會員資料，並呈現在頁面右側的列表。
      */
-    @GetMapping("/select_page")
+    //【重點註記: 請求路徑】--> GET http://localhost:8080/member/select_page
+    @GetMapping("/select_page") 
     public String showSelectPage(Model model) {
         List<MemberEntity> list = memberService.getAllMembers();
         model.addAttribute("memberListData", list);
+        //【重點註記: 返回視圖】--> 前往 /templates/back-end/member/select_page_member.html
         return "back-end/member/select_page_member";
     }
 
     /**
-     * 根據帳號查詢單一會員資料。
-     * @param account 從請求中獲取的會員帳號。
-     * @param model 用於傳遞查詢結果或錯誤訊息。
-     * @return 會員查詢頁面的視圖名稱。
+     * 【功能】: 處理「依會員帳號查詢」的請求。
+     * - 對應前端 <form th:action="@{/member/getOneForDisplay}"> 的提交。
+     * - 使用 @RequestParam("account") 來精準獲取 name="account" 的 input 值。
      */
-    @PostMapping("/getOneForDisplay")
+    //【重點註記: 請求路徑】--> POST http://localhost:8080/member/getOneForDisplay
+    @PostMapping("/getOneForDisplay") 
     public String getOneForDisplay(@RequestParam("account") String account, Model model) {
 
-        // 伺服器端基本驗證：防止空值查詢。
         if (account == null || account.trim().isEmpty()) {
             model.addAttribute("errorMessage", "會員帳號: 請勿空白");
-            // 為了讓錯誤頁面能正常顯示，依然需要將列表資料傳回去。
-            List<MemberEntity> list = memberService.getAllMembers();
-            model.addAttribute("memberListData", list);
+            model.addAttribute("memberListData", memberService.getAllMembers());
             return "back-end/member/select_page_member";
         }
         
-        // 呼叫 Service 查詢，並將結果傳遞給前端。
         Optional<MemberEntity> optionalMember = memberService.getMemberByAccount(account);
-        List<MemberEntity> list = memberService.getAllMembers();
-        model.addAttribute("memberListData", list);
 
         if (optionalMember.isEmpty()) {
             model.addAttribute("errorMessage", "查無資料");
+            model.addAttribute("memberListData", memberService.getAllMembers()); 
         } else {
             model.addAttribute("member", optionalMember.get());
+            model.addAttribute("memberListData", Collections.singletonList(optionalMember.get()));
         }
         
+        //【重點註記: 返回視圖】--> 重新整理 select_page_member.html 頁面，並顯示查詢結果或錯誤訊息。
         return "back-end/member/select_page_member";
     }
     
     /**
-     * 轉發到新增會員的頁面。
-     * @param model 用於放置一個空的 MemberEntity 物件，供表單綁定。
-     * @return 新增會員頁面的視圖名稱。
+     * 【功能】: 處理「萬用複合查詢」的請求。
+     * - 對應前端 <form th:action="@{/member/listMembers_ByCompositeQuery}"> 的提交。
+     * - 使用 Map<String, String[]> map 來動態接收所有查詢欄位，彈性極高。
      */
-    @GetMapping("/addMember")
-    public String showAddForm(ModelMap model) {
-        model.addAttribute("memberEntity", new MemberEntity());
-        return "back-end/member/addMember";
+    //【重點註記: 請求路徑】--> POST http://localhost:8080/member/listMembers_ByCompositeQuery
+    @PostMapping("/listMembers_ByCompositeQuery") 
+    public String listMembersByCompositeQuery(@RequestParam Map<String, String[]> map, Model model) {
+        List<MemberEntity> list = memberService.getAllMembers(map);
+        model.addAttribute("memberListData", list);
+        model.addAttribute("param", map);
+        //【重點註記: 返回視圖】--> 重新整理 select_page_member.html 頁面，並顯示過濾後的會員列表。
+        return "back-end/member/select_page_member";
     }
 
     /**
-     * 處理新增會員的表單提交。
-     * @param memberEntity Spring 自動將表單資料綁定成的物件。
-     * @param result 驗證結果的容器。
-     * @param model 用於傳遞成功或失敗的相關資料。
-     * @return 成功則導向列表頁；失敗則返回新增頁面。
+     * 【功能】: 轉發至「新增會員」的頁面。
+     * - 對應前端 <a th:href="@{/member/addMember}"> 的點擊事件。
+     * - 準備一個空的 MemberEntity 物件，供新增表單進行資料綁定。
      */
-    @PostMapping("/insert")
-    public String insert(
-            @Valid @ModelAttribute("memberEntity") MemberEntity memberEntity,
-            BindingResult result,
-            ModelMap model) {
+    //【重點註記: 請求路徑】--> GET http://localhost:8080/member/addMember
+    @GetMapping("/addMember") 
+    public String showAddForm(ModelMap model) {
+        model.addAttribute("memberEntity", new MemberEntity());
+        //【重點註記: 返回視圖】--> 前往 /templates/back-end/member/addMember.html
+        return "back-end/member/addMember"; 
+    }
 
-        // 如果後端驗證失敗，則返回新增頁面，並顯示詳細錯誤。
+    /**
+     * 【功能】: 處理從「新增會員」頁面提交的表單資料。
+     * - 接收前端傳來的表單資料，並使用 @ModelAttribute 將其自動封裝成 MemberEntity 物件。
+     * - @Valid 會觸發 MemberEntity 中設定的驗證規則。
+     */
+    //【重點註記: 請求路徑】--> POST http://localhost:8080/member/insert
+    @PostMapping("/insert") 
+    public String insert(@Valid @ModelAttribute("memberEntity") MemberEntity memberEntity,
+                         BindingResult result,
+                         ModelMap model) {
+
         if (result.hasErrors()) {
+            //【重點註記: 返回視圖 - 驗證失敗】--> 返回原新增頁面，並顯示錯誤訊息。
             return "back-end/member/addMember";
         }
 
-        // 呼叫 Service 儲存資料。
         memberService.saveOrUpdateMember(memberEntity);
 
-        // 新增成功後，重導向回列表頁，並附上成功訊息。
         List<MemberEntity> list = memberService.getAllMembers();
         model.addAttribute("memberListData", list);
         model.addAttribute("successMessage", "新增會員 " + memberEntity.getUsername() + " 成功！");
+        //【重點註記: 返回視圖 - 操作成功】--> 返回列表頁，並顯示成功訊息。
         return "back-end/member/select_page_member";
     }
 }
