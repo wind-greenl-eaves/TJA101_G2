@@ -48,53 +48,92 @@ DROP TABLE IF EXISTS store;                 -- 門市資料 (獨立父表)
 DROP TABLE IF EXISTS member;                -- 會員資料 (獨立父表)
 
 
--- =======================================================================================
--- 資料表: member (會員資料表)
--- 功能: 儲存所有註冊會員的基本資料、帳號密碼及聯絡方式。此為系統前台使用者的核心資料表。
--- =======================================================================================
-CREATE TABLE member (
+-- =================================================================
+-- 步驟一：建立 member 資料表 (支援軟刪除)
+-- =================================================================
+-- 這份 SQL 腳本定義了 member 資料表的結構。
+-- 關鍵點：
+-- 1. `gender` 欄位：使用 CHAR(1) 型別，並搭配 CHECK 約束，限制只能存入 'M', 'F', 'O' 三種值。
+-- 2. `is_enabled` 欄位：用於實現軟刪除。TRUE 代表啟用，FALSE 代表已刪除。
+-- 3. `INDEX idx_is_enabled`: 為 `is_enabled` 欄位建立索引，以優化只查詢啟用中會員的效能。
+-- =================================================================
+
+CREATE TABLE IF NOT EXISTS member (
     member_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '會員編號 (主鍵，自動增長)',
     username VARCHAR(20) NOT NULL COMMENT '會員真實姓名',
     account VARCHAR(50) NOT NULL COMMENT '登入帳號 (使用者自訂，不可重複)',
-    password VARCHAR(255) NOT NULL COMMENT '登入密碼 (應儲存經過加密後的雜湊值，例如 bcrypt)',
-    email VARCHAR(100) NOT NULL COMMENT '電子郵件 (用於帳號驗證、忘記密碼等，不可重複)',
-    phone VARCHAR(20) NOT NULL COMMENT '連絡電話 (用於訂單聯絡等)',
-    birthday DATE NOT NULL COMMENT '會員生日 (可用於生日優惠活動)',
-    last_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '資料最後更新時間，當此筆記錄有任何變動時，會自動更新為當前時間',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '帳號註冊時間，預設為新增記錄的當下時間',
+    password VARCHAR(255) NOT NULL COMMENT '登入密碼 (應儲存經過加密後的雜湊值)',
+    email VARCHAR(100) NOT NULL COMMENT '電子郵件 (不可重複)',
+    phone VARCHAR(20) NOT NULL COMMENT '連絡電話',
+    birthday DATE NOT NULL COMMENT '會員生日',
+     gender CHAR(1) NOT NULL COMMENT '性別 (M: 男性, F: 女性, O: 其他)',
+    -- 軟刪除標記欄位 --
+    is_enabled BOOLEAN NOT NULL DEFAULT TRUE COMMENT '軟刪除標記 (TRUE: 啟用, FALSE: 已刪除/停用)',
+        -- 時間戳記欄位 --
+    last_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '資料最後更新時間',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '帳號註冊時間',
+        -- 主鍵與唯一鍵约束 --
     PRIMARY KEY (member_id),
     UNIQUE KEY uk_account (account) COMMENT '設定 account 為唯一鍵，確保所有會員的登入帳號不重複',
-    UNIQUE KEY uk_email (email) COMMENT '設定 email 為唯一鍵，確保所有會員的電子郵件不重複'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='會員資料表，儲存前台使用者的所有資訊。';
+    UNIQUE KEY uk_email (email) COMMENT '設定 email 為唯一鍵，確保所有會員的電子郵件不重複',
+        -- 為軟刪除欄位建立索引以優化查詢效能 --
+    INDEX idx_is_enabled (is_enabled),
+    -- 【新增】CHECK 約束，確保性別欄位的資料正確性
+    CONSTRAINT chk_gender CHECK (gender IN ('M', 'F', 'O'))
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='會員資料表，儲存前台使用者的所有資訊 (已支援軟刪除)。';
+    
+-- 1. 我們不需要手動插入 member_id, is_enabled, created_at, last_updated_at 這些欄位，
+--    因為它們都有 AUTO_INCREMENT 或 DEFAULT 預設值，資料庫會自動處理。
+--
+-- 2. 【開發階段專用 - 安全性警告】
+--    為了方便開發初期測試，以下所有會員的密碼均設定為簡單的明文密碼。
+--    **嚴禁將此 SQL 腳本用於正式上線的產品環境！**
+--    正式環境的密碼必須經過後端 BCrypt 加密處理。
+-- =================================================================
 
-/*
- * -----------------------------------------------------
- * 範例資料: member
- * 說明: 新增 20 筆會員假資料，用於功能測試。 created_at 和 last_updated_at 將由資料庫自動生成。
- * -----------------------------------------------------
- */
-INSERT INTO member (username, account, password, email, phone, birthday) VALUES
-('陳怡君', 'yijun.chen', 'password001', 'yijun.chen@gmail.com', '0912-345-678', '1990-05-15'),
-('林志明', 'chiming.lin', 'password002', 'chiming.lin@gmail.com', '0928-765-432', '1985-11-22'),
-('黃美玲', 'meiling.huang', 'password003', 'meiling.huang@gmail.com', '0933-123-789', '1995-02-10'),
-('張家豪', 'chiahao.chang', 'password004', 'chiahao.chang@gmail.com', '0955-987-654', '1988-08-08'),
-('吳雅婷', 'yating.wu', 'password005', 'yating.wu@gmail.com', '0966-555-222', '1992-12-01'),
-('劉建宏', 'chienhung.liu', 'password006', 'chienhung.liu@gmail.com', '0910-111-333', '1979-07-25'),
-('蔡淑芬', 'shufen.tsai', 'password007', 'shufen.tsai@gmail.com', '0978-222-444', '1998-03-30'),
-('許文雄', 'wenhsiung.hsu', 'password008', 'wenhsiung.hsu@gmail.com', '0988-333-555', '1982-09-18'),
-('鄭曉涵', 'hsiaohan.cheng', 'password009', 'hsiaohan.cheng@gmail.com', '0919-444-666', '2001-01-05'),
-('王志偉', 'chihwei.wang', 'password010', 'chihwei.wang@gmail.com', '0921-888-777', '1993-06-12'),
-('方雅筑', 'yachu.fang', 'password011', 'yachu.fang@gmail.com', '0930-121-212', '1996-04-20'),
-('高明輝', 'minghui.kao', 'password012', 'minghui.kao@gmail.com', '0952-343-434', '1980-10-10'),
-('宋家玲', 'chialing.sung', 'password013', 'chialing.sung@gmail.com', '0970-565-656', '1991-08-25'),
-('李俊賢', 'chunhsien.li', 'password014', 'chunhsien.li@gmail.com', '0911-787-878', '1987-01-15'),
-('周心怡', 'hsinyi.chou', 'password015', 'hsinyi.chou@gmail.com', '0939-909-090', '1999-05-05'),
-('徐小曼', 'shauman.hsu', 'password016', 'shauman.hsu@gmail.com', '0963-111-999', '2000-02-29'),
-('趙偉倫', 'weilun.chao', 'password017', 'weilun.chao@gmail.com', '0925-123-456', '1994-03-18'),
-('孫小美', 'hsiaomei.sun', 'password018', 'hsiaomei.sun@gmail.com', '0935-234-567', '1989-07-07'),
-('錢大宇', 'tayun.chien', 'password019', 'tayun.chien@gmail.com', '0916-345-678', '1997-11-11'),
-('李美芳', 'meifang.li', 'password020', 'meifang.li@gmail.com', '0977-456-789', '1991-09-20');
+INSERT INTO member (username, account, password, email, phone, birthday, gender) VALUES
+('陳威宇', 'yijun.chen', 'password001', 'yijun.chen@gmail.com', '0912-345-678', '1990-05-15', 'M'),
+('林佳蓉', 'chiming.lin', 'password002', 'chiming.lin@gmail.com', '0928-765-432', '1985-11-22', 'F'),
+('黃冠霖', 'meiling.huang', 'password003', 'meiling.huang@gmail.com', '0933-123-789', '1995-02-10', 'M'),
+('張雅筑', 'chiahao.chang', 'password004', 'chiahao.chang@gmail.com', '0955-987-654', '1988-08-08', 'F'),
+('李俊賢', 'yating.wu', 'password005', 'yating.wu@gmail.com', '0966-555-222', '1992-12-01', 'M'),
+('王志明', 'chienhung.liu', 'password006', 'chienhung.liu@gmail.com', '0910-111-333', '1979-07-25', 'M'),
+('陳靜香', 'shufen.tsai', 'password007', 'shufen.tsai@gmail.com', '0978-222-444', '1998-03-30', 'F'),
+('林承翰', 'wenhsiung.hsu', 'password008', 'wenhsiung.hsu@gmail.com', '0988-333-555', '1982-09-18', 'M'),
+('黃詩涵', 'hsiaohan.cheng', 'password009', 'hsiaohan.cheng@gmail.com', '0919-444-666', '2001-01-05', 'F'),
+('張志偉', 'chihwei.wang', 'password010', 'chihwei.wang@gmail.com', '0921-888-777', '1993-06-12', 'M'),
+('李美芳', 'yachu.fang', 'password011', 'yachu.fang@gmail.com', '0930-121-212', '1996-04-20', 'F'),
+('王淑芬', 'minghui.kao', 'password012', 'minghui.kao@gmail.com', '0952-343-434', '1980-10-10', 'F'),
+('陳俊傑', 'chialing.sung', 'password013', 'chialing.sung@gmail.com', '0970-565-656', '1991-08-25', 'M'),
+('林心怡', 'chunhsien.li', 'password014', 'chunhsien.li@gmail.com', '0911-787-878', '1987-01-15', 'F'),
+('黃俊彥', 'hsinyi.chou', 'password015', 'hsinyi.chou@gmail.com', '0939-909-090', '1999-05-05', 'M'),
+('張文傑', 'shauman.hsu', 'password016', 'shauman.hsu@gmail.com', '0963-111-999', '2000-02-29', 'M'),
+('李宗霖', 'weilun.chao', 'password017', 'weilun.chao@gmail.com', '0925-123-456', '1994-03-18', 'M'),
+('王建民', 'hsiaomei.sun', 'password018', 'hsiaomei.sun@gmail.com', '0935-234-567', '1989-07-07', 'M'),
+('陳雅涵', 'tayun.chien', 'password019', 'tayun.chien@gmail.com', '0916-345-678', '1997-11-11', 'F'),
+('林建宏', 'meifang.li', 'password020', 'meifang.li@gmail.com', '0977-456-789', '1991-09-20', 'M'),
+('黃美玲', 'yuyen.peng', 'password021', 'yuyen.peng@test.com', '0911-111-111', '1982-03-24', 'F'),
+('張惠婷', 'ning.chang', 'password022', 'ning.chang@test.com', '0922-222-222', '1982-09-04', 'F'),
+('李靜怡', 'ethan.juan', 'password023', 'ethan.juan@test.com', '0933-333-333', '1982-11-08', 'F'),
+('王心妤', 'lunmei.kwei', 'password024', 'lunmei.kwei@test.com', '0944-444-444', '1983-12-25', 'F'),
+('陳宗翰', 'jay.chou', 'password025', 'jay.chou@test.com', '0955-555-555', '1979-01-18', 'M'),
+('林曉慧', 'jolin.tsai', 'password026', 'jolin.tsai@test.com', '0966-666-666', '1980-09-15', 'F'),
+('黃家豪', 'ashin.chen', 'password027', 'ashin.chen@test.com', '0977-777-777', '1975-12-06', 'M'),
+('張博翔', 'hebe.tien', 'password028', 'hebe.tien@test.com', '0988-888-888', '1983-03-30', 'M'),
+('李婉婷', 'jj.lin', 'password029', 'jj.lin@test.com', '0918-181-818', '1981-03-27', 'F'),
+('王冠廷', 'gem.tang', 'password030', 'gem.tang@test.com', '0928-282-828', '1991-08-16', 'M');
 
+
+-- =================================================================
+-- 範例：如何插入「已被軟刪除」的會員資料
+-- =================================================================
+-- 有時候可能需要從後台直接新增一筆停用狀態的帳號。
+-- 這時我們就需要明確地指定 `is_enabled` 欄位的值為 FALSE。
+-- =================================================================
+
+INSERT INTO member (username, account, password, email, phone, birthday, gender, is_enabled) VALUES
+('黃明志', 'disabled.user1', 'password999', 'disabled.user1@example.com', '0900-000-000', '2000-01-01', 'O', FALSE),
+('王力宏', 'disabled.user2', 'password998', 'disabled.user2@example.com', '0900-000-001', '2001-02-02', 'O', FALSE);
 -- =======================================================================================
 -- 資料表: store (門市資料表)
 -- 功能: 儲存所有分店的基本資訊，如地址、電話、營業時間等。此為員工和訂單的關聯對象。

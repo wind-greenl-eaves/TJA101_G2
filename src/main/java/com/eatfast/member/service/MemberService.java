@@ -39,17 +39,18 @@ public class MemberService {
 	
     private final MemberRepository memberRepository;
 
-//    /**
-//     * 使用建構子注入 MemberRepository。
-//     * 這是 Spring 官方推薦的最佳實踐，能讓依賴關係更明確且易於單元測試。
-//     * @param memberRepository Spring 容器會自動傳入 MemberRepository 的實例。
-//     */
+    /**
+     * 使用建構子注入 MemberRepository。
+     * 這是 Spring 官方推薦的最佳實踐，能讓依賴關係更明確且易於單元測試。
+     * @param memberRepository Spring 容器會自動傳入 MemberRepository 的實例。
+     */
     public MemberService(MemberRepository memberRepository) {
         this.memberRepository = memberRepository;
     }
 
     /**
      * 新增或更新一筆會員資料。
+     * 【注意】此處尚未實作密碼加密邏輯。
      */
     @Transactional
     public MemberEntity saveOrUpdateMember(MemberEntity memberEntity) {
@@ -67,10 +68,12 @@ public class MemberService {
 
     /**
      * 根據會員帳號刪除會員。
+     * 【已修改】呼叫 Repository 中正確的軟刪除方法。
      */
     @Transactional 
     public void deleteMemberByAccount(String account) {
-        memberRepository.deleteByAccount(account);
+        // 修正：呼叫 softDeleteByAccount，確保執行的是軟刪除
+        memberRepository.softDeleteByAccount(account);
     }
 
     /**
@@ -85,6 +88,15 @@ public class MemberService {
      */
     public Optional<MemberEntity> getMemberByAccount(String account) {
         return memberRepository.findByAccount(account);
+    }
+    
+    /**
+     * 根據會員 Email 查詢會員。
+     * @param email 要查詢的電子郵件
+     * @return 包含會員的 Optional，如果找不到則為空
+     */
+    public Optional<MemberEntity> getMemberByEmail(String email) {
+        return memberRepository.findByEmail(email);
     }
 
     /**
