@@ -7,5 +7,7 @@ public class xxx {
 	public xxx(String name, int age) {
 		this.name = name;
 		this.age = age;
+//		888888
+//		00000
 	}
 }
