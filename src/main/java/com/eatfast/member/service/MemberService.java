@@ -1,61 +1,98 @@
 package com.eatfast.member.service;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
+import com.eatfast.member.model.MemberEntity;
+import com.eatfast.member.repository.MemberRepository;
+import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-// 引入 SLF4J 日誌框架
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder; // ★ 步驟1: 引入 PasswordEncoder
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.eatfast.member.model.MemberEntity;
-import com.eatfast.member.repository.MemberRepository; 
-
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-
 /**
- * ★★★★★會員服務層 (Service)負責處理會員相關的業務邏輯，並作為 Controller 和 Repository 之間的中介。
- * 它封裝了資料存取的細節，向上層提供清晰的業務方法。
- * @Service - 標記這是一個服務層的組件，Spring 會自動管理它的生命週期。
- * @Transactional(readOnly = true) - 在類別層級設定，預設所有公開方法都處於「唯讀」交易中，以提升查詢效能。
- * 需要寫入資料的方法則需單獨標記 @Transactional 來覆寫此設定。
+ * ★★★★★會員服務層 (Service) - 已整合密碼加密功能。
  */
 @Service
 @Transactional(readOnly = true) 
 public class MemberService {
 
-    // 建立日誌物件 (Logger)，'log' 是約定俗成的變數名稱
     private static final Logger log = LoggerFactory.getLogger(MemberService.class);
 	
     private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder; // ★ 步驟2: 宣告 PasswordEncoder 變數
 
     /**
-     * 使用建構子注入 MemberRepository。
+     * ★ 步驟3: 修改建構子，注入 PasswordEncoder
      * 這是 Spring 官方推薦的最佳實踐，能讓依賴關係更明確且易於單元測試。
      * @param memberRepository Spring 容器會自動傳入 MemberRepository 的實例。
+     * @param passwordEncoder Spring 容器會自動傳入我們在 SecurityConfig 中定義的 BCryptPasswordEncoder 實例。
      */
-    public MemberService(MemberRepository memberRepository) {
+    public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder) {
         this.memberRepository = memberRepository;
+        this.passwordEncoder = passwordEncoder; // 將注入的實例指派給成員變數
     }
-
+    
     /**
-     * 新增或更新一筆會員資料。
-     * 【注意】此處尚未實作密碼加密邏輯。
+     * ★ 步驟4: 【核心邏輯】註冊新會員或重新啟用舊會員。
+     * 這個方法專門處理來自註冊表單的請求，並包含完整的密碼加密流程。
+     *
+     * @param memberEntity 從 Controller 傳來、包含使用者在表單中填寫資料的 MemberEntity 物件。
+     * @return 儲存到資料庫後、包含最終狀態 (如加密後密碼) 的 MemberEntity。
      */
-    @Transactional
-    public MemberEntity saveOrUpdateMember(MemberEntity memberEntity) {
+    @Transactional // 標記為可寫入交易
+    public MemberEntity registerOrReactivateMember(MemberEntity memberEntity) {
+        
+        // 取得從表單提交過來的原始密碼
+        String rawPassword = memberEntity.getPassword();
+        
+        // 檢查原始密碼是否存在且不為空
+        if (rawPassword != null && !rawPassword.trim().isEmpty()) {
+            // ★ 使用注入的 passwordEncoder 對原始密碼進行加密
+            String encodedPassword = passwordEncoder.encode(rawPassword);
+            // ★ 將加密後的密碼設定回 memberEntity 物件
+            memberEntity.setPassword(encodedPassword);
+            log.info("帳號 {} 的密碼已成功加密。", memberEntity.getAccount());
+        } else {
+            // 如果是更新一個沒有提供密碼的會員資料，就不處理密碼欄位
+            // 在「重新啟用」的案例中，我們需要確保密碼欄位有被處理
+            // 此處的邏輯假設「重新啟用」時一定會要求使用者重設密碼
+            log.warn("註冊或重新啟用會員 {} 時未提供密碼。", memberEntity.getAccount());
+        }
+
+        // 呼叫 repository 的 save 方法，此時傳入的 memberEntity 中的密碼已經是加密過的了
         return memberRepository.save(memberEntity);
     }
+    
+    /**
+     * 【更新專用】更新現有會員的基本資料。
+     * 這個方法被設計為不處理密碼欄位，以避免意外覆蓋掉已加密的密碼。
+     *
+     * @param memberToUpdate 從 Controller 傳來、包含要更新資料的 MemberEntity。
+     * @return 更新後的 MemberEntity。
+     */
+    @Transactional
+    public MemberEntity updateMemberDetails(MemberEntity memberToUpdate) {
+        // 從資料庫讀取最新的會員資料
+        return memberRepository.findById(memberToUpdate.getMemberId()).map(dbMember -> {
+            // 將表單中的資料更新到從資料庫讀取出的物件上
+            dbMember.setUsername(memberToUpdate.getUsername());
+            dbMember.setEmail(memberToUpdate.getEmail());
+            dbMember.setPhone(memberToUpdate.getPhone());
+            dbMember.setBirthday(memberToUpdate.getBirthday());
+            dbMember.setGender(memberToUpdate.getGender());
+            dbMember.setEnabled(memberToUpdate.isEnabled());
+            // **注意**：此處【刻意不】設定密碼 (dbMember.setPassword(...))
+            
+            return memberRepository.save(dbMember); // 儲存更新
+        }).orElseThrow(() -> new RuntimeException("找不到ID為 " + memberToUpdate.getMemberId() + " 的會員"));
+    }
+
 
     /**
      * 根據會員ID刪除會員。
@@ -66,73 +103,35 @@ public class MemberService {
         memberRepository.deleteById(memberId);
     }
 
-    /**
-     * 根據會員帳號刪除會員。
-     * 【已修改】呼叫 Repository 中正確的軟刪除方法。
-     */
-    @Transactional 
-    public void deleteMemberByAccount(String account) {
-        // 修正：呼叫 softDeleteByAccount，確保執行的是軟刪除
-        memberRepository.softDeleteByAccount(account);
-    }
-
-    /**
-     * 根據會員ID查詢會員。
-     */
+    // ... 其他既有的查詢方法維持不變 ...
     public Optional<MemberEntity> getMemberById(Long memberId) {
         return memberRepository.findById(memberId);
     }
 
-    /**
-     * 根據會員帳號查詢會員。
-     */
     public Optional<MemberEntity> getMemberByAccount(String account) {
         return memberRepository.findByAccount(account);
     }
     
-    /**
-     * 根據會員 Email 查詢會員。
-     * @param email 要查詢的電子郵件
-     * @return 包含會員的 Optional，如果找不到則為空
-     */
     public Optional<MemberEntity> getMemberByEmail(String email) {
         return memberRepository.findByEmail(email);
     }
 
-    /**
-     * 檢查指定的帳號或電子郵件是否已經存在。
-     */
     public boolean memberExists(String account, String email) {
         return memberRepository.existsByAccountOrEmail(account, email);
     }
 
-    /**
-     * 查詢所有會員資料。
-     */
     public List<MemberEntity> getAllMembers() {
         return memberRepository.findAll();
     }
     
-    /**
-     * 【全新功能】查詢會員 (包含已被軟刪除的)。
-     * * @param account 要查詢的會員帳號
-     */
     public Optional<MemberEntity> getMemberByAccountIncludeDisabled(String account) {
         return memberRepository.findByAccountIncludeDisabled(account);
     }
-    // /**
-//	 * 【全新功能】查詢會員 Email (包含已被軟刪除的)。
-//	 * @param email 要查詢的電子郵件
-//	 */
+
     public Optional<MemberEntity> getMemberByEmailIncludeDisabled(String email) {
         return memberRepository.findByEmailIncludeDisabled(email);
     }
 
-    /**
-     * ★★★★★【複合查詢】根據多個動態條件查詢會員 (使用 JPA Specification)。★★★★★
-     * @param map [可變] 一個 Map，其 Key 是查詢欄位(如 "username")，Value 是字符串數組。
-     * @return 符合查詢條件的會員列表。
-     */
     public List<MemberEntity> getAllMembers(Map<String, String[]> map) {
         Specification<MemberEntity> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -155,32 +154,18 @@ public class MemberService {
                     
                     switch (key) {
                         case "username":
-                            predicates.add(criteriaBuilder.like(
-                                root.get("username"),
-                                "%" + value + "%"
-                            ));
+                            predicates.add(criteriaBuilder.like(root.get("username"), "%" + value + "%"));
                             break;
-                            
                         case "email":
-                            predicates.add(criteriaBuilder.equal(
-                                root.get("email"),
-                                value
-                            ));
+                            predicates.add(criteriaBuilder.equal(root.get("email"), value));
                             break;
-                            
                         case "phone":
-                            predicates.add(criteriaBuilder.like(
-                                root.get("phone"),
-                                "%" + value + "%"
-                            ));
+                            predicates.add(criteriaBuilder.like(root.get("phone"), "%" + value + "%"));
                             break;
                     }
                 }
             }
-            
-            return predicates.isEmpty() ? 
-                criteriaBuilder.conjunction() : 
-                criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
 
         return memberRepository.findAll(spec);
