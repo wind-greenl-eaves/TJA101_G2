@@ -24,6 +24,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * [控制層] 會員功能控制器 - 已對接加密服務
@@ -31,7 +34,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/member")
 public class MemberController {
-
+    
+    private static final Logger log = LoggerFactory.getLogger(MemberController.class);
+    
     private final MemberService memberService;
 
     public MemberController(MemberService memberService) {
@@ -140,10 +145,59 @@ public class MemberController {
     }
 
     @PostMapping("/listMembers_ByCompositeQuery")
-    public String listMembersByCompositeQuery(@RequestParam Map<String, String[]> map, Model model) {
-        List<MemberEntity> list = memberService.getAllMembers(map);
-        model.addAttribute("memberListData", list);
-        model.addAttribute("param", map); // 修正：將 map 傳回前端
+    public String listMembersByCompositeQuery(@RequestParam Map<String, String> map, Model model) {
+        try {
+            log.debug("接收到的查詢參數: {}", map);
+
+            // 移除 _csrf 相關參數（如果有的話）
+            map.remove("_csrf");
+
+            // 檢查是否有任何搜尋條件
+            boolean hasValidSearchCriteria = map.entrySet().stream()
+                .filter(entry -> !entry.getKey().startsWith("_"))
+                .anyMatch(entry -> entry.getValue() != null && !entry.getValue().trim().isEmpty());
+
+            if (!hasValidSearchCriteria) {
+                model.addAttribute("errorMessage", "請至少輸入一個搜尋條件");
+                return "back-end/member/select_page_member";
+            }
+
+            // 將單一字串參數轉換為字串陣列格式
+            Map<String, String[]> searchMap = new HashMap<>();
+            map.forEach((key, value) -> {
+                if (!key.startsWith("_") && value != null && !value.trim().isEmpty()) {
+                    searchMap.put(key, new String[]{value.trim()});
+                }
+            });
+            
+            log.debug("轉換後的查詢參數: {}", searchMap);
+
+            List<MemberEntity> list = memberService.getAllMembers(searchMap);
+            
+            if (list.isEmpty()) {
+                model.addAttribute("errorMessage", "查無符合條件的會員資料");
+            } else {
+                model.addAttribute("memberListData", list);
+                log.debug("查詢結果筆數: {}", list.size());
+            }
+            
+            // 將查詢參數放回 Model
+            model.addAttribute("searchParams", searchMap);
+            
+        } catch (Exception e) {
+            log.error("複合查詢發生錯誤: {}", e.getMessage(), e);
+            model.addAttribute("errorMessage", "查詢過程發生錯誤，請稍後再試");
+            
+            // 創建一個新的 Map 來存儲參數，以便在錯誤時顯示
+            Map<String, String[]> errorMap = new HashMap<>();
+            map.forEach((key, value) -> {
+                if (!key.startsWith("_")) {
+                    errorMap.put(key, new String[]{value});
+                }
+            });
+            model.addAttribute("searchParams", errorMap);
+        }
+        
         return "back-end/member/select_page_member";
     }
 

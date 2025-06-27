@@ -148,16 +148,18 @@
                         <i class="fas fa-filter"></i> 萬用複合查詢
                     </div>
                     <div class="card-body">
-                        <form method="post" th:action="@{/member/listMembers_ByCompositeQuery}" class="needs-validation" novalidate>
+                        <form method="post" id="composite-query-form" th:action="@{/member/listMembers_ByCompositeQuery}" class="needs-validation" novalidate>
                             <div class="form-group">
                                 <label for="username">會員姓名 (模糊):</label>
+                                <!-- ★★★★★【最終修正】: 改為讀取從 Controller 明確傳來的 searchParams 物件 ★★★★★ -->
                                 <input type="text" id="username" name="username" class="form-control"
-                                       pattern="^[\u4e00-\u9fa5]{0,20}$"
+                                       th:value="${searchParams != null and searchParams.get('username') != null} ? ${searchParams.get('username')[0]} : ''"
+                                       pattern="^[\u4e00-\u9fa5]*$"
                                        maxlength="20"
                                        title="請輸入中文姓名（最多20個字）"
-                                       placeholder="請輸入中文姓名">
-                                <div class="invalid-feedback position-absolute" style="font-size: 0.9rem; color: #dc3545;">
-                                    請輸入中文字
+                                       placeholder="可輸入部分中文姓名">
+                                <div class="invalid-feedback">
+                                    請只輸入中文字。
                                 </div>
                                 <div id="username-warning" class="mt-1" style="display: none; color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; padding: 0.5rem; border-radius: 0.25rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                     <i class="fas fa-keyboard"></i> 請使用中文輸入法
@@ -165,20 +167,25 @@
                             </div>
                             <div class="form-group">
                                 <label for="email">電子郵件 (精確):</label>
+                                <!-- ★★★★★【最終修正】: 改為讀取從 Controller 明確傳來的 searchParams 物件 ★★★★★ -->
                                 <input type="email" id="email" name="email" class="form-control"
-                                       pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                                       title="請輸入有效的電子郵件地址">
+                                       th:value="${searchParams != null and searchParams.get('email') != null} ? ${searchParams.get('email')[0]} : ''"
+                                       title="請輸入有效的電子郵件地址"
+                                       placeholder="例如: user@example.com">
                                 <div class="invalid-feedback">
-                                    請輸入有效的電子郵件地址
+                                    請輸入有效的電子郵件地址。
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="phone">連絡電話 (模糊):</label>
+                                <!-- ★★★★★【最終修正】: 改為讀取從 Controller 明確傳來的 searchParams 物件 ★★★★★ -->
                                 <input type="tel" id="phone" name="phone" class="form-control"
-                                       pattern="^[0-9\-()]*$"
-                                       title="電話號碼只能包含數字、橫線和括號">
+                                       th:value="${searchParams != null and searchParams.get('phone') != null} ? ${searchParams.get('phone')[0]} : ''"
+                                       pattern="^[0-9-]*$"
+                                       title="電話號碼只能包含數字和橫線(-)"
+                                       placeholder="可輸入部分電話號碼">
                                 <div class="invalid-feedback">
-                                    電話號碼格式不正確，只能包含數字、橫線和括號
+                                    電話號碼格式不正確，只能包含數字和橫線(-)。
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-success btn-block"><i class="fas fa-check-double"></i> 執行複合查詢</button>
@@ -206,7 +213,6 @@
                 <div id="single-result-card" class="card" th:if="${member != null}">
                     <div class="card-header" style="background-color: var(--milk-tea-info);">
                         <i class="fas fa-user"></i> 單筆查詢結果
-                        <!-- ★★★★★【已修改】使用 th:onclick 將正確的重導向 URL 傳遞給 JavaScript 函式 ★★★★★ -->
                         <button type="button" class="close-btn" aria-label="Close"
                                 th:onclick="'closeSingleResultCard(\'' + @{/member/select_page} + '\')'">
                             <span aria-hidden="true">&times;</span>
@@ -242,7 +248,7 @@
                                 <tr>
                                     <th scope="row" style="background-color: var(--milk-tea-bg);">性別</th>
                                     <td>
-                                        <span th:switch="${member.gender}">
+                                        <span th:switch="${member.gender.name()}"> <!-- 使用 .name() 取得 Enum 名稱 -->
                                             <span th:case="'M'"><i class="fas fa-mars"></i> 男性</span>
                                             <span th:case="'F'"><i class="fas fa-venus"></i> 女性</span>
                                             <span th:case="'O'"><i class="fas fa-genderless"></i> 其他</span>
@@ -306,7 +312,7 @@
                                                     <i class="fas fa-edit"></i> 修改
                                                 </button>
                                             </form>
-                                            <form method="post" th:action="@{/member/delete}" style="display: inline;">
+                                            <form method="post" th:action="@{/member/delete}" style="display: inline;" onsubmit="return confirm('您確定要刪除這位會員嗎？此操作將會是軟刪除。');">
                                                 <input type="hidden" name="memberId" th:value="${member.memberId}" />
                                                 <button type="submit" class="btn btn-sm btn-danger">
                                                     <i class="fas fa-trash-alt"></i> 刪除
@@ -336,7 +342,12 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-bordered">
+                    <div id="modal-spinner" class="text-center my-5">
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only">載入中...</span>
+                        </div>
+                    </div>
+                    <table class="table table-bordered d-none" id="modal-table">
                         <tbody>
                             <tr>
                                 <th style="width: 150px; background-color: var(--milk-tea-bg);">會員編號</th>
@@ -393,6 +404,12 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
 
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var apiDetailBaseUrl = /*[[@{/member/api/detail/}]]*/ '';
+        /*]]>*/
+    </script>
+
     <!-- 保留原有的關閉卡片功能 -->
     <script>
         function closeSingleResultCard(redirectUrl) {
@@ -410,20 +427,23 @@
     <script>
         $(document).ready(function() {
             $('.member-row').on('click', function(e) {
-                // 如果點擊的是操作按鈕區域，不觸發詳細資訊
                 if ($(e.target).closest('td:last-child').length > 0) {
                     return;
                 }
                 
-                // 獲取會員編號
                 const memberId = $(this).data('member-id');
+                const modal = $('#memberDetailModal');
+                const spinner = $('#modal-spinner');
+                const table = $('#modal-table');
+
+                spinner.show();
+                table.addClass('d-none');
+                modal.modal('show');
                 
-                // 發送 AJAX 請求獲取會員詳細資料
                 $.ajax({
-                    url: `/member/api/detail/${memberId}`,
+                    url: apiDetailBaseUrl + memberId,
                     method: 'GET',
                     success: function(member) {
-                        // 填充 Modal 內容
                         $('#modal-memberId').text(member.memberId);
                         $('#modal-username').text(member.username);
                         $('#modal-account').text(member.account);
@@ -431,191 +451,148 @@
                         $('#modal-phone').text(member.phone);
                         $('#modal-birthday').text(member.birthday);
                         
-                        // 性別顯示轉換
                         const genderMap = {
-                            'M': '<i class="fas fa-mars"></i> 男性',
-                            'F': '<i class="fas fa-venus"></i> 女性',
-                            'O': '<i class="fas fa-genderless"></i> 其他'
+                            'M': '<i class="fas fa-mars text-primary"></i> 男性',
+                            'F': '<i class="fas fa-venus text-danger"></i> 女性',
+                            'O': '<i class="fas fa-genderless text-muted"></i> 其他'
                         };
                         $('#modal-gender').html(genderMap[member.gender] || '未知');
                         
-                        // 帳號狀態顯示
                         const enabledHtml = member.enabled ? 
-                            '<span class="badge" style="background-color: var(--milk-tea-success); color: white; font-size: 0.9rem; padding: 0.4em 0.6em;"><i class="fas fa-check-circle"></i> 啟用中</span>' : 
-                            '<span class="badge" style="background-color: var(--milk-tea-danger); color: white; font-size: 0.9rem; padding: 0.4em 0.6em;"><i class="fas fa-times-circle"></i> 已停用</span>';
+                            '<span class="badge badge-success"><i class="fas fa-check-circle"></i> 啟用中</span>' : 
+                            '<span class="badge badge-danger"><i class="fas fa-times-circle"></i> 已停用</span>';
                         $('#modal-enabled').html(enabledHtml);
                         
-                        // 時間格式化
-                        $('#modal-createdAt').text(new Date(member.createdAt).toLocaleString('zh-TW'));
-                        $('#modal-lastUpdatedAt').text(member.lastUpdatedAt ? 
-                            new Date(member.lastUpdatedAt).toLocaleString('zh-TW') : '尚未更新過');
+                        const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+                        $('#modal-createdAt').text(new Date(member.createdAt).toLocaleString('zh-TW', options));
+                        $('#modal-lastUpdatedAt').text(member.lastUpdatedAt ? new Date(member.lastUpdatedAt).toLocaleString('zh-TW', options) : '尚未更新過');
                         
-                        // 顯示 Modal
-                        $('#memberDetailModal').modal('show');
+                        spinner.hide();
+                        table.removeClass('d-none');
                     },
                     error: function(xhr, status, error) {
-                        console.error('Error fetching member details:', error);
-                        alert('無法取得會員詳細資料，請稍後再試。');
+                        console.error('取得會員詳細資料時發生錯誤:', error);
+                        spinner.hide();
+                        table.addClass('d-none');
+                        modal.find('.modal-body').append('<div class="alert alert-danger temp-error">無法取得會員詳細資料，請關閉後再試。</div>');
+                        modal.on('hidden.bs.modal', function () {
+                            $('.temp-error').remove();
+                        });
                     }
                 });
             });
         });
     </script>
 
-    <!-- 表單驗證 JavaScript -->
+    <!-- 增強後的表單驗證 JavaScript -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 獲取所有需要驗證的表單
-            var forms = document.getElementsByClassName('needs-validation');
+        // 使用 IIFE (立即執行函式) 避免污染全域變數
+        (function() {
+            'use strict';
+            // 當頁面完全載入後執行
+            window.addEventListener('load', function() {
+                // 找到所有需要 Bootstrap 驗證樣式的表單
+                var forms = document.getElementsByClassName('needs-validation');
+                
+                // 遍歷所有表單並新增提交事件監聽器
+                Array.prototype.filter.call(forms, function(form) {
+                    form.addEventListener('submit', function(event) {
+                        // 如果表單內容不符合 HTML5 驗證規則
+                        if (form.checkValidity() === false) {
+                            event.preventDefault(); // 阻止表單提交
+                            event.stopPropagation(); // 停止事件繼續向上傳播
+                        }
+                        // 為表單加上 'was-validated' class，觸發 Bootstrap 的驗證樣式顯示
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+
+                // --- 新增的即時驗證邏輯 ---
+
+                // 選取複合查詢表單中的 Email 輸入框
+                const emailInput = document.querySelector('#composite-query-form #email');
+                if (emailInput) {
+                    emailInput.addEventListener('input', function() {
+                        // 如果欄位內有值，且驗證未通過 (例如 Email 格式不符)
+                        if (emailInput.value && !emailInput.checkValidity()) {
+                            emailInput.classList.add('is-invalid'); // 手動添加 Bootstrap 的無效樣式
+                        } else {
+                            emailInput.classList.remove('is-invalid'); // 如果有效或為空，則移除樣式
+                        }
+                    });
+                }
+
+                // 選取複合查詢表單中的電話輸入框
+                const phoneInput = document.querySelector('#composite-query-form #phone');
+                if (phoneInput) {
+                    phoneInput.addEventListener('input', function() {
+                        if (phoneInput.value && !phoneInput.checkValidity()) {
+                            phoneInput.classList.add('is-invalid');
+                        } else {
+                            phoneInput.classList.remove('is-invalid');
+                        }
+                    });
+                }
             
-            // 遍歷表單並阻止提交
-            var validation = Array.prototype.filter.call(forms, function(form) {
-                form.addEventListener('submit', function(event) {
-                    if (form.checkValidity() === false) {
-                        event.preventDefault();
-                        event.stopPropagation();
+                // 保留原有的、針對中文輸入法優化的姓名欄位驗證邏輯
+                var usernameInput = document.getElementById('username');
+                var usernameWarning = document.getElementById('username-warning');
+                
+                if (usernameInput) {
+                    let isComposing = false;
+                    let warningTimeout;
+
+                    function showWarning() {
+                        if (warningTimeout) {
+                            clearTimeout(warningTimeout);
+                            usernameWarning.classList.remove('hiding');
+                        }
+                        
+                        usernameWarning.style.display = 'block';
+                        usernameWarning.style.opacity = '1';
+                        usernameWarning.style.transform = 'translateY(0)';
+                        
+                        warningTimeout = setTimeout(() => {
+                            usernameWarning.classList.add('hiding');
+                            setTimeout(() => {
+                                usernameWarning.style.display = 'none';
+                                usernameWarning.classList.remove('hiding');
+                            }, 300);
+                        }, 1000);
                     }
-                    form.classList.add('was-validated');
+
+                    usernameInput.addEventListener('compositionstart', function() {
+                        isComposing = true;
+                    });
+
+                    usernameInput.addEventListener('compositionend', function(e) {
+                        isComposing = false;
+                        const value = e.target.value;
+                        const sanitizedValue = value.replace(/[^\u4e00-\u9fa5]/g, '');
+                        
+                        if (value !== sanitizedValue) {
+                            e.target.value = sanitizedValue;
+                            if (value.length > sanitizedValue.length) {
+                                showWarning();
+                            }
+                        }
+                    });
+
+                    usernameInput.addEventListener('input', function(e) {
+                        if (!isComposing) {
+                            const value = e.target.value;
+                            const sanitizedValue = value.replace(/[^\u4e00-\u9fa5]/g, '');
+                            
+                            if (value !== sanitizedValue) {
+                                e.target.value = sanitizedValue;
+                                showWarning();
+                            }
+                        }
+                    });
+                }
+
             }, false);
-        });
-
-        // 即時驗證電子郵件
-        var emailInput = document.getElementById('email');
-        if (emailInput) {
-            emailInput.addEventListener('input', function() {
-                if (emailInput.validity.typeMismatch || emailInput.validity.patternMismatch) {
-                    emailInput.setCustomValidity('請輸入有效的電子郵件地址');
-                } else {
-                    emailInput.setCustomValidity('');
-                }
-            });
-        }
-
-        // 即時驗證電話號碼
-        var phoneInput = document.getElementById('phone');
-        if (phoneInput) {
-            phoneInput.addEventListener('input', function() {
-                var value = phoneInput.value;
-                if (!value.match(phoneInput.pattern) && value !== '') {
-                    phoneInput.setCustomValidity('電話號碼格式不正確');
-                } else {
-                    phoneInput.setCustomValidity('');
-                }
-            });
-        }
-
-        // 即時驗證姓名
-        var usernameInput = document.getElementById('username');
-        var usernameWarning = document.getElementById('username-warning');
-        
-        if (usernameInput) {
-            let isComposing = false;
-            let warningTimeout;
-
-            function showWarning() {
-                if (warningTimeout) {
-                    clearTimeout(warningTimeout);
-                    usernameWarning.classList.remove('hiding');
-                }
-                
-                usernameWarning.style.display = 'block';
-                // 重置任何正在進行的動畫
-                usernameWarning.style.opacity = '1';
-                usernameWarning.style.transform = 'translateY(0)';
-                
-                // 1秒後開始淡出動畫
-                warningTimeout = setTimeout(() => {
-                    usernameWarning.classList.add('hiding');
-                    // 等待動畫完成後隱藏元素
-                    setTimeout(() => {
-                        usernameWarning.style.display = 'none';
-                        usernameWarning.classList.remove('hiding');
-                    }, 300); // 配合 CSS transition 時間
-                }, 1000);
-            }
-
-            // 處理輸入法組字開始
-            usernameInput.addEventListener('compositionstart', function() {
-                isComposing = true;
-            });
-
-            // 處理輸入法組字結束
-            usernameInput.addEventListener('compositionend', function(e) {
-                isComposing = false;
-                const value = e.target.value;
-                const sanitizedValue = value.replace(/[^\u4e00-\u9fa5]/g, '');
-                
-                if (value !== sanitizedValue) {
-                    e.target.value = sanitizedValue;
-                    if (value.length > sanitizedValue.length) {
-                        showWarning();
-                    }
-                }
-                validateUsername(e.target);
-            });
-
-            // 處理一般輸入事件
-            usernameInput.addEventListener('input', function(e) {
-                if (!isComposing) {
-                    const value = e.target.value;
-                    const sanitizedValue = value.replace(/[^\u4e00-\u9fa5]/g, '');
-                    
-                    if (value !== sanitizedValue) {
-                        e.target.value = sanitizedValue;
-                        showWarning();
-                    }
-                    validateUsername(e.target);
-                }
-            });
-
-            // 驗證用戶名的函數
-            function validateUsername(input) {
-                if (!input.value.match(input.pattern) && input.value !== '') {
-                    input.setCustomValidity('請輸入中文字');
-                } else {
-                    input.setCustomValidity('');
-                }
-            }
-
-            // 阻止貼上非中文字符並顯示警告
-            usernameInput.addEventListener('paste', function(e) {
-                e.preventDefault();
-                var pastedText = (e.clipboardData || window.clipboardData).getData('text');
-                var sanitizedText = pastedText.replace(/[^\u4e00-\u9fa5]/g, '');
-                
-                if (pastedText !== sanitizedText) {
-                    showWarning();
-                }
-                
-                if (sanitizedText) {
-                    document.execCommand('insertText', false, sanitizedText);
-                }
-            });
-
-            // 監聽按鍵事件，在輸入非中文字符時顯示警告
-            usernameInput.addEventListener('keypress', function(e) {
-                const char = String.fromCharCode(e.charCode);
-                if (!/[\u4e00-\u9fa5]/.test(char)) {
-                    e.preventDefault();
-                    showWarning();
-                }
-            });
-
-            // 點擊輸入框時，如果不是中文輸入法，顯示提示
-            usernameInput.addEventListener('focus', function() {
-                if (!usernameInput.value && navigator.language.toLowerCase().includes('zh')) {
-                    usernameWarning.style.display = 'block';
-                }
-            });
-
-            // 離開輸入框時隱藏提示
-            usernameInput.addEventListener('blur', function() {
-                setTimeout(() => {
-                    usernameWarning.style.display = 'none';
-                }, 200);
-            });
-        }
-    });
+        })();
     </script>
 </body>
 </html>

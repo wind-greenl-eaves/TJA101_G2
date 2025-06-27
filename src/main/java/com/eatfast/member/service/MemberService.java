@@ -133,41 +133,76 @@ public class MemberService {
     }
 
     public List<MemberEntity> getAllMembers(Map<String, String[]> map) {
-        Specification<MemberEntity> spec = (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
+        try {
+            log.debug("開始建構複合查詢條件，接收到的參數: {}", map);
             
-            if (map != null) {
-                for (Map.Entry<String, String[]> entry : map.entrySet()) {
-                    String key = entry.getKey();
-                    String[] values = entry.getValue();
-                    
-                    if (values == null || values.length == 0) {
-                        continue;
-                    }
-                    
-                    String value = values[0];
-                    if (!StringUtils.hasText(value)) {
-                        continue;
-                    }
-
-                    value = value.trim();
-                    
-                    switch (key) {
-                        case "username":
-                            predicates.add(criteriaBuilder.like(root.get("username"), "%" + value + "%"));
-                            break;
-                        case "email":
-                            predicates.add(criteriaBuilder.equal(root.get("email"), value));
-                            break;
-                        case "phone":
-                            predicates.add(criteriaBuilder.like(root.get("phone"), "%" + value + "%"));
-                            break;
+            Specification<MemberEntity> spec = (root, query, criteriaBuilder) -> {
+                List<Predicate> predicates = new ArrayList<>();
+                
+                if (map != null && !map.isEmpty()) {
+                    for (Map.Entry<String, String[]> entry : map.entrySet()) {
+                        String key = entry.getKey();
+                        String[] values = entry.getValue();
+                        
+                        // 改進的空值檢查
+                        if (values == null || values.length == 0 || values[0] == null) {
+                            log.debug("欄位 {} 的值為空，跳過此條件", key);
+                            continue;
+                        }
+                        
+                        String value = values[0].trim();
+                        if (value.isEmpty()) {
+                            log.debug("欄位 {} 的值為空字串，跳過此條件", key);
+                            continue;
+                        }
+                        
+                        log.debug("處理查詢條件 - 欄位: {}, 值: {}", key, value);
+                        
+                        try {
+                            // 根據不同欄位使用不同的查詢策略
+                            switch (key) {
+                                case "username":
+                                    predicates.add(criteriaBuilder.like(
+                                        root.get("username"),
+                                        "%" + value + "%"
+                                    ));
+                                    break;
+                                case "email":
+                                    predicates.add(criteriaBuilder.like(
+                                        root.get("email"),
+                                        "%" + value + "%"
+                                    ));
+                                    break;
+                                case "phone":
+                                    predicates.add(criteriaBuilder.like(
+                                        root.get("phone"),
+                                        "%" + value + "%"
+                                    ));
+                                    break;
+                                default:
+                                    log.debug("未知的查詢欄位: {}", key);
+                                    break;
+                            }
+                        } catch (Exception e) {
+                            log.error("建立查詢條件時發生錯誤 - 欄位: {}, 值: {}, 錯誤: {}", key, value, e.getMessage());
+                        }
                     }
                 }
-            }
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
+                
+                log.debug("建立了 {} 個查詢條件", predicates.size());
+                
+                return predicates.isEmpty() ? 
+                    criteriaBuilder.conjunction() : 
+                    criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+            };
 
-        return memberRepository.findAll(spec);
+            List<MemberEntity> results = memberRepository.findAll(spec);
+            log.debug("查詢完成，返回 {} 筆結果", results.size());
+            return results;
+            
+        } catch (Exception e) {
+            log.error("執行複合查詢時發生錯誤: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
     }
 }
