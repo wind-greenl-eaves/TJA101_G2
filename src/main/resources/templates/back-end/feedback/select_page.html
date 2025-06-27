@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>顧客意見回饋表單</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link rel="stylesheet" th:href="@{/css/feedback/style.css}" />
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">意見回饋表單</h2>
+
+    <!-- 顧客填寫表單 -->
+    <form th:action="@{/feedback/submit}" method="post">
+        <div class="form-group">
+            <label for="memberId">會員 ID</label>
+            <input type="number" id="memberId" name="memberId" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label for="storeId">門市 ID</label>
+            <input type="number" id="storeId" name="storeId" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">連絡電話</label>
+            <input type="text" id="phone" name="phone" class="form-control" maxlength="20" required>
+        </div>
+
+        <div class="form-group">
+            <label for="content">意見內容</label>
+            <textarea id="content" name="content" rows="5" class="form-control" maxlength="5000" required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">送出回饋</button>
+    </form>
+</div>
+
+<script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+</body>
+</html>
