@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>新增餐點類別 - 早餐店後台</title>
+
+    <!-- Bootstrap & Icons -->
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- 自訂樣式 -->
+    <link rel="stylesheet" th:href="@{/css/member/style.css}" />
+</head>
+<body>
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <div class="container">
+        <div class="navbar-brand d-flex align-items-center">
+            <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-3">
+            <span style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 新增餐點類別</span>
+        </div>
+        <a class="btn btn-outline-light" th:href="@{/}">
+            <i class="fas fa-home"></i> 回首頁
+        </a>
+    </div>
+</nav>
+
+<div class="container mt-5 pt-4">
+    <div class="card mx-auto" style="max-width: 600px;">
+        <div class="card-header">
+            <i class="fas fa-plus-circle"></i> 請輸入餐點類別資料
+        </div>
+        <div class="card-body">
+            <form method="post" th:action="@{/mealtype/insert}" th:object="${mealTypeVO}">
+
+                <!-- 錯誤訊息 -->
+                <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger">
+                    <strong>請修正以下錯誤：</strong>
+                    <ul>
+                        <li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
+                    </ul>
+                </div>
+
+                <div class="form-group">
+                    <label for="mealName">餐點種類名稱：</label>
+                    <input type="text" id="mealName" class="form-control" th:field="*{mealName}" />
+                </div>
+
+                <div class="d-flex justify-content-center">
+                    <button type="submit" class="btn btn-primary mx-2"><i class="fas fa-check"></i> 確認新增</button>
+                    <a th:href="@{/mealtype/select_page}" class="btn btn-secondary mx-2"><i class="fas fa-times"></i> 返回管理</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+<script th:src="@{/webjars/popper.js/1.14.3/umd/popper.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+
+</body>
+</html>

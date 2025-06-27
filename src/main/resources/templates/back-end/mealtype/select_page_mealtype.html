@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<title>餐點種類管理 - EatFast 後台</title>
+<link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #FFF9F4;
+            padding-top: 70px;
+        }
+
+        .card-header {
+            background-color: #EADBC8;
+            font-weight: bold;
+        }
+
+        .btn-block {
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- 導覽列 -->
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <img th:src="@{/images/eatfasticon.png}" width="40" height="40" class="mr-2">
+                餐點種類管理
+            </a>
+            <a class="btn btn-outline-light ml-auto" th:href="@{/}">
+                <i class="fas fa-home"></i> 回首頁
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <!-- 左側功能欄 -->
+            <div class="col-lg-4">
+
+                <!-- 單一查詢卡片 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-search"></i> 單一條件查詢
+                    </div>
+                    <div class="card-body">
+                        <form method="post" th:action="@{/mealtype/getOne_For_Display}">
+                            <div class="form-group">
+                                <label for="mealTypeId">輸入餐點種類編號：</label>
+                                <input type="text" class="form-control" id="mealTypeId" name="mealTypeId" />
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fas fa-search"></i> 查詢
+                            </button>
+                        </form>
+                        <hr>
+                        <form method="post" th:action="@{/mealtype/getOne_For_Display}" th:if="${mealTypeList != null}">
+                            <div class="form-group">
+                                <label for="selectId">選擇餐點種類編號：</label>
+                                <select class="form-control" name="mealTypeId" id="selectId">
+                                    <option th:each="mt : ${mealTypeList}" th:value="${mt.mealTypeId}" th:text="${mt.mealTypeId}"></option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-info btn-block">
+                                <i class="fas fa-hand-pointer"></i> 查詢
+                            </button>
+                        </form>
+                        <hr>
+                        <form method="post" th:action="@{/mealtype/getOne_For_Display}" th:if="${mealTypeList != null}">
+                            <div class="form-group">
+                                <label>選擇餐點種類名稱：</label>
+                                <select class="form-control" name="mealTypeId">
+                                    <option th:each="mt : ${mealTypeList}" th:value="${mt.mealTypeId}" th:text="${mt.mealName}"></option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-info btn-block">
+                                <i class="fas fa-hand-pointer"></i> 查詢
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 餐點種類管理 -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-plus-circle"></i> 餐點種類管理
+                    </div>
+                    <div class="card-body">
+                        <a th:href="@{/mealtype/addMealType}" class="btn btn-warning btn-block">
+                            <i class="fas fa-plus"></i> 新增餐點種類
+                        </a>
+                        <a th:href="@{/mealtype/listAllMealType}" class="btn btn-success btn-block mt-2">
+                            <i class="fas fa-list"></i> 查看全部
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 右側顯示查詢結果（未來可擴充） -->
+            <div class="col-lg-8">
+                <div th:if="${mealTypeEntity != null}" class="card">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle"></i> 查詢結果
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>餐點種類編號</th>
+                                <td th:text="${mealTypeEntity.mealTypeId}"></td>
+                            </tr>
+                            <tr>
+                                <th>餐點種類名稱</th>
+                                <td th:text="${mealTypeEntity.mealName}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JS 套件 -->
+    <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+</body>
+</html>
