@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>修改餐點類別</title>
+
+<head th:insert="~{/back-end/emp/included-fragment}"></head>
+<style type="text/css">
+	
+	button {
+		padding: 5px;
+	}
+	form {
+		display: table;
+	}
+	form div {
+		display: table-row;
+	}
+	label, input, span, select {
+		display: table-cell;
+		margin: 5px;
+		text-align: left;		
+	}
+	input[type=text], input[type=password], select, textarea {
+		width: 200px;
+		margin: 5px;
+	}
+	form div div {
+		display: table-cell;
+	}
+	.center {
+        margin-left: auto;
+        margin-right: auto;
+    }
+</style>
+</head>
+<body>
+
+	<h2>修改餐點類別</h2>
+
+	<div align="center">
+		<h3><b>所有欄位皆為必填欄位</b></h3>
+		<form th:action="@{/mealtype/update}" th:object="${mealTypeEntity}" method="post">
+
+        <input type="hidden" th:field="*{mealTypeId}" />
+
+        <label>餐點種類名稱：</label>
+        <input type="text" th:field="*{mealName}" />
+        <span th:if="${#fields.hasErrors('mealName')}" th:errors="*{mealName}"></span>
+        <br/>
+
+        <button type="submit">送出修改</button>
+    </form>
+	
+	</div>
+
+	<a th:href="@{/mealtype/listAllMealType}">回餐點種類列表</a>
+</body>
+</html>

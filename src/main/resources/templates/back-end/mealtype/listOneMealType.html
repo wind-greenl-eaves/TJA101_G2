@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>單筆餐點類別資料</title>
+</head>
+<body>
+    <h2>餐點類別</h2>
+
+    <div th:if="${success}" th:text="${success}" style="color:green;"></div>
+
+    <table border="1">
+        <tr>
+            <th>餐點類別編號</th>
+            <td th:text="${mealTypeEntity.mealTypeId}"></td>
+        </tr>
+        <tr>
+            <th>餐點類別名稱</th>
+            <td th:text="${mealTypeEntity.mealName}"></td>
+        </tr>
+    </table>
+
+    <a th:href="@{/mealtype/listAllMealType}">回全部列表</a>
+</body>
+</html>
