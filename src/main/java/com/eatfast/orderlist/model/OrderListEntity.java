@@ -3,6 +3,7 @@ package com.eatfast.orderlist.model;
 import java.time.LocalDateTime;
 
 import com.eatfast.member.model.MemberEntity;
+import com.eatfast.store.model.StoreEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
