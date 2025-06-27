@@ -112,68 +112,75 @@ public class MemberService {
     public List<MemberEntity> getAllMembers() {
         return memberRepository.findAll();
     }
+    
+    /**
+     * 【全新功能】查詢會員 (包含已被軟刪除的)。
+     * * @param account 要查詢的會員帳號
+     */
+    public Optional<MemberEntity> getMemberByAccountIncludeDisabled(String account) {
+        return memberRepository.findByAccountIncludeDisabled(account);
+    }
+    // /**
+//	 * 【全新功能】查詢會員 Email (包含已被軟刪除的)。
+//	 * @param email 要查詢的電子郵件
+//	 */
+    public Optional<MemberEntity> getMemberByEmailIncludeDisabled(String email) {
+        return memberRepository.findByEmailIncludeDisabled(email);
+    }
 
     /**
      * ★★★★★【複合查詢】根據多個動態條件查詢會員 (使用 JPA Specification)。★★★★★
-     * @param map [可變] 一個 Map，其 Key 是查詢欄位(如 "username")，Value 是查詢值的字串陣列。
+     * @param map [可變] 一個 Map，其 Key 是查詢欄位(如 "username")，Value 是字符串數組。
      * @return 符合查詢條件的會員列表。
      */
     public List<MemberEntity> getAllMembers(Map<String, String[]> map) {
-        
-        Specification<MemberEntity> spec = new Specification<MemberEntity>() {
+        Specification<MemberEntity> spec = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
             
-            @Override
-            public Predicate toPredicate(Root<MemberEntity> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-                
-                List<Predicate> predicates = new ArrayList<>();
-            
+            if (map != null) {
                 for (Map.Entry<String, String[]> entry : map.entrySet()) {
                     String key = entry.getKey();
-                    if (entry.getValue() == null || entry.getValue().length == 0) {
+                    String[] values = entry.getValue();
+                    
+                    if (values == null || values.length == 0) {
                         continue;
                     }
-                    String value = entry.getValue()[0]; 
-
+                    
+                    String value = values[0];
                     if (!StringUtils.hasText(value)) {
                         continue;
                     }
 
+                    value = value.trim();
+                    
                     switch (key) {
-                        case "memberId":
-                            try {
-                                predicates.add(criteriaBuilder.equal(root.get("memberId"), Long.valueOf(value)));
-                            } catch (NumberFormatException e) {
-                                // 使用 Logger 紀錄警告訊息，而不是吞掉錯誤。
-                                // {} 是參數佔位符，會安全地將 value 填入。
-                                log.warn("複合查詢時，傳入的 memberId 格式無效: '{}'，此查詢條件已被忽略。", value);
-                            }
-                            break;
                         case "username":
-                            predicates.add(criteriaBuilder.like(root.get("username"), "%" + value + "%"));
+                            predicates.add(criteriaBuilder.like(
+                                root.get("username"),
+                                "%" + value + "%"
+                            ));
                             break;
-                        case "account":
-                            predicates.add(criteriaBuilder.equal(root.get("account"), value));
-                            break;
+                            
                         case "email":
-                            predicates.add(criteriaBuilder.equal(root.get("email"), value));
+                            predicates.add(criteriaBuilder.equal(
+                                root.get("email"),
+                                value
+                            ));
                             break;
+                            
                         case "phone":
-                            predicates.add(criteriaBuilder.like(root.get("phone"), "%" + value + "%"));
-                            break;
-                        case "birthday":
-                            try {
-                                LocalDate birthday = LocalDate.parse(value);
-                                predicates.add(criteriaBuilder.equal(root.get("birthday"), birthday));
-                            } catch (DateTimeParseException e) {
-                               // 紀錄日期格式錯誤的警告。
-                               log.warn("複合查詢時，傳入的 birthday 日期格式無效: '{}'，此查詢條件已被忽略。", value);
-                            }
+                            predicates.add(criteriaBuilder.like(
+                                root.get("phone"),
+                                "%" + value + "%"
+                            ));
                             break;
                     }
                 }
-
-                return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
             }
+            
+            return predicates.isEmpty() ? 
+                criteriaBuilder.conjunction() : 
+                criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
 
         return memberRepository.findAll(spec);

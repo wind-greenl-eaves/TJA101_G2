@@ -18,6 +18,73 @@
     <!-- 連結到外部的 CSS 樣式檔案 -->
     <link rel="stylesheet" th:href="@{/css/member/style.css}" />
 
+    <!-- 關閉按鈕與動畫的 CSS -->
+    <style>
+        .card-header {
+            position: relative;
+        }
+        .close-btn {
+            position: absolute;
+            top: 50%;
+            right: 1rem;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            line-height: 1;
+            opacity: 0.7;
+            text-shadow: none;
+            padding: 0;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+        .close-btn:hover {
+            opacity: 1;
+        }
+        
+        @keyframes fadeOutUp {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        .fade-out-up {
+            animation: fadeOutUp 0.5s forwards ease-out;
+        }
+
+        @keyframes warningFadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        .warning-fade-out {
+            animation: warningFadeOut 0.5s ease-out forwards;
+        }
+
+        #username-warning {
+            transition: all 0.3s ease;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #username-warning.hiding {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+    </style>
+
 </head>
 
 <body>
@@ -25,10 +92,10 @@
     <!-- 頂部導航欄 -->
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
         <div class="container">
-            <div class="navbar-brand d-flex align-items-center">
+            <a class="navbar-brand d-flex align-items-center" th:href="@{/member/select_page}">
                 <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-3">
                 <span style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 會員資料管理</span>
-            </div>
+            </a>
             <a class="btn btn-outline-light" th:href="@{/}">
                 <i class="fas fa-home"></i> 回首頁
             </a>
@@ -37,16 +104,19 @@
 
     <div class="container mt-4">
 
-        <!-- 錯誤訊息顯示區 -->
+        <!-- 訊息顯示區 -->
         <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
             <i class="fas fa-exclamation-circle"></i> <span th:utext="${errorMessage}"></span>
+        </div>
+        <div th:if="${successMessage}" class="alert alert-success" role="alert" style="background-color: var(--milk-tea-success); color: white; border-color: #70916b;">
+            <i class="fas fa-check-circle"></i> <span th:utext="${successMessage}"></span>
         </div>
 
         <div class="row">
 
-            <!-- 左側：查詢與管理功能區 (HTML結構不變) -->
+            <!-- 左側：查詢與管理功能區 -->
             <div class="col-lg-4">
-                <!-- 單一條件查詢卡片 -->
+                 <!-- 單一條件查詢卡片 -->
                 <div class="card">
                     <div class="card-header">
                         <i class="fas fa-search"></i> 單一條件查詢
@@ -78,18 +148,38 @@
                         <i class="fas fa-filter"></i> 萬用複合查詢
                     </div>
                     <div class="card-body">
-                        <form method="post" th:action="@{/member/listMembers_ByCompositeQuery}">
+                        <form method="post" th:action="@{/member/listMembers_ByCompositeQuery}" class="needs-validation" novalidate>
                             <div class="form-group">
                                 <label for="username">會員姓名 (模糊):</label>
-                                <input type="text" id="username" name="username" class="form-control">
+                                <input type="text" id="username" name="username" class="form-control"
+                                       pattern="^[\u4e00-\u9fa5]{0,20}$"
+                                       maxlength="20"
+                                       title="請輸入中文姓名（最多20個字）"
+                                       placeholder="請輸入中文姓名">
+                                <div class="invalid-feedback position-absolute" style="font-size: 0.9rem; color: #dc3545;">
+                                    請輸入中文字
+                                </div>
+                                <div id="username-warning" class="mt-1" style="display: none; color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; padding: 0.5rem; border-radius: 0.25rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <i class="fas fa-keyboard"></i> 請使用中文輸入法
+                                </div>
                             </div>
-                             <div class="form-group">
+                            <div class="form-group">
                                 <label for="email">電子郵件 (精確):</label>
-                                <input type="text" id="email" name="email" class="form-control">
+                                <input type="email" id="email" name="email" class="form-control"
+                                       pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                                       title="請輸入有效的電子郵件地址">
+                                <div class="invalid-feedback">
+                                    請輸入有效的電子郵件地址
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="phone">連絡電話 (模糊):</label>
-                                <input type="text" id="phone" name="phone" class="form-control">
+                                <input type="tel" id="phone" name="phone" class="form-control"
+                                       pattern="^[0-9\-()]*$"
+                                       title="電話號碼只能包含數字、橫線和括號">
+                                <div class="invalid-feedback">
+                                    電話號碼格式不正確，只能包含數字、橫線和括號
+                                </div>
                             </div>
                             <button type="submit" class="btn btn-success btn-block"><i class="fas fa-check-double"></i> 執行複合查詢</button>
                         </form>
@@ -113,45 +203,73 @@
             <div class="col-lg-8">
                 
                 <!-- 單一查詢結果顯示區 -->
-                <div class="card" th:if="${member != null}">
+                <div id="single-result-card" class="card" th:if="${member != null}">
                     <div class="card-header" style="background-color: var(--milk-tea-info);">
                         <i class="fas fa-user"></i> 單筆查詢結果
+                        <!-- ★★★★★【已修改】使用 th:onclick 將正確的重導向 URL 傳遞給 JavaScript 函式 ★★★★★ -->
+                        <button type="button" class="close-btn" aria-label="Close"
+                                th:onclick="'closeSingleResultCard(\'' + @{/member/select_page} + '\')'">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
                     <div class="card-body">
-                        <table class="table table-bordered">
-                            <tr>
-                                <th scope="row" style="background-color: var(--milk-tea-bg);">會員編號</th>
-                                <td th:text="${member.memberId}"></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" style="background-color: var(--milk-tea-bg);">會員姓名</th>
-                                <td th:text="${member.username}"></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" style="background-color: var(--milk-tea-bg);">登入帳號</th>
-                                <td th:text="${member.account}"></td>
-                            </tr>
-                            <!-- 【保留處】單筆查詢結果中依然顯示密碼 -->
-                            <tr>
-                                <th scope="row" style="background-color: var(--milk-tea-bg); color: red; font-weight: bold;">登入密碼</th>
-                                <td th:text="${member.password}" style="color: red; font-weight: bold;"></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" style="background-color: var(--milk-tea-bg);">電子郵件</th>
-                                <td th:text="${member.email}"></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" style="background-color: var(--milk-tea-bg);">連絡電話</th>
-                                <td th:text="${member.phone}"></td>
-                            </tr>
-                             <tr>
-                                <th scope="row" style="background-color: var(--milk-tea-bg);">生日</th>
-                                <td th:text="${#temporals.format(member.birthday, 'yyyy-MM-dd')}"></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" style="background-color: var(--milk-tea-bg);">註冊時間</th>
-                                <td th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
-                            </tr>
+                        <table class="table table-bordered table-hover">
+                            <tbody>
+                                <tr>
+                                    <th scope="row" style="width: 150px; background-color: var(--milk-tea-bg);">會員編號</th>
+                                    <td th:text="${member.memberId}"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" style="background-color: var(--milk-tea-bg);">會員姓名</th>
+                                    <td th:text="${member.username}"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" style="background-color: var(--milk-tea-bg);">登入帳號</th>
+                                    <td th:text="${member.account}"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" style="background-color: var(--milk-tea-bg);">電子郵件</th>
+                                    <td th:text="${member.email}"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" style="background-color: var(--milk-tea-bg);">連絡電話</th>
+                                    <td th:text="${member.phone}"></td>
+                                </tr>
+                                 <tr>
+                                    <th scope="row" style="background-color: var(--milk-tea-bg);">生日</th>
+                                    <td th:text="${#temporals.format(member.birthday, 'yyyy-MM-dd')}"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" style="background-color: var(--milk-tea-bg);">性別</th>
+                                    <td>
+                                        <span th:switch="${member.gender}">
+                                            <span th:case="'M'"><i class="fas fa-mars"></i> 男性</span>
+                                            <span th:case="'F'"><i class="fas fa-venus"></i> 女性</span>
+                                            <span th:case="'O'"><i class="fas fa-genderless"></i> 其他</span>
+                                            <span th:case="*">未知</span>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" style="background-color: var(--milk-tea-bg);">帳號狀態</th>
+                                    <td>
+                                        <span th:if="${member.isEnabled}" class="badge" style="background-color: var(--milk-tea-success); color: white; font-size: 0.9rem; padding: 0.4em 0.6em;">
+                                            <i class="fas fa-check-circle"></i> 啟用中
+                                        </span>
+                                        <span th:unless="${member.isEnabled}" class="badge" style="background-color: var(--milk-tea-danger); color: white; font-size: 0.9rem; padding: 0.4em 0.6em;">
+                                            <i class="fas fa-times-circle"></i> 已停用
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" style="background-color: var(--milk-tea-bg);">註冊時間</th>
+                                    <td th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                                </tr>
+                                 <tr>
+                                    <th scope="row" style="background-color: var(--milk-tea-bg);">最後更新時間</th>
+                                    <td th:text="${member.lastUpdatedAt} ? ${#temporals.format(member.lastUpdatedAt, 'yyyy-MM-dd HH:mm:ss')} : '尚未更新過'"></td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -169,18 +287,16 @@
                                         <th>會員編號</th>
                                         <th>會員姓名</th>
                                         <th>登入帳號</th>
-                                        <!-- ★★★★★【修改處 1】移除密碼的表頭 ★★★★★ -->
                                         <th>電子郵件</th>
                                         <th>連絡電話</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr th:each="member : ${memberListData}">
+                                    <tr th:each="member : ${memberListData}" th:data-member-id="${member.memberId}" style="cursor: pointer;" class="member-row">
                                         <td th:text="${member.memberId}"></td>
                                         <td th:text="${member.username}"></td>
                                         <td th:text="${member.account}"></td>
-                                        <!-- ★★★★★【修改處 2】移除密碼的欄位 ★★★★★ -->
                                         <td th:text="${member.email}"></td>
                                         <td th:text="${member.phone}"></td>
                                         <td>
@@ -203,14 +319,303 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- 會員詳細資訊 Modal -->
+    <div class="modal fade" id="memberDetailModal" tabindex="-1" role="dialog" aria-labelledby="memberDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: var(--milk-tea-info); color: white;">
+                    <h5 class="modal-title" id="memberDetailModalLabel">
+                        <i class="fas fa-user"></i> 會員詳細資料
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th style="width: 150px; background-color: var(--milk-tea-bg);">會員編號</th>
+                                <td id="modal-memberId"></td>
+                            </tr>
+                            <tr>
+                                <th style="background-color: var(--milk-tea-bg);">會員姓名</th>
+                                <td id="modal-username"></td>
+                            </tr>
+                            <tr>
+                                <th style="background-color: var(--milk-tea-bg);">登入帳號</th>
+                                <td id="modal-account"></td>
+                            </tr>
+                            <tr>
+                                <th style="background-color: var(--milk-tea-bg);">電子郵件</th>
+                                <td id="modal-email"></td>
+                            </tr>
+                            <tr>
+                                <th style="background-color: var(--milk-tea-bg);">連絡電話</th>
+                                <td id="modal-phone"></td>
+                            </tr>
+                            <tr>
+                                <th style="background-color: var(--milk-tea-bg);">生日</th>
+                                <td id="modal-birthday"></td>
+                            </tr>
+                            <tr>
+                                <th style="background-color: var(--milk-tea-bg);">性別</th>
+                                <td id="modal-gender"></td>
+                            </tr>
+                            <tr>
+                                <th style="background-color: var(--milk-tea-bg);">帳號狀態</th>
+                                <td id="modal-enabled"></td>
+                            </tr>
+                            <tr>
+                                <th style="background-color: var(--milk-tea-bg);">註冊時間</th>
+                                <td id="modal-createdAt"></td>
+                            </tr>
+                            <tr>
+                                <th style="background-color: var(--milk-tea-bg);">最後更新時間</th>
+                                <td id="modal-lastUpdatedAt"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- 引入必要的 JavaScript -->
-    <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
-    <script th:src="@{/webjars/popper.js/1.14.3/umd/popper.min.js}"></script>
-    <script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+
+    <!-- 保留原有的關閉卡片功能 -->
+    <script>
+        function closeSingleResultCard(redirectUrl) {
+            const card = document.getElementById('single-result-card');
+            if (card) {
+                card.classList.add('fade-out-up');
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 300);
+            }
+        }
+    </script>
+
+    <!-- 會員詳細資訊功能的 JavaScript -->
+    <script>
+        $(document).ready(function() {
+            $('.member-row').on('click', function(e) {
+                // 如果點擊的是操作按鈕區域，不觸發詳細資訊
+                if ($(e.target).closest('td:last-child').length > 0) {
+                    return;
+                }
+                
+                // 獲取會員編號
+                const memberId = $(this).data('member-id');
+                
+                // 發送 AJAX 請求獲取會員詳細資料
+                $.ajax({
+                    url: `/member/api/detail/${memberId}`,
+                    method: 'GET',
+                    success: function(member) {
+                        // 填充 Modal 內容
+                        $('#modal-memberId').text(member.memberId);
+                        $('#modal-username').text(member.username);
+                        $('#modal-account').text(member.account);
+                        $('#modal-email').text(member.email);
+                        $('#modal-phone').text(member.phone);
+                        $('#modal-birthday').text(member.birthday);
+                        
+                        // 性別顯示轉換
+                        const genderMap = {
+                            'M': '<i class="fas fa-mars"></i> 男性',
+                            'F': '<i class="fas fa-venus"></i> 女性',
+                            'O': '<i class="fas fa-genderless"></i> 其他'
+                        };
+                        $('#modal-gender').html(genderMap[member.gender] || '未知');
+                        
+                        // 帳號狀態顯示
+                        const enabledHtml = member.enabled ? 
+                            '<span class="badge" style="background-color: var(--milk-tea-success); color: white; font-size: 0.9rem; padding: 0.4em 0.6em;"><i class="fas fa-check-circle"></i> 啟用中</span>' : 
+                            '<span class="badge" style="background-color: var(--milk-tea-danger); color: white; font-size: 0.9rem; padding: 0.4em 0.6em;"><i class="fas fa-times-circle"></i> 已停用</span>';
+                        $('#modal-enabled').html(enabledHtml);
+                        
+                        // 時間格式化
+                        $('#modal-createdAt').text(new Date(member.createdAt).toLocaleString('zh-TW'));
+                        $('#modal-lastUpdatedAt').text(member.lastUpdatedAt ? 
+                            new Date(member.lastUpdatedAt).toLocaleString('zh-TW') : '尚未更新過');
+                        
+                        // 顯示 Modal
+                        $('#memberDetailModal').modal('show');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching member details:', error);
+                        alert('無法取得會員詳細資料，請稍後再試。');
+                    }
+                });
+            });
+        });
+    </script>
+
+    <!-- 表單驗證 JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 獲取所有需要驗證的表單
+            var forms = document.getElementsByClassName('needs-validation');
+            
+            // 遍歷表單並阻止提交
+            var validation = Array.prototype.filter.call(forms, function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+            }, false);
+        });
+
+        // 即時驗證電子郵件
+        var emailInput = document.getElementById('email');
+        if (emailInput) {
+            emailInput.addEventListener('input', function() {
+                if (emailInput.validity.typeMismatch || emailInput.validity.patternMismatch) {
+                    emailInput.setCustomValidity('請輸入有效的電子郵件地址');
+                } else {
+                    emailInput.setCustomValidity('');
+                }
+            });
+        }
+
+        // 即時驗證電話號碼
+        var phoneInput = document.getElementById('phone');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function() {
+                var value = phoneInput.value;
+                if (!value.match(phoneInput.pattern) && value !== '') {
+                    phoneInput.setCustomValidity('電話號碼格式不正確');
+                } else {
+                    phoneInput.setCustomValidity('');
+                }
+            });
+        }
+
+        // 即時驗證姓名
+        var usernameInput = document.getElementById('username');
+        var usernameWarning = document.getElementById('username-warning');
+        
+        if (usernameInput) {
+            let isComposing = false;
+            let warningTimeout;
+
+            function showWarning() {
+                if (warningTimeout) {
+                    clearTimeout(warningTimeout);
+                    usernameWarning.classList.remove('hiding');
+                }
+                
+                usernameWarning.style.display = 'block';
+                // 重置任何正在進行的動畫
+                usernameWarning.style.opacity = '1';
+                usernameWarning.style.transform = 'translateY(0)';
+                
+                // 1秒後開始淡出動畫
+                warningTimeout = setTimeout(() => {
+                    usernameWarning.classList.add('hiding');
+                    // 等待動畫完成後隱藏元素
+                    setTimeout(() => {
+                        usernameWarning.style.display = 'none';
+                        usernameWarning.classList.remove('hiding');
+                    }, 300); // 配合 CSS transition 時間
+                }, 1000);
+            }
+
+            // 處理輸入法組字開始
+            usernameInput.addEventListener('compositionstart', function() {
+                isComposing = true;
+            });
+
+            // 處理輸入法組字結束
+            usernameInput.addEventListener('compositionend', function(e) {
+                isComposing = false;
+                const value = e.target.value;
+                const sanitizedValue = value.replace(/[^\u4e00-\u9fa5]/g, '');
+                
+                if (value !== sanitizedValue) {
+                    e.target.value = sanitizedValue;
+                    if (value.length > sanitizedValue.length) {
+                        showWarning();
+                    }
+                }
+                validateUsername(e.target);
+            });
+
+            // 處理一般輸入事件
+            usernameInput.addEventListener('input', function(e) {
+                if (!isComposing) {
+                    const value = e.target.value;
+                    const sanitizedValue = value.replace(/[^\u4e00-\u9fa5]/g, '');
+                    
+                    if (value !== sanitizedValue) {
+                        e.target.value = sanitizedValue;
+                        showWarning();
+                    }
+                    validateUsername(e.target);
+                }
+            });
+
+            // 驗證用戶名的函數
+            function validateUsername(input) {
+                if (!input.value.match(input.pattern) && input.value !== '') {
+                    input.setCustomValidity('請輸入中文字');
+                } else {
+                    input.setCustomValidity('');
+                }
+            }
+
+            // 阻止貼上非中文字符並顯示警告
+            usernameInput.addEventListener('paste', function(e) {
+                e.preventDefault();
+                var pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                var sanitizedText = pastedText.replace(/[^\u4e00-\u9fa5]/g, '');
+                
+                if (pastedText !== sanitizedText) {
+                    showWarning();
+                }
+                
+                if (sanitizedText) {
+                    document.execCommand('insertText', false, sanitizedText);
+                }
+            });
+
+            // 監聽按鍵事件，在輸入非中文字符時顯示警告
+            usernameInput.addEventListener('keypress', function(e) {
+                const char = String.fromCharCode(e.charCode);
+                if (!/[\u4e00-\u9fa5]/.test(char)) {
+                    e.preventDefault();
+                    showWarning();
+                }
+            });
+
+            // 點擊輸入框時，如果不是中文輸入法，顯示提示
+            usernameInput.addEventListener('focus', function() {
+                if (!usernameInput.value && navigator.language.toLowerCase().includes('zh')) {
+                    usernameWarning.style.display = 'block';
+                }
+            });
+
+            // 離開輸入框時隱藏提示
+            usernameInput.addEventListener('blur', function() {
+                setTimeout(() => {
+                    usernameWarning.style.display = 'none';
+                }, 200);
+            });
+        }
+    });
+    </script>
 </body>
 </html>

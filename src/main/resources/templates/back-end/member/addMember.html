@@ -5,27 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>新增會員資料 - 溫馨奶茶風</title>
 
-    <!-- 引入 Bootstrap CSS -->
+    <!-- ★【路徑重點 1】: 引入外部 CSS 資源。 -->
+    <!-- th:href="@{...}" 是 Thymeleaf 的標準寫法，它會自動產生正確的相對路徑。 -->
+    <!-- 這會指向 /webjars/bootstrap/4.2.1/css/bootstrap.min.css -->
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
-    <!-- 引入 Font Awesome 提供圖示 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <!-- 引入 Google Fonts 提供更柔和的字體 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
-    <!-- ★【重點】連結到你設計的外部 CSS 樣式檔案 -->
+    <!-- ★【路徑重點 2】: 引入你自訂的 CSS 樣式表。 -->
+    <!-- 這會指向 /static/css/member/style.css -->
     <link rel="stylesheet" th:href="@{/css/member/style.css}" />
 </head>
 <body>
 
-    <!-- 頂部導航欄 -->
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
         <div class="container">
-            <div class="navbar-brand d-flex align-items-center">
+            <!-- ★【路徑重點 3】: 導覽列的 Logo 與標題連結。 -->
+            <!-- 點擊後會發送 GET 請求到 /member/select_page，返回會員列表頁。 -->
+            <a class="navbar-brand d-flex align-items-center" th:href="@{/member/select_page}">
                 <img th:src="@{/images/eatfasticon.png}" alt="EatFast 圖示" width="40" height="40" class="mr-3">
                 <span style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 新增會員</span>
-            </div>
+            </a>
+            <!-- ★【路徑重點 4】: 「回首頁」按鈕。 -->
+            <!-- 點擊後會發送 GET 請求到專案的根路徑 "/"。 -->
             <a class="btn btn-outline-light" th:href="@{/}">
                 <i class="fas fa-home"></i> 回首頁
             </a>
@@ -34,20 +38,16 @@
 
     <div class="container mt-4">
 
-        <!-- 新增會員表單卡片 -->
         <div class="card mx-auto" style="max-width: 800px;">
             <div class="card-header">
                 <i class="fas fa-user-plus"></i> 請輸入新會員資料
             </div>
             <div class="card-body">
-                <!-- 
-                    th:object="${memberEntity}" -> 將 model 中的 memberEntity 物件與這個表單綁定。
-                    th:field="*{...}" -> 用來將 input 欄位與 memberEntity 物件中的屬性對應。
-                    action="@{/member/insert}" -> 表單提交的目標 URL。
-                -->
+                <!-- ★【路徑重點 5】: 新增會員的表單。 -->
+                <!-- 當「確認新增」按鈕被點擊時，表單內所有資料將以 POST 方式提交到 /member/insert 這個 URL。 -->
+                <!-- 後端的 MemberController 中的 insert 方法將會處理這個請求。 -->
                 <form method="post" th:action="@{/member/insert}" th:object="${memberEntity}">
                     
-                    <!-- ★【重點】顯示後端驗證的所有錯誤訊息 -->
                     <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger" role="alert">
                          <b>請修正以下錯誤:</b>
                          <ul>
@@ -58,22 +58,22 @@
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="username">會員姓名:</label>
-                            <input type="text" id="username" class="form-control" th:field="*{username}" />
+                            <input type="text" id="username" class="form-control" th:field="*{username}" placeholder="請輸入真實姓名" />
                         </div>
                         <div class="form-group col-md-6">
                             <label for="account">登入帳號:</label>
-                            <input type="text" id="account" class="form-control" th:field="*{account}" />
+                            <input type="text" id="account" class="form-control" th:field="*{account}" placeholder="請輸入4-50個英數字元" />
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="password">登入密碼:</label>
-                        <input type="password" id="password" class="form-control" th:field="*{password}" />
+                        <input type="password" id="password" class="form-control" th:field="*{password}" placeholder="請設定8位數以上密碼" />
                     </div>
 
                     <div class="form-group">
                         <label for="email">電子郵件:</label>
-                        <input type="email" id="email" class="form-control" th:field="*{email}" />
+                        <input type="email" id="email" class="form-control" th:field="*{email}" placeholder="例如: user@example.com" />
                     </div>
 
                     <div class="form-row">
@@ -87,7 +87,6 @@
                         </div>
                     </div>
                     
-                    <!-- ★【新增功能】性別欄位 -->
                     <div class="form-group">
                         <label>性別:</label>
                         <div class="form-check form-check-inline">
@@ -108,6 +107,8 @@
 
                     <div class="d-flex justify-content-center">
                         <button type="submit" class="btn btn-primary mx-2"><i class="fas fa-check"></i> 確認新增</button>
+                        <!-- ★【路徑重點 6】: 「取消返回」按鈕。 -->
+                        <!-- 點擊後會發送 GET 請求到 /member/select_page，返回會員列表頁。 -->
                         <a th:href="@{/member/select_page}" class="btn btn-secondary mx-2"><i class="fas fa-times"></i> 取消返回</a>
                     </div>
 
@@ -116,9 +117,26 @@
         </div>
     </div>
 
-    <!-- 引入必要的 JavaScript -->
+    <!-- ★【路徑重點 7】: 引入外部 JavaScript 資源。 -->
+    <!-- 這些路徑會指向 /webjars/jquery/..., /webjars/popper.js/... 等。 -->
     <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
     <script th:src="@{/webjars/popper.js/1.14.3/umd/popper.min.js}"></script>
     <script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+
+    <script>
+        // 等待整個網頁文件都載入完成後，再執行裡面的程式碼
+        document.addEventListener("DOMContentLoaded", function() {
+            // 透過 ID 找到各個輸入框，並設定它們的 value (值)
+            document.getElementById("username").value = "王大明";
+            document.getElementById("account").value = "testuser01";
+            document.getElementById("password").value = "password123";
+            document.getElementById("email").value = "test01@example.com";
+            document.getElementById("phone").value = "0912-345678";
+            document.getElementById("birthday").value = "1995-08-15";
+            
+            // 預設選中「男性」
+            document.getElementById("genderM").checked = true;
+        });
+    </script>
 </body>
 </html>
