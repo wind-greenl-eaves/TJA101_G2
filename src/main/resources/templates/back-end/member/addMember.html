@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>新增會員資料 - 溫馨奶茶風</title>
+
+    <!-- 引入 Bootstrap CSS -->
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <!-- 引入 Font Awesome 提供圖示 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- 引入 Google Fonts 提供更柔和的字體 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- ★【重點】連結到你設計的外部 CSS 樣式檔案 -->
+    <link rel="stylesheet" th:href="@{/css/member/style.css}" />
+</head>
+<body>
+
+    <!-- 頂部導航欄 -->
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <div class="navbar-brand d-flex align-items-center">
+                <img th:src="@{/images/eatfasticon.png}" alt="EatFast 圖示" width="40" height="40" class="mr-3">
+                <span style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 新增會員</span>
+            </div>
+            <a class="btn btn-outline-light" th:href="@{/}">
+                <i class="fas fa-home"></i> 回首頁
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+
+        <!-- 新增會員表單卡片 -->
+        <div class="card mx-auto" style="max-width: 800px;">
+            <div class="card-header">
+                <i class="fas fa-user-plus"></i> 請輸入新會員資料
+            </div>
+            <div class="card-body">
+                <!-- 
+                    th:object="${memberEntity}" -> 將 model 中的 memberEntity 物件與這個表單綁定。
+                    th:field="*{...}" -> 用來將 input 欄位與 memberEntity 物件中的屬性對應。
+                    action="@{/member/insert}" -> 表單提交的目標 URL。
+                -->
+                <form method="post" th:action="@{/member/insert}" th:object="${memberEntity}">
+                    
+                    <!-- ★【重點】顯示後端驗證的所有錯誤訊息 -->
+                    <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger" role="alert">
+                         <b>請修正以下錯誤:</b>
+                         <ul>
+                            <li th:each="err : ${#fields.errors('*')}" th:text="${err}" />
+                         </ul>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="username">會員姓名:</label>
+                            <input type="text" id="username" class="form-control" th:field="*{username}" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="account">登入帳號:</label>
+                            <input type="text" id="account" class="form-control" th:field="*{account}" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">登入密碼:</label>
+                        <input type="password" id="password" class="form-control" th:field="*{password}" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">電子郵件:</label>
+                        <input type="email" id="email" class="form-control" th:field="*{email}" />
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="phone">連絡電話:</label>
+                            <input type="text" id="phone" class="form-control" th:field="*{phone}" placeholder="格式: 09xx-xxxxxx" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="birthday">生日:</label>
+                            <input type="date" id="birthday" class="form-control" th:field="*{birthday}" />
+                        </div>
+                    </div>
+                    
+                    <!-- ★【新增功能】性別欄位 -->
+                    <div class="form-group">
+                        <label>性別:</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{gender}" id="genderM" value="M">
+                            <label class="form-check-label" for="genderM">男性</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{gender}" id="genderF" value="F">
+                            <label class="form-check-label" for="genderF">女性</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{gender}" id="genderO" value="O">
+                            <label class="form-check-label" for="genderO">其他</label>
+                        </div>
+                    </div>
+                    
+                    <hr>
+
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" class="btn btn-primary mx-2"><i class="fas fa-check"></i> 確認新增</button>
+                        <a th:href="@{/member/select_page}" class="btn btn-secondary mx-2"><i class="fas fa-times"></i> 取消返回</a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入必要的 JavaScript -->
+    <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/popper.js/1.14.3/umd/popper.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+</body>
+</html>
