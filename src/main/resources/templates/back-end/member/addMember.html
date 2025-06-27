@@ -7,7 +7,6 @@
 
     <!-- ★【路徑重點 1】: 引入外部 CSS 資源。 -->
     <!-- th:href="@{...}" 是 Thymeleaf 的標準寫法，它會自動產生正確的相對路徑。 -->
-    <!-- 這會指向 /webjars/bootstrap/4.2.1/css/bootstrap.min.css -->
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,21 +14,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
     <!-- ★【路徑重點 2】: 引入你自訂的 CSS 樣式表。 -->
-    <!-- 這會指向 /static/css/member/style.css -->
     <link rel="stylesheet" th:href="@{/css/member/style.css}" />
+    
+    <!-- ★【新增樣式】: 為密碼切換圖示增加點擊手勢 -->
+    <style>
+        .toggle-password {
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
         <div class="container">
             <!-- ★【路徑重點 3】: 導覽列的 Logo 與標題連結。 -->
-            <!-- 點擊後會發送 GET 請求到 /member/select_page，返回會員列表頁。 -->
             <a class="navbar-brand d-flex align-items-center" th:href="@{/member/select_page}">
                 <img th:src="@{/images/eatfasticon.png}" alt="EatFast 圖示" width="40" height="40" class="mr-3">
                 <span style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 新增會員</span>
             </a>
             <!-- ★【路徑重點 4】: 「回首頁」按鈕。 -->
-            <!-- 點擊後會發送 GET 請求到專案的根路徑 "/"。 -->
             <a class="btn btn-outline-light" th:href="@{/}">
                 <i class="fas fa-home"></i> 回首頁
             </a>
@@ -44,8 +47,6 @@
             </div>
             <div class="card-body">
                 <!-- ★【路徑重點 5】: 新增會員的表單。 -->
-                <!-- 當「確認新增」按鈕被點擊時，表單內所有資料將以 POST 方式提交到 /member/insert 這個 URL。 -->
-                <!-- 後端的 MemberController 中的 insert 方法將會處理這個請求。 -->
                 <form method="post" th:action="@{/member/insert}" th:object="${memberEntity}">
                     
                     <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger" role="alert">
@@ -66,10 +67,23 @@
                         </div>
                     </div>
 
+                    <!-- ★★★★★【HTML 已修改】密碼欄位 ★★★★★ -->
                     <div class="form-group">
                         <label for="password">登入密碼:</label>
-                        <input type="password" id="password" class="form-control" th:field="*{password}" placeholder="請設定8位數以上密碼" />
+                        <!-- 1. 使用 Bootstrap 的 input-group 將輸入框和圖示包在一起 -->
+                        <div class="input-group">
+                            <input type="password" id="password" class="form-control" th:field="*{password}" placeholder="請設定8位數以上密碼" />
+                            <!-- 2. 這是附加在輸入框後方的圖示區塊 -->
+                            <div class="input-group-append">
+                                <!-- 3. 在圖示區塊中放入一個 span，並給予 ID 和自訂 class -->
+                                <span class="input-group-text toggle-password" id="togglePassword">
+                                    <!-- 4. 這是 FontAwesome 的眼睛圖示 -->
+                                    <i class="fas fa-eye"></i>
+                                </span>
+                            </div>
+                        </div>
                     </div>
+                    <!-- ★★★★★【HTML 修改結束】★★★★★ -->
 
                     <div class="form-group">
                         <label for="email">電子郵件:</label>
@@ -108,7 +122,6 @@
                     <div class="d-flex justify-content-center">
                         <button type="submit" class="btn btn-primary mx-2"><i class="fas fa-check"></i> 確認新增</button>
                         <!-- ★【路徑重點 6】: 「取消返回」按鈕。 -->
-                        <!-- 點擊後會發送 GET 請求到 /member/select_page，返回會員列表頁。 -->
                         <a th:href="@{/member/select_page}" class="btn btn-secondary mx-2"><i class="fas fa-times"></i> 取消返回</a>
                     </div>
 
@@ -118,7 +131,6 @@
     </div>
 
     <!-- ★【路徑重點 7】: 引入外部 JavaScript 資源。 -->
-    <!-- 這些路徑會指向 /webjars/jquery/..., /webjars/popper.js/... 等。 -->
     <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
     <script th:src="@{/webjars/popper.js/1.14.3/umd/popper.min.js}"></script>
     <script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
@@ -136,6 +148,36 @@
             
             // 預設選中「男性」
             document.getElementById("genderM").checked = true;
+
+
+            // ★★★★★【JavaScript 已新增】密碼顯示/隱藏邏輯 ★★★★★
+            
+            // 1. 取得 DOM 元素
+            // 這是可自定義的變數名稱
+            const passwordInput = document.getElementById('password');
+            const togglePasswordIcon = document.getElementById('togglePassword');
+
+            // 2. 監聽圖示的點擊事件
+            togglePasswordIcon.addEventListener('click', function (e) {
+                // 3. 取得目前輸入框的類型 (是 'password' 還是 'text')
+                const currentType = passwordInput.getAttribute('type');
+
+                // 4. 判斷並切換類型
+                if (currentType === 'password') {
+                    // 如果是密碼模式，就切換成文字模式
+                    passwordInput.setAttribute('type', 'text');
+                    // 同時，將圖示換成「閉眼」
+                    this.querySelector('i').classList.remove('fa-eye');
+                    this.querySelector('i').classList.add('fa-eye-slash');
+                } else {
+                    // 如果是文字模式，就切換回密碼模式
+                    passwordInput.setAttribute('type', 'password');
+                    // 同時，將圖示換回「睜眼」
+                    this.querySelector('i').classList.remove('fa-eye-slash');
+                    this.querySelector('i').classList.add('fa-eye');
+                }
+            });
+            // ★★★★★【JavaScript 新增結束】★★★★★
         });
     </script>
 </body>
