@@ -1,131 +1,174 @@
 package com.eatfast.member.controller;
 
+import com.eatfast.member.model.MemberEntity;
+import com.eatfast.member.service.MemberService;
+import com.eatfast.member.validation.CreateValidation;
+import com.eatfast.member.validation.UpdateValidation;
 import jakarta.validation.Valid;
-
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import com.eatfast.member.model.MemberEntity;
-import com.eatfast.member.service.MemberService;
-
 /**
- * 									[控制層] 會員功能控制器
+ * [控制層] 會員功能控制器
  * - 職責：處理所有與會員資料相關的 HTTP 請求，並回傳對應的視圖。
  */
 @Controller
-						// ★【基底路徑】所有此 Controller 的方法，URL 都會以 "/member" 為前綴。
+// ★【基底路徑】所有此 Controller 的方法，URL 都會以 "/member" 為前綴。
 @RequestMapping("/member")
 public class MemberController {
-	
-	//- 依賴注入 MemberService，這是處理會員業務邏輯的服務層。
+
     private final MemberService memberService;
-    
-    //- 使用建構子注入 MemberService，這是 Spring 官方推薦的最佳實踐。
+
     public MemberController(MemberService memberService) {
         this.memberService = memberService;
     }
-    
+
     /**
      * [查詢] 顯示會員資料管理主頁面。
+     * - GET /member/select_page
+     * - 返回視圖：/templates/back-end/member/select_page_member.html
      */
-    @GetMapping("/select_page") 				//- GET /member/select_page
+    @GetMapping("/select_page")
     public String showSelectPage(Model model) {
         List<MemberEntity> list = memberService.getAllMembers();
         model.addAttribute("memberListData", list);
-        
-        										//返回視圖：/templates/back-end/member/select_page_member.html
         return "back-end/member/select_page_member";
     }
 
     /**
-     * 	[查詢] 依會員帳號查詢單筆資料。
+     * [查詢] 依會員帳號查詢單筆資料。
+     * - POST /member/getOneForDisplay
      * - 來源：select_page_member.html 的「依帳號查詢」表單。
+     * - 返回視圖：同上，但會帶上查詢結果或錯誤訊息。
      */
-    @PostMapping("/getOneForDisplay") 				//- POST /member/getOneForDisplay
+    @PostMapping("/getOneForDisplay")
     public String getOneForDisplay(@RequestParam("account") String account, Model model) {
-
         if (account == null || account.trim().isEmpty()) {
             model.addAttribute("errorMessage", "會員帳號: 請勿空白");
             model.addAttribute("memberListData", memberService.getAllMembers());
             return "back-end/member/select_page_member";
         }
-        
         Optional<MemberEntity> optionalMember = memberService.getMemberByAccount(account);
-
         if (optionalMember.isEmpty()) {
             model.addAttribute("errorMessage", "查無資料");
-            model.addAttribute("memberListData", memberService.getAllMembers()); 
+            model.addAttribute("memberListData", memberService.getAllMembers());
         } else {
             model.addAttribute("member", optionalMember.get());
             model.addAttribute("memberListData", Collections.singletonList(optionalMember.get()));
         }
-        
-        return "back-end/member/select_page_member"; // 返回同一個視圖，但會顯示查詢結果或錯誤訊息
+        return "back-end/member/select_page_member";
     }
-    
+
     /**
      * [查詢] 依多個動態條件執行複合查詢。
+     * - POST /member/listMembers_ByCompositeQuery
      * - 來源：select_page_member.html 的「萬用複合查詢」表單。
+     * - 返回視圖：同上，但列表為過濾後的結果。
      */
-    @PostMapping("/listMembers_ByCompositeQuery") 	//- POST /member/listMembers_ByCompositeQuery
-    public String listMembersByCompositeQuery(@RequestParam Map<String, String[]> map, Model model) {
-        List<MemberEntity> list = memberService.getAllMembers(map);
+    @PostMapping("/listMembers_ByCompositeQuery")
+    public String listMembersByCompositeQuery(@RequestParam Map<String, Object> params, Model model) {
+        // 將參數轉換為正確的格式
+        Map<String, String[]> queryParams = new HashMap<>();
+        params.forEach((key, value) -> {
+            if (value != null && !value.toString().trim().isEmpty()) {
+                queryParams.put(key, new String[]{value.toString().trim()});
+            }
+        });
+        
+        List<MemberEntity> list = memberService.getAllMembers(queryParams);
         model.addAttribute("memberListData", list);
-        model.addAttribute("param", map);
-        return "back-end/member/select_page_member";// 返回同一個視圖，但會顯示查詢結果
+        model.addAttribute("param", queryParams);
+        return "back-end/member/select_page_member";
     }
 
     /**
      * [新增-步驟1] 顯示新增會員的頁面。
+     * - GET /member/addMember
      * - 來源：select_page_member.html 的「新增會員」按鈕。
+     * - 返回視圖：/templates/back-end/member/addMember.html
      */
-    @GetMapping("/addMember")						 //- GET /member/addMember
+    @GetMapping("/addMember")
     public String showAddForm(ModelMap model) {
         model.addAttribute("memberEntity", new MemberEntity());
-        return "back-end/member/addMember"; 		//- 返回視圖：/templates/back-end/member/addMember.html
+        return "back-end/member/addMember";
     }
 
     /**
      * [新增-步驟2] 處理新增會員的表單提交。
-     * - 來源：addMember.html 的表單提交。
-     * 
+     * 【已升級】現在會處理「新增」或「重新啟用已停用帳號」的邏輯。
      */
-    @PostMapping("/insert") 						//- POST /member/insert
-    public String insert(@Valid @ModelAttribute("memberEntity") MemberEntity memberEntity,
+    @PostMapping("/insert")
+    public String insert(@Validated(CreateValidation.class) @ModelAttribute("memberEntity") MemberEntity formMember,
                          BindingResult result,
                          RedirectAttributes redirectAttributes) {
 
-        // 業務校驗：檢查帳號或 Email 是否已存在
-        if (memberService.getMemberByAccount(memberEntity.getAccount()).isPresent()) {
-             result.addError(new FieldError("memberEntity", "account", "帳號 " + memberEntity.getAccount() + " 已被註冊"));
-        }
-        if (memberService.getMemberByEmail(memberEntity.getEmail()).isPresent()) {
-             result.addError(new FieldError("memberEntity", "email", "Email " + memberEntity.getEmail() + " 已被註冊"));
-        }
-
-        // 統一檢查所有驗證結果
+        // 1. 檢查是否有格式錯誤 (例如生日為空)
         if (result.hasErrors()) {
             return "back-end/member/addMember";
         }
 
-        memberService.saveOrUpdateMember(memberEntity);
+        // 2. 檢查帳號是否已存在 (包含已停用的)
+        Optional<MemberEntity> existingAccount = memberService.getMemberByAccountIncludeDisabled(formMember.getAccount());
+        if (existingAccount.isPresent()) {
+            MemberEntity dbMember = existingAccount.get();
+            // 如果帳號存在且是啟用狀態，回報錯誤
+            if (dbMember.isEnabled()) {
+                result.addError(new FieldError("memberEntity", "account", "帳號 " + formMember.getAccount() + " 已被註冊"));
+            } else {
+                // 如果帳號存在但是停用狀態，執行「重新啟用」並更新資料
+                dbMember.setEnabled(true);
+                dbMember.setUsername(formMember.getUsername());
+                dbMember.setPassword(formMember.getPassword()); // ★注意：此處應加入密碼加密邏輯
+                dbMember.setEmail(formMember.getEmail());
+                dbMember.setPhone(formMember.getPhone());
+                dbMember.setBirthday(formMember.getBirthday());
+                dbMember.setGender(formMember.getGender());
+                
+                memberService.saveOrUpdateMember(dbMember); // 這是更新操作
+                redirectAttributes.addFlashAttribute("successMessage", "已重新啟用並更新會員 " + dbMember.getUsername() + " 的資料！");
+                return "redirect:/member/select_page";
+            }
+        }
 
-        redirectAttributes.addFlashAttribute("successMessage", "新增會員 " + memberEntity.getUsername() + " 成功！");
-        return "redirect:/member/select_page"; //- 成功後重導向 (Redirect) 至 /member/select_page，避免重複提交。
+        // 3. 檢查 Email 是否已存在 (包含已停用的)
+        Optional<MemberEntity> existingEmail = memberService.getMemberByEmailIncludeDisabled(formMember.getEmail());
+        if (existingEmail.isPresent()) {
+            if (existingEmail.get().isEnabled()) {
+                result.addError(new FieldError("memberEntity", "email", "Email " + formMember.getEmail() + " 已被註冊"));
+            } else {
+                // 也可以加入重新啟用的邏輯，但通常以帳號為主，這裡先回報錯誤
+                 result.addError(new FieldError("memberEntity", "email", "此 Email 對應到一個已停用帳號，請聯繫客服。"));
+            }
+        }
+        
+        // 4. 如果有任何業務錯誤，返回表單頁面
+        if(result.hasErrors()){
+            return "back-end/member/addMember";
+        }
+
+        // 5. 如果帳號和 Email 都是全新的，才執行新增
+        memberService.saveOrUpdateMember(formMember);
+        redirectAttributes.addFlashAttribute("successMessage", "新增會員 " + formMember.getUsername() + " 成功！");
+        return "redirect:/member/select_page";
     }
     
     /**
@@ -162,7 +205,7 @@ public class MemberController {
      * - 成功後重導向 (Redirect) 至 /member/select_page。
      */
     @PostMapping("/update")
-    public String update(@Valid @ModelAttribute("memberEntity") MemberEntity memberEntity,
+    public String update(@Validated(UpdateValidation.class) @ModelAttribute("memberEntity") MemberEntity memberEntity,
                          BindingResult result,
                          RedirectAttributes redirectAttributes) {
 
@@ -173,6 +216,21 @@ public class MemberController {
         memberService.saveOrUpdateMember(memberEntity);
 
         redirectAttributes.addFlashAttribute("successMessage", "會員 " + memberEntity.getUsername() + " 的資料更新成功！");
-        return "redirect:/member/select_page";
+        return "redirect:/member/select_page"; // 重導向至會員列表頁面 
     }
+
+    /**
+     * [API] 獲取會員詳細資訊。
+     * - GET /member/api/detail/{memberId}
+     * - 返回：JSON 格式的會員詳細資料
+     */
+    @GetMapping("/api/detail/{memberId}")
+    @ResponseBody
+    public ResponseEntity<?> getMemberDetail(@PathVariable Long memberId) {
+        Optional<MemberEntity> optionalMember = memberService.getMemberById(memberId);
+        return optionalMember
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 }

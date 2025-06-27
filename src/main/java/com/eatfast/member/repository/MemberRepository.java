@@ -9,17 +9,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-// ★★★★★會員資料存取層 (Repository)
+// ●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●會員資料存取層 (Repository)●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●
 // 負責與資料庫進行交互，提供 CRUD 操作和自定義查詢方法。
 // 使用 Spring Data JPA 的 JpaRepository 和 JpaSpecificationExecutor 來簡化資料存取操作。
 // JpaRepository 提供基本的 CRUD 操作，而 JpaSpecificationExecutor 則允許使用動態查詢。
-// @Repository 標記這是一個資料存取層的組件，Spring 會自動管理它的生命週期。
+//●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●
 
 @Repository
 public interface MemberRepository extends JpaRepository<MemberEntity, Long>, JpaSpecificationExecutor<MemberEntity> {
 
-	// 【R - 讀取】Spring Data JPA 會自動實現 "依 account 查詢"
-	// 不可變：findByAccount 是框架關鍵字，findBy 後面的 Account 對應 MemberEntity 的 account 屬性
+	// findByAccount 是框架關鍵字，findBy 後面的 Account 對應 MemberEntity 的 account 屬性
 	Optional<MemberEntity> findByAccount(String account);
 
 	// 【R - 讀取】Spring Data JPA 會自動實現 "依 email 查詢"
@@ -36,7 +35,7 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long>, Jpa
 
 	// 【D - 軟刪除】
 	// 原本的 deleteByAccount 會執行物理刪除，與 Entity 的軟刪除邏輯衝突。
-	// 已修改為使用 JPQL 執行軟刪除（更新 is_enabled 旗標），確保刪除行為一致。
+	// 為使用 JPQL 執行軟刪除（更新 is_enabled 旗標），確保刪除行為一致。
 	@Modifying(clearAutomatically = true)
 	@Query("UPDATE MemberEntity m SET m.isEnabled = false WHERE m.account = :account")
 	int softDeleteByAccount(@Param("account") String account);
@@ -47,4 +46,15 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long>, Jpa
 	@Modifying(clearAutomatically = true)
 	@Query("UPDATE MemberEntity m SET m.phone = :phone WHERE m.memberId = :memberId")
 	int updatePhoneById(@Param("memberId") Long memberId, @Param("phone") String phone);
+
+	// 不受軟刪除限制，查詢會員是否存在 (包含已停用的)
+	// ★注意：這是原生 SQL 查詢，因為 JPQL 會被 @SQLRestriction 影響。
+	// value = "SELECT * FROM member WHERE account = :account LIMIT 1" -> 直接下令給資料庫查詢
+	// nativeQuery = true -> 告訴 JPA 這是原生 SQL，請直接執行
+	@Query(value = "SELECT * FROM member WHERE account = :account LIMIT 1", nativeQuery = true)
+	Optional<MemberEntity> findByAccountIncludeDisabled(@Param("account") String account);
+
+	@Query(value = "SELECT * FROM member WHERE email = :email LIMIT 1", nativeQuery = true)
+	Optional<MemberEntity> findByEmailIncludeDisabled(@Param("email") String email);
+
 }
