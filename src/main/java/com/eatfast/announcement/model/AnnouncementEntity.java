@@ -15,10 +15,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 // 引入 Hibernate 專屬功能註解
-import org.hibernate.annotations.CreationTimestamp;
+
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 /*
  * ================================================================
