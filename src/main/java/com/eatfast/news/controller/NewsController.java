@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.eatfast.news.model.NewsEntity;
-import com.eatfast.news.model.NewsService;
+import com.eatfast.news.service.NewsService;
 
 @Controller
 @RequestMapping("/news")

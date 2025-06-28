@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.eatfast.news.model.NewsEntity;
-import com.eatfast.news.model.NewsService;
+import com.eatfast.news.service.NewsService;
 
 @Controller
 public class Demo_SpringDataJPA_Controller_testNews {
