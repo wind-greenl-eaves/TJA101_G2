@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional; // 引入 Optional，用於查無資料時返回Optional.empty()
-
+ 
 @Repository
 public interface StoreMealStatusRepository extends JpaRepository<StoreMealStatusEntity, StoreMealStatusId> {
 

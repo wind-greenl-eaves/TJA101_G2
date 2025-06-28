@@ -2,7 +2,7 @@ package com.eatfast.storemealstatus.model;
 
 import java.io.Serializable;
 import java.util.Objects;
-
+ 
 // 複合主鍵類別必須實作 Serializable 介面
 public class StoreMealStatusId implements Serializable {
 

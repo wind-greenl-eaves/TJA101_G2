@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*; // 引入各種 Spring Web 註
 
 import java.util.List;
 import java.util.Optional;
-
+ 
 /**
  * StoreMealStatusController 負責處理與門市餐點狀態相關的 HTTP 請求。
  * 提供 RESTful API 端點來執行新增、查詢、更新和刪除操作。

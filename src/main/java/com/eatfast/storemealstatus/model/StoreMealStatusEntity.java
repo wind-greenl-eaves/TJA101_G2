@@ -15,7 +15,7 @@ import jakarta.persistence.UniqueConstraint;
 // 使用 @IdClass 指定複合主鍵類別
 @IdClass(StoreMealStatusId.class)
 public class StoreMealStatusEntity {
-
+ 
 	// 標記為複合主鍵的一部分
 	@Id
 	@Column(name = "store_id", nullable = false)

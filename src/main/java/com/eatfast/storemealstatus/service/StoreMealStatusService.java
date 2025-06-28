@@ -92,7 +92,7 @@ public class StoreMealStatusService {
     public List<StoreMealStatusEntity> getMealStatusesByStoreIdAndStatus(Integer storeId, String status) { // `getMealStatusesByStoreIdAndStatus`, `storeId`, `status` 是可以自定義的變數名稱
         return storeMealStatusRepository.findByStoreIdAndStatus(storeId, status); // `findByStoreIdAndStatus()` 是自定義的 Repository 方法，不可變
     }
-
+ 
 
     /**
      * 根據門市ID和餐點ID刪除單一餐點狀態。

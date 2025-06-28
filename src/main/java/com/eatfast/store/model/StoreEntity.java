@@ -37,6 +37,7 @@ import java.util.Set;
  * 2.  **命名一致性**: `orders` 集合變數更名為 `orderLists`，使其與 `OrderListEntity` 型別對應。
  * </p>
  */
+ 
 @Entity
 @Table(name = "store")
 public class StoreEntity {
