@@ -75,7 +75,7 @@ public class StoreEntity {
     // 說明: @Enumerated(EnumType.STRING) 會讓 JPA 將 Enum 的名稱 (如 "OPERATING") 直接存成字串到資料庫，可讀性最高。
     @NotNull(message = "門市狀態不可為空")
     @Enumerated(EnumType.STRING)
-    @Column(name = "store_status", nullable = false, length = 10)
+    @Column(name = "store_status", nullable = false, length = 15)
     private StoreStatus storeStatus;
 
     @CreationTimestamp
