@@ -1,13 +1,20 @@
+/*
+ * ================================================================
+ * 檔案 2: FeedbackController.java (維持不變)
+ * ================================================================
+ * - 存放目錄: src/main/java/com/eatfast/feedback/controller/FeedbackController.java
+ * - 核心改動:
+ * 1. 職責簡化: Controller 不再負責創建 Entity，只負責接收請求參數。
+ * 2. 安全性提升: 將創建邏輯完全委派給 Service 層，由 Service 層負責驗證 ID。
+ * 3. 錯誤處理: 新增 try-catch 區塊，以處理 Service 層可能拋出的例外。
+ */
 package com.eatfast.feedback.controller;
 
-import com.eatfast.feedback.model.FeedbackEntity;
-import com.eatfast.feedback.model.FeedbackService;
-import com.eatfast.member.model.MemberEntity;
-import com.eatfast.store.model.StoreEntity;
+import com.eatfast.feedback.service.FeedbackService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/feedback")
@@ -19,35 +26,45 @@ public class FeedbackController {
         this.feedbackService = feedbackService;
     }
 
-    // 顧客填寫表單的頁面（http://localhost:8080/feedback/form）
+    // 顯示表單的頁面 (維持不變)
     @GetMapping("/form")
     public String showForm() {
-        return "select_page"; // ✅ 對應 templates/select_page.html
+        // 此處應返回您的意見回饋表單頁面的視圖名稱
+        // 例如: return "front-end/feedback/feedback_form";
+        return "feedback/form"; 
     }
-
-    // 接收表單資料（表單 method="post" action="/feedback/submit"）
+    
+    /**
+     * 【核心重構】: 接收表單資料。
+     * - 不再創建 Entity，而是將接收到的原始參數直接傳遞給 Service 層。
+     */
     @PostMapping("/submit")
     public String submitFeedback(@RequestParam Long memberId,
                                  @RequestParam Long storeId,
                                  @RequestParam String phone,
-                                 @RequestParam String content) {
+                                 @RequestParam String content,
+                                 RedirectAttributes redirectAttributes) {
 
-        FeedbackEntity feedback = new FeedbackEntity();
-        feedback.setMember(new MemberEntity(memberId));
-        feedback.setStore(new StoreEntity(storeId));
-        feedback.setPhone(phone);
-        feedback.setContent(content);
-        feedback.setCreateTime(LocalDateTime.now());
+        try {
+            // 1. 【業務委派】直接呼叫 Service 層處理業務邏輯。
+            feedbackService.createFeedback(memberId, storeId, phone, content);
+            
+            // 2. 【成功路徑】設定成功訊息並重定向到感謝頁面。
+            redirectAttributes.addFlashAttribute("successMessage", "您的意見已成功送出，感謝您的回饋！");
+            return "redirect:/feedback/thanks";
 
-        feedbackService.save(feedback);
-
-        return "redirect:/feedback/thanks"; // ✅ 導向感謝頁
+        } catch (EntityNotFoundException e) {
+            // 3. 【失敗路徑】捕獲 Service 層拋出的「關聯找不到」的錯誤。
+            redirectAttributes.addFlashAttribute("errorMessage", "提交失敗：" + e.getMessage());
+            // 重定向回表單頁面，並顯示錯誤。
+            return "redirect:/feedback/form";
+        }
     }
-
-    // 顯示感謝頁（http://localhost:8080/feedback/thanks）
+    
+    // 顯示感謝頁面 (維持不變)
     @GetMapping("/thanks")
     public String showThankYouPage() {
-        return "feedback_thanks"; // ✅ 對應 templates/feedback_thanks.html
+        // 此處應返回您的感謝頁面的視圖名稱
+        return "feedback/thanks";
     }
 }
-

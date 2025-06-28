@@ -11,7 +11,6 @@
 --      5. 建立用於自動生成訂單編號的觸發器。
 -- =======================================================================================
 
-
 -- -----------------------------------------------------
 -- 步驟 1: 資料庫建立與選用
 -- -----------------------------------------------------
@@ -20,10 +19,8 @@
 CREATE DATABASE IF NOT EXISTS eatfast_db
     DEFAULT CHARACTER SET utf8mb4
     DEFAULT COLLATE utf8mb4_unicode_ci;
-
 -- 切換到 eatfast_db 資料庫，後續的 SQL 操作都將在此資料庫中執行。
 USE eatfast_db;
-
 
 -- -----------------------------------------------------
 -- 步驟 2: 資料表刪除 (確保可重複執行此腳本)
@@ -46,7 +43,6 @@ DROP TABLE IF EXISTS meal;                  -- 餐點資料 (依賴 meal_type)
 DROP TABLE IF EXISTS meal_type;             -- 餐點種類 (獨立父表)
 DROP TABLE IF EXISTS store;                 -- 門市資料 (獨立父表)
 DROP TABLE IF EXISTS member;                -- 會員資料 (獨立父表)
-
 
 -- =================================================================
 -- 步驟一：建立 member 資料表 (支援軟刪除)
@@ -413,25 +409,33 @@ INSERT INTO meal (meal_type_id, meal_name, meal_pic, meal_price, review_total_st
 (4, '培根鐵板麵', NULL, 60, 4, 0),    -- 種類:鐵板麵, 名稱:培根鐵板麵, 價格:60, 評價:4星, 狀態:下架
 (5, '冰美式咖啡', NULL, 35, 5, 1);      -- 種類:飲品, 名稱:冰美式咖啡, 價格:35, 評價:5星, 狀態:上架
 -- =======================================================================================
--- 資料表: store_meal_status (門市餐點狀態表) - [已根據建議修正]
+-- 資料表: store_meal_status (門市餐點狀態表) - [已修改為代理主鍵版本]
 -- 功能: 建立特定門市與特定餐點的供應狀態，實現分店層級的即時庫存管理 (例如：今日售完)。
 -- 備註: 此表的紀錄會覆蓋 meal 表的總狀態。若此表無紀錄，則依 meal 表的 status 為準。
--- [修正說明]: status 欄位型態由 VARCHAR 改為 TINYINT(1)，更符合布林狀態的語意且效能更佳。
+--
+-- [修改說明]:
+-- 1. 新增 `sms_id` 欄位作為此表的代理主鍵 (Surrogate Key)，並設定為自動增長。
+-- 2. 將原本的複合主鍵 (store_id, meal_id) 改為唯一鍵約束 (UNIQUE KEY)，
+--    以確保同一間門市的同一個餐點不會有重複的狀態紀錄，維持業務邏輯的正確性。
 -- =======================================================================================
 CREATE TABLE store_meal_status (
-    store_id BIGINT NOT NULL COMMENT '門市編號 (複合主鍵之一，外鍵)',
-    meal_id BIGINT NOT NULL COMMENT '餐點編號 (複合主鍵之一，外鍵)',
+    sms_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '門市餐點狀態編號 (主鍵，自動增長)',
+    store_id BIGINT NOT NULL COMMENT '門市編號 (外鍵)',
+    meal_id BIGINT NOT NULL COMMENT '餐點編號 (外鍵)',
     status TINYINT(1) NOT NULL COMMENT '該門市的此餐點狀態 (1=供應中, 0=已售完)',
     last_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '狀態最後更新時間',
-    PRIMARY KEY (store_id, meal_id),
+    PRIMARY KEY (sms_id),
+    -- 唯一鍵約束，確保資料的唯一性
+    UNIQUE KEY uk_store_meal (store_id, meal_id),
+    -- 外鍵約束維持不變
     CONSTRAINT fk_sms_store FOREIGN KEY (store_id) REFERENCES store(store_id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_sms_meal FOREIGN KEY (meal_id) REFERENCES meal(meal_id) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='門市對應餐點的即時狀態表 (多對多)。';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='門市對應餐點的即時狀態表 (多對多，使用代理主鍵)。';
 
 /*
  * -----------------------------------------------------
- * 範例資料: store_meal_status - [已根據建議修正]
- * 說明: status 的值已由字串 '1'/'0' 改為數字 1/0。
+ * 範例資料: store_meal_status
+ * 說明: INSERT 陳述式與原版相同，因為我們不需要手動插入主鍵 `sms_id`。
  * -----------------------------------------------------
  */
 INSERT INTO store_meal_status (store_id, meal_id, status) VALUES

@@ -16,7 +16,7 @@ import java.util.Optional;
  * 如此一來，這個介面才能使用 findAll(Specification<T> spec) 方法。
  */
 @Repository
-public interface StoreRepository extends JpaRepository<StoreEntity, Integer>, JpaSpecificationExecutor<StoreEntity> { // 2. 在此處加上繼承
+public interface StoreRepository extends JpaRepository<StoreEntity, Long>, JpaSpecificationExecutor<StoreEntity> { // 2. 在此處加上繼承
 
     /**
      * 根據門市名稱查詢門市資訊。

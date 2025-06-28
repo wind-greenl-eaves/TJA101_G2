@@ -1,163 +1,181 @@
-//購物車VO
-package com.eatfast.cart.model;
+package com.eatfast.cart.model; // 假設的 package 路徑
 
+// 【檔案路徑配對】: 為了建立多對一關聯，需要 import 父實體
+import com.eatfast.member.model.MemberEntity;
+import com.eatfast.meal.model.MealEntity;
+import com.eatfast.store.model.StoreEntity;
 
-import java.time.LocalDateTime;
-
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.CreationTimestamp;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import oracle.sql.TIMESTAMP;
+import java.time.LocalDateTime;
+import java.util.Objects;
 
+/**
+ * 購物車實體 (Cart Entity)
+ * <p>
+ * 此實體對應資料庫中的 `cart` 暫存表。每一筆紀錄都代表一個使用者在特定門市
+ * 將特定餐點加入購物車的行為。
+ * </p>
+ */
 @Entity
-@Table(name = "cart", uniqueConstraints = 
-	{ @UniqueConstraint(name = "uk_cartId", columnNames = "cart_id")})
-
+@Table(name = "cart")
 public class CartEntity {
-	
-	//購物車編號
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)  //主鍵自動生成
-	@Column(name = "cart_id")
-	private Integer cartId;
-	
-	//會員編號  (之後再關聯)
-//	@ManyToOne(fetch=FetchType.EAGER) //多對一
-//	@JoinColumn(name = "member_id")
-	@Column(name = "member_Id", nullable = false)
-	private Integer memberId;
-	
-	//餐點編號  (之後再關聯)
-//	@ManyToOne(fetch=FetchType.EAGER) //多對一
-//	@JoinColumn(name = "meal_id")
-	@Column(name = "meal_Id", nullable = false)
-	private Integer mealId;
-	
-	//門市編號  (之後再關聯)
-//	@ManyToOne(fetch=FetchType.EAGER) //多對一
-//	@JoinColumn(name = "store_id")	
-	@Column(name = "store_Id", nullable = false)
-	private Integer storeId;
-	
-	//餐點數量
-	@Column(name = "amount", nullable = false)
-	private Integer amount;
-	
-	//建立時間
-	@CreationTimestamp // Hibernate 會自動填入當下時間
-	@Column(name = "create_time", nullable = false, updatable = false)
-	private LocalDateTime createTime;
-	
-	
-	//餐點客製化備註
-	@Column(name = "meal_customization")
-	@Size(max = 255, message = "餐點客製化備註長度最多在255個字以內")  //後端錯誤驗證
-	private String mealCustomization;
-	
-	
-	public Integer getCartId() {
-		return cartId;
-	}
 
-	public void setCartId(Integer cartId) {
-		this.cartId = cartId;
-	}
+    //================================================================
+    // 							欄位定義 (Fields)
+    //================================================================
 
-	public Integer getMemberId() {
-		return memberId;
-	}
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "cart_id")
+    private Long cartId;
 
-	public void setMemberId(Integer memberId) {
-		this.memberId = memberId;
-	}
+    /**
+     * 訂購數量。
+     * 使用 Long 型別以精準對應資料庫的 BIGINT。
+     */
+    @NotNull(message = "數量不可為空")
+    @Min(value = 1, message = "數量至少為 1")
+    @Column(name = "quantity", nullable = false)
+    private Long quantity;
 
-	public Integer getMealId() {
-		return mealId;
-	}
+    @Size(max = 255, message = "客製化備註長度不可超過 255 字元")
+    @Column(name = "meal_customization", length = 255)
+    private String mealCustomization;
 
-	public void setMealId(Integer mealId) {
-		this.mealId = mealId;
-	}
+    /**
+     * 加入購物車的時間。
+     * 1. @CreationTimestamp: (不可變關鍵字) Hibernate 提供的註解。當此實體被新增至資料庫時，
+     * 會自動將當前時間戳寫入此欄位。
+     */
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-	public Integer getStoreId() {
-		return storeId;
-	}
 
-	public void setStoreId(Integer storeId) {
-		this.storeId = storeId;
-	}
+    //================================================================
+    // 				關聯的擁有方 (Owning Side of Relationship)
+    //================================================================
 
-	public Integer getAmount() {
-		return amount;
-	}
+    /**
+     * 所屬的會員 (多對一)。
+     * 1. @ManyToOne: (不可變關鍵字) 宣告這是一個多對一關聯 (多筆購物車紀錄 -> 一位會員)。
+     * 2. fetch = FetchType.LAZY: (不可變關鍵字) **效能關鍵**。
+     * 3. @JoinColumn: (不可變關鍵字) 指定外鍵欄位。
+     * 4. name = "member_id": (不可變動) 必須與資料庫中的外鍵欄位名完全匹配。
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private MemberEntity member;
 
-	public void setAmount(Integer amount) {
-		this.amount = amount;
-	}
+    /**
+     * 選擇的餐點 (多對一)。
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "meal_id", nullable = false)
+    private MealEntity meal;
 
-	public LocalDateTime getCreateTime() {
-		return createTime;
-	}
+    /**
+     * 選擇的門市 (多對一)。
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    private StoreEntity store;
 
-	public void setCreateTime(LocalDateTime createTime) {
-		this.createTime = createTime;
-	}
 
-	public String getMealCustomization() {
-		return mealCustomization;
-	}
+    //================================================================
+    //					 建構子、Getters、Setters
+    //================================================================
+    public CartEntity() {}
 
-	public void setMealCustomization(String mealCustomization) {
-		this.mealCustomization = mealCustomization;
-	}
+    public Long getCartId() {
+        return cartId;
+    }
 
-	//JPA 規範要求必須提供一個無參數的建構子， 以便框架透過反射機制建立物件實例
-	public CartEntity() {
-	}
+    public void setCartId(Long cartId) {
+        this.cartId = cartId;
+    }
 
-	//提供一個有參數的建構子
-	public CartEntity(Integer cartId, Integer memberId, Integer mealId, Integer storeId, Integer amount,
-			LocalDateTime createTime, @Size(max = 25520, message = "餐點客製化備註長度最多在255個字以內") String mealCustomization) {
-		super();
-		this.cartId = cartId;
-		this.memberId = memberId;
-		this.mealId = mealId;
-		this.storeId = storeId;
-		this.amount = amount;
-		this.createTime = createTime;
-		this.mealCustomization = mealCustomization;
-	}
-	
-	
-	@Override
-	public String toString() {
-	    return "CartEntity{" +
-	            "cartId=" + cartId +
-	            ", memberId='" + memberId + '\'' +
-	            ", mealId='" + mealId + '\'' +
-	            ", storeId='" + storeId + '\'' +
-	            ", amount='" + amount + '\'' +
-	            ", createTime=" + createTime +
-	            ", mealCustomization=" + mealCustomization +
-	            '}';
-	}
-	
+    public Long getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Long quantity) {
+        this.quantity = quantity;
+    }
+
+    public String getMealCustomization() {
+        return mealCustomization;
+    }
+
+    public void setMealCustomization(String mealCustomization) {
+        this.mealCustomization = mealCustomization;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public MemberEntity getMember() {
+        return member;
+    }
+
+    public void setMember(MemberEntity member) {
+        this.member = member;
+    }
+
+    public MealEntity getMeal() {
+        return meal;
+    }
+
+    public void setMeal(MealEntity meal) {
+        this.meal = meal;
+    }
+
+    public StoreEntity getStore() {
+        return store;
+    }
+
+    public void setStore(StoreEntity store) {
+        this.store = store;
+    }
+
+    //================================================================
+    // 物件核心方法 (equals, hashCode, toString)
+    //================================================================
+    @Override
+    public String toString() {
+        // 為避免 LAZY loading 問題，關聯物件只印出其 ID
+        return "CartEntity{" +
+                "cartId=" + cartId +
+                ", memberId=" + (member != null ? member.getMemberId() : "null") +
+                ", mealId=" + (meal != null ? meal.getMealId() : "null") +
+                ", storeId=" + (store != null ? store.getStoreId() : "null") +
+                ", quantity=" + quantity +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CartEntity that = (CartEntity) o;
+        if (cartId == null || that.cartId == null) {
+            return false;
+        }
+        return Objects.equals(cartId, that.cartId);
+    }
+
+    @Override
+    public int hashCode() {
+        return cartId != null ? Objects.hash(cartId) : super.hashCode();
+    }
 }
-
-

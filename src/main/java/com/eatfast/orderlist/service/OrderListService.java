@@ -1,79 +1,85 @@
+/*
+ * ================================================================
+ * 檔案 3: OrderListService.java (★★ 核心重構 ★★)
+ * ================================================================
+ * - 存放目錄: src/main/java/com/eatfast/orderlist/service/OrderListService.java
+ * - 核心改動:
+ * 1. 遵循最佳實踐: 改用建構子注入，並使用 Spring 的 @Transactional。
+ * 2. 強化更新邏輯: `updateOrderStatus` 方法加入了對「當前狀態」的檢查，防止不合法的狀態轉換。
+ * 3. 型別安全: 所有與訂單狀態相關的操作，都改用 OrderStatus Enum，避免使用「魔法數字」。
+ * 4. 新增方法: 加入 `getOrdersByMemberId` 方法，讓 Controller 可以直接透過 ID 查詢。
+ */
 package com.eatfast.orderlist.service;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import com.eatfast.member.model.MemberEntity;
+import com.eatfast.member.repository.MemberRepository;
+import com.eatfast.orderlist.model.OrderListEntity;
+import com.eatfast.orderlist.model.OrderStatus;
+import com.eatfast.orderlist.repository.OrderListRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.eatfast.member.model.MemberEntity;
-import com.eatfast.orderlist.model.OrderListEntity;
-import com.eatfast.orderlist.repository.OrderListRepository;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
-/**
- * 處理訂單相關商業邏輯的 Service 層。
- */
-@Service // 📌【不可變】聲明這是一個 Service 元件，交由 Spring 管理。
-public class OrderListService { // 🔹【可自定義】類別名稱
+@Service
+@Transactional(readOnly = true)
+public class OrderListService {
 
-    // 依賴注入 (DI): 將 Repository 管家注入到 Service 經理中
     private final OrderListRepository orderListRepository;
+    private final MemberRepository memberRepository; // 【新】為了 getOrdersByMemberId 而依賴
 
-    @Autowired // 📌【不可變】建議使用建構子注入，讓依賴關係更清晰且不可變。
-    public OrderListService(OrderListRepository orderListRepository) {
+    // 【優化】: 改用建構子注入。
+    public OrderListService(OrderListRepository orderListRepository, MemberRepository memberRepository) {
         this.orderListRepository = orderListRepository;
+        this.memberRepository = memberRepository;
     }
 
-    /**
-     * 建立一筆新的訂單。
-     * 這裡可以加入更多商業邏輯，例如：檢查庫存、驗證使用者資格等。
-     * @param order 準備要儲存的訂單物件
-     * @return 已儲存的訂單物件 (包含由資料庫生成的資訊)
-     */
-    @Transactional // 📌【不可變】建議在會修改資料的方法上加上此註解，確保資料一致性。
+    @Transactional
     public OrderListEntity createOrder(OrderListEntity order) {
-        // 目前只做簡單的儲存，未來可在此擴充商業邏輯
+        // 【優化】: 儲存前，應先從資料庫撈取真實的 Member 和 Store 實體並設定回去，
+        //           避免傳入的 order 物件中含有不完整的 detached entity。
+        var member = memberRepository.findById(order.getMember().getMemberId())
+            .orElseThrow(() -> new EntityNotFoundException("建立訂單失敗：找不到會員 ID " + order.getMember().getMemberId()));
+        // (此處省略 StoreRepository 的注入與驗證，但真實專案中應一併加入)
+
+        order.setMember(member);
+        // order.setStore(store);
+
+        // 在 Service 中設定初始狀態，確保一致性
+        order.setOrderStatus(OrderStatus.PENDING);
+        
         return orderListRepository.save(order);
     }
 
-    /**
-     * 根據訂單ID查詢單筆訂單。
-     * @param orderId 訂單的ID (主鍵)
-     * @return 包含訂單的 Optional 物件，如果找不到則為空。
-     */
     public Optional<OrderListEntity> getOrderById(String orderId) {
         return orderListRepository.findById(orderId);
     }
 
-    /**
-     * 根據會員查詢其所有訂單，並按日期排序。
-     * @param member 會員物件
-     * @return 該會員的訂單列表
-     */
-    public List<OrderListEntity> getOrdersByMember(MemberEntity member) {
-        // 直接呼叫 Repository 定義好的方法
-        return orderListRepository.findByMemberOrderByOrderDateDesc(member);
+    // 【優化】: 讓 Controller 可以直接透過 ID 查詢，而無需先取得 MemberEntity 物件。
+    public List<OrderListEntity> getOrdersByMemberId(Long memberId) {
+        return memberRepository.findById(memberId)
+                .map(orderListRepository::findByMemberOrderByOrderDateDesc)
+                .orElse(Collections.emptyList());
     }
 
     /**
-     * 更新訂單狀態。
-     * 這是一個典型的商業邏輯：先讀取、再修改、後儲存。
-     * @param orderId 要更新的訂單ID
-     * @param newStatus 新的訂單狀態
-     * @return 更新後的訂單物件
-     * @throws RuntimeException 如果訂單不存在
+     * 【核心邏輯重構】更新訂單狀態，並加入業務規則驗證。
      */
     @Transactional
-    public OrderListEntity updateOrderStatus(String orderId, Long newStatus) {
-        // 1. 根據 ID 找到訂單，如果找不到就拋出例外
+    public OrderListEntity updateOrderStatus(String orderId, OrderStatus newStatus) {
         OrderListEntity order = orderListRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("找不到訂單，ID: " + orderId));
+                .orElseThrow(() -> new EntityNotFoundException("找不到訂單，ID: " + orderId));
 
-        // 2. 執行商業邏輯：更新狀態
+        // 【優化】: 加入狀態轉換的業務規則檢查。
+        // 例如：已完成或已取消的訂單，不允許再變更回其他狀態。
+        if (order.getOrderStatus() == OrderStatus.COMPLETED || order.getOrderStatus() == OrderStatus.CANCELLED) {
+            throw new IllegalStateException("無法更新一個已完成或已取消的訂單。");
+        }
+        
         order.setOrderStatus(newStatus);
-
-        // 3. 儲存變更 (因為有 @Transactional，JPA 會自動儲存)
         return orderListRepository.save(order);
     }
 }

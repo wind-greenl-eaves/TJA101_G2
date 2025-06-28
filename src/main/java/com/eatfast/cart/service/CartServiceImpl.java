@@ -1,155 +1,76 @@
+/*
+ * ================================================================
+ * 檔案 3: CartServiceImpl.java (★★ 編譯錯誤已修正 ★★)
+ * ================================================================
+ * - 存放目錄: src/main/java/com/eatfast/cart/service/CartServiceImpl.java
+ */
 package com.eatfast.cart.service;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.eatfast.cart.model.CartEntity;
 import com.eatfast.cart.repository.CartRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CartServiceImpl implements CartService {
 
-    private String getCartKey(Integer memberId) {
-        return "cart:" + memberId;
-    }
+    // 依賴注入的最佳實踐：使用 final 和建構子注入。
+    private final CartRepository cartRepository;
 
-    //從資料庫取得會員的購物車清單（目前模擬資料，實際應改為呼叫 repository）
     @Autowired
-    private CartRepository cartRepository;
-
+    public CartServiceImpl(CartRepository cartRepository) {
+        this.cartRepository = cartRepository;
+    }
+    
     @Override
-    public List<CartEntity> getCartByMemberId(Integer memberId) {
+    public List<CartEntity> getCartByMemberId(Long memberId) {
         return cartRepository.findByMemberId(memberId);
     }
+    
+    @Override
+    @Transactional // 確保「讀取-判斷-寫入」在同一個交易中。
+    public void addOrUpdateCartItem(CartEntity newItem) {
+        
+        // 1. 使用精準查詢，直接定位目標項目。
+        // 【修正】: 呼叫 findByMemberIdAndMealId 時，傳入的參數型別 (Long, Long)
+        //          現在與 Repository 中定義的方法簽名完全匹配。
+        Optional<CartEntity> existingItemOpt = cartRepository.findByMemberIdAndMealId(
+            newItem.getMember().getMemberId(),
+            newItem.getMeal().getMealId()
+        );
 
-    //新增或更新購物車商品：若商品已存在，更新數量，否則新增
+        // 2. 根據是否存在來決定是更新數量還是新增項目。
+        if (existingItemOpt.isPresent()) {
+            CartEntity itemToUpdate = existingItemOpt.get();
+            itemToUpdate.setQuantity(itemToUpdate.getQuantity() + newItem.getQuantity());
+            itemToUpdate.setMealCustomization(newItem.getMealCustomization());
+            cartRepository.save(itemToUpdate);
+        } else {
+            // @CreationTimestamp 會在此時自動設定 createdAt。
+            cartRepository.save(newItem);
+        }
+    }
+    
     @Override
     @Transactional
-    public void addOrUpdateCartItem(CartEntity newItem) {
-        List<CartEntity> cartList = cartRepository.findByMemberId(newItem.getMemberId());
-        
-        for (CartEntity item : cartList) {
-            if (item.getMealId().equals(newItem.getMealId())) {
-                item.setAmount(item.getAmount() + newItem.getAmount());
-                item.setMealCustomization(newItem.getMealCustomization());
-                item.setCreateTime(new Timestamp(System.currentTimeMillis()));
-                cartRepository.save(item);
-                return;
-            }
-        }
-
-        newItem.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        cartRepository.save(newItem);
-    }
-
-
-    //清除整個會員購物車
-    @Override
-    public void clearCart(Integer memberId) {
+    public void clearCart(Long memberId) {
         cartRepository.deleteByMemberId(memberId);
     }
-
-    //計算總金額（每項假設價格為 100 元）
+    
     @Override
-    public Integer calculateTotalAmount(Integer memberId) {
+    public Integer calculateTotalAmount(Long memberId) {
         List<CartEntity> cartList = cartRepository.findByMemberId(memberId);
-        int pricePerMeal = 100; // TODO: 可改為查 Meal 資料表
-        return cartList.stream().mapToInt(item -> item.getAmount() * pricePerMeal).sum();
+        
+        // 使用 Java Stream API 進行計算總金額。
+        return cartList.stream()
+                     // 【修正】: 將 getMyMealPrice() 改為 getMealPrice()。
+                     // 這假設 MealEntity 中的 getter 方法遵循標準的 JavaBeans 命名慣例。
+                     // (即 private Long mealPrice; -> public Long getMealPrice())
+                     .mapToInt(item -> item.getMeal().getMealPrice().intValue() * item.getQuantity().intValue())
+                     .sum();
     }
-
-} 
-
-
-
-
-
-
-
-
-
-
-
-
-
-//package com.eatfast.cart.service;
-//
-//import java.sql.Timestamp;
-//import java.util.ArrayList;
-//import java.util.List;
-//import java.util.Optional;
-//import java.util.concurrent.TimeUnit;
-//
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.data.redis.core.RedisTemplate;
-//import org.springframework.stereotype.Service;
-//
-//import com.eatfast.cart.service.CartService;
-//import com.eatfast.cart.model.CartEntity;
-//
-//@Service
-//public class CartServiceImpl implements CartService {
-//    @Autowired
-//    private RedisTemplate<String, List<CartEntity>> redisTemplate;
-//
-//    private String getCartKey(Integer memberId) {
-//        return "cart:" + memberId;
-//    }
-//
-//
-//    //從 Redis 取得會員的購物車清單
-//
-//    @Override
-//    public List<CartEntity> getCartByMemberId(Integer memberId) {
-//        String key = getCartKey(memberId);
-//        List<CartEntity> cartList = redisTemplate.opsForValue().get(key);
-//        return cartList != null ? cartList : new ArrayList<>();
-//    }
-//
-//
-//    //新增或更新購物車商品：若商品已存在，更新數量，否則新增
-//
-//    @Override
-//    public void addOrUpdateCartItem(CartEntity cart) {
-//        String key = getCartKey(cart.getMemberId());
-//        List<CartEntity> cartList = getCartByMemberId(cart.getMemberId());
-//
-//        boolean updated = false;
-//        for (CartEntity item : cartList) {
-//            if (item.getMealId().equals(cart.getMealId())) {
-//                item.setAmount(item.getAmount() + cart.getAmount());
-//                item.setMealCustomization(cart.getMealCustomization());
-//                item.setCreateTime(new Timestamp(System.currentTimeMillis()));
-//                updated = true;
-//                break;
-//            }
-//        }
-//
-//        if (!updated) {
-//            cart.setCreateTime(new Timestamp(System.currentTimeMillis()));
-//            cartList.add(cart);
-//        }
-//
-//        redisTemplate.opsForValue().set(key, cartList, 7, TimeUnit.DAYS);
-//    }
-//
-//    //清除整個會員購物車
-//  
-//    @Override
-//    public void clearCart(Integer memberId) {
-//        redisTemplate.delete(getCartKey(memberId));
-//    }
-//
-//    //計算總金額（每項假設價格為 100 元）
-//    @Override
-//    public Integer calculateTotalAmount(Integer memberId) {
-//        List<CartEntity> cartList = getCartByMemberId(memberId);
-//        int price = 100;   //實際可從 Meal 資料表取得
-//        return cartList.stream().mapToInt(item -> item.getAmount() * price).sum();
-//    }
-//}
+}
