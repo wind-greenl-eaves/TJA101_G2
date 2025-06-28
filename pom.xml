@@ -1,246 +1,153 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	
-	<!-- ＠用途說明1: 指定父專案，會從 Spring Boot 繼承許多預設的設定與依賴版本管理，簡化配置 -->
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.1</version>
-		<relativePath/> <!-- Maven 會從遠端倉庫尋找父專案，而非本地相對路徑 -->
-	</parent>
-	
-	<groupId>eatfast</groupId>
-	<artifactId>eatfast</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging> <!-- ＠用途說明: 將專案打包為 WAR 檔，用於部署到外部的 Servlet 容器 (如獨立的 Tomcat) -->
-	<name>eatfast</name>
-	<description>eatfast</description>
-	
-	<properties>
-		<java.version>17</java.version> <!-- ＠用途說明: 指定專案使用的 Java 版本為 17 -->
-	</properties>
-	
-	<dependencies>
-		<!-- ＠用途說明2: Spring Web 核心啟動器。整合了 Spring MVC、RESTful API 控制器以及內嵌的 Tomcat 伺服器 -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
- 
-		<!-- ＠用途說明3: 提供嵌入式 Tomcat 伺服器。scope 設定為 provided 表示此依賴僅用於編譯期，打包時不會包含，預期由外部容器提供 -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-tomcat</artifactId>
-			<scope>provided</scope>
-		</dependency>
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <!-- =============================================================== -->
+    <!-- 專案基本設定 (Project Coordinates & Parent)                     -->
+    <!-- =============================================================== -->
+    <parent>
+        <!-- 核心設定: 繼承 Spring Boot 的預設配置，統一管理所有依賴的版本。-->
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.1</version>
+        <relativePath/> <!-- 從 Maven 中央倉儲查找 parent -->
+    </parent>
+    
+    <groupId>demo</groupId>
+    <artifactId>demo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>war</packaging>
+    <name>demo</name>
+    <description>Demo project for Spring Boot</description>
+    
+    <properties>
+        <!-- 核心設定: 指定專案使用的 Java 版本，17 是 Spring Boot 3.x 的基礎要求。-->
+        <java.version>17</java.version>
+    </properties>
+    
+    <dependencies>
+        <!-- =============================================================== -->
+        <!-- Spring Boot 核心啟動器 (Core Starters)                          -->
+        <!-- =============================================================== -->
 
-		<!-- ＠用途說明4: Spring Boot 測試啟動器。包含 JUnit 5、Mockito、Spring Test 等一系列測試所需的函式庫 -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		
-		<!-- ＠用途說明5: Spring Security 安全框架啟動器。用於處理使用者認證(Authentication)與授權(Authorization) -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
+        <!-- 必備: 提供 Web 開發所需的核心功能，如 Spring MVC, REST, 和內嵌的 Tomcat。-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        
+        <!-- 必備: 提供資料驗證 (Bean Validation) 的功能，使用 @Valid, @NotBlank 等註解。-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
 
-		<!-- ＠用途說明6: Spring Data JPA 啟動器。用於簡化資料庫持久化操作，底層預設使用 Hibernate 作為 ORM 實作 -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
+        <!-- 資料庫: 提供 JPA (Java Persistence API) 支援，並自動引入 Hibernate。-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
 
-		<!-- ＠用途說明7: 用於替換日誌框架。此處先引入核心啟動器，並透過 <exclusions> 排除預設的 Logback -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<!-- ＠用途說明8: 引入 Log4j2 作為專案的日誌框架實作 -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-log4j2</artifactId>
-		</dependency>
-		
-		<!-- ========================================================================================== -->
-		<!-- ● 以下為手動加入的 Hibernate 相關依賴 (多數情況下非必需) ● -->
+        <!-- 資料庫: 提供 Redis 整合支援。-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        
+        <!-- 安全性: 提供 Spring Security 框架，用於處理認證與授權。-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        
+        <!-- 郵件: 提供 Java Mail 支援，用於收發電子郵件。-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
 
-		<!-- ＠用途說明9: Hibernate ORM 核心函式庫。(注意：此依賴已由 spring-boot-starter-data-jpa 包含，通常無需手動加入) -->
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-core</artifactId>
-			<version>6.6.4.Final</version>
-		</dependency>
+        <!-- =============================================================== -->
+        <!-- 視圖層 (View Layer)                                           -->
+        <!-- =============================================================== -->
 
-		<!-- ＠用途說明10: c3p0 連線池的 Hibernate 整合。(注意：Spring Boot 預設使用 HikariCP，若要改用此連線池需額外設定) -->
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-c3p0</artifactId>
-			<version>6.6.4.Final</version>
-		</dependency>
+        <!-- 樣板引擎: 整合 Thymeleaf，用於動態渲染 HTML 頁面。-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
 
-		<!-- ＠用途說明11: Proxool 連線池的 Hibernate 整合。(同樣，若要使用需額外設定以覆蓋預設的 HikariCP) -->
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-proxool</artifactId>
-			<version>6.6.4.Final</version>
-		</dependency>
+        <!-- JSP 支援 (若專案中需要使用 JSP 頁面) -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-jasper</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.web</groupId>
+            <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+        </dependency>
 
-		<!-- ========================================================================================== -->
-		<!-- ● 以下為 Web 應用相關 API (部分可能與 Spring Boot 預設重疊) ● -->
+        <!-- =============================================================== -->
+        <!-- 資料庫驅動 (Database Driver)                                  -->
+        <!-- =============================================================== -->
 
-		<!-- ＠用途說明12: Jakarta Servlet API，是所有 Java Web 應用的核心規範。scope=provided 表示由應用程式伺服器(如Tomcat)在執行時提供 -->
-		<dependency>
-			<groupId>jakarta.servlet</groupId>
-			<artifactId>jakarta.servlet-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-		<!-- ＠用途說明13: JSTL (Jakarta Standard Tag Library) 的實作，用於在 JSP 頁面中簡化程式邏輯 (若專案僅用 Thymeleaf 則可移除) -->
-		<dependency>
-			<groupId>org.glassfish.web</groupId>
-			<artifactId>jakarta.servlet.jsp.jstl</artifactId>
-		</dependency>
-
-		<!-- ＠用途說明14: JSTL 的 API 規範介面 (若專案僅用 Thymeleaf 則可移除) -->
-		<dependency>
-			<groupId>jakarta.servlet.jsp.jstl</groupId>
-			<artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
-		</dependency>
-
-		<!-- ＠用途說明15: Jakarta WebSocket API，用於實現如聊天室等即時雙向通訊功能 -->
-		<dependency>
-			<groupId>jakarta.websocket</groupId>
-			<artifactId>jakarta.websocket-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-		<!-- ＠用途說明16: Jakarta JSON Processing (JSON-P) 的一個實作。(注意：Spring Boot 預設使用 Jackson，此依賴可能非必需) -->
-		<dependency>
-			<groupId>org.glassfish</groupId>
-			<artifactId>javax.json</artifactId>
-			<version>1.1.4</version>
-		</dependency>
-
-		<!-- ＠用途說明17: 用於收發電子郵件的 JavaMail API。(推薦使用 spring-boot-starter-mail 來簡化整合，而非手動加入此依賴) -->
-		<dependency>
-			<groupId>com.sun.mail</groupId>
-			<artifactId>javax.mail</artifactId>
-			<version>1.6.2</version>
-		</dependency>
-		
-		<!-- ========================================================================================== -->
-		<!-- ● 以下為 Bean Validation 相關依賴 (通常已由 Web Starter 包含) ● -->
-
-		<!-- ＠用途說明18: Bean Validation 的 API 規範。(注意：spring-boot-starter-web 已包含此依賴，通常無需手動加入) -->
-		<dependency>
-			<groupId>jakarta.validation</groupId>
-			<artifactId>jakarta.validation-api</artifactId>
-		</dependency>
-
-		<!-- ＠用途說明19: Hibernate Validator，Bean Validation 規範的參考實作。(注意：spring-boot-starter-web 已包含此依賴) -->
-		<dependency>
-			<groupId>org.hibernate.validator</groupId>
-			<artifactId>hibernate-validator</artifactId>
-		</dependency>
-
-		<!-- ========================================================================================== -->
-		<!-- ● 以下為資料庫驅動程式 ● -->
-
-		<!-- ＠用途說明20: Oracle 資料庫的 JDBC 驅動程式 -->
-		<dependency>
-			<groupId>com.oracle.database.jdbc</groupId>
-			<artifactId>ojdbc8</artifactId>
-		</dependency>
-
-		<!-- ＠用途說明21: MySQL Connector/J，用於連接 MySQL 資料庫的 JDBC 驅動程式 -->
+        <!-- MySQL 驅動程式。scope 為 runtime，表示只在執行期需要，編譯期不需要。-->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
-        </dependency>
-		
-		<!-- ========================================================================================== -->
-		<!-- ● 以下為 Thymeleaf 模板引擎相關依賴 ● -->
-
-		<!-- ＠用途說明22: Spring Boot 的 Thymeleaf 模板引擎啟動器，包含核心函式庫與 Spring 的整合配置 -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-thymeleaf</artifactId>
-		</dependency>
-		
-		<!-- ＠用途說明23: Thymeleaf 的佈局方言 (Layout Dialect)，提供如 layout:decorate 等功能，方便頁面佈局重用 -->
-		<dependency>
-            <groupId>nz.net.ultraq.thymeleaf</groupId>
-            <artifactId>thymeleaf-layout-dialect</artifactId>
-        </dependency>
-
-		<!-- ＠用途說明24: Spring Boot 開發工具，提供熱部署(hot swapping)、自動重啟等功能，能大幅提升開發效率 -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<optional>true</optional> <!-- 表示此依賴僅在開發時使用，不會被打包到最終的 WAR/JAR 中 -->
-		</dependency>
-
-		<!-- ＠用途說明25: WebJars 版本的 Bootstrap 4.2.1，讓你可以透過 Maven 管理前端框架，並在 Thymeleaf 中輕鬆引用 -->
-		<dependency>
-			<groupId>org.webjars</groupId>
-			<artifactId>bootstrap</artifactId>
-			<version>4.2.1</version>
-		</dependency>
-		
-		<!-- ========================================================================================== -->
-		<!-- ● 以下為開發輔助工具 ● -->
-
-		<!-- ＠用途說明26: Lombok 函式庫，可透過 @Getter, @Setter, @Data 等註解在編譯時期自動生成樣板程式碼，讓 Entity/DTO 更簡潔 -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		
-		<!-- ========================================================================================== -->
-		<!-- ● 以下為 JSON 處理函式庫 ● -->
-
-		<!-- ＠用途說明27: Google 的 Gson 函式庫，用於處理 Java 物件與 JSON 格式之間的轉換 (注意：Spring Boot 預設使用 Jackson) -->
-		<dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
-		
-		<!-- ＠用途說明28: Jakarta Expression Language (EL) 實作，通常由 hibernate-validator 等依賴間接引入，用於解析驗證訊息中的表達式 -->
-        <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>jakarta.el</artifactId>
-            <version>4.0.2</version>
+            <scope>runtime</scope>
         </dependency>
         
-        
-        <!-- 加入redis   -->
+        <!-- =============================================================== -->
+        <!-- 開發輔助工具 (Developer Tools)                                -->
+        <!-- =============================================================== -->
+
+        <!-- 提供開發時的便利功能，如熱部署 (hot-swapping)。optional 為 true 表示此依賴不會被傳遞。-->
         <dependency>
-    		<groupId>org.springframework.boot</groupId>
-   		 	<artifactId>spring-boot-starter-data-redis</artifactId>
-		</dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
 
-	</dependencies>
+        <!-- 簡化樣板程式碼的工具，如自動產生 getter/setter。-->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        
+        <!-- =============================================================== -->
+        <!-- 測試 (Testing)                                                -->
+        <!-- =============================================================== -->
+        
+        <!-- 提供測試所需的核心函式庫，如 JUnit, Mockito 等。scope 為 test 表示只在測試階段使用。-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+        <!-- =============================================================== -->
+        <!-- WAR 打包設定 (Packaging Configuration)                        -->
+        <!-- =============================================================== -->
 
-	<build>
-		<plugins>
-			<!-- ＠用途說明: Spring Boot 的 Maven 插件，能將專案打包成可執行的 JAR 或 WAR 檔案 -->
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
+        <!-- 當 packaging 設為 war 時，需將內嵌的 Tomcat 設為 provided，避免與外部伺服器衝突。-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

@@ -1,53 +1,89 @@
+/*
+ * ================================================================
+ * 檔案: NewsRepository.java (經嚴格審查與重構)
+ * ================================================================
+ * - 存放目錄: src/main/java/com/eatfast/news/model/NewsRepository.java
+ * - 重構總結:
+ * 1. 【命名修正】: 已將 `findBy_EmployeeId` 修正為 `findByEmployee_EmployeeId`，
+ * 使其完全符合 Spring Data JPA 對關聯屬性的查詢規則，解決啟動錯誤。
+ * 2. 【結構優化】: 為所有查詢方法添加了標準 Javadoc 註解，闡明其功能與用法。
+ * 3. 【程式碼清理】: 移除了檔案末端已註解掉的重複程式碼，使介面更清晰。
+ */
 package com.eatfast.news.model;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
+/**
+ * 最新消息資料存取庫 (Repository)
+ * <p>
+ * 負責處理與 `news` 資料表相關的所有資料庫操作。
+ */
+@Repository
 public interface NewsRepository extends JpaRepository<NewsEntity, Long> {
-//權限測試用
-    // 1️ 依照標題模糊查詢
+
+    /**
+     * 根據標題關鍵字進行模糊查詢。
+     * @param keyword 用於模糊匹配的標題關鍵字。
+     * @return 符合條件的最新消息列表。
+     */
     List<NewsEntity> findByTitleContaining(String keyword);
 
-    // 2️ 查找特定狀態的公告
+    /**
+     * 根據狀態查找最新消息。
+     * @param status 狀態碼 (例如: 0=草稿, 1=發布)。
+     * @return 符合特定狀態的最新消息列表。
+     */
     List<NewsEntity> findByStatus(Integer status);
 
-    // 3️ 查找開始時間在某段區間內的公告
+    /**
+     * 查找發布開始時間在指定區間內的最新消息。
+     * @param start 起始時間。
+     * @param end 結束時間。
+     * @return 符合時間區間的最新消息列表。
+     */
     List<NewsEntity> findByStartTimeBetween(LocalDateTime start, LocalDateTime end);
 
-    // 4️ 查找特定員工所發的公告
-    List<NewsEntity> findByEmployeeId(Long employeeId);
+    /**
+     * 根據發布員工的主鍵 ID 查找其發布的所有最新消息。
+     * <p>
+     * 命名慣例: `findByEmployee_EmployeeId` 會被 JPA 解析為 JPQL:
+     * {@code "SELECT n FROM NewsEntity n WHERE n.employee.employeeId = :employeeId"}
+     *
+     * @param employeeId 員工的主鍵 ID。
+     * @return 該員工發布的所有最新消息列表。
+     */
+    List<NewsEntity> findByEmployee_EmployeeId(Long employeeId);
 
-    // 5️ 查找特定狀態＋模糊標題
+    /**
+     * 根據標題關鍵字和狀態進行複合查詢。
+     * @param keyword 標題關鍵字。
+     * @param status 狀態碼。
+     * @return 符合複合查詢條件的最新消息列表。
+     */
     List<NewsEntity> findByTitleContainingAndStatus(String keyword, Integer status);
 
-    // 6️ 查找目前「有效時間內」的公告（用 JPQL 寫）
+    /**
+     * 查找在指定時間點仍然有效的最新消息（即，已開始且尚未結束）。
+     * @param now1 當前時間 (用於與 startTime 比較)。
+     * @param now2 當前時間 (用於與 endTime 比較)。
+     * @return 所有有效時間內的最新消息列表。
+     */
     List<NewsEntity> findByStartTimeBeforeAndEndTimeAfter(LocalDateTime now1, LocalDateTime now2);
 
-    // 7️ 查找還沒結束的公告（未過期）
+    /**
+     * 查找所有尚未過期的最新消息。
+     * @param now 當前時間。
+     * @return 結束時間在當前時間之後的所有最新消息列表。
+     */
     List<NewsEntity> findByEndTimeAfter(LocalDateTime now);
 
-    // 8️ 查找永久公告（endTime 為 null）
+    /**
+     * 查找所有設定為永久有效的最新消息（即，結束時間為 NULL）。
+     * @return 所有結束時間為 NULL 的最新消息列表。
+     */
     List<NewsEntity> findByEndTimeIsNull();
-
 }
-
-
-
-//以下測試用
-//public interface NewsRepository extends JpaRepository<NewsEntity, Long> {
-//    // 可擴充自訂查詢方法
-//	List<NewsEntity> findByTitleContainingAndStatus(String title, Integer status);
-//	List<NewsEntity> findByEmployeeId(Long employeeId);
-//	List<NewsEntity> findByStartTimeBetween(LocalDateTime start, LocalDateTime end);
-//
-//    // 模糊查詢標題
-//    List<NewsEntity> findByTitleContaining(String keyword);
-//
-//    // 狀態查詢（例如 status = 1）
-//    List<NewsEntity> findByStatus(Integer status);
-//
-//	
-//	//測試做複合查詢,HibernateUtil_CompositeQuery_news還未完成
-//}
