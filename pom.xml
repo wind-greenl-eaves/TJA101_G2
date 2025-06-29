@@ -49,6 +49,45 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+        
+        
+        
+        
+	        <!-- ======================================================= -->
+	<!--             Spring Boot 核心測試入門套件              -->
+	<!-- ======================================================= -->
+	<!-- [不可變動的關鍵字]: spring-boot-starter-test -->
+	<!-- 說明: 此依賴會自動引入 JUnit 5, Spring Test, Hamcrest, -->
+	<!-- Mockito, AssertJ 等所有專業測試所需的函式庫。      -->
+	<dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-test</artifactId>
+	    
+	    <!-- [不可變動的關鍵字]: test -->
+	    <!-- 說明: <scope>test</scope> 表示此依賴只在執行測試時 -->
+	    <!-- 才需要，不會被打包到最終的正式產品 (JAR/WAR) 中， -->
+	    <!-- 避免了生產環境的程式碼膨脹。                        -->
+	    <scope>test</scope>
+	</dependency>
+	        <!-- =============================================================== -->        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
         <!-- 資料庫: 提供 Redis 整合支援。-->
         <dependency>
@@ -139,6 +178,15 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+        	<groupId>
+        		0205U_Maven_SpringBootMVC_Thymeleaf_Ver5_SpringData-Jpa
+        	</groupId>
+        	<artifactId>
+        		0205U_Maven_SpringBootMVC_Thymeleaf_Ver5_SpringData-Jpa
+        	</artifactId>
+        	<version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
