@@ -6,9 +6,9 @@ package com.eatfast.common.enums;
  * 【核心升級】: 同樣為其增加 'displayName' 屬性。
  */
 public enum AccountStatus {
-
-    ACTIVE("啟用"),
-    INACTIVE("停用");
+	 INACTIVE("停用"),
+    ACTIVE("啟用");
+   
 
     private final String displayName;
 

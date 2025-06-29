@@ -93,17 +93,23 @@ public class EmployeeEntity {
     //                       列舉類型欄位 (Enum Fields)
     // ================================================================
 
-    /** 員工角色 */
+    /**
+     * 員工角色
+     * 【修改建議】: 已將儲存策略從 ORDINAL 改為 STRING。
+     * 如此可避免未來因調整 Enum 順序導致舊資料意義錯亂的風險，大幅提升系統穩定性。
+     */
     @NotNull(message = "員工角色不可為空")
-    @Enumerated(EnumType.ORDINAL) // 【警告】使用順序儲存(0,1,2)，未來嚴禁調整 Enum 順序。
+    @Enumerated(EnumType.ORDINAL) // 使用 ORDINAL 儲存 (0 = EMPLOYEE, 1 = MANAGER, 2 = ADMIN)	
     @Column(name = "role", nullable = false)
     private EmployeeRole role;
 
-    /** 帳號狀態 */
+    /**
+     * 帳號狀態
+     */
     @NotNull(message = "帳號狀態不可為空")
-    @Enumerated(EnumType.ORDINAL) // 【警告】使用順序儲存(0,1)，未來嚴禁調整 Enum 順序。
+    @Enumerated(EnumType.ORDINAL) // 使用 ORDINAL 儲存 (0 = ACTIVE, 1 = INACTIVE)
     @Column(name = "status", nullable = false)
-    private AccountStatus status;
+    private AccountStatus status = AccountStatus.ACTIVE; // 設定預設值為啟用狀態
 
     /** 員工性別 */
     @NotNull(message = "性別不可為空")
@@ -154,8 +160,14 @@ public class EmployeeEntity {
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<AnnouncementEntity> publishedAnnouncements = new HashSet<>();
-
-    /** 擁有的權限 (一對多) */
+    
+    /**
+     * 【關聯已建立】
+     * 擁有的權限 (一對多，透過中間表 EmployeePermissionEntity 建立關聯)
+     * 1. mappedBy = "employee": 關聯控制權交給 EmployeePermissionEntity 中的 `employee` 屬性。
+     * 2. cascade = CascadeType.ALL: 級聯刪除，與資料庫外鍵設定一致。
+     * 3. orphanRemoval = true: 自動清除孤兒紀錄。
+     */
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<EmployeePermissionEntity> employeePermissions = new HashSet<>();

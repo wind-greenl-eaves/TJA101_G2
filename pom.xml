@@ -1,197 +1,178 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!-- Maven POM 模型的版本 -->
     <modelVersion>4.0.0</modelVersion>
-    
-    <!-- =============================================================== -->
-    <!-- 專案基本設定 (Project Coordinates & Parent)                     -->
-    <!-- =============================================================== -->
+
+    <!-- 
+      父專案設定：
+      繼承自 spring-boot-starter-parent，這讓我們可以省略許多依賴的版本號，
+      並獲得 Spring Boot 官方的最佳實踐設定。
+    -->
     <parent>
-        <!-- 核心設定: 繼承 Spring Boot 的預設配置，統一管理所有依賴的版本。-->
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.3.1</version>
-        <relativePath/> <!-- 從 Maven 中央倉儲查找 parent -->
+        <relativePath/> <!-- 表示從 Maven Repository 查找父專案 -->
     </parent>
-    
+
+    <!-- 專案基本資訊 -->
     <groupId>demo</groupId>
     <artifactId>demo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <packaging>war</packaging> <!-- 打包方式設定為 WAR，以部署到外部 Tomcat -->
     <name>demo</name>
     <description>Demo project for Spring Boot</description>
-    
-    <properties>
-        <!-- 核心設定: 指定專案使用的 Java 版本，17 是 Spring Boot 3.x 的基礎要求。-->
-        <java.version>17</java.version>
-    </properties>
-    
-    <dependencies>
-        <!-- =============================================================== -->
-        <!-- Spring Boot 核心啟動器 (Core Starters)                          -->
-        <!-- =============================================================== -->
-        
 
-        <!-- 必備: 提供 Web 開發所需的核心功能，如 Spring MVC, REST, 和內嵌的 Tomcat。-->
+    <!-- 專案屬性設定 -->
+    <properties>
+        <java.version>17</java.version> <!-- 指定 Java 版本為 17 -->
+    </properties>
+
+    <!-- 專案依賴管理 -->
+    <dependencies>
+        <!-- Spring Boot 核心啟動器，提供自動配置、日誌和 YAML 等核心功能 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- 
+          Spring Web 啟動器，用於建構 Web 應用，包含 RESTful API 和 Spring MVC。
+          它會自動引入嵌入式 Tomcat。
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        
-        <!-- 必備: 提供資料驗證 (Bean Validation) 的功能，使用 @Valid, @NotBlank 等註解。-->
+
+        <!-- Spring Boot 驗證框架啟動器，提供基於 Hibernate Validator 的資料驗證功能 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- 資料庫: 提供 JPA (Java Persistence API) 支援，並自動引入 Hibernate。-->
+        <!-- Spring Data JPA 啟動器，簡化資料庫操作，預設使用 Hibernate 作為 ORM 框架 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
-        
-        
-        
-        
-	        <!-- ======================================================= -->
-	<!--             Spring Boot 核心測試入門套件              -->
-	<!-- ======================================================= -->
-	<!-- [不可變動的關鍵字]: spring-boot-starter-test -->
-	<!-- 說明: 此依賴會自動引入 JUnit 5, Spring Test, Hamcrest, -->
-	<!-- Mockito, AssertJ 等所有專業測試所需的函式庫。      -->
-	<dependency>
-	    <groupId>org.springframework.boot</groupId>
-	    <artifactId>spring-boot-starter-test</artifactId>
-	    
-	    <!-- [不可變動的關鍵字]: test -->
-	    <!-- 說明: <scope>test</scope> 表示此依賴只在執行測試時 -->
-	    <!-- 才需要，不會被打包到最終的正式產品 (JAR/WAR) 中， -->
-	    <!-- 避免了生產環境的程式碼膨脹。                        -->
-	    <scope>test</scope>
-	</dependency>
-	        <!-- =============================================================== -->        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
 
-        <!-- 資料庫: 提供 Redis 整合支援。-->
+        <!-- Spring Boot 測試啟動器，整合了 JUnit、Mockito 等常用測試框架 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope> <!-- 此依賴僅在測試階段有效 -->
+        </dependency>
+
+        <!-- Spring Data Redis 啟動器，用於整合 Redis 資料庫 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-        
-        <!-- 安全性: 提供 Spring Security 框架，用於處理認證與授權。-->
+
+        <!-- Spring Security 啟動器，提供身份驗證和授權等安全功能 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-        
-        <!-- 郵件: 提供 Java Mail 支援，用於收發電子郵件。-->
+
+        <!-- Spring Boot JavaMail 啟動器，用於寄送電子郵件 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
-        <!-- =============================================================== -->
-        <!-- 視圖層 (View Layer)                                           -->
-        <!-- =============================================================== -->
-
-        <!-- 樣板引擎: 整合 Thymeleaf，用於動態渲染 HTML 頁面。-->
+        <!-- Thymeleaf 模板引擎啟動器，用於伺服器端渲染 HTML 視圖 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
-        <!-- JSP 支援 (若專案中需要使用 JSP 頁面) -->
+        <!-- 
+          嵌入式 Tomcat 對 JSP 的支援。
+          若要部署成 WAR 檔到外部 Tomcat，此項為必須。
+        -->
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-jasper</artifactId>
-            <scope>provided</scope>
+            <scope>provided</scope> <!-- provided: 執行時由容器(Tomcat)提供，不打包進 WAR -->
         </dependency>
+
+        <!-- JSTL 標籤庫，用於在 JSP 頁面中簡化程式碼邏輯 -->
         <dependency>
             <groupId>org.glassfish.web</groupId>
             <artifactId>jakarta.servlet.jsp.jstl</artifactId>
         </dependency>
 
-        <!-- =============================================================== -->
-        <!-- 資料庫驅動 (Database Driver)                                  -->
-        <!-- =============================================================== -->
-
-        <!-- MySQL 驅動程式。scope 為 runtime，表示只在執行期需要，編譯期不需要。-->
+        <!-- MySQL 資料庫的 JDBC 驅動程式 -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
-            <scope>runtime</scope>
+            <scope>runtime</scope> <!-- runtime: 執行時期才需要，編譯時期不需要 -->
         </dependency>
-        
-        <!-- =============================================================== -->
-        <!-- 開發輔助工具 (Developer Tools)                                -->
-        <!-- =============================================================== -->
 
-        <!-- 提供開發時的便利功能，如熱部署 (hot-swapping)。optional 為 true 表示此依賴不會被傳遞。-->
+        <!-- 
+          Spring Boot 開發工具，提供自動重啟、LiveReload 等功能，加速開發效率
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
-            <optional>true</optional>
+            <optional>true</optional> <!-- optional: 此依賴不會被其他專案傳遞繼承 -->
         </dependency>
 
-        <!-- 簡化樣板程式碼的工具，如自動產生 getter/setter。-->
+        <!-- Lombok 套件，透過註解自動產生 getter, setter, constructor 等樣板程式碼 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-        
-        <!-- =============================================================== -->
-        <!-- 測試 (Testing)                                                -->
-        <!-- =============================================================== -->
-        
-        <!-- 提供測試所需的核心函式庫，如 JUnit, Mockito 等。scope 為 test 表示只在測試階段使用。-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        
-        <!-- =============================================================== -->
-        <!-- WAR 打包設定 (Packaging Configuration)                        -->
-        <!-- =============================================================== -->
 
-        <!-- 當 packaging 設為 war 時，需將內嵌的 Tomcat 設為 provided，避免與外部伺服器衝突。-->
+        <!-- 
+          Spring Boot 的 Tomcat 啟動器。
+          因要打包成 WAR 檔部署，故設為 provided，避免與外部 Tomcat 衝突。
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <!-- 【關鍵修正】本地模組依賴 -->
         <dependency>
-        	<groupId>
-        		0205U_Maven_SpringBootMVC_Thymeleaf_Ver5_SpringData-Jpa
-        	</groupId>
-        	<artifactId>
-        		0205U_Maven_SpringBootMVC_Thymeleaf_Ver5_SpringData-Jpa
-        	</artifactId>
-        	<version>0.0.1-SNAPSHOT</version>
+            <groupId>0205U_Maven_SpringBootMVC_Thymeleaf_Ver5_SpringData-Jpa</groupId>
+            <artifactId>0205U_Maven_SpringBootMVC_Thymeleaf_Ver5_SpringData-Jpa</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <!-- 
+                【修正點】
+                使用 <exclusions> 標籤，防止這個模組把它自己使用的日誌框架 (Log4j2)
+                帶進來。這樣可以確保整個專案只使用 Spring Boot 預設的 Logback，
+                徹底解決日誌框架的實作衝突問題。
+            -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-slf4j2-impl</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-core</artifactId>
+                </exclusion>
+                 <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
+    <!-- 建構設定 -->
     <build>
         <plugins>
+            <!-- Spring Boot 的 Maven 外掛，用於打包成可執行的 JAR/WAR 檔案 -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
