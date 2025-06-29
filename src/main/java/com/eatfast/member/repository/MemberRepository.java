@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+
 /**
  * 會員資料存取層 (Repository) - 【已加上專業優化選項】
  *
@@ -20,6 +21,14 @@ import org.springframework.stereotype.Repository;
  * 3.  效能優化 - Projections:【新增】提供僅查詢部分欄位的查詢方法，減少資料庫負載。
  * 4.  效能優化 - EntityGraph:【新增】提供另一種解決 N+1 查詢問題的精準方案。
  */
+
+// ●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●會員資料存取層 (Repository)●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●
+// 負責與資料庫進行交互，提供 CRUD 操作和自定義查詢方法。
+// 使用 Spring Data JPA 的 JpaRepository 和 JpaSpecificationExecutor 來簡化資料存取操作。
+// JpaRepository 提供基本的 CRUD 操作，而 JpaSpecificationExecutor 則允許使用動態查詢。
+//●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●
+ 
+
 @Repository
 public interface MemberRepository extends JpaRepository<MemberEntity, Long>, JpaSpecificationExecutor<MemberEntity> {
 
