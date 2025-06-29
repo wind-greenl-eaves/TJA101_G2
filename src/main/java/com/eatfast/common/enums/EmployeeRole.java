@@ -9,9 +9,13 @@ package com.eatfast.common.enums;
 public enum EmployeeRole {
     
     // [可自定義的常數]: 定義角色，並在建構子中傳入其對應的顯示名稱。
-    STAFF("一般員工"),
-    MANAGER("門市經理"),
-    HEADQUARTERS_ADMIN("總部管理員");
+    // 順序必須與資料庫定義一致：
+    // 0 = 總部管理員
+    // 1 = 店長
+    // 2 = 職員
+    HEADQUARTERS_ADMIN("總部管理員"),  // 0
+    MANAGER("門市經理"),              // 1
+    STAFF("一般員工");               // 2
 
     // [不可變動的關鍵字]: final
     // 說明: 顯示名稱在實例化後就不應再被改變。
