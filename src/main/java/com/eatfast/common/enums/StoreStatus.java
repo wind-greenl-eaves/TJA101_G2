@@ -1,15 +1,15 @@
+// =================================================================================
+// 檔案 1/8: StoreStatus.java (★★ 標準化重構 ★★)
+// 路徑: src/main/java/com/eatfast/common/enums/StoreStatus.java
+// 說明: 移至 common.enums 共用包，並使用完整英文單字提升可讀性。
+// =================================================================================
 package com.eatfast.common.enums;
 
-/**
- * 門市營業狀態的標準化列舉 (Enum)。
- * 職責: 定義所有可能的門市狀態，並提供與中文描述的對應關係。
- */
 public enum StoreStatus {
-    
     OPERATING("營業中"),
-    CLOSED("休息中"),
-    REMODELING("裝修中"),
-    HEADQUARTERS("總部營運"); // 對應資料庫中的'總部營運'
+    RESTING("休息中"),
+    ENDED("已歇業"),
+	HEADQUARTERS("總部營運");
 
     private final String description;
 
