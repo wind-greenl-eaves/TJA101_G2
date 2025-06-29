@@ -1,34 +1,36 @@
+// [檔案路徑]: src/main/java/com/eatfast/common/enums/EmployeeRole.java
 package com.eatfast.common.enums;
 
 /**
- * [可自定義的名稱]: EmployeeRole
- * * 用於定義員工的職位角色。
- * 每個枚舉常數對應資料庫中的一個角色。
- * * 【風險警告 - EnumType.ORDINAL】
- * 當使用 EnumType.ORDINAL 時，JPA 會將枚舉的「順序」(從 0 開始) 存入資料庫。
- * 例如：
- * - HEADQUARTERS_ADMIN -> 0
- * - STORE_MANAGER -> 1
- * - STAFF -> 2
- * * **嚴禁修改或重新排序此檔案中已存在的枚舉常數順序！**
- * 任何順序上的變動都將導致資料庫中的既有資料與程式邏輯無法對應，造成嚴重的資料錯亂。
- * 新增角色應永遠加在檔案的最末端。
+ * 員工角色列舉。
+ * 【核心升級】: 為每個列舉常數增加一個 'displayName' 屬性，專門用於前端 UI 顯示。
+ * 這是將「內部邏輯值」與「外部顯示值」分離的最佳實踐。
  */
 public enum EmployeeRole {
     
-    HEADQUARTERS_ADMIN("總部管理員"), // 順序 0
-    STORE_MANAGER("店長"),         // 順序 1
-    STAFF("職員");                 // 順序 2
+    // [可自定義的常數]: 定義角色，並在建構子中傳入其對應的顯示名稱。
+    STAFF("一般員工"),
+    MANAGER("門市經理"),
+    HEADQUARTERS_ADMIN("總部管理員");
 
-    private final String description;
+    // [不可變動的關鍵字]: final
+    // 說明: 顯示名稱在實例化後就不應再被改變。
+    private final String displayName;
 
-    EmployeeRole(String description) {
-        this.description = description;
+    /**
+     * [不可變動的關鍵字]: private
+     * 說明: Enum 的建構子必須是 private，由 Java 內部呼叫。
+     */
+    EmployeeRole(String displayName) {
+        this.displayName = displayName;
     }
 
-    // [可自定義的方法]: getDescription
-    // 這個方法可以在需要顯示中文名稱時呼叫，與資料庫儲存無關。
-    public String getDescription() {
-        return description;
+    /**
+     * [不可變動的關鍵字]: public
+     * 說明: 提供一個公開的 getter 方法，讓外部 (例如 Thymeleaf) 可以讀取到 displayName 的值。
+     * @return 此角色的中文顯示名稱。
+     */
+    public String getDisplayName() {
+        return displayName;
     }
 }
