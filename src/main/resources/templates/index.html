@@ -42,7 +42,6 @@
     <header class="bg-brand-deep text-white p-4 shadow-md fixed top-0 left-0 right-0 z-10">
         <div class="container mx-auto text-center">
             <h1 class="text-xl md:text-2xl font-bold">
-                <!-- Thymeleaf 語法維持不變 -->
                 <span class="text-brand-accent" th:text="'Hello, ' + ${message} + ' : '"></span>
                 <span>Spring Boot + Spring MVC + Thymeleaf</span>
             </h1>
@@ -60,7 +59,6 @@
     </header>
 
     <!-- Main Content 區塊 -->
-    <!-- 使用 mt-[160px] 確保內容不會被 fixed header 遮擋 -->
     <main class="container mx-auto p-4 md:p-8 mt-[160px]">
         
         <!-- Hero Section / 歡迎區塊 -->
@@ -76,34 +74,40 @@
                 <a href="https://www.thymeleaf.org/" target="_blank" class="text-brand-accent hover:text-brand-primary-hover transition">Thymeleaf</a>
             </div>
             
-            <div class="mt-12">
-                <!-- 按鈕使用 Tailwind CSS 重新設計，更具現代感 -->
+            <div class="mt-12 flex justify-center items-center gap-6 flex-wrap">
+                <!-- 原有的會員功能按鈕 (路徑不變) -->
                 <a th:href="@{/member/select_page}" 
                    class="bg-brand-primary text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-brand-primary-hover transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
-                   點此開始專案功能
+                   進入會員功能
+                </a>
+
+                <!-- 【核心修正】進入員工管理系統 -->
+                <!-- 
+                     [路徑配對]:
+                     th:href="@{/employee/select_page}"
+                     ↳ 此路徑現在會正確地指向 EmployeeViewController 中的 showSelectPage() 方法，
+                       該方法接著會回傳 'select_page_employee' 視圖名稱，由 Thymeleaf 渲染。
+                -->
+                <a th:href="@{/employee/select_page}" 
+                   class="bg-brand-accent text-brand-deep font-bold py-3 px-8 rounded-full shadow-lg hover:bg-orange-400 transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                   進入員工管理系統
                 </a>
             </div>
         </section>
         
         <hr class="my-12 border-gray-300">
 
-        <!-- Lists Section / 列表區塊 -->
-        <!-- 使用 Grid 佈局，在 md 中斷點以上變為兩欄 -->
+        <!-- Lists Section / 列表區塊 (無變更) -->
         <section class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-            
-            <!-- 開發順序卡片 -->
             <div class="bg-brand-container p-6 rounded-lg shadow-md">
                 <h3 class="text-2xl font-bold text-brand-deep border-b-2 border-gray-300 pb-3 mb-4">開發順序</h3>
                 <ol class="space-y-3">
-                    <!-- Thymeleaf 迴圈渲染，並為每個 li 加上圖標 -->
                     <li th:each="step : ${myList}" class="flex items-start">
                         <span class="text-brand-primary font-bold mr-3">✓</span>
                         <span th:utext="${step}"></span>
                     </li>
                 </ol>
             </div>
-           
-            <!-- 專案技術棧卡片 -->
             <div class="bg-brand-container p-6 rounded-lg shadow-md">
                 <h3 class="text-2xl font-bold text-brand-deep border-b-2 border-gray-300 pb-3 mb-4">專案技術棧</h3>
                 <ul class="space-y-3">
@@ -113,11 +117,10 @@
                     </li>
                 </ul>
             </div>
-            
         </section>
     </main>
 
-    <!-- Footer 區塊 -->
+    <!-- Footer 區塊 (無變更) -->
     <footer class="bg-brand-deep text-brand-container text-center p-6 mt-16">
         <p>&copy; 2025 緯育TJA101早餐店專題. All Rights Reserved.</p>
     </footer>

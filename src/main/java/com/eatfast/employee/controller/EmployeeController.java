@@ -13,81 +13,92 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * [可自定義的類別名稱]: EmployeeController
  * 員工管理的 RESTful API 控制器。
- * - @RestController: Spring 註解，結合了 @Controller 和 @ResponseBody，表明此類別處理 REST 請求。
- * - @RequestMapping: 定義此控制器下所有 API 的基礎路徑。
+ * * @RequestMapping("/api/v1/employees")
+ * ↳ [全局基礎路徑]: 此控制器下的所有 API 端點，其 URL 都會以 "/api/v1/employees" 作為開頭。
  */
 @RestController
 @RequestMapping("/api/v1/employees")
 public class EmployeeController {
+	
+	private final EmployeeService employeeService;
 
-    private final EmployeeService employeeService;
+	@Autowired
+	public EmployeeController(EmployeeService employeeService) {
+		this.employeeService = employeeService;
+	}
 
-    /**
-     * [不可變動的關鍵字]: @Autowired
-     * [說明]: 透過建構子注入 EmployeeService，符合依賴注入的最佳實踐。
+	/**
+     * 										[C] Create - 建立新員工。
+     * * [HTTP 方法]: POST
+     * [完整路徑]: /api/v1/employees
+     * [前端配對]: 通常由一個 'addEmployee.html' 頁面的新增表單來呼叫。
+     * [說明]: 接收一個包含新員工資料的 JSON 物件，並在成功建立後回傳新員工的完整資料。
      */
-    @Autowired
-    public EmployeeController(EmployeeService employeeService) {
-        this.employeeService = employeeService;
-    }
+	@PostMapping
+	public ResponseEntity<EmployeeDto> createEmployee(@Valid @RequestBody CreateEmployeeRequest request) {
+		EmployeeDto createdEmployee = employeeService.createEmployee(request);
+		return new ResponseEntity<>(createdEmployee, HttpStatus.CREATED);
+	}
 
-    /**
-     * [不可變動的關鍵字]: @PostMapping
-     * [說明]: 建立新員工 (Create)。
-     * - @Valid: 觸發對 CreateEmployeeRequest 物件的驗證規則。
-     * - @RequestBody: 將 HTTP 請求的 JSON Body 轉為 Java 物件。
-     * @return ResponseEntity<EmployeeDto> - HTTP 狀態碼 201 (Created) 及新建的員工資料。
+	/**
+     *										 [R] Read - 根據 ID 查詢特定員工。
+     *
+     * [HTTP 方法]: GET
+     * [完整路徑]: /api/v1/employees/{id} (例如: /api/v1/employees/5)
+     * [前端配對]: 在 'select_page_employee.html' 中，當使用者選擇一個員工並送出查詢後，
+     * 前端 JavaScript 會將頁面導向到 `employee_details.html?id={id}`，
+     * 該詳情頁面接著會呼叫此 API 來獲取該員工的詳細資料。
+     * [說明]: 從 URL 路徑中獲取 id，查詢並回傳單一員工的資料。
      */
-    @PostMapping
-    public ResponseEntity<EmployeeDto> createEmployee(@Valid @RequestBody CreateEmployeeRequest request) {
-        EmployeeDto createdEmployee = employeeService.createEmployee(request);
-        return new ResponseEntity<>(createdEmployee, HttpStatus.CREATED);
-    }
+	@GetMapping("/{id}")
+	public ResponseEntity<EmployeeDto> getEmployeeById(@PathVariable Long id) {
+		EmployeeDto employeeDto = employeeService.findEmployeeById(id);
+		return ResponseEntity.ok(employeeDto);
+	}
 
-    /**
-     * [不可變動的關鍵字]: @GetMapping("/{id}")
-     * [說明]: 根據 ID 查詢特定員工 (Read)。
-     * - @PathVariable: 從 URL 路徑中獲取 id 值。
-     * @return ResponseEntity<EmployeeDto> - HTTP 狀態碼 200 (OK) 及查詢到的員工資料。
+	/**
+     *										 [R] Read - 查詢所有員工列表。
+     *
+     * [HTTP 方法]: GET
+     * [完整路徑]: /api/v1/employees
+     * [前端配對]: ★★★ 這正是 'select_page_employee.html' 頁面載入時，
+     * 其 JavaScript 中的 `fetchAndPopulateEmployees` 函式所呼叫的 API，
+     * 用於動態填充「選擇員工編號」和「選擇員工姓名」的下拉式選單。
+     * [說明]: 回傳一個包含所有員工資料的列表。
      */
-    @GetMapping("/{id}")
-    public ResponseEntity<EmployeeDto> getEmployeeById(@PathVariable Long id) {
-        EmployeeDto employeeDto = employeeService.findEmployeeById(id);
-        return ResponseEntity.ok(employeeDto);
-    }
+	@GetMapping
+	public ResponseEntity<List<EmployeeDto>> getAllEmployees() {
+		List<EmployeeDto> employees = employeeService.findAllEmployees();
+		return ResponseEntity.ok(employees);
+	}
 
-    /**
-     * [不可變動的關鍵字]: @GetMapping
-     * [說明]: 查詢所有員工列表 (Read)。
-     * @return ResponseEntity<List<EmployeeDto>> - HTTP 狀態碼 200 (OK) 及員工列表。
+	/**
+     * 										[U] Update - 更新指定 ID 的員工資料。
+     *
+     * [HTTP 方法]: PUT
+     * [完整路徑]: /api/v1/employees/{id} (例如: /api/v1/employees/5)
+     * [前端配對]: 通常由一個 'editEmployee.html' 或員工詳情頁面中的「儲存變更」按鈕來呼叫。
+     * [說明]: 接收要更新的員工 ID 及其部分或全部的新資料，回傳更新後的完整資料。
      */
-    @GetMapping
-    public ResponseEntity<List<EmployeeDto>> getAllEmployees() {
-        List<EmployeeDto> employees = employeeService.findAllEmployees();
-        return ResponseEntity.ok(employees);
-    }
+	@PutMapping("/{id}")
+	public ResponseEntity<EmployeeDto> updateEmployee(@PathVariable Long id,
+			@Valid @RequestBody UpdateEmployeeRequest request) {
+		EmployeeDto updatedEmployee = employeeService.updateEmployee(id, request);
+		return ResponseEntity.ok(updatedEmployee);
+	}
 
-    /**
-     * [不可變動的關鍵字]: @PutMapping("/{id}")
-     * [說明]: 更新指定 ID 的員工資料 (Update)。
-     * @return ResponseEntity<EmployeeDto> - HTTP 狀態碼 200 (OK) 及更新後的員工資料。
+	/**
+     * 										[D] Delete - 刪除指定 ID 的員工。
+     *
+     * [HTTP 方法]: DELETE
+     * [完整路徑]: /api/v1/employees/{id} (例如: /api/v1/employees/5)
+     * [前端配對]: 通常由員工列表頁或詳情頁中的「刪除」按鈕（通常會搭配一個確認對話框）來呼叫。
+     * [說明]: 根據 URL 中的 ID 刪除對應的員工，成功後不返回任何內容主體 (No Content)。
      */
-    @PutMapping("/{id}")
-    public ResponseEntity<EmployeeDto> updateEmployee(@PathVariable Long id, @Valid @RequestBody UpdateEmployeeRequest request) {
-        EmployeeDto updatedEmployee = employeeService.updateEmployee(id, request);
-        return ResponseEntity.ok(updatedEmployee);
-    }
-
-    /**
-     * [不可變動的關鍵字]: @DeleteMapping("/{id}")
-     * [說明]: 刪除指定 ID 的員工 (Delete)。
-     * @return ResponseEntity<Void> - HTTP 狀態碼 204 (No Content)，代表成功處理但無內容返回。
-     */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
-        employeeService.deleteEmployee(id);
-        return ResponseEntity.noContent().build();
-    }
+	@DeleteMapping("/{id}")
+	public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
+		employeeService.deleteEmployee(id);
+		return ResponseEntity.noContent().build();
+	}
 }

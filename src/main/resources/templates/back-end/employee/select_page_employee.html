@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>員工管理後台 - EatFast</title>
+    
+    <!-- 引入 Tailwind CSS 框架 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 引入 Google Fonts (思源黑體) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 自定義 Tailwind CSS 樣式，實現奶茶色主題 */
+        .marquee-text {
+            animation: marquee-animation 15s linear infinite;
+        }
+        @keyframes marquee-animation {
+            0%   { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+    
+    <script>
+        // 自定義 Tailwind 主題色，對應原本的奶茶色系
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'eatfast-bg': '#FDFBF6',       // 背景色 - 杏仁白
+                        'eatfast-container': '#F5EFE6', // 容器背景 - 燕麥色
+                        'eatfast-primary': '#A67B5B',   // 主題色 - 奶茶棕
+                        'eatfast-primary-hover': '#8C684A', // 主題懸停色 - 深焙奶茶
+                        'eatfast-text': '#5D534A',      // 主要文字 - 炭焙棕
+                        'eatfast-border': '#DED0B6',    // 邊框色 - 餅乾米
+                        'eatfast-error': '#D9534F',     // 錯誤文字 - 莓果紅
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-eatfast-bg text-eatfast-text" style="font-family: 'Noto Sans TC', sans-serif;">
+
+<div class="max-w-3xl mx-auto px-4 py-10">
+
+    <!-- 頂部標題與登出按鈕 -->
+    <header class="flex items-center p-5 bg-eatfast-container border border-eatfast-border rounded-xl shadow-sm mb-5">
+        <img src="https://placehold.co/50x50/A67B5B/FFFFFF?text=EF" alt="Logo" class="rounded-lg">
+        <div class="ml-4">
+            <h3 class="text-xl font-bold text-eatfast-text">早餐店後台 - 員工資料管理系統</h3>
+            <h4 class="text-sm text-gray-500">(純 HTML + JavaScript 現代化版本)</h4>
+        </div>
+        <div class="ml-auto">
+            <!-- 登出按鈕，觸發 JS Modal -->
+            <button id="logoutBtn" class="bg-eatfast-primary text-white font-semibold py-2 px-5 rounded-lg hover:bg-eatfast-primary-hover transition-colors">
+                登出系統
+            </button>
+        </div>
+    </header>
+    
+    <!-- 跑馬燈 -->
+    <div class="bg-white p-3 rounded-lg border border-eatfast-border shadow-sm overflow-hidden whitespace-nowrap mb-5">
+        <p class="inline-block marquee-text text-eatfast-primary font-medium">
+            歡迎使用員工資料管理系統，今天也一起加油吧！為我們 5 人團隊的早餐店專案喝采！
+        </p>
+    </div>
+    
+    <!-- 錯誤訊息顯示區塊 -->
+    <div id="error-messages" class="hidden bg-red-100 border border-eatfast-error text-eatfast-error px-4 py-3 rounded-lg mb-5">
+        <strong class="font-bold">請修正以下錯誤:</strong>
+        <ul id="error-list" class="mt-2 list-disc list-inside"></ul>
+    </div>
+
+    <!-- 資料查詢區塊 -->
+    <section>
+        <h3 class="text-lg font-medium border-b-2 border-eatfast-primary pb-2 mb-4">資料查詢</h3>
+        <ul class="space-y-3">
+            <li class="bg-white p-5 rounded-lg border border-eatfast-border hover:shadow-md transition-shadow">
+                <a th:href="@{/employee/listAll}" class="text-eatfast-primary hover:text-eatfast-primary-hover font-semibold">查詢所有員工資料</a>
+            </li>
+    
+            <li class="bg-white p-5 rounded-lg border border-eatfast-border hover:shadow-md transition-shadow">
+                <form id="query-by-id-form" class="flex items-center flex-wrap gap-2">
+                    <label for="employeeIdInput" class="font-semibold">輸入員工編號 (例如 2):</label>
+                    <input type="text" id="employeeIdInput" name="employeeId" class="px-3 py-2 border border-eatfast-border rounded-md focus:ring-eatfast-primary focus:border-eatfast-primary">
+                    <button type="submit" class="bg-eatfast-primary text-white font-semibold py-2 px-4 rounded-lg hover:bg-eatfast-primary-hover transition-colors">送出查詢</button>
+                </form>
+            </li>
+    
+            <li class="bg-white p-5 rounded-lg border border-eatfast-border hover:shadow-md transition-shadow">
+                <form id="query-by-id-select-form" class="flex items-center flex-wrap gap-2">
+                    <label for="employeeIdSelect" class="font-semibold">選擇員工編號:</label>
+                    <select id="employeeIdSelect" name="employeeId" class="px-3 py-2 border border-eatfast-border rounded-md focus:ring-eatfast-primary focus:border-eatfast-primary min-w-[150px]">
+                        <option value="">讀取中...</option>
+                    </select>
+                    <button type="submit" class="bg-eatfast-primary text-white font-semibold py-2 px-4 rounded-lg hover:bg-eatfast-primary-hover transition-colors">送出查詢</button>
+                </form>
+            </li>
+      
+            <li class="bg-white p-5 rounded-lg border border-eatfast-border hover:shadow-md transition-shadow">
+                <form id="query-by-name-select-form" class="flex items-center flex-wrap gap-2">
+                    <label for="employeeNameSelect" class="font-semibold">選擇員工姓名:</label>
+                    <select id="employeeNameSelect" name="employeeId" class="px-3 py-2 border border-eatfast-border rounded-md focus:ring-eatfast-primary focus:border-eatfast-primary min-w-[200px]">
+                        <option value="">讀取中...</option>
+                    </select>
+                    <button type="submit" class="bg-eatfast-primary text-white font-semibold py-2 px-4 rounded-lg hover:bg-eatfast-primary-hover transition-colors">送出查詢</button>
+                </form>
+            </li>
+        </ul>
+    </section>
+    
+    <!-- 員工管理區塊 -->
+    <section class="mt-8">
+        <h3 class="text-lg font-medium border-b-2 border-eatfast-primary pb-2 mb-4">員工管理</h3>
+        <ul class="space-y-3">
+            <li class="bg-white p-5 rounded-lg border border-eatfast-border hover:shadow-md transition-shadow">
+                <a th:href="@{/employee/add}" class="text-eatfast-primary hover:text-eatfast-primary-hover font-semibold">新增員工資料</a>
+            </li>
+        </ul>
+    </section>
+</div>
+
+<!-- 登出確認 Modal -->
+<div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+    <div class="bg-eatfast-bg p-8 rounded-xl shadow-lg text-center max-w-sm mx-4">
+        <h4 class="text-xl font-bold text-eatfast-text mb-2">確認操作</h4>
+        <p class="text-eatfast-text mb-6">您確定要登出員工管理系統嗎？</p>
+        <div class="flex justify-center gap-4">
+            <button id="cancelLogoutBtn" class="py-2 px-6 bg-white border border-eatfast-border rounded-lg hover:bg-gray-100 transition-colors">取消</button>
+            <button id="confirmLogoutBtn" class="py-2 px-6 bg-eatfast-primary text-white font-semibold rounded-lg hover:bg-eatfast-primary-hover transition-colors">確定登出</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // API 端點路徑
+    const API_BASE_URL = "/api/v1/employees"; // 修正：使用完整的 employees 端點路徑
+
+    // 獲取所有需要的 DOM 元素
+    const errorContainer = document.getElementById('error-messages');
+    const errorList = document.getElementById('error-list');
+    const employeeIdSelect = document.getElementById('employeeIdSelect');
+    const employeeNameSelect = document.getElementById('employeeNameSelect');
+
+    /**
+     * [可自定義函式]: showError
+     * 顯示錯誤訊息。
+     * @param {string[]} messages - 要顯示的錯誤訊息陣列。
+     */
+    function showError(messages) {
+        errorList.innerHTML = ''; // 清空舊訊息
+        messages.forEach(msg => {
+            const li = document.createElement('li');
+            li.textContent = msg;
+            errorList.appendChild(li);
+        });
+        errorContainer.classList.remove('hidden');
+    }
+
+    /**
+     * [可自定義函式]: fetchAndPopulateEmployees
+     * 從後端 API 獲取員工列表，並填充到下拉式選單中。
+     */
+    async function fetchAndPopulateEmployees() {
+        try {
+            // 修正：移除重複的 /employees 路徑
+            const response = await fetch(API_BASE_URL);
+            if (!response.ok) {
+                throw new Error(`獲取員工資料失敗，狀態碼: ${response.status}`);
+            }
+            const employees = await response.json();
+            
+            // 清空下拉選單的 "讀取中..."
+            employeeIdSelect.innerHTML = '<option value="">請選擇</option>';
+            employeeNameSelect.innerHTML = '<option value="">請選擇</option>';
+
+            // 遍歷員工資料並建立 option 元素
+            employees.forEach(employee => {
+                // 填充員工編號下拉選單
+                const idOption = document.createElement('option');
+                idOption.value = employee.employeeId;
+                idOption.textContent = employee.employeeId;
+                employeeIdSelect.appendChild(idOption);
+                
+                // 填充員工姓名下拉選單
+                const nameOption = document.createElement('option');
+                nameOption.value = employee.employeeId;
+                nameOption.textContent = `${employee.username} (ID: ${employee.employeeId})`;
+                employeeNameSelect.appendChild(nameOption);
+            });
+
+        } catch (error) {
+            console.error('錯誤:', error);
+            showError(['無法載入員工列表，請檢查後端服務是否正常運作。']);
+            employeeIdSelect.innerHTML = '<option value="">載入失敗</option>';
+            employeeNameSelect.innerHTML = '<option value="">載入失敗</option>';
+        }
+    }
+
+    // 頁面載入後立即執行員工資料的獲取與填充
+    fetchAndPopulateEmployees();
+
+    // --- 表單提交處理 ---
+    // [不可變動的關鍵字]: addEventListener, preventDefault
+    
+    // 處理「輸入員工編號」表單
+    document.getElementById('query-by-id-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const employeeId = document.getElementById('employeeIdInput').value;
+        if (employeeId && !isNaN(employeeId)) {
+            // 修正：使用正確的後端路徑
+            window.location.href = `/employee/listOne?employeeId=${employeeId}`;
+        } else {
+            showError(['請輸入有效的員工編號。']);
+        }
+    });
+
+    // 處理「選擇員工編號」表單
+    document.getElementById('query-by-id-select-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const employeeId = employeeIdSelect.value;
+        if (employeeId) {
+            window.location.href = `/employee/listOne?employeeId=${employeeId}`;
+        } else {
+            showError(['請從下拉選單中選擇一個員工編號。']);
+        }
+    });
+
+    // 處理「選擇員工姓名」表單
+    document.getElementById('query-by-name-select-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const employeeId = employeeNameSelect.value;
+        if (employeeId) {
+            window.location.href = `/employee/listOne?employeeId=${employeeId}`;
+        } else {
+            showError(['請從下拉選單中選擇一個員工姓名。']);
+        }
+    });
+
+    // --- 登出 Modal 邏輯 ---
+    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutModal = document.getElementById('logoutModal');
+    const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+    const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+
+    logoutBtn.addEventListener('click', () => logoutModal.classList.remove('hidden'));
+    cancelLogoutBtn.addEventListener('click', () => logoutModal.classList.add('hidden'));
+    logoutModal.addEventListener('click', (e) => {
+        if (e.target === logoutModal) { // 點擊背景遮罩時關閉
+            logoutModal.classList.add('hidden');
+        }
+    });
+    
+    // 確認登出，提交一個 POST 請求到 Spring Security 的預設登出端點
+    confirmLogoutBtn.addEventListener('click', () => {
+        // 建立一個隱藏的表單來提交 POST 請求
+        const form = document.createElement('form');
+        form.method = 'POST';
+        // 【重要】此為 Spring Security 預設的登出處理路徑，請確認與您的 SecurityConfig 設定一致
+        form.action = '/logout'; 
+        document.body.appendChild(form);
+        form.submit();
+    });
+});
+</script>
+
+</body>
+</html>

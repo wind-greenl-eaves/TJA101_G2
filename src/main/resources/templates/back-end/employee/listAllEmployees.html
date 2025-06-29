@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>所有員工資料</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bg-color: #FDFBF6; --container-bg: #F5EFE6; --primary-color: #A67B5B; 
+            --primary-hover: #8C684A; --text-color: #5D534A; --border-color: #DED0B6; 
+            --table-header-bg: #EFEBE2; 
+        }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-color); color: var(--text-color); }
+    </style>
+</head>
+<body class="antialiased">
+
+<div class="w-[95%] max-w-7xl mx-auto my-10">
+
+    <!-- 頂部標題與按鈕 -->
+    <header class="flex justify-between items-center p-5 bg-[var(--container-bg)] border border-[var(--border-color)] rounded-xl shadow-sm mb-5">
+        <div class="flex items-center gap-4">
+            <img src="https://placehold.co/50x50/A67B5B/FFFFFF?text=EF" alt="Logo" class="rounded-lg">
+            <h3 class="text-xl font-bold">所有員工資料列表</h3>
+        </div>
+        <div class="flex gap-3">
+            <!-- [路徑配對]: GET /employee/add -> EmployeeViewController.showAddEmployeePage() -->
+            <a th:href="@{/employee/add}" class="bg-[var(--primary-color)] text-white font-semibold py-2 px-5 rounded-lg hover:bg-[var(--primary-hover)] transition-colors">新增員工</a>
+            <!-- [路徑配對]: GET /employee/select_page -> EmployeeViewController.showSelectPage() -->
+            <a th:href="@{/employee/select_page}" class="bg-gray-200 text-[var(--text-color)] font-semibold py-2 px-5 rounded-lg hover:bg-gray-300 transition-colors">返回查詢</a>
+        </div>
+    </header>
+    
+    <div id="message-toast" class="hidden fixed top-5 right-5 bg-green-500 text-white py-3 px-6 rounded-lg shadow-lg transition-opacity duration-300"></div>
+
+    <!-- 員工資料表格 -->
+    <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+        <table class="w-full text-center">
+            <thead class="bg-[var(--table-header-bg)] text-sm font-medium">
+                <tr>
+                    <th class="p-3">員工編號</th><th class="p-3">門市編號</th><th class="p-3">照片</th>
+                    <th class="p-3">姓名</th><th class="p-3">帳號</th><th class="p-3">角色</th>
+                    <th class="p-3">狀態</th><th class="p-3">Email</th><th class="p-3">修改</th><th class="p-3">刪除</th>
+                </tr>
+            </thead>
+            <tbody id="employee-table-body">
+                <!-- JS 動態生成 -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 分頁控制 (此處為示意，完整功能需額外實作) -->
+    <div id="pagination-container" class="flex justify-center items-center mt-6 p-2.5 space-x-2">
+        <!-- Pagination buttons will be inserted here by JS -->
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // [API 路徑配對]: 對應 EmployeeController 的 @RequestMapping("/api/v1/employees")
+    const API_BASE_URL = "/api/v1/employees";
+    let allEmployees = [];
+    let currentPage = 1;
+    const rowsPerPage = 5;
+
+    const tableBody = document.getElementById('employee-table-body');
+    const paginationContainer = document.getElementById('pagination-container');
+    const messageToast = document.getElementById('message-toast');
+
+    function showToast(message, isError = false) {
+        messageToast.textContent = message;
+        messageToast.className = `fixed top-5 right-5 text-white py-3 px-6 rounded-lg shadow-lg transition-opacity duration-300 ${isError ? 'bg-red-500' : 'bg-green-500'}`;
+        messageToast.classList.remove('hidden');
+        setTimeout(() => {
+            messageToast.classList.add('hidden');
+        }, 3000);
+    }
+
+    function renderTable() {
+        tableBody.innerHTML = '';
+        if (allEmployees.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="10" class="p-8 text-gray-400">目前沒有員工資料。</td></tr>';
+            return;
+        }
+
+        const paginatedEmployees = allEmployees.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+
+        paginatedEmployees.forEach(emp => {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-[var(--border-color)] last:border-b-0 hover:bg-gray-50';
+            const statusClass = emp.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+            const statusText = emp.status === 'ACTIVE' ? '啟用' : '停用';
+            
+            // [動態路由配對]: GET /employee/edit/{id} -> EmployeeViewController.showEditEmployeePage()
+            const editUrl = `/employee/edit/${emp.employeeId}`;
+
+            row.innerHTML = `
+                <td class="p-3 align-middle">${emp.employeeId}</td>
+                <td class="p-3 align-middle">${emp.storeId}</td>
+                <td class="p-3 align-middle">
+                    <img src="https://placehold.co/60x60/A67B5B/FFFFFF?text=${emp.username.charAt(0)}" alt="${emp.username}" class="w-14 h-14 mx-auto rounded-full object-cover border-2 border-[var(--border-color)]">
+                </td>
+                <td class="p-3 font-medium align-middle">${emp.username}</td>
+                <td class="p-3 text-sm align-middle">${emp.account}</td>
+                <td class="p-3 text-sm align-middle">${emp.role}</td>
+                <td class="p-3 align-middle"><span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">${statusText}</span></td>
+                <td class="p-3 text-sm align-middle">${emp.email}</td>
+                <td class="p-3 align-middle">
+                    <a href="${editUrl}" class="text-[var(--primary-color)] hover:text-[var(--primary-hover)] font-semibold">修改</a>
+                </td>
+                <td class="p-3 align-middle">
+                    <button class="delete-btn text-red-500 hover:text-red-700 font-semibold" data-id="${emp.employeeId}" data-name="${emp.username}">刪除</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    function renderPagination() {
+        paginationContainer.innerHTML = '';
+        const totalPages = Math.ceil(allEmployees.length / rowsPerPage);
+        if (totalPages <= 1) return;
+
+        for (let i = 1; i <= totalPages; i++) {
+            const button = document.createElement('button');
+            button.textContent = i;
+            button.className = `px-4 py-2 rounded-md text-sm font-medium transition-colors ${i === currentPage ? 'bg-[var(--primary-color)] text-white' : 'bg-white hover:bg-gray-100'}`;
+            button.onclick = () => {
+                currentPage = i;
+                renderTable();
+                renderPagination();
+            };
+            paginationContainer.appendChild(button);
+        }
+    }
+    
+    async function handleDelete(employeeId, employeeName) {
+        // 【關鍵修正】: 使用正確的反引號 (`) 將範本字串包圍
+        if (!confirm(`您確定要刪除員工 "${employeeName}" (ID: ${employeeId}) 嗎？此操作無法復原。`)) return;
+        
+        try {
+            // [API 路徑配對]: DELETE /api/v1/employees/{id} -> EmployeeController.deleteEmployee()
+            // 【關鍵修正】: 使用正確的反引號 (`) 將範本字串包圍
+            const response = await fetch(`${API_BASE_URL}/${employeeId}`, { method: 'DELETE' });
+            
+            if (response.ok) {
+                // 【關鍵修正】: 使用正確的反引號 (`) 將範本字串包圍
+                showToast(`員工 "${employeeName}" 已成功刪除。`);
+                allEmployees = allEmployees.filter(emp => emp.employeeId !== employeeId);
+                const totalPages = Math.ceil(allEmployees.length / rowsPerPage);
+                if (currentPage > totalPages && totalPages > 0) {
+                    currentPage = totalPages;
+                }
+                renderTable();
+                renderPagination();
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                // 【關鍵修正】: 使用正確的反引號 (`) 將範本字串包圍
+                throw new Error(errorData.message || `刪除失敗，狀態碼: ${response.status}`);
+            }
+        } catch (error) {
+            showToast(error.message, true);
+        }
+    }
+
+    tableBody.addEventListener('click', e => {
+        if (e.target.classList.contains('delete-btn')) {
+            const id = parseInt(e.target.dataset.id);
+            const name = e.target.dataset.name;
+            handleDelete(id, name);
+        }
+    });
+
+    async function initializePage() {
+        try {
+            // [API 路徑配對]: GET /api/v1/employees -> EmployeeController.getAllEmployees()
+            const response = await fetch(API_BASE_URL);
+            if (!response.ok) throw new Error('無法從伺服器載入員工資料。');
+            allEmployees = await response.json();
+            renderTable();
+            renderPagination();
+        } catch (error) {
+            // 【關鍵修正】: 使用正確的反引號 (`) 將範本字串包圍
+            tableBody.innerHTML = `<tr><td colspan="10" class="p-8 text-red-500 font-semibold">${error.message}</td></tr>`;
+        }
+    }
+
+    initializePage();
+});
+</script>
+
+</body>
+</html>
