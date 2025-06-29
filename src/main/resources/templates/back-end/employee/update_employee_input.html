@@ -1,0 +1,119 @@
+<!-- =======================================================================================
+     檔案: update_employee_input.html (已復原)
+     說明: 已移除所有照片上傳相關的 HTML 元素與 form 的 enctype 屬性。
+     ======================================================================================= -->
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'修改員工資料 - ' + ${employee.username}">修改員工資料</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="stylesheet" th:href="@{/css/employee/form-styles.css}">
+</head>
+<body class="antialiased">
+
+<div class="form-wrapper">
+    <header class="form-header">
+        <div class="flex items-center gap-4">
+            <img th:src="@{/images/123.png}" alt="Icon" class="w-10 h-10 mr-2">
+            <div>
+                <h1 class="text-xl font-bold">修改員工資料</h1>
+                <p class="text-sm text-gray-500" th:text="'正在編輯員工: ' + ${employee.username} + ' (ID: ' + ${employee.employeeId} + ')'"></p>
+            </div>
+        </div>
+        <a th:href="@{/employee/select_page}" class="cancel-button">
+            <i class="fas fa-times mr-2"></i>返回列表
+        </a>
+    </header>
+
+    <div id="message-container" class="hidden p-4 mx-8 mt-6 text-sm rounded-lg" role="alert"></div>
+    
+    <form id="update-form"
+          th:action="@{/api/v1/employees/{id}(id=${employee.employeeId})}"
+          class="p-8 space-y-6">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+            <!-- 員工姓名 -->
+            <div>
+                <label for="username" class="form-label">員工姓名</label>
+                <input type="text" id="username" name="username" th:value="${employee.username}" class="form-input" />
+                <div id="error-username" class="error-message"></div>
+            </div>
+            <!-- 登入帳號 (唯讀) -->
+            <div>
+                <label for="account" class="form-label">登入帳號 (不可修改)</label>
+                <input type="text" id="account" name="account" th:value="${employee.account}" class="form-input bg-gray-100" readonly />
+            </div>
+            <!-- 電子郵件 -->
+            <div class="sm:col-span-2">
+                <label for="email" class="form-label">電子郵件</label>
+                <input type="email" id="email" name="email" th:value="${employee.email}" class="form-input" />
+                <div id="error-email" class="error-message"></div>
+            </div>
+            <!-- 聯絡電話 -->
+            <div class="sm:col-span-2">
+                <label for="phone" class="form-label">聯絡電話</label>
+                <input type="tel" id="phone" name="phone" th:value="${employee.phone}" class="form-input" />
+                <div id="error-phone" class="error-message"></div>
+            </div>
+            <!-- 員工角色 -->
+            <div>
+                <label for="role" class="form-label">員工角色</label>
+                <select id="role" name="role" class="form-input">
+                    <option th:each="roleOpt : ${T(com.eatfast.common.enums.EmployeeRole).values()}"
+                            th:value="${roleOpt}"
+                            th:text="${roleOpt.displayName}"
+                            th:selected="(${roleOpt.name()} == ${employee.role.name()})"></option>
+                </select>
+                <div id="error-role" class="error-message"></div>
+            </div>
+            <!-- 帳號狀態 -->
+            <div>
+                <label for="status" class="form-label">帳號狀態</label>
+                <select id="status" name="status" class="form-input">
+                    <option th:each="statusOpt : ${T(com.eatfast.common.enums.AccountStatus).values()}"
+                            th:value="${statusOpt}"
+                            th:text="${statusOpt.displayName}"
+                            th:selected="(${statusOpt.name()} == ${employee.status.name()})"></option>
+                </select>
+                <div id="error-status" class="error-message"></div>
+            </div>
+            <!-- 所屬門市 -->
+            <div class="sm:col-span-2">
+                <label for="storeId" class="form-label">所屬門市</label>
+                <select id="storeId" name="storeId" class="form-input">
+                    <option th:each="store : ${storeList}"
+                            th:value="${store.storeId}"
+                            th:text="${store.storeName}"
+                            th:selected="(${store.storeId} == ${employee.storeId})"></option>
+                </select>
+                <div id="error-storeId" class="error-message"></div>
+            </div>
+            <!-- 新密碼 (可選) -->
+            <div class="sm:col-span-2 password-wrapper">
+                <label for="password" class="form-label">設定新密碼 (可選)</label>
+                <input type="password" id="password" name="password" placeholder="若不修改請留空" class="form-input" />
+                <i class="fas fa-eye password-toggle-icon" id="password-toggle"></i>
+                <div id="error-password" class="error-message"></div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end pt-6 border-t border-[var(--border-color)]">
+            <button type="submit" class="submit-button">
+                <i class="fas fa-save mr-2"></i>儲存變更
+            </button>
+        </div>
+    </form>
+</div>
+
+<script th:src="@{/js/employee/update.js}"></script>
+
+</body>
+</html>

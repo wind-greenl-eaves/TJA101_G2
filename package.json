@@ -1,0 +1,11 @@
+{
+  "name": "eatfast-admin",
+  "version": "1.0.0",
+  "description": "EatFast Admin System",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/main.css --minify"
+  },
+  "dependencies": {
+    "tailwindcss": "^3.3.3"
+  }
+}

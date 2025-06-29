@@ -19,11 +19,11 @@
     </parent>
 
     <!-- 專案基本資訊 -->
-    <groupId>demo</groupId>
-    <artifactId>demo</artifactId>
+    <groupId>TJA101_G2_oop</groupId>
+    <artifactId>TJA101_G2_oop</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging> <!-- 打包方式設定為 WAR，以部署到外部 Tomcat -->
-    <name>demo</name>
+    <name>TJA101_G2_oop</name>
     <description>Demo project for Spring Boot</description>
 
     <!-- 專案屬性設定 -->
@@ -176,6 +176,32 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.12.1</version>
+                <executions>
+                    <execution>
+                        <id>install node and npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <nodeVersion>v18.12.1</nodeVersion>
+                </configuration>
             </plugin>
         </plugins>
     </build>
