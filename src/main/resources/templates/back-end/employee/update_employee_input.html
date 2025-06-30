@@ -28,7 +28,7 @@
                 <p class="text-sm text-gray-500" th:text="'正在編輯員工: ' + ${employee.username} + ' (ID: ' + ${employee.employeeId} + ')'"></p>
             </div>
         </div>
-        <a th:href="@{/employee/select_page}" class="cancel-button">
+        <a th:href="@{/employee/listAll}" class="cancel-button">
             <i class="fas fa-times mr-2"></i>返回列表
         </a>
     </header>
