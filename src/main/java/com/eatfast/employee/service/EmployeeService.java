@@ -33,4 +33,20 @@ public interface EmployeeService {
 	 * @return 如果值尚未使用 (可用)，則返回 true；否則返回 false。
 	 */
 	boolean isFieldAvailable(String field, String value);
+
+	/**
+	 * 【新增登入方法】: 員工登入驗證
+	 * 驗證員工帳號密碼，並返回員工資訊
+	 *
+	 * @param account 員工帳號
+	 * @param password 員工密碼（明文）
+	 * @return 登入成功返回員工 DTO，失敗則拋出異常
+	 */
+	EmployeeDTO authenticateEmployee(String account, String password);
+
+	/**
+	 * 【新增方法】: 獲取所有啟用狀態的員工列表（用於登入頁面的管理員小幫手）
+	 * @return 所有啟用狀態的員工列表
+	 */
+	List<EmployeeDTO> findAllActiveEmployees();
 }

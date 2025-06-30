@@ -262,6 +262,49 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
     }
     
+    /**
+     * 【新增方法實作】- 員工登入驗證
+     * 驗證員工帳號密碼（明文比對），並返回員工資訊
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public EmployeeDTO authenticateEmployee(String account, String password) {
+        // 輸入參數驗證
+        if (!StringUtils.hasText(account) || !StringUtils.hasText(password)) {
+            throw new IllegalArgumentException("帳號和密碼不可為空");
+        }
+        
+        // 根據帳號查找員工
+        EmployeeEntity employee = employeeRepository.findByAccount(account.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("帳號或密碼錯誤"));
+        
+        // 檢查帳號狀態
+        if (employee.getStatus() != com.eatfast.common.enums.AccountStatus.ACTIVE) {
+            throw new IllegalArgumentException("此帳號已被停用，請聯絡管理員");
+        }
+        
+        // 明文密碼比對
+        if (!password.equals(employee.getPassword())) {
+            throw new IllegalArgumentException("帳號或密碼錯誤");
+        }
+        
+        log.info("員工登入成功 - 帳號: {}, 姓名: {}", employee.getAccount(), employee.getUsername());
+        return employeeMapper.toDto(employee);
+    }
+
+    /**
+     * 【新增方法實作】- 獲取所有啟用狀態的員工列表
+     * 用於登入頁面的管理員小幫手功能
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<EmployeeDTO> findAllActiveEmployees() {
+        return employeeRepository.findAll().stream()
+                .filter(employee -> employee.getStatus() == com.eatfast.common.enums.AccountStatus.ACTIVE)
+                .map(employeeMapper::toDto)
+                .collect(Collectors.toList());
+    }
+    
     // --- 私有輔助方法 ---
 
     private void validateUniqueness(String account, String email, String nationalId) {

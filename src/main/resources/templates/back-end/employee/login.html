@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>早餐店後台 - 員工登入</title>
+    
+    <!-- 引入 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- 引入 Font Awesome 圖示庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #F5EFE6;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --error-color: #D9534F;
+            --success-color: #5cb85c;
+        }
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: auto;
+        }
+        
+        .page-wrapper {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            padding: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+        }
+        
+        .login-container h2 {
+            margin-bottom: 30px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(166, 123, 91, 0.2);
+        }
+        
+        /* 密碼輸入框的外層容器樣式 */
+        .password-wrapper {
+            position: relative;
+        }
+        
+        /* 密碼切換圖示的樣式 */
+        .password-toggle-icon {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+        }
+        
+        .password-toggle-icon:hover {
+            color: var(--primary-color);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+        }
+        
+        .btn-primary { 
+            background-color: var(--primary-color); 
+        }
+        
+        .btn-primary:hover { 
+            background-color: var(--primary-hover); 
+        }
+        
+        .error-msg {
+            color: var(--error-color);
+            background-color: #FFF2F2;
+            border: 1px solid var(--error-color);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .success-msg {
+            color: var(--success-color);
+            background-color: #F0F8F0;
+            border: 1px solid var(--success-color);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .forgot-password-link {
+            display: block;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .forgot-password-link:hover {
+            text-decoration: underline;
+        }
+
+        /* 管理員小幫手區塊樣式 */
+        .admin-helper {
+            width: 350px;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border: 1px solid var(--container-bg);
+            flex-shrink: 0;
+        }
+        
+        .admin-helper h3 {
+            margin-top: 0;
+            text-align: center;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--container-bg);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .admin-helper .info-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            max-height: 400px; 
+            overflow-y: auto;
+        }
+        
+        .admin-helper .info-list li {
+            padding: 10px 5px;
+            border-bottom: 1px dashed var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .admin-helper .info-list li:hover {
+            background-color: var(--container-bg);
+        }
+        
+        .admin-helper .info-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .info-list .employee-main-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .info-name {
+            font-weight: 500;
+        }
+        
+        .info-account {
+            color: #777;
+            font-family: monospace;
+        }
+        
+        .employee-details {
+            background-color: #fdfdfd;
+            border: 1px solid var(--border-color);
+            border-top: 2px solid var(--primary-color);
+            border-radius: 0 0 6px 6px;
+            padding: 10px;
+            margin-top: 5px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .employee-details p {
+            margin: 5px 0;
+        }
+        
+        .employee-details .label {
+            font-weight: 500;
+            color: var(--primary-color);
+            display: inline-block;
+            width: 80px;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 850px) {
+            .page-wrapper {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+                padding: 15px;
+            }
+            
+            .login-container {
+                width: 90%;
+                max-width: 400px;
+                padding: 30px 20px;
+                box-sizing: border-box;
+            }
+            
+            .admin-helper {
+                width: 90%;
+                max-width: 400px;
+                box-sizing: border-box;
+                margin-top: 0;
+                padding: 20px;
+            }
+
+            .form-group label, .form-group input, .btn {
+                font-size: 15px;
+            }
+            
+            .form-group input {
+                padding: 10px;
+            }
+            
+            .btn {
+                padding: 10px;
+            }
+            
+            .login-container h2 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+            
+            .login-logo {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .error-msg, .success-msg {
+                padding: 8px;
+                font-size: 14px;
+            }
+            
+            .forgot-password-link {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container, .admin-helper {
+                width: 95%;
+            }
+            
+            body {
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <!-- 登入表單區塊 -->
+        <div class="login-container">
+            <img th:src="@{/images/123.png}" alt="系統Logo" class="login-logo">
+            <h2>員工後台登入</h2>
+
+            <!-- 顯示成功訊息 -->
+            <div th:if="${successMessage}" class="success-msg">
+                <p th:text="${successMessage}"></p>
+            </div>
+
+            <!-- 顯示錯誤訊息 -->
+            <div th:if="${errorMessage}" class="error-msg">
+                <p th:text="${errorMessage}"></p>
+            </div>
+
+            <!-- 顯示表單驗證錯誤 -->
+            <div th:if="${#fields.hasErrors('loginRequest')}" class="error-msg">
+                <ul th:each="error : ${#fields.errors('loginRequest')}">
+                    <li th:text="${error}"></li>
+                </ul>
+            </div>
+
+            <!-- 登入表單 -->
+            <form th:action="@{/employee/login}" th:object="${loginRequest}" method="post">
+                <div class="form-group">
+                    <label for="account">員工帳號:</label>
+                    <input type="text" 
+                           id="account" 
+                           th:field="*{account}" 
+                           required 
+                           autocomplete="username"
+                           th:class="${#fields.hasErrors('account')} ? 'error' : ''">
+                    <div th:if="${#fields.hasErrors('account')}" class="error-msg">
+                        <span th:errors="*{account}"></span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">登入密碼:</label>
+                    <div class="password-wrapper">
+                        <input type="password" 
+                               id="password" 
+                               th:field="*{password}" 
+                               required 
+                               autocomplete="current-password"
+                               th:class="${#fields.hasErrors('password')} ? 'error' : ''">
+                        <i class="fas fa-eye password-toggle-icon" id="password-toggle"></i>
+                    </div>
+                    <div th:if="${#fields.hasErrors('password')}" class="error-msg">
+                        <span th:errors="*{password}"></span>
+                    </div>
+                </div>
+                
+                <br>
+                <input type="submit" value="登入" class="btn btn-primary">
+            </form>
+
+            <!-- 導航連結 -->
+            <a th:href="@{/}" class="forgot-password-link">← 返回首頁</a>
+        </div>
+        
+        <!-- 管理員小幫手區塊 -->
+        <div class="admin-helper" th:if="${employeeList != null and !employeeList.isEmpty()}">
+            <h3>員工帳號列表</h3>
+            <ul class="info-list">
+                <li th:each="emp : ${employeeList}" class="employee-item">
+                    <div class="employee-main-info">
+                        <span class="info-name" th:text="${emp.username}"></span>
+                        <span class="info-account" th:text="${emp.account}"></span>
+                    </div>
+                    <div class="employee-details">
+                        <p>
+                            <span class="label">所屬分店:</span> 
+                            <span th:text="${emp.storeName != null ? emp.storeName : '門市ID ' + emp.storeId}"></span>
+                        </p>
+                        <p>
+                            <span class="label">角色職位:</span> 
+                            <span th:text="${emp.role}"></span>
+                        </p>
+                        <p>
+                            <span class="label">帳號狀態:</span> 
+                            <span th:text="${emp.status}"></span>
+                        </p>
+                        <p>
+                            <span class="label">員工密碼:</span> 
+                            <span th:text="${emp.password}" style="font-family: monospace; color: #666;"></span>
+                        </p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // 管理員小幫手互動邏輯
+        const employeeItems = document.querySelectorAll('.employee-item');
+        employeeItems.forEach(item => {
+            item.addEventListener('click', function () {
+                const details = this.querySelector('.employee-details');
+                const isVisible = details.style.display === 'block';
+                
+                // 關閉所有其他展開的詳情
+                employeeItems.forEach(otherItem => {
+                    otherItem.querySelector('.employee-details').style.display = 'none';
+                });
+                
+                // 切換當前項目的顯示狀態
+                if (!isVisible) {
+                    details.style.display = 'block';
+                }
+            });
+        });
+
+        // 密碼顯示/隱藏的互動邏輯
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('password-toggle');
+
+        if (passwordInput && toggleIcon) {
+            toggleIcon.addEventListener('click', function () {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                // 切換眼睛圖示的樣式 (fa-eye <--> fa-eye-slash)
+                this.classList.toggle('fa-eye-slash');
+            });
+        }
+
+        // 自動填入帳號功能（點擊員工項目時）
+        employeeItems.forEach(item => {
+            const accountSpan = item.querySelector('.info-account');
+            if (accountSpan) {
+                accountSpan.addEventListener('click', function(e) {
+                    e.stopPropagation(); // 防止觸發父元素的點擊事件
+                    const account = this.textContent.trim();
+                    const accountInput = document.getElementById('account');
+                    if (accountInput) {
+                        accountInput.value = account;
+                        accountInput.focus();
+                    }
+                });
+                
+                // 添加視覺提示
+                accountSpan.style.cursor = 'pointer';
+                accountSpan.title = '點擊填入帳號';
+            }
+        });
+    });
+    </script>
+</body>
+</html>
