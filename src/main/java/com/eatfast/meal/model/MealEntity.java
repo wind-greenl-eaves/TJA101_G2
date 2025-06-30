@@ -7,7 +7,7 @@ import com.eatfast.mealtype.model.MealTypeEntity;
 import com.eatfast.fav.model.FavEntity;
 import com.eatfast.cart.model.CartEntity;
 import com.eatfast.orderlistinfo.model.OrderListInfoEntity;
-import com.eatfast.storemeal.model.StoreMealStatusEntity;
+import com.eatfast.storemeal.model.StoreMealEntity;
 
 // 引入 Jakarta Validation API 進行資料驗證
 import jakarta.persistence.*;
@@ -102,7 +102,7 @@ public class MealEntity {
      * 此餐點在各門市的供應狀態。
      */
     @OneToMany(mappedBy = "meal", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Set<StoreMealStatusEntity> storeStatuses = new HashSet<>();
+    private Set<StoreMealEntity> storeStatuses = new HashSet<>();
 
     /**
      * 包含此餐點的所有訂單明細。
@@ -144,8 +144,8 @@ public class MealEntity {
     public MealTypeEntity getMealType() { return mealType; }
     public void setMealType(MealTypeEntity mealType) { this.mealType = mealType; }
     
-    public Set<StoreMealStatusEntity> getStoreStatuses() { return storeStatuses; }
-    public void setStoreStatuses(Set<StoreMealStatusEntity> storeStatuses) { this.storeStatuses = storeStatuses; }
+    public Set<StoreMealEntity> getStoreStatuses() { return storeStatuses; }
+    public void setStoreStatuses(Set<StoreMealEntity> storeStatuses) { this.storeStatuses = storeStatuses; }
     public Set<OrderListInfoEntity> getOrderListInfos() { return orderListInfos; }
     public void setOrderListInfos(Set<OrderListInfoEntity> orderListInfos) { this.orderListInfos = orderListInfos; }
     public Set<CartEntity> getCartItems() { return cartItems; }

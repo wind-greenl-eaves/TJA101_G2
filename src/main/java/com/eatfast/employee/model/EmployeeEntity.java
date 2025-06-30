@@ -89,6 +89,10 @@ public class EmployeeEntity {
     @Column(name = "photo")
     private byte[] photo;
 
+    /** 員工照片 URL */
+    @Column(name = "photo_url")
+    private String photoUrl;
+
     // ================================================================
     //                       列舉類型欄位 (Enum Fields)
     // ================================================================
@@ -214,6 +218,8 @@ public class EmployeeEntity {
     public void setPublishedAnnouncements(Set<AnnouncementEntity> publishedAnnouncements) { this.publishedAnnouncements = publishedAnnouncements; }
     public Set<EmployeePermissionEntity> getEmployeePermissions() { return employeePermissions; }
     public void setEmployeePermissions(Set<EmployeePermissionEntity> employeePermissions) { this.employeePermissions = employeePermissions; }
+    public String getPhotoUrl() { return photoUrl; }
+    public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
 
     // ================================================================
     //          物件核心方法 (equals, hashCode, toString)

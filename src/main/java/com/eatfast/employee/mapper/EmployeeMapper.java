@@ -39,6 +39,8 @@ public class EmployeeMapper {
         dto.setGender(entity.getGender());
         dto.setNationalId(entity.getNationalId());
         dto.setCreateTime(entity.getCreateTime());
+        // 添加照片 URL 映射
+        dto.setPhotoUrl(entity.getPhotoUrl());
 
         // 安全地處理關聯物件：確認 StoreEntity 不為 null 才進行取值，避免 NullPointerException。
         if (entity.getStore() != null) {

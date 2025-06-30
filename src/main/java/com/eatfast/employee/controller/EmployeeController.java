@@ -61,12 +61,12 @@ public class EmployeeController {
     }
 
     /**
-     * 【API 已復原】: 改回接收 application/json 格式的請求。
+     * 【API 修改】: 改為支援文件上傳的格式。
      */
     @PutMapping("/{id}")
     public ResponseEntity<EmployeeDto> updateEmployee(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateEmployeeRequest request) {
+            @ModelAttribute @Valid UpdateEmployeeRequest request) {
         EmployeeDto updatedEmployee = employeeService.updateEmployee(id, request);
         return ResponseEntity.ok(updatedEmployee);
     }

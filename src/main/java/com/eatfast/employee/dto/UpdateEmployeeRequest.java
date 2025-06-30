@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * [可自定義的類別名稱]: UpdateEmployeeRequest - 【已重構】
@@ -46,6 +47,9 @@ public class UpdateEmployeeRequest {
     /** 所屬門市 ID (必填) */
     @NotNull(message = "所屬門市 ID 不可為空") // 【已修改】: 從可選改為必填
     private Long storeId;
+
+    /** 員工照片 (可選) */
+    private MultipartFile photo;  // 新增照片欄位
 
     // ================================================================
     //             標準 Getters and Setters
@@ -98,5 +102,13 @@ public class UpdateEmployeeRequest {
     }
     public void setStoreId(Long storeId) { 
         this.storeId = storeId; 
+    }
+
+    public MultipartFile getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(MultipartFile photo) {
+        this.photo = photo;
     }
 }
