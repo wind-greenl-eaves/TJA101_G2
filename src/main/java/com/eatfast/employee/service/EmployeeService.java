@@ -5,7 +5,7 @@
 package com.eatfast.employee.service;
 
 import com.eatfast.employee.dto.CreateEmployeeRequest;
-import com.eatfast.employee.dto.EmployeeDto;
+import com.eatfast.employee.dto.EmployeeDTO;
 import com.eatfast.employee.dto.UpdateEmployeeRequest;
 import java.util.List;
 import java.util.Map;
@@ -16,10 +16,10 @@ import java.util.Map;
  */
 public interface EmployeeService {
 
-	EmployeeDto findEmployeeById(Long id);
-	List<EmployeeDto> searchEmployees(Map<String, Object> searchParams);
-	EmployeeDto createEmployee(CreateEmployeeRequest request);
-	EmployeeDto updateEmployee(Long id, UpdateEmployeeRequest request);
+	EmployeeDTO findEmployeeById(Long id);
+	List<EmployeeDTO> searchEmployees(Map<String, Object> searchParams);
+	EmployeeDTO createEmployee(CreateEmployeeRequest request);
+	EmployeeDTO updateEmployee(Long id, UpdateEmployeeRequest request);
 	void deleteEmployee(Long id);
 	void grantPermissionToEmployee(Long employeeId, Long permissionId);
 	void revokePermissionFromEmployee(Long employeeId, Long permissionId);

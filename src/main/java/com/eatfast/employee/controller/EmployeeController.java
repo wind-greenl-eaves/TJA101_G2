@@ -7,7 +7,7 @@ package com.eatfast.employee.controller;
 import com.eatfast.common.enums.AccountStatus;
 import com.eatfast.common.enums.EmployeeRole;
 import com.eatfast.employee.dto.CreateEmployeeRequest;
-import com.eatfast.employee.dto.EmployeeDto;
+import com.eatfast.employee.dto.EmployeeDTO;
 import com.eatfast.employee.dto.UpdateEmployeeRequest;
 import com.eatfast.employee.service.EmployeeService;
 import jakarta.validation.Valid;
@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -33,20 +35,26 @@ public class EmployeeController {
     }
 
     // (原有的 create, get, search, update, delete, grant/revoke permission 等 API 維持不變)
-    @PostMapping
-    public ResponseEntity<EmployeeDto> createEmployee(@Valid @RequestBody CreateEmployeeRequest request) {
-        EmployeeDto createdEmployee = employeeService.createEmployee(request);
-        return new ResponseEntity<>(createdEmployee, HttpStatus.CREATED);
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<?> createEmployee(@Valid @ModelAttribute CreateEmployeeRequest request) {
+        try {
+            EmployeeDTO createdEmployee = employeeService.createEmployee(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EmployeeDto> getEmployeeById(@PathVariable Long id) {
-        EmployeeDto employeeDto = employeeService.findEmployeeById(id);
+    public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id) {
+        EmployeeDTO employeeDto = employeeService.findEmployeeById(id);
         return ResponseEntity.ok(employeeDto);
     }
     
     @GetMapping
-    public ResponseEntity<List<EmployeeDto>> searchEmployees(
+    public ResponseEntity<List<EmployeeDTO>> searchEmployees(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) EmployeeRole role,
             @RequestParam(required = false) AccountStatus status,
@@ -57,15 +65,15 @@ public class EmployeeController {
         if (role != null) searchParams.put("role", role);
         if (status != null) searchParams.put("status", status);
         if (storeId != null) searchParams.put("storeId", storeId);
-        List<EmployeeDto> employees = employeeService.searchEmployees(searchParams);
+        List<EmployeeDTO> employees = employeeService.searchEmployees(searchParams);
         return ResponseEntity.ok(employees);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EmployeeDto> updateEmployee(
+    public ResponseEntity<EmployeeDTO> updateEmployee(
             @PathVariable Long id,
             @ModelAttribute @Valid UpdateEmployeeRequest request) {
-        EmployeeDto updatedEmployee = employeeService.updateEmployee(id, request);
+        EmployeeDTO updatedEmployee = employeeService.updateEmployee(id, request);
         return ResponseEntity.ok(updatedEmployee);
     }
     

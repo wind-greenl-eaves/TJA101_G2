@@ -2,7 +2,7 @@ package com.eatfast.employee.controller;
 
 import com.eatfast.common.enums.AccountStatus;
 import com.eatfast.common.enums.EmployeeRole;
-import com.eatfast.employee.dto.EmployeeDto;
+import com.eatfast.employee.dto.EmployeeDTO;
 import com.eatfast.employee.service.EmployeeService;
 import com.eatfast.store.dto.StoreDto;
 import com.eatfast.store.service.StoreService;
@@ -55,7 +55,7 @@ public class EmployeeViewController {
 
     @GetMapping("/listOne")
     public String showOneEmployee(@RequestParam("employeeId") Long employeeId, Model model) {
-        EmployeeDto employeeDto = employeeService.findEmployeeById(employeeId);
+        EmployeeDTO employeeDto = employeeService.findEmployeeById(employeeId);
         model.addAttribute("employee", employeeDto);
         return "back-end/employee/listOneEmployee";
     }
@@ -80,7 +80,7 @@ public class EmployeeViewController {
 
     @GetMapping("/edit/{id}")
     public String showEditEmployeePage(@PathVariable("id") Long id, Model model) {
-        EmployeeDto employeeDto = employeeService.findEmployeeById(id);
+        EmployeeDTO employeeDto = employeeService.findEmployeeById(id);
         model.addAttribute("employee", employeeDto);
         List<StoreDto> storeList = storeService.findAllStores();
         model.addAttribute("storeList", storeList);

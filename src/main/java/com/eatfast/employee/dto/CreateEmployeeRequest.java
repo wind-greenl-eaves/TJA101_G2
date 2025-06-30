@@ -3,6 +3,7 @@ package com.eatfast.employee.dto;
 import com.eatfast.common.enums.EmployeeRole;
 import com.eatfast.common.enums.Gender;
 import jakarta.validation.constraints.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * [可自定義的類別名稱]: CreateEmployeeRequest
@@ -53,6 +54,9 @@ public class CreateEmployeeRequest {
     /** 所屬門市 ID (必填) */
     @NotNull(message = "所屬門市 ID 不可為空")
     private Long storeId;
+
+    /** 員工照片 (選填) */
+    private MultipartFile photo;
 
     // ================================================================
     //             標準 Getters and Setters
@@ -119,5 +123,13 @@ public class CreateEmployeeRequest {
     }
     public void setStoreId(Long storeId) { 
         this.storeId = storeId; 
+    }
+
+    public MultipartFile getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(MultipartFile photo) {
+        this.photo = photo;
     }
 }

@@ -6,8 +6,9 @@ package com.eatfast.employee.service;
 
 import com.eatfast.common.exception.DuplicateResourceException;
 import com.eatfast.common.exception.ResourceNotFoundException;
+import com.eatfast.common.service.FileService;
 import com.eatfast.employee.dto.CreateEmployeeRequest;
-import com.eatfast.employee.dto.EmployeeDto;
+import com.eatfast.employee.dto.EmployeeDTO;
 import com.eatfast.employee.dto.UpdateEmployeeRequest;
 import com.eatfast.employee.mapper.EmployeeMapper;
 import com.eatfast.employee.model.EmployeeEntity;
@@ -61,6 +62,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     private String uploadPath;
 
     @Autowired
+    private FileService fileService;
+
+    @Autowired
     public EmployeeServiceImpl(EmployeeRepository employeeRepository, StoreRepository storeRepository,
                                EmployeeMapper employeeMapper, PasswordEncoder passwordEncoder,
                                PermissionRepository permissionRepository,
@@ -78,7 +82,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     // (原有 find, search, create, update, delete 等方法維持不變)
     @Override
     @Transactional(readOnly = true)
-    public EmployeeDto findEmployeeById(Long id) {
+    public EmployeeDTO findEmployeeById(Long id) {
         EmployeeEntity employeeEntity = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + id + " 的員工"));
         return employeeMapper.toDto(employeeEntity);
@@ -86,7 +90,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     
     @Override
     @Transactional(readOnly = true)
-    public List<EmployeeDto> searchEmployees(Map<String, Object> searchParams) {
+    public List<EmployeeDTO> searchEmployees(Map<String, Object> searchParams) {
         Specification<EmployeeEntity> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (searchParams.containsKey("username") && StringUtils.hasText((String) searchParams.get("username"))) {
@@ -110,7 +114,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional
-    public EmployeeDto createEmployee(CreateEmployeeRequest request) {
+    public EmployeeDTO createEmployee(CreateEmployeeRequest request) {
         validateUniqueness(request.getAccount(), request.getEmail(), request.getNationalId());
         StoreEntity store = storeRepository.findById(request.getStoreId())
                 .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + request.getStoreId() + " 的門市"));
@@ -119,13 +123,25 @@ public class EmployeeServiceImpl implements EmployeeService {
         newEmployee.setPassword(passwordEncoder.encode(request.getPassword()));
         newEmployee.setStore(store);
         
+        // 處理照片上傳
+        String photoUrl = null;
+        if (request.getPhoto() != null && !request.getPhoto().isEmpty()) {
+            try {
+                String fileName = fileService.saveEmployeePhoto(request.getPhoto());
+                photoUrl = "/employee-photos/" + fileName;
+            } catch (IOException e) {
+                throw new RuntimeException("照片上傳失敗", e);
+            }
+        }
+        newEmployee.setPhotoUrl(photoUrl);
+        
         EmployeeEntity savedEmployee = employeeRepository.save(newEmployee);
         return employeeMapper.toDto(savedEmployee);
     }
 
     @Override
     @Transactional
-    public EmployeeDto updateEmployee(Long id, UpdateEmployeeRequest request) {
+    public EmployeeDTO updateEmployee(Long id, UpdateEmployeeRequest request) {
         EmployeeEntity employeeToUpdate = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + id + " 的員工"));
 
@@ -143,10 +159,16 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional
     public void deleteEmployee(Long id) {
-        if (!employeeRepository.existsById(id)) {
-            throw new ResourceNotFoundException("找不到 ID 為 " + id + " 的員工，無法刪除");
+        EmployeeEntity employee = employeeRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + id + " 的員工，無法刪除"));
+
+        // 刪除關聯的照片檔案
+        if (employee.getPhotoUrl() != null) {
+            String fileName = employee.getPhotoUrl().substring(employee.getPhotoUrl().lastIndexOf("/") + 1);
+            fileService.deleteEmployeePhoto(fileName);
         }
-        employeeRepository.deleteById(id);
+
+        employeeRepository.delete(employee);
     }
     
     @Override
@@ -188,7 +210,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional(readOnly = true)
     public boolean isFieldAvailable(String field, String value) {
         if (value == null || value.trim().isEmpty()) {
-            // 如果值為空，視為可用 (不進行驗證)
+            return true;
+        }
+        // 排除不需要驗證的欄位
+        if (field.equals("photo")) {
             return true;
         }
         // 使用 switch 陳述式來動態呼叫對應的 repository 方法
@@ -196,8 +221,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             case "account"    -> !employeeRepository.existsByAccount(value);
             case "email"      -> !employeeRepository.existsByEmail(value);
             case "nationalId" -> !employeeRepository.existsByNationalId(value);
-            // 如果傳入未知的欄位名，預設為 true，避免阻擋正常操作
-            default           -> true;
+            default          -> true;
         };
     }
     

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  * 資料傳輸物件 (Data Transfer Object)。
  * 作為 Service 層與 Controller 層之間的資料載體，僅包含安全且必要的員工資訊。
  */
-public class EmployeeDto {
+public class EmployeeDTO {
 
     /** 員工系統 ID (主鍵) */
     private Long employeeId;

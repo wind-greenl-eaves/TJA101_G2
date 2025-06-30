@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
      * 說明: 此函式會產生隨機的帳號、信箱等，並填入表單中，方便快速測試。
      */
     function populateWithTestData() {
+        const timestamp = Date.now().toString().slice(-6); // 取得時間戳記後6位
         const randomSuffix = Math.floor(Math.random() * 9000) + 1000; // 產生 1000-9999 的隨機數
         
         // 生成一個符合格式的隨機身分證字號
@@ -28,18 +29,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const alphabet = "ABCDEFGHJKLMNPQRSTUVXYWZIO";
         const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
 
-        // 填入資料到各個欄位
+        // 填入資料到各個欄位，使用時間戳記來確保帳號唯一
         document.getElementById('username').value = `測試人員${randomSuffix}`;
-        document.getElementById('account').value = `tester${randomSuffix}`;
-        document.getElementById('email').value = `tester${randomSuffix}@example.com`;
-        document.getElementById('password').value = 'password123'; // 符合英數混合且長度大於8
-        document.getElementById('phone').value = '0912345678';
+        document.getElementById('account').value = `tester${timestamp}${randomSuffix}`; // 加入時間戳記確保唯一性
+        document.getElementById('email').value = `tester${timestamp}${randomSuffix}@example.com`;
+        document.getElementById('password').value = `Test${randomSuffix}!`; // 更強的密碼格式
+        document.getElementById('phone').value = `0912${randomSuffix.toString().padStart(6, '0')}`; // 確保是合法的手機號碼
         document.getElementById('nationalId').value = `${randomLetter}${genderDigit}${randomIdSuffix}`;
         
-        // 預設選中下拉選單的特定選項
+        // 設定必填的下拉選單
         document.getElementById('role').value = 'STAFF';
         document.getElementById('gender').value = 'M';
-        document.getElementById('storeId').value = '1'; // 預設選中一號店
+        document.getElementById('storeId').value = '1';
     }
     
     // 【核心修改】: 在頁面載入完成後，立即呼叫函式以填入測試資料。
@@ -47,44 +48,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // 表單提交事件監聽
-    form.addEventListener('submit', async function (event) {
-        event.preventDefault(); 
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
         clearAllErrors();
         messageContainer.classList.add('hidden');
 
-        // 直接從表單收集資料
         const formData = new FormData(form);
-        const requestData = {};
-        formData.forEach((value, key) => {
-            requestData[key] = value;
-        });
-
-        const url = form.getAttribute('action');
-
+        
+        // 檢查送出的資料
+        console.log('送出的表單資料:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+        
         try {
-            // 發送請求給後端
-            const response = await fetch(url, {
+            const response = await fetch(form.getAttribute('action'), {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData)
+                body: formData
             });
 
-            // 處理後端的回應
-            const responseData = await response.json();
+            let responseData;
+            try {
+                responseData = await response.json();
+                console.log('後端回應:', responseData); // 印出後端回應
+            } catch (e) {
+                throw new Error('伺服器回應格式錯誤');
+            }
 
-            if (response.status === 201) { // HTTP 201: Created
-                // 顯示成功訊息
+            if (response.ok) {
                 showSuccessModal(`員工 "${responseData.username}" 已成功新增！`);
             } else {
-                // 如果後端返回錯誤 (例如 HTTP 400 Bad Request)
                 if (response.status === 400 && responseData.errors) {
-                    // 處理後端傳回的驗證錯誤
+                    console.log('驗證錯誤:', responseData.errors); // 印出驗證錯誤
                     handleValidationErrors(responseData.errors);
                     showMessage('資料驗證失敗，請檢查下方欄位。', 'error');
                 } else {
-                    // 處理其他一般錯誤
                     showMessage(responseData.message || '發生未知錯誤，請稍後再試。', 'error');
                 }
             }
@@ -153,6 +151,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const name = field.name;
         const value = field.value;
         
+        // 跳過照片欄位的後端驗證
+        if (name === 'photo') {
+            return;
+        }
+
         try {
             const response = await fetch(`/api/v1/employees/validate/${name}`, {
                 method: 'POST',
@@ -197,4 +200,95 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     });
+
+    const photoInput = document.getElementById('photo');
+    const previewImage = document.getElementById('preview-image');
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    const dropZone = document.getElementById('drop-zone');
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+    // 處理照片選擇
+    photoInput.addEventListener('change', handlePhotoSelect);
+
+    // 拖放功能
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefault, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function preventDefault(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight(e) {
+        dropZone.classList.add('border-[var(--primary-color)]');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('border-[var(--primary-color)]');
+    }
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        
+        if (file) {
+            photoInput.files = dt.files;
+            handlePhotoSelect({ target: photoInput });
+        }
+    }
+
+    function handlePhotoSelect(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // 檢查檔案大小
+            if (file.size > MAX_FILE_SIZE) {
+                showError('photo', '檔案大小不能超過 5MB');
+                e.target.value = '';
+                return;
+            }
+
+            // 檢查檔案類型
+            if (!file.type.match('image.*')) {
+                showError('photo', '請上傳圖片檔案 (PNG, JPG, JPEG)');
+                e.target.value = '';
+                return;
+            }
+
+            // 預覽圖片
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.classList.remove('hidden');
+                uploadPlaceholder.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+            clearError('photo');
+        }
+    }
+
+    // 錯誤處理函數
+    function showError(fieldName, message) {
+        const errorDiv = document.getElementById(`error-${fieldName}`);
+        if (errorDiv) {
+            errorDiv.textContent = message;
+        }
+    }
+
+    function clearError(fieldName) {
+        const errorDiv = document.getElementById(`error-${fieldName}`);
+        if (errorDiv) {
+            errorDiv.textContent = '';
+        }
+    }
 });
