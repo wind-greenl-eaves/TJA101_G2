@@ -1,0 +1,181 @@
+<!-- =======================================================================================
+     檔案: addEmployee.html (Gender 欄位已修正)
+     路徑: resources/templates/back-end/employee/addEmployee.html
+     說明: 這是根據 update_employee_input.html 樣式製作的全新「新增員工」頁面。
+           它會與後端 `EmployeeViewController` 的 `@GetMapping("/add")` 方法配對。
+     ======================================================================================= -->
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新增員工資料</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- [檔案路徑配對]: 複用與更新頁面相同的表單樣式 -->
+    <link rel="stylesheet" th:href="@{/css/employee/form-styles.css}">
+</head>
+<body class="antialiased">
+
+<div class="form-wrapper">
+    <header class="form-header">
+        <div class="flex items-center gap-4">
+            <img th:src="@{/images/123.png}" alt="Icon" class="w-10 h-10 mr-2">
+            <div>
+                <h1 class="text-xl font-bold">新增員工資料</h1>
+                <p class="text-sm text-gray-500">請填寫所有必填欄位</p>
+            </div>
+        </div>
+        <!-- [檔案路徑配對]: 返回按鈕指向員工列表頁 -->
+        <a th:href="@{/employee/listAll}" class="cancel-button">
+            <i class="fas fa-list-ul mr-2"></i>返回列表
+        </a>
+    </header>
+
+    <div id="message-container" class="hidden p-4 mx-8 mt-6 text-sm rounded-lg" role="alert"></div>
+    
+    <!-- 
+        [API 路徑配對]:
+        - th:action: 表單將提交至 /api/v1/employees。
+        - 後端對應: 由 EmployeeController 中的 @PostMapping 方法接收。
+        - 提交方式: 由 add.js 透過非同步的 fetch POST 請求處理。
+     -->
+    <form id="add-form"
+          th:action="@{/api/v1/employees}"
+          class="p-8 space-y-6">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+            <!-- 員工姓名 -->
+            <div>
+                <label for="username" class="form-label">員工姓名</label>
+                <input type="text" id="username" name="username" class="form-input" required 
+                       minlength="2" maxlength="20" placeholder="例如: 王大明"
+                       title="姓名至少需要2個字" />
+                <div id="error-username" class="error-message"></div>
+            </div>
+            <!-- 登入帳號 -->
+            <div>
+                <label for="account" class="form-label">登入帳號</label>
+                <input type="text" id="account" name="account" class="form-input" required 
+                       maxlength="50" pattern="^[a-zA-Z0-9_.-]+$"
+                       placeholder="限英數、底線、點、連字號"
+                       title="帳號格式不符" />
+                <div id="error-account" class="error-message"></div>
+            </div>
+            <!-- 電子郵件 -->
+            <div class="sm:col-span-2">
+                <label for="email" class="form-label">電子郵件</label>
+                <input type="email" id="email" name="email" class="form-input" required 
+                       placeholder="例如: david.wang@example.com"
+                       title="請輸入有效的電子郵件地址" />
+                <div id="error-email" class="error-message"></div>
+            </div>
+            <!-- 聯絡電話 -->
+            <div class="sm:col-span-2">
+                <label for="phone" class="form-label">聯絡電話</label>
+                <input type="tel" id="phone" name="phone" class="form-input" required 
+                       pattern="^09\d{2}-?\d{3}-?\d{3}$"
+                       placeholder="例如: 0912-345-678"
+                       title="請輸入有效的台灣手機號碼格式" />
+                <div id="error-phone" class="error-message"></div>
+            </div>
+             <!-- 身分證字號 -->
+            <div>
+                <label for="nationalId" class="form-label">身分證字號</label>
+                <input type="text" id="nationalId" name="nationalId" class="form-input" required
+                       pattern="^[A-Z][1-2]\d{8}$"
+                       placeholder="例如: A123456789"
+                       title="請輸入有效的台灣身分證字號格式" />
+                <div id="error-nationalId" class="error-message"></div>
+            </div>
+             <!-- 密碼 -->
+            <div class="password-wrapper">
+                <label for="password" class="form-label">登入密碼</label>
+                <input type="password" id="password" name="password" class="form-input" required 
+                       pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"
+                       placeholder="至少8碼，英數混合"
+                       title="密碼需至少8個字元，且包含至少一個字母和一個數字" />
+                <i class="fas fa-eye password-toggle-icon" id="password-toggle"></i>
+                <div id="error-password" class="error-message"></div>
+            </div>
+            <!-- 員工角色 -->
+            <div>
+                <label for="role" class="form-label">員工角色</label>
+                <select id="role" name="role" class="form-input" required>
+                     <option value="" disabled selected>-- 請選擇角色 --</option>
+                    <option th:each="roleOpt : ${T(com.eatfast.common.enums.EmployeeRole).values()}"
+                            th:value="${roleOpt}"
+                            th:text="${roleOpt.displayName}"></option>
+                </select>
+                <div id="error-role" class="error-message"></div>
+            </div>
+            <!-- 員工性別 -->
+            <div>
+                <label for="gender" class="form-label">員工性別</label>
+                <select id="gender" name="gender" class="form-input" required>
+                    <option value="" disabled selected>-- 請選擇性別 --</option>
+                    <!--
+                        【專業修正】: 修正屬性呼叫錯誤
+                        - 原本的 th:text="${genderOpt.displayName}" 因 Gender Enum 中不存在 displayName 屬性而導致錯誤。
+                        - 修正為 th:text="${genderOpt.name()}"。
+                        - [不可變動]: name() 是 Java Enum 內建的方法，用於獲取列舉常數的名稱 (例如 "M", "F", "O")。
+                        - 這個修復可以保證頁面正常渲染。若要顯示如「男性」的中文，需確保 Gender Enum 中有對應的屬性與 getter 方法。
+                    -->
+                    <option th:each="genderOpt : ${T(com.eatfast.common.enums.Gender).values()}"
+                            th:value="${genderOpt}"
+                            th:text="${genderOpt.name()}"></option>
+                </select>
+                <div id="error-gender" class="error-message"></div>
+            </div>
+            <!-- 所屬門市 -->
+            <div class="sm:col-span-2">
+                <label for="storeId" class="form-label">所屬門市</label>
+                <!--
+                    [模型綁定]:
+                    - th:each="store : ${storeList}": 遍歷由 EmployeeViewController 傳入的 "storeList" 物件。
+                    - th:value, th:text: 正確設定 option 的值與顯示文字。
+                -->
+                <select id="storeId" name="storeId" class="form-input" required>
+                    <option value="" disabled selected>-- 請選擇門市 --</option>
+                    <option th:each="store : ${storeList}"
+                            th:value="${store.storeId}"
+                            th:text="${store.storeName}"></option>
+                </select>
+                <div id="error-storeId" class="error-message"></div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end pt-6 border-t border-[var(--border-color)]">
+            <button type="submit" class="submit-button">
+                <i class="fas fa-plus mr-2"></i>確認新增
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- 成功提示 Modal -->
+<div id="success-modal" class="fixed inset-0 z-50 hidden">
+    <div class="fixed inset-0 bg-black bg-opacity-50"></div>
+    <div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 shadow-xl w-96">
+        <div class="text-center">
+            <div class="w-16 h-16 rounded-full bg-green-100 p-2 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-3xl text-green-500"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-4" id="success-modal-message"></h3>
+            <button id="success-modal-confirm" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
+                返回列表
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- [檔案路徑配對]: 引入專為此頁面製作的 JavaScript -->
+<script th:src="@{/js/employee/add.js}"></script>
+
+</body>
+</html>
