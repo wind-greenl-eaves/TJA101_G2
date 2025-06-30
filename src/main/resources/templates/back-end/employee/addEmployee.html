@@ -122,6 +122,28 @@
             </div>
         </div>
 
+        <!-- 員工照片上傳 -->
+        <div class="mt-8 border-t border-[var(--border-color)] pt-8">
+            <label for="photo" class="form-label block mb-4">員工照片</label>
+            <div class="mt-2 flex justify-center rounded-lg border border-dashed border-[var(--border-color)] px-6 py-10 transition-colors hover:border-[var(--primary-color)]" id="drop-zone">
+                <div class="text-center">
+                    <img id="preview-image" class="mx-auto h-32 w-32 object-cover rounded-full hidden mb-4">
+                    <div id="upload-placeholder" class="flex flex-col items-center">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                        <div class="flex text-sm leading-6 text-gray-600">
+                            <label for="photo" class="relative cursor-pointer rounded-md font-semibold text-[var(--primary-color)] hover:text-[var(--primary-hover)] focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary-color)] focus-within:ring-offset-2">
+                                <span>上傳照片</span>
+                                <input id="photo" name="photo" type="file" class="sr-only" accept="image/*">
+                            </label>
+                            <p class="pl-1">或將檔案拖曳至此處</p>
+                        </div>
+                        <p class="text-xs leading-5 text-gray-600 mt-1">PNG, JPG, JPEG 最大 5MB</p>
+                    </div>
+                </div>
+            </div>
+            <div id="error-photo" class="error-message mt-2"></div>
+        </div>
+
         <div class="flex items-center justify-end pt-6 border-t border-[var(--border-color)]">
             <button type="submit" class="submit-button">
                 <i class="fas fa-plus mr-2"></i>確認新增

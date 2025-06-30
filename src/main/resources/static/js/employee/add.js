@@ -153,6 +153,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const name = field.name;
         const value = field.value;
         
+        // 跳過照片欄位的後端驗證
+        if (name === 'photo') {
+            return;
+        }
+
         try {
             const response = await fetch(`/api/v1/employees/validate/${name}`, {
                 method: 'POST',
@@ -197,4 +202,132 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     });
+
+    const photoInput = document.getElementById('photo');
+    const previewImage = document.getElementById('preview-image');
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    const dropZone = document.getElementById('drop-zone');
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+    // 處理照片選擇
+    photoInput.addEventListener('change', handlePhotoSelect);
+
+    // 拖放功能
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefault, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function preventDefault(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight(e) {
+        dropZone.classList.add('border-[var(--primary-color)]');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('border-[var(--primary-color)]');
+    }
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        
+        if (file) {
+            photoInput.files = dt.files;
+            handlePhotoSelect({ target: photoInput });
+        }
+    }
+
+    function handlePhotoSelect(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // 檢查檔案大小
+            if (file.size > MAX_FILE_SIZE) {
+                showError('photo', '檔案大小不能超過 5MB');
+                e.target.value = '';
+                return;
+            }
+
+            // 檢查檔案類型
+            if (!file.type.match('image.*')) {
+                showError('photo', '請上傳圖片檔案 (PNG, JPG, JPEG)');
+                e.target.value = '';
+                return;
+            }
+
+            // 預覽圖片
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.classList.remove('hidden');
+                uploadPlaceholder.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+            clearError('photo');
+        }
+    }
+
+    // 修改表單提交處理
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        clearAllErrors();
+        messageContainer.classList.add('hidden');
+
+        const formData = new FormData(form);
+        
+        try {
+            const response = await fetch(form.getAttribute('action'), {
+                method: 'POST',
+                body: formData // 使用 FormData，不設定 Content-Type
+            });
+
+            let responseData;
+            try {
+                responseData = await response.json();
+            } catch (e) {
+                throw new Error('伺服器回應格式錯誤');
+            }
+
+            if (response.ok) {
+                showSuccessModal(`員工 "${responseData.username}" 已成功新增！`);
+            } else {
+                if (response.status === 400 && responseData.errors) {
+                    handleValidationErrors(responseData.errors);
+                    showMessage('資料驗證失敗，請檢查下方欄位。', 'error');
+                } else {
+                    showMessage(responseData.message || '發生未知錯誤，請稍後再試。', 'error');
+                }
+            }
+        } catch (error) {
+            console.error('Fetch Error:', error);
+            showMessage('無法連接到伺服器，請檢查您的網路連線。', 'error');
+        }
+    });
+
+    // 錯誤處理函數
+    function showError(fieldName, message) {
+        const errorDiv = document.getElementById(`error-${fieldName}`);
+        if (errorDiv) {
+            errorDiv.textContent = message;
+        }
+    }
+
+    function clearError(fieldName) {
+        const errorDiv = document.getElementById(`error-${fieldName}`);
+        if (errorDiv) {
+            errorDiv.textContent = '';
+        }
+    }
 });

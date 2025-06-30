@@ -2,7 +2,7 @@ package com.eatfast.employee.mapper;
 
 import com.eatfast.common.enums.AccountStatus;
 import com.eatfast.employee.dto.CreateEmployeeRequest;
-import com.eatfast.employee.dto.EmployeeDto;
+import com.eatfast.employee.dto.EmployeeDTO;
 import com.eatfast.employee.model.EmployeeEntity;
 import org.springframework.stereotype.Component;
 
@@ -21,14 +21,14 @@ public class EmployeeMapper {
      * @param entity (可自定義的參數名): 來源 EmployeeEntity 物件。
      * @return 轉換後的 EmployeeDto 物件。
      */
-    public EmployeeDto toDto(EmployeeEntity entity) {
+    public EmployeeDTO toDto(EmployeeEntity entity) {
         // 防呆設計：若來源實體為 null，直接回傳 null，避免後續發生 NullPointerException。
         if (entity == null) {
             return null;
         }
 
         // 建立 DTO 物件並逐一映射欄位值。
-        EmployeeDto dto = new EmployeeDto();
+        EmployeeDTO dto = new EmployeeDTO();
         dto.setEmployeeId(entity.getEmployeeId());
         dto.setUsername(entity.getUsername());
         dto.setAccount(entity.getAccount());
