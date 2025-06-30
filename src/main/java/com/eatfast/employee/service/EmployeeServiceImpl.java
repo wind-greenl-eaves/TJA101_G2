@@ -1,6 +1,6 @@
 // =======================================================================================
-// 檔案: EmployeeServiceImpl.java (已強化權限校驗)
-// 說明: 員工服務層介面的完整實作。
+// 檔案: EmployeeServiceImpl.java (已修正)
+// 說明: 新增了 isFieldAvailable 方法的具體實作，以處理即時驗證邏輯。
 // =======================================================================================
 package com.eatfast.employee.service;
 
@@ -16,8 +16,8 @@ import com.eatfast.employee.permission.model.EmployeePermissionEntity;
 import com.eatfast.employee.permission.repository.EmployeePermissionRepository;
 import com.eatfast.permission.model.PermissionEntity;
 import com.eatfast.permission.repository.PermissionRepository;
-import com.eatfast.permission.service.PermissionService; // 【新增注入】: 為了獲取角色的預設權限
-import com.eatfast.permission.dto.PermissionDto; // 【新增注入】
+import com.eatfast.permission.service.PermissionService;
+import com.eatfast.permission.dto.PermissionDto;
 import com.eatfast.store.model.StoreEntity;
 import com.eatfast.store.repository.StoreRepository;
 import jakarta.persistence.criteria.Predicate;
@@ -40,18 +40,13 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set; // 【新增注入】
+import java.util.Set;
 import java.util.stream.Collectors;
 
-
-/**
- * [可自定義的類別名稱]: EmployeeServiceImpl
- * 員工服務 (EmployeeService) 的主要實作類別。
- * @Service: (不可變動) Spring 關鍵字，標記此類別為服務層的 Bean。
- */
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
     
+    // (原有屬性與建構子維持不變)
     private static final Logger log = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
     private final EmployeeRepository employeeRepository;
@@ -60,7 +55,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final PasswordEncoder passwordEncoder;
     private final PermissionRepository permissionRepository;
     private final EmployeePermissionRepository employeePermissionRepository;
-    private final PermissionService permissionService; // 【新增注入】
+    private final PermissionService permissionService;
 
     @Value("${app.upload.employee-photos}")
     private String uploadPath;
@@ -70,16 +65,17 @@ public class EmployeeServiceImpl implements EmployeeService {
                                EmployeeMapper employeeMapper, PasswordEncoder passwordEncoder,
                                PermissionRepository permissionRepository,
                                EmployeePermissionRepository employeePermissionRepository,
-                               PermissionService permissionService) { // 【新增注入】
+                               PermissionService permissionService) {
         this.employeeRepository = employeeRepository;
         this.storeRepository = storeRepository;
         this.employeeMapper = employeeMapper;
         this.passwordEncoder = passwordEncoder;
         this.permissionRepository = permissionRepository;
         this.employeePermissionRepository = employeePermissionRepository;
-        this.permissionService = permissionService; // 【新增注入】
+        this.permissionService = permissionService;
     }
 
+    // (原有 find, search, create, update, delete 等方法維持不變)
     @Override
     @Transactional(readOnly = true)
     public EmployeeDto findEmployeeById(Long id) {
@@ -87,7 +83,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + id + " 的員工"));
         return employeeMapper.toDto(employeeEntity);
     }
-
+    
     @Override
     @Transactional(readOnly = true)
     public List<EmployeeDto> searchEmployees(Map<String, Object> searchParams) {
@@ -135,7 +131,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         updateFields(employeeToUpdate, request);
         
-        // 處理照片上傳
         if (request.getPhoto() != null && !request.getPhoto().isEmpty()) {
             String photoUrl = handlePhotoUpload(request.getPhoto(), employeeToUpdate.getEmployeeId());
             employeeToUpdate.setPhotoUrl(photoUrl);
@@ -143,45 +138,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         
         EmployeeEntity updatedEmployee = employeeRepository.save(employeeToUpdate);
         return employeeMapper.toDto(updatedEmployee);
-    }
-
-    private String handlePhotoUpload(MultipartFile photo, Long employeeId) {
-        String contentType = photo.getContentType();
-        if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
-            throw new IllegalArgumentException("只支援 JPG 或 PNG 格式的圖片");
-        }
-        if (photo.getSize() > 5 * 1024 * 1024) { // 5MB
-            throw new IllegalArgumentException("圖片大小不能超過 5MB");
-        }
-        try {
-            Path uploadDir = Paths.get(uploadPath);
-            if (!Files.exists(uploadDir)) {
-                Files.createDirectories(uploadDir);
-            }
-            String fileExtension = StringUtils.getFilenameExtension(photo.getOriginalFilename());
-            String newFileName = "employee_" + employeeId + "_" + System.currentTimeMillis() + "." + fileExtension;
-            Path filePath = uploadDir.resolve(newFileName);
-            Files.copy(photo.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            deleteOldPhoto(employeeId);
-            return "/employee-photos/" + newFileName;
-        } catch (IOException e) {
-            throw new RuntimeException("無法保存照片文件", e);
-        }
-    }
-
-    private void deleteOldPhoto(Long employeeId) {
-        employeeRepository.findById(employeeId).ifPresent(employee -> {
-            String oldPhotoUrl = employee.getPhotoUrl();
-            if (oldPhotoUrl != null && !oldPhotoUrl.isEmpty()) {
-                try {
-                    String fileName = oldPhotoUrl.substring(oldPhotoUrl.lastIndexOf('/') + 1);
-                    Path oldPhotoPath = Paths.get(uploadPath, fileName);
-                    Files.deleteIfExists(oldPhotoPath);
-                } catch (IOException e) {
-                    log.warn("刪除舊照片失敗: {}", e.getMessage());
-                }
-            }
-        });
     }
 
     @Override
@@ -193,63 +149,25 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.deleteById(id);
     }
     
-    /**
-     * 【方法已強化】: grantPermissionToEmployee
-     * 為員工授予一項權限，並增加了業務邏輯校驗。
-     * * @param employeeId (可自定義的參數名) 員工 ID
-     * @param permissionId (可自定義的參數名) 權限 ID
-     */
     @Override
     @Transactional
     public void grantPermissionToEmployee(Long employeeId, Long permissionId) {
-        // 1. 查找主要的實體物件
         EmployeeEntity employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("找不到員工 (ID: " + employeeId + ")"));
         PermissionEntity permissionToGrant = permissionRepository.findById(permissionId)
                 .orElseThrow(() -> new ResourceNotFoundException("找不到權限 (ID: " + permissionId + ")"));
 
-        // 2. 檢查權限是否已存在，避免重複操作
         if (employeePermissionRepository.existsByEmployeeEmployeeIdAndPermissionPermissionId(employeeId, permissionId)) {
             throw new DuplicateResourceException("員工 (ID: " + employeeId + ") 已擁有權限 (ID: " + permissionId + ")");
         }
         
-        // 3. 【新增的業務邏輯校驗】
-        // 檢查欲授予的權限是否符合該員工角色的預設範圍
         validatePermissionAssignment(employee, permissionToGrant);
 
-        // 4. 建立並儲存新的關聯
         EmployeePermissionEntity newAssociation = new EmployeePermissionEntity();
         newAssociation.setEmployee(employee);
         newAssociation.setPermission(permissionToGrant);
         
         employeePermissionRepository.save(newAssociation);
-    }
-
-    /**
-     * 【新增的私有輔助方法】
-     * 驗證「權限指派」的合法性。
-     * @param employee (可自定義的參數名) 目標員工實體
-     * @param permissionToGrant (可自定義的參數名) 準備授予的權限實體
-     */
-    private void validatePermissionAssignment(EmployeeEntity employee, PermissionEntity permissionToGrant) {
-        // [不可變動]: 呼叫 permissionService 的核心方法
-        // 說明: 獲取該員工角色(Role)所有預設就應該擁有的權限。
-        Set<PermissionDto> allowedPermissions = permissionService.findPermissionsByRole(employee.getRole());
-
-        // [不可變動]: 使用 Stream API 進行判斷
-        // 說明: 檢查 `allowedPermissions` 集合中，是否有任何一個 PermissionDto 的 ID
-        // 與我們想授予的 `permissionToGrant` 的 ID 相符。
-        boolean isAllowed = allowedPermissions.stream()
-                .anyMatch(dto -> dto.getPermissionId().equals(permissionToGrant.getPermissionId()));
-
-        // 如果 `isAllowed` 為 false，代表這是一個「越級」的授權操作，應拋出例外。
-        if (!isAllowed) {
-            // [不可變動]: throw new ... 是一個關鍵的程式中斷語法。
-            throw new IllegalArgumentException(
-                "權限指派無效：權限 '" + permissionToGrant.getDescription() + 
-                "' 不適用於角色 '" + employee.getRole().name() + "'。"
-            );
-        }
     }
 
     @Override
@@ -262,6 +180,29 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeePermissionRepository.delete(associationToRemove);
     }
 
+    /**
+     * 【新增方法實作】
+     * 檢查指定欄位的值是否可用 (尚未被註冊)。
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isFieldAvailable(String field, String value) {
+        if (value == null || value.trim().isEmpty()) {
+            // 如果值為空，視為可用 (不進行驗證)
+            return true;
+        }
+        // 使用 switch 陳述式來動態呼叫對應的 repository 方法
+        return switch (field) {
+            case "account"    -> !employeeRepository.existsByAccount(value);
+            case "email"      -> !employeeRepository.existsByEmail(value);
+            case "nationalId" -> !employeeRepository.existsByNationalId(value);
+            // 如果傳入未知的欄位名，預設為 true，避免阻擋正常操作
+            default           -> true;
+        };
+    }
+    
+    // --- 私有輔助方法 ---
+
     private void validateUniqueness(String account, String email, String nationalId) {
         if (employeeRepository.existsByAccount(account)) {
             throw new DuplicateResourceException("登入帳號 " + account + " 已被註冊");
@@ -273,7 +214,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new DuplicateResourceException("身分證字號已被註冊");
         }
     }
-
+    
     private void updateFields(EmployeeEntity employeeToUpdate, UpdateEmployeeRequest request) {
         if (request.getUsername() != null && !request.getUsername().trim().isEmpty()) {
             if (request.getUsername().trim().length() < 2) {
@@ -327,6 +268,57 @@ public class EmployeeServiceImpl implements EmployeeService {
             StoreEntity store = storeRepository.findById(request.getStoreId())
                     .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + request.getStoreId() + " 的門市"));
             employeeToUpdate.setStore(store);
+        }
+    }
+    
+    private String handlePhotoUpload(MultipartFile photo, Long employeeId) {
+        String contentType = photo.getContentType();
+        if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
+            throw new IllegalArgumentException("只支援 JPG 或 PNG 格式的圖片");
+        }
+        if (photo.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException("圖片大小不能超過 5MB");
+        }
+        try {
+            Path uploadDir = Paths.get(uploadPath);
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
+            }
+            String fileExtension = StringUtils.getFilenameExtension(photo.getOriginalFilename());
+            String newFileName = "employee_" + employeeId + "_" + System.currentTimeMillis() + "." + fileExtension;
+            Path filePath = uploadDir.resolve(newFileName);
+            Files.copy(photo.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            deleteOldPhoto(employeeId);
+            return "/employee-photos/" + newFileName;
+        } catch (IOException e) {
+            throw new RuntimeException("無法保存照片文件", e);
+        }
+    }
+    
+    private void deleteOldPhoto(Long employeeId) {
+        employeeRepository.findById(employeeId).ifPresent(employee -> {
+            String oldPhotoUrl = employee.getPhotoUrl();
+            if (oldPhotoUrl != null && !oldPhotoUrl.isEmpty()) {
+                try {
+                    String fileName = oldPhotoUrl.substring(oldPhotoUrl.lastIndexOf('/') + 1);
+                    Path oldPhotoPath = Paths.get(uploadPath, fileName);
+                    Files.deleteIfExists(oldPhotoPath);
+                } catch (IOException e) {
+                    log.warn("刪除舊照片失敗: {}", e.getMessage());
+                }
+            }
+        });
+    }
+
+    private void validatePermissionAssignment(EmployeeEntity employee, PermissionEntity permissionToGrant) {
+        Set<PermissionDto> allowedPermissions = permissionService.findPermissionsByRole(employee.getRole());
+        boolean isAllowed = allowedPermissions.stream()
+                .anyMatch(dto -> dto.getPermissionId().equals(permissionToGrant.getPermissionId()));
+        if (!isAllowed) {
+            throw new IllegalArgumentException(
+                "權限指派無效：權限 '" + permissionToGrant.getDescription() + 
+                "' 不適用於角色 '" + employee.getRole().name() + "'。"
+            );
         }
     }
 }

@@ -1,6 +1,6 @@
 // =======================================================================================
-// 檔案: EmployeeController.java (已復原)
-// 說明: 員工管理的 RESTful API 控制器。已移除檔案上傳相關邏輯。
+// 檔案: EmployeeController.java (已修正)
+// 說明: 新增了 /validate-field 端點，用於處理前端的即時唯一性驗證請求。
 // =======================================================================================
 package com.eatfast.employee.controller;
 
@@ -32,6 +32,7 @@ public class EmployeeController {
         this.employeeService = employeeService;
     }
 
+    // (原有的 create, get, search, update, delete, grant/revoke permission 等 API 維持不變)
     @PostMapping
     public ResponseEntity<EmployeeDto> createEmployee(@Valid @RequestBody CreateEmployeeRequest request) {
         EmployeeDto createdEmployee = employeeService.createEmployee(request);
@@ -43,7 +44,7 @@ public class EmployeeController {
         EmployeeDto employeeDto = employeeService.findEmployeeById(id);
         return ResponseEntity.ok(employeeDto);
     }
-
+    
     @GetMapping
     public ResponseEntity<List<EmployeeDto>> searchEmployees(
             @RequestParam(required = false) String username,
@@ -60,9 +61,6 @@ public class EmployeeController {
         return ResponseEntity.ok(employees);
     }
 
-    /**
-     * 【API 修改】: 改為支援文件上傳的格式。
-     */
     @PutMapping("/{id}")
     public ResponseEntity<EmployeeDto> updateEmployee(
             @PathVariable Long id,
@@ -77,8 +75,6 @@ public class EmployeeController {
         return ResponseEntity.noContent().build();
     }
     
-    // 【已移除】getEmployeePhoto API 端點
-    
     @PostMapping("/{employeeId}/permissions/{permissionId}")
     public ResponseEntity<Void> grantPermission(@PathVariable Long employeeId, @PathVariable Long permissionId) {
         employeeService.grantPermissionToEmployee(employeeId, permissionId);
@@ -89,5 +85,55 @@ public class EmployeeController {
     public ResponseEntity<Void> revokePermission(@PathVariable Long employeeId, @PathVariable Long permissionId) {
         employeeService.revokePermissionFromEmployee(employeeId, permissionId);
         return ResponseEntity.noContent().build();
+    }
+
+
+    /**
+     * 【新增 API 端點】: 即時欄位驗證
+     * 這個端點專門用來回應前端 add.js 發起的即時驗證請求。
+     * * - @PostMapping("/validate-field"): (不可變動) 建立一個 POST 請求的 API，路徑為 /api/v1/employees/validate-field。
+     * - @RequestBody: (不可變動) 告訴 Spring Boot 要從請求的 body 中讀取 JSON 資料，並轉換為 ValidateFieldRequest 物件。
+     *
+     * @param request (可自定義的參數名): 一個包含 "field" 和 "value" 的請求物件。
+     * @return 返回一個 JSON 物件，格式為 { "isAvailable": boolean, "message": "..." }。
+     */
+    @PostMapping("/validate-field")
+    public ResponseEntity<Map<String, Object>> validateField(@RequestBody ValidateFieldRequest request) {
+        // 1. 呼叫 Service 層進行業務邏輯判斷
+        boolean isAvailable = employeeService.isFieldAvailable(request.getField(), request.getValue());
+        
+        // 2. 準備要回傳給前端的 JSON 資料
+        Map<String, Object> response = new HashMap<>();
+        response.put("isAvailable", isAvailable);
+        
+        // 3. 如果欄位不可用 (已被註冊)，則附上錯誤訊息
+        if (!isAvailable) {
+            String fieldName = switch (request.getField()) {
+                case "account" -> "登入帳號";
+                case "email" -> "電子郵件";
+                case "nationalId" -> "身分證字號";
+                default -> "該欄位";
+            };
+            response.put("message", fieldName + "「" + request.getValue() + "」已被使用。");
+        }
+        
+        // 4. 將結果用 ResponseEntity 包裝後回傳
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * [可自定義的類別名稱]: ValidateFieldRequest
+     * 一個靜態內部類別，專門用來接收 /validate-field 端點的請求資料。
+     * 這麼做可以避免污染主要的 DTOs，讓職責更單純。
+     */
+    static class ValidateFieldRequest {
+        private String field;
+        private String value;
+
+        // Getters and Setters
+        public String getField() { return field; }
+        public void setField(String field) { this.field = field; }
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
     }
 }
