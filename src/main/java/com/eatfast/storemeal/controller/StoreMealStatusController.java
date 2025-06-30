@@ -1,5 +1,5 @@
 package com.eatfast.storemeal.controller;
 
-public class StoreMenuStatusController {
+public class StoreMealStatusController {
 
 }
