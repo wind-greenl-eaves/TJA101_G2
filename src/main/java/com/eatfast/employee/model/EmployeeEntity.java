@@ -29,9 +29,9 @@ import java.util.Set;
 /**
  * [可自定義的類別名稱]: EmployeeEntity
  * 員工資料庫實體 (Entity)，對應到 'employee' 資料表。
- * - @Entity: 標記此類別為 JPA 實體。
- * - @Table: 指定對應的資料表名稱。
- * - @DynamicUpdate: 最佳化更新操作，只更新有變動的欄位。
+ * - @Entity: (不可變更) JPA 關鍵字，標記此類別為資料庫實體。
+ * - @Table: (不可變更) JPA 關鍵字，指定對應的資料表名稱。
+ * - @DynamicUpdate: (不可變更) Hibernate 關鍵字，最佳化更新操作，只更新有變動的欄位。
  */
 @Entity
 @Table(name = "employee")
@@ -83,11 +83,10 @@ public class EmployeeEntity {
     @Pattern(regexp = "^[A-Z][1-2]\\d{8}$", message = "請輸入有效的台灣身分證字號格式")
     @Column(name = "national_id", nullable = false, length = 10, unique = true)
     private String nationalId;
-
-    /** 員工大頭照 (二進位資料) */
-    @Lob // 標記為大物件 (Large Object)。
-    @Column(name = "photo")
-    private byte[] photo;
+    
+    // 【已移除】: byte[] photo 欄位。
+    // 說明: 根據架構審查建議，不再將圖片的二進位資料直接存入資料庫，
+    // 改為只儲存圖片的相對路徑或 URL，以大幅提升效能並降低資料庫負擔。
 
     /** 員工照片 URL */
     @Column(name = "photo_url")
@@ -99,29 +98,29 @@ public class EmployeeEntity {
 
     /**
      * 員工角色
-     * 【已修正】: 儲存策略已從 ORDINAL 改為 STRING。
-     * 說明: EnumType.STRING 會將 Enum 的名稱 (例如 "MANAGER", "ADMIN") 直接存入資料庫，
-     * 而非其順序 (0, 1, 2)。這能完全避免未來因調整 Enum 檔案中常數的順序，
+     * @Enumerated(EnumType.STRING): (不可變更的關鍵實踐) 
+     * 說明: 此設定會將 Enum 的「名稱字串」(例如 "MANAGER", "STAFF") 存入資料庫，
+     * 而非其預設的「順序數字」(0, 1)。這能完全避免未來因調整 Enum 檔案中常數的順序，
      * 而導致舊有資料意義錯亂的重大風險，是企業級開發中的最佳實踐。
      */
     @NotNull(message = "員工角色不可為空")
-    @Enumerated(EnumType.STRING) // 不可變關鍵字: 改為 STRING 策略
+    @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private EmployeeRole role;
 
     /**
      * 帳號狀態
-     * 【已修正】: 儲存策略已從 ORDINAL 改為 STRING。
+     * @Enumerated(EnumType.STRING): (不可變更的關鍵實踐)
      * 說明: 同樣改為 STRING 策略，以名稱 (例如 "ACTIVE", "INACTIVE") 儲存，確保資料的健壯性。
      */
     @NotNull(message = "帳號狀態不可為空")
-    @Enumerated(EnumType.STRING) // 不可變關鍵字: 改為 STRING 策略
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AccountStatus status = AccountStatus.ACTIVE; // 設定預設值為啟用狀態
 
-    /** 員工性別 (原已是 STRING，保持不變) */
+    /** 員工性別 */
     @NotNull(message = "性別不可為空")
-    @Enumerated(EnumType.STRING) // 使用字串儲存(M, F, O)，可讀性高且較安全。
+    @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false, length = 1)
     private Gender gender;
 
@@ -198,8 +197,7 @@ public class EmployeeEntity {
     public void setStatus(AccountStatus status) { this.status = status; }
     public Gender getGender() { return gender; }
     public void setGender(Gender gender) { this.gender = gender; }
-    public byte[] getPhoto() { return photo; }
-    public void setPhoto(byte[] photo) { this.photo = photo; }
+    // 【已移除】: getPhoto() 和 setPhoto() 方法。
     public String getNationalId() { return nationalId; }
     public void setNationalId(String nationalId) { this.nationalId = nationalId; }
     public StoreEntity getStore() { return store; }
@@ -254,9 +252,13 @@ public class EmployeeEntity {
      */
     @Override
     public int hashCode() {
+        // (不可變更的關鍵字): Objects.hash()
+        // 說明: 這是 Java 提供的標準方法，用來安全地產生一個或多個物件的雜湊碼。
+        // 這裡的邏輯是，如果業務唯一鍵 account 存在，就用它來產生獨一無二的 hashCode。
         if (account != null) {
             return Objects.hash(account);
         }
+        // 如果物件還沒有 account (例如，剛 new 出來還沒賦值)，則回傳一個預設的 hashCode。
         return getClass().hashCode();
     }
 }
