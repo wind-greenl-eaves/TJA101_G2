@@ -1,21 +1,26 @@
-package com.eatfast.permission.service; // 可自定義的 package 路徑
+package com.eatfast.permission.service;
 
+import com.eatfast.common.enums.EmployeeRole;
 import com.eatfast.permission.dto.PermissionDto;
 import java.util.List;
+import java.util.Set;
 
 /**
- * [可自定義的介面名稱]: PermissionService
+ * [可自定義的介面名稱]: PermissionService - 【已重構】
  * 權限服務層的公開介面。
- * 它定義了所有與權限相關的業務邏輯方法，供 Controller 層呼叫。
  */
 public interface PermissionService {
 
     /**
      * 查詢系統中所有可用的權限。
-     * 這個方法通常用於前端頁面，例如在為員工分配權限時，需要顯示一個所有權限的列表。
-     *
-     * @return 返回一個包含所有權限 DTO 的列表 (List<PermissionDto>)。
+     * @return 返回一個包含所有權限 DTO 的列表。
      */
     List<PermissionDto> findAllPermissions();
 
+    /**
+     * 【新增方法】: 根據員工角色查詢其擁有的所有權限。
+     * @param role (可自定義的參數名): 要查詢的員工角色。
+     * @return 返回一個包含該角色所有權限 DTO 的 Set 集合。
+     */
+    Set<PermissionDto> findPermissionsByRole(EmployeeRole role);
 }

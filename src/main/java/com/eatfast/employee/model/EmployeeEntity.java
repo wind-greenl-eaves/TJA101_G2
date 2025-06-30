@@ -95,23 +95,27 @@ public class EmployeeEntity {
 
     /**
      * 員工角色
-     * 【修改建議】: 已將儲存策略從 ORDINAL 改為 STRING。
-     * 如此可避免未來因調整 Enum 順序導致舊資料意義錯亂的風險，大幅提升系統穩定性。
+     * 【已修正】: 儲存策略已從 ORDINAL 改為 STRING。
+     * 說明: EnumType.STRING 會將 Enum 的名稱 (例如 "MANAGER", "ADMIN") 直接存入資料庫，
+     * 而非其順序 (0, 1, 2)。這能完全避免未來因調整 Enum 檔案中常數的順序，
+     * 而導致舊有資料意義錯亂的重大風險，是企業級開發中的最佳實踐。
      */
     @NotNull(message = "員工角色不可為空")
-    @Enumerated(EnumType.ORDINAL) // 使用 ORDINAL 儲存 (0 = EMPLOYEE, 1 = MANAGER, 2 = ADMIN)	
+    @Enumerated(EnumType.STRING) // 不可變關鍵字: 改為 STRING 策略
     @Column(name = "role", nullable = false)
     private EmployeeRole role;
 
     /**
      * 帳號狀態
+     * 【已修正】: 儲存策略已從 ORDINAL 改為 STRING。
+     * 說明: 同樣改為 STRING 策略，以名稱 (例如 "ACTIVE", "INACTIVE") 儲存，確保資料的健壯性。
      */
     @NotNull(message = "帳號狀態不可為空")
-    @Enumerated(EnumType.ORDINAL) // 使用 ORDINAL 儲存 (0 = ACTIVE, 1 = INACTIVE)
+    @Enumerated(EnumType.STRING) // 不可變關鍵字: 改為 STRING 策略
     @Column(name = "status", nullable = false)
     private AccountStatus status = AccountStatus.ACTIVE; // 設定預設值為啟用狀態
 
-    /** 員工性別 */
+    /** 員工性別 (原已是 STRING，保持不變) */
     @NotNull(message = "性別不可為空")
     @Enumerated(EnumType.STRING) // 使用字串儲存(M, F, O)，可讀性高且較安全。
     @Column(name = "gender", nullable = false, length = 1)
@@ -161,13 +165,7 @@ public class EmployeeEntity {
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<AnnouncementEntity> publishedAnnouncements = new HashSet<>();
     
-    /**
-     * 【關聯已建立】
-     * 擁有的權限 (一對多，透過中間表 EmployeePermissionEntity 建立關聯)
-     * 1. mappedBy = "employee": 關聯控制權交給 EmployeePermissionEntity 中的 `employee` 屬性。
-     * 2. cascade = CascadeType.ALL: 級聯刪除，與資料庫外鍵設定一致。
-     * 3. orphanRemoval = true: 自動清除孤兒紀錄。
-     */
+    /** 擁有的權限 (一對多，透過中間表 EmployeePermissionEntity 建立關聯) */
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<EmployeePermissionEntity> employeePermissions = new HashSet<>();

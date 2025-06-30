@@ -62,4 +62,6 @@ public interface EmployeeRepository extends JpaRepository<EmployeeEntity, Long>,
      */
     @EntityGraph(attributePaths = { "store" })
     Optional<EmployeeEntity> findWithStoreByAccount(String account);
+    
+    
 }

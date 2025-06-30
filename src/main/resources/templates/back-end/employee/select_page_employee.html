@@ -450,21 +450,25 @@
 
 
 <script th:inline="javascript">
-const API_BASE_URL = '/api/v1/employees';
-
 document.addEventListener('DOMContentLoaded', function() {
+    // 獲取上下文路徑
+    const contextPath = /*[[@{/}]]*/ '/eatfast/';
+    const API_BASE_URL = contextPath + 'api/v1/employees';
+    
+    // 修改圖片路徑
+    const logoImg = document.querySelector('header img');
+    logoImg.src = contextPath + 'images/123.png';
     
     // --- 元素選擇 ---
     const errorMessagesDiv = document.getElementById('error-messages');
     const employeeIdSelect = document.getElementById('employee-id-select');
     const employeeNameSelect = document.getElementById('employee-name-select');
-    // 【全新】複合查詢相關元素
     const toggleBtn = document.getElementById('toggle-composite-query-btn');
     const compositeSection = document.getElementById('composite-query-section');
     const compositeForm = document.getElementById('composite-query-form');
     const resetBtn = document.getElementById('reset-btn');
 
-    // --- 輔助函式 ---
+    // 錯誤訊息顯示函數
     function showError(messages) {
         errorMessagesDiv.innerHTML = Array.isArray(messages) 
             ? messages.map(msg => `<div>${msg}</div>`).join('') 
@@ -476,11 +480,11 @@ document.addEventListener('DOMContentLoaded', function() {
         errorMessagesDiv.innerHTML = '';
         errorMessagesDiv.classList.add('hidden');
     }
-    
+
     // --- 動態填充下拉選單 (單一查詢) ---
     async function populateEmployeeSelects() {
         try {
-            const response = await fetch('/api/v1/employees');
+            const response = await fetch(API_BASE_URL);
             if (!response.ok) throw new Error(`無法載入員工列表 (狀態碼: ${response.status})`);
             
             const employees = await response.json();
