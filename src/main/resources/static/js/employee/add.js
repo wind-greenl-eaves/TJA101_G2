@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
         clearAllErrors();
         messageContainer.classList.add('hidden');
 
+        // 【修正】確保使用 FormData 正確提交，支援檔案上傳
         const formData = new FormData(form);
         
         // 檢查送出的資料
@@ -62,9 +63,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         try {
+            // 【確認】使用 FormData 時不要設置 Content-Type header
             const response = await fetch(form.getAttribute('action'), {
                 method: 'POST',
-                body: formData
+                body: formData // 不設置 Content-Type，讓瀏覽器自動設置 multipart/form-data
             });
 
             let responseData;
@@ -146,6 +148,42 @@ document.addEventListener('DOMContentLoaded', function () {
     // 新增即時驗證功能
     const formInputs = form.querySelectorAll('input, select');
     
+    /**
+     * 【修正】即時驗證函式 - 統一使用主控制器的驗證端點
+     * 修正 API 路徑，使用 POST /api/v1/employees/validate-field
+     */
+    async function validateFieldRealtime(name, value) {
+        if (!value || value.trim() === '') return;
+        
+        try {
+            // 【修正】使用正確的 API 路徑和格式
+            const response = await fetch('/api/v1/employees/validate-field', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    field: name,
+                    value: value.trim()
+                })
+            });
+
+            const data = await response.json();
+            const errorDiv = document.getElementById(`error-${name}`);
+            
+            if (response.ok && data.isAvailable) {
+                errorDiv.textContent = '';
+                return true;
+            } else {
+                errorDiv.textContent = data.message || `此${name}已被使用`;
+                return false;
+            }
+        } catch (error) {
+            console.error('驗證請求失敗:', error);
+            return true; // 驗證失敗時不阻止提交
+        }
+    }
+
     // 單一欄位驗證函數
     async function validateField(field) {
         const name = field.name;
@@ -182,13 +220,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // 【統一驗證邏輯】- 移除舊的驗證函數，統一使用新的驗證邏輯
     // 為每個輸入欄位添加即時驗證
     formInputs.forEach(input => {
-        input.addEventListener('blur', () => validateField(input));
+        // 使用統一的驗證函數
+        input.addEventListener('blur', () => {
+            if (input.name !== 'photo') {
+                validateFieldRealtime(input.name, input.value);
+            }
+        });
         
         // 針對select元素，在change時也進行驗證
         if (input.tagName.toLowerCase() === 'select') {
-            input.addEventListener('change', () => validateField(input));
+            input.addEventListener('change', () => {
+                validateFieldRealtime(input.name, input.value);
+            });
         }
         
         // 為文字輸入框添加輸入延遲驗證
@@ -196,7 +242,9 @@ document.addEventListener('DOMContentLoaded', function () {
             let debounceTimer;
             input.addEventListener('input', () => {
                 clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => validateField(input), 500);
+                debounceTimer = setTimeout(() => {
+                    validateFieldRealtime(input.name, input.value);
+                }, 500);
             });
         }
     });
