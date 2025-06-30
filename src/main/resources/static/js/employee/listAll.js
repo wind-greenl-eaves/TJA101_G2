@@ -144,14 +144,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             return button;
         };
-        
+
+        // 加入第一頁按鈕
+        paginationContainer.appendChild(createPageButton('<i class="fas fa-angle-double-left"></i>', 1, false, currentPage === 1));
+        // 上一頁按鈕
         paginationContainer.appendChild(createPageButton('<i class="fas fa-angle-left"></i>', currentPage - 1, false, currentPage === 1));
 
-        for (let i = 1; i <= totalPages; i++) {
-             paginationContainer.appendChild(createPageButton(i.toString(), i, i === currentPage));
+        // 計算要顯示的頁碼範圍
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        startPage = Math.max(1, endPage - 4);
+
+        // 顯示頁碼
+        for (let i = startPage; i <= endPage; i++) {
+            paginationContainer.appendChild(createPageButton(i.toString(), i, i === currentPage));
         }
 
+        // 下一頁按鈕
         paginationContainer.appendChild(createPageButton('<i class="fas fa-angle-right"></i>', currentPage + 1, false, currentPage === totalPages));
+        // 加入最末頁按鈕
+        paginationContainer.appendChild(createPageButton('<i class="fas fa-angle-double-right"></i>', totalPages, false, currentPage === totalPages));
     }
 
     /** 根據左側表單條件過濾員工 */
@@ -330,6 +342,15 @@ document.addEventListener('DOMContentLoaded', function() {
         renderTable();
         renderPagination();
     });
+
+    // 添加 logo 點擊事件
+    const headerLogo = document.querySelector('header img');
+    if (headerLogo) {
+        headerLogo.style.cursor = 'pointer';  // 添加手型游標
+        headerLogo.addEventListener('click', () => {
+            window.location.href = '/employee/select_page';
+        });
+    }
 
     // 頁面初始化
     initializePage();

@@ -1,4 +1,3 @@
-
 /* =======================================================================================
  * 檔案: list-styles.css (新增)
  * 路徑: resources/static/css/employee/list-styles.css
@@ -21,23 +20,17 @@ body {
     color: var(--text-color);
 }
 
-.main-grid-container {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 1.25rem; /* 20px */
-}
-
 /* 角色徽章樣式 */
 .role-badge {
     display: inline-flex;
     align-items: center;
     padding: 0.25rem 0.75rem;
     border-radius: 1rem;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     font-weight: 500;
     background-color: var(--container-bg);
     color: var(--primary-color);
-    transition: all 0.2s; /* 添加過渡效果 */
+    transition: all 0.2s;
 }
 
 /* 【新增】讓角色徽章在滑鼠懸停時有手形游標，提示可點擊 */
@@ -47,7 +40,6 @@ body {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
-
 
 .role-badge i {
     margin-right: 0.375rem;
@@ -69,7 +61,7 @@ body {
     border-radius: 0.5rem;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     width: 90%;
-    max-width: 600px;
+    max-width: 800px;
     max-height: 90vh;
     overflow-y: auto;
 }
@@ -95,14 +87,13 @@ body {
     text-align: center;
 }
 
-
 /* 狀態徽章樣式 */
 .status-badge {
     display: inline-flex;
     align-items: center;
     padding: 0.25rem 0.75rem;
     border-radius: 1rem;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     font-weight: 500;
 }
 
@@ -116,17 +107,14 @@ body {
     color: #F44336;
 }
 
-/* Modal 內容區塊的新樣式 */
+/* Modal 內容區塊的樣式 */
 .info-container {
     display: grid;
-    grid-template-columns: 1fr 200px;
-    gap: 1.5rem;
-    align-items: start;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
 }
 
 .photo-container {
-    position: sticky;
-    top: 1rem;
     text-align: center;
 }
 
@@ -134,32 +122,6 @@ body {
     width: 200px;
     height: 200px;
     object-fit: cover;
-    border-radius: 1rem;
-    border: 4px solid var(--container-bg);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-/* 響應式設計 */
-@media (max-width: 1024px) {
-    .main-grid-container {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 640px) {
-    .info-container {
-        grid-template-columns: 1fr;
-    }
-
-    .photo-container {
-        order: -1;
-        position: static;
-        margin-bottom: 1.5rem;
-    }
-
-    .employee-photo {
-        width: 160px;
-        height: 160px;
-        margin: 0 auto;
-    }
+    border-radius: 0.5rem;
+    border: 2px solid var(--border-color);
 }
