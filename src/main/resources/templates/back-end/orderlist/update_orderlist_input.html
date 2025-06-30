@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>修改訂單資料</title>
+
+<link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}"/>
+<link rel="stylesheet" type="text/css" th:href="@{/css/orderlist/order-list-styles.css}">
+<link rel="stylesheet" type="text/css" th:href="@{/css/error.css}"/>
+
+<style> /* 樣式參考自您的 update_emp_input.html */
+    body { padding-top: 80px; }
+    form { display: table; margin: auto; }
+    form div { display: table-row; }
+    label, input, span, select { display: table-cell; margin: 5px; text-align: left; vertical-align: middle; }
+    input, select { width: 250px; }
+</style>
+</head>
+<body>
+<nav class="navbar navbar-expand-md navbar-dark main-navbar fixed-top justify-content-center">
+    <div align="center">
+        <h2>修改訂單資料<a class="navbar-brand" th:href="@{/orderlist/select_page_OrderList}"><img th:src="@{/images/back1.gif}">回查詢頁</a></h2>
+        
+    </div>
+</nav>
+<div align="center">
+    <h3><b>所有欄位皆為必填</b></h3>
+    <form th:action="@{/orderlist/update}" method="post" th:object="${orderListVO}">
+        <div>
+            <label>訂單編號:</label>
+            <input type="text" th:field="*{orderListId}" style="border:0px; font-weight: bold;" readonly/>
+        </div>
+        <div>
+            <label>會員ID:</label>
+            <input type="number" th:field="*{member.memberId}"/>
+        </div>
+        <div>
+            <label>門市ID:</label>
+            <input type="number" th:field="*{store.storeId}"/>
+        </div>
+        <div>
+            <label>總金額:</label>
+            <input type="number" th:field="*{orderAmount}"/>
+        </div>
+         <div>
+            <label>訂單狀態:</label>
+            <select th:field="*{orderStatus}">
+                <option th:each="status : ${orderStatusOptions}" th:value="${status}" th:text="${status.name()}"></option>
+            </select>
+        </div>
+        <div>
+            <label>取餐號:</label>
+            <input type="number" th:field="*{mealPickupNumber}"/>
+        </div>
+        <div>
+            <label>信用卡號:</label>
+            <input type="text" th:field="*{cardNumber}"/>
+        </div>
+        <div>
+            <div></div>
+            <div><button type="submit" class="btn btn-primary">送出修改</button></div>
+        </div>
+    </form>
+</div>
+</body>
+</html>
