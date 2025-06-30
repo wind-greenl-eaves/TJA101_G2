@@ -1,6 +1,6 @@
 // =======================================================================================
-// 檔案: EmployeeServiceImpl.java (已修正)
-// 說明: 新增了 isFieldAvailable 方法的具體實作，以處理即時驗證邏輯。
+// 檔案: EmployeeServiceImpl.java (已修正 - 移除密碼加密)
+// 說明: 移除密碼加密功能，改為使用明文密碼存儲和處理
 // =======================================================================================
 package com.eatfast.employee.service;
 
@@ -25,7 +25,6 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -47,13 +46,11 @@ import java.util.stream.Collectors;
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
     
-    // (原有屬性與建構子維持不變)
     private static final Logger log = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
     private final EmployeeRepository employeeRepository;
     private final StoreRepository storeRepository;
     private final EmployeeMapper employeeMapper;
-    private final PasswordEncoder passwordEncoder;
     private final PermissionRepository permissionRepository;
     private final EmployeePermissionRepository employeePermissionRepository;
     private final PermissionService permissionService;
@@ -66,20 +63,18 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     public EmployeeServiceImpl(EmployeeRepository employeeRepository, StoreRepository storeRepository,
-                               EmployeeMapper employeeMapper, PasswordEncoder passwordEncoder,
+                               EmployeeMapper employeeMapper,
                                PermissionRepository permissionRepository,
                                EmployeePermissionRepository employeePermissionRepository,
                                PermissionService permissionService) {
         this.employeeRepository = employeeRepository;
         this.storeRepository = storeRepository;
         this.employeeMapper = employeeMapper;
-        this.passwordEncoder = passwordEncoder;
         this.permissionRepository = permissionRepository;
         this.employeePermissionRepository = employeePermissionRepository;
         this.permissionService = permissionService;
     }
 
-    // (原有 find, search, create, update, delete 等方法維持不變)
     @Override
     @Transactional(readOnly = true)
     public EmployeeDTO findEmployeeById(Long id) {
@@ -120,7 +115,8 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + request.getStoreId() + " 的門市"));
         
         EmployeeEntity newEmployee = employeeMapper.toEntity(request);
-        newEmployee.setPassword(passwordEncoder.encode(request.getPassword()));
+        // 【修改】直接使用明文密碼，不進行加密
+        newEmployee.setPassword(request.getPassword());
         newEmployee.setStore(store);
         
         // 處理照片上傳
@@ -307,11 +303,13 @@ public class EmployeeServiceImpl implements EmployeeService {
             employeeToUpdate.setStatus(request.getStatus());
         }
 
+        // 【修改】密碼更新邏輯 - 使用明文密碼
         if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
             if (!request.getPassword().matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")) {
                 throw new IllegalArgumentException("密碼需至少8個字元，且包含至少一個字母和一個數字");
             }
-            employeeToUpdate.setPassword(passwordEncoder.encode(request.getPassword()));
+            // 【修改】直接設置明文密碼，不進行加密
+            employeeToUpdate.setPassword(request.getPassword());
         }
 
         if (StringUtils.hasText(request.getEmail())) {
