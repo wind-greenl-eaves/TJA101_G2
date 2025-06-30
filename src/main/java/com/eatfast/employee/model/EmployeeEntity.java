@@ -66,7 +66,6 @@ public class EmployeeEntity {
     private String password;
 
     /** 員工聯絡電子郵件 (業務唯一鍵) */
-    @NaturalId
     @NotBlank(message = "電子郵件不可為空")
     @Email(message = "請輸入有效的電子郵件格式")
     @Column(name = "email", nullable = false, length = 100, unique = true)
