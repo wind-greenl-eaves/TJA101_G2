@@ -41,9 +41,9 @@ public class EmployeeMapper {
         dto.setCreateTime(entity.getCreateTime());
         dto.setPhotoUrl(entity.getPhotoUrl());
         
-        // 設置密碼資訊（以明文方式）
-        dto.setPassword(entity.getPassword());
-        dto.setRawPassword(entity.getPassword());  // 使用相同的密碼值
+        // 【安全修正】不應該將加密密碼暴露到 DTO 中
+        // dto.setPassword(entity.getPassword());
+        // dto.setRawPassword(entity.getPassword());
 
         // 安全地處理關聯物件：確認 StoreEntity 不為 null 才進行取值，避免 NullPointerException。
         if (entity.getStore() != null) {

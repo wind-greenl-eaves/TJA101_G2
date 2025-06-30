@@ -1,5 +1,7 @@
 package com.eatfast.employee.dto;
 
+import com.eatfast.common.enums.EmployeeRole;
+import com.eatfast.common.enums.Gender;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -35,11 +37,11 @@ public class EmployeeCreateDTO {
             message = "密碼必須包含至少一個字母和一個數字")
     private String password;
 
-    @NotBlank(message = "員工角色不可為空")
-    private String role;
+    @NotNull(message = "員工角色不可為空")
+    private EmployeeRole role;
 
-    @NotBlank(message = "性別不可為空")
-    private String gender;
+    @NotNull(message = "性別不可為空")
+    private Gender gender;
 
     @NotNull(message = "門市編號不可為空")
     private Long storeId;
@@ -93,19 +95,19 @@ public class EmployeeCreateDTO {
         this.password = password;
     }
 
-    public String getRole() {
+    public EmployeeRole getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(EmployeeRole role) {
         this.role = role;
     }
 
-    public String getGender() {
+    public Gender getGender() {
         return gender;
     }
 
-    public void setGender(String gender) {
+    public void setGender(Gender gender) {
         this.gender = gender;
     }
 

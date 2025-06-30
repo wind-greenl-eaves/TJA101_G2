@@ -97,24 +97,27 @@ public class EmployeeController {
 
 
     /**
-     * 【新增 API 端點】: 即時欄位驗證
-     * 這個端點專門用來回應前端 add.js 發起的即時驗證請求。
-     * * - @PostMapping("/validate-field"): (不可變動) 建立一個 POST 請求的 API，路徑為 /api/v1/employees/validate-field。
-     * - @RequestBody: (不可變動) 告訴 Spring Boot 要從請求的 body 中讀取 JSON 資料，並轉換為 ValidateFieldRequest 物件。
-     *
-     * @param request (可自定義的參數名): 一個包含 "field" 和 "value" 的請求物件。
-     * @return 返回一個 JSON 物件，格式為 { "isAvailable": boolean, "message": "..." }。
+     * 【整合驗證端點】: 將驗證功能整合到主控制器
+     * 這個端點同時支援即時驗證和完整欄位驗證
      */
     @PostMapping("/validate-field")
     public ResponseEntity<Map<String, Object>> validateField(@RequestBody ValidateFieldRequest request) {
-        // 1. 呼叫 Service 層進行業務邏輯判斷
+        // 1. 基本參數驗證
+        if (!StringUtils.hasText(request.getField()) || !StringUtils.hasText(request.getValue())) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("isAvailable", false);
+            response.put("message", "欄位名稱和值不可為空");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // 2. 呼叫 Service 層進行業務邏輯判斷
         boolean isAvailable = employeeService.isFieldAvailable(request.getField(), request.getValue());
         
-        // 2. 準備要回傳給前端的 JSON 資料
+        // 3. 準備要回傳給前端的 JSON 資料
         Map<String, Object> response = new HashMap<>();
         response.put("isAvailable", isAvailable);
         
-        // 3. 如果欄位不可用 (已被註冊)，則附上錯誤訊息
+        // 4. 如果欄位不可用，附上詳細錯誤訊息
         if (!isAvailable) {
             String fieldName = switch (request.getField()) {
                 case "account" -> "登入帳號";
@@ -122,10 +125,48 @@ public class EmployeeController {
                 case "nationalId" -> "身分證字號";
                 default -> "該欄位";
             };
-            response.put("message", fieldName + "「" + request.getValue() + "」已被使用。");
+            response.put("message", fieldName + "「" + request.getValue() + "」已被使用或格式不正確。");
         }
         
-        // 4. 將結果用 ResponseEntity 包裝後回傳
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 【新增批量驗證端點】: 支援一次驗證多個欄位
+     */
+    @PostMapping("/validate-multiple")
+    public ResponseEntity<Map<String, Object>> validateMultipleFields(
+            @RequestBody Map<String, String> fieldValues) {
+        
+        Map<String, Object> response = new HashMap<>();
+        Map<String, Boolean> fieldResults = new HashMap<>();
+        Map<String, String> errorMessages = new HashMap<>();
+        
+        boolean allValid = true;
+        
+        for (Map.Entry<String, String> entry : fieldValues.entrySet()) {
+            String field = entry.getKey();
+            String value = entry.getValue();
+            
+            boolean isAvailable = employeeService.isFieldAvailable(field, value);
+            fieldResults.put(field, isAvailable);
+            
+            if (!isAvailable) {
+                allValid = false;
+                String fieldName = switch (field) {
+                    case "account" -> "登入帳號";
+                    case "email" -> "電子郵件";
+                    case "nationalId" -> "身分證字號";
+                    default -> field;
+                };
+                errorMessages.put(field, fieldName + "「" + value + "」已被使用或格式不正確");
+            }
+        }
+        
+        response.put("allValid", allValid);
+        response.put("fieldResults", fieldResults);
+        response.put("errorMessages", errorMessages);
+        
         return ResponseEntity.ok(response);
     }
 

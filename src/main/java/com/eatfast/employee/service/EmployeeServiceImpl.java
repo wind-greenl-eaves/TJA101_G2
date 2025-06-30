@@ -203,26 +203,67 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     /**
-     * 【新增方法實作】
+     * 【新增方法實作】- 改進版本
      * 檢查指定欄位的值是否可用 (尚未被註冊)。
+     * 加入更嚴格的輸入驗證和日誌記錄
      */
     @Override
     @Transactional(readOnly = true)
     public boolean isFieldAvailable(String field, String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return true;
+        // 輸入參數驗證
+        if (!StringUtils.hasText(field) || !StringUtils.hasText(value)) {
+            log.warn("欄位驗證請求包含空值 - field: {}, value: {}", field, value);
+            return false;
         }
+        
+        // 值的基本格式預檢
+        String trimmedValue = value.trim();
+        if (trimmedValue.isEmpty()) {
+            return false;
+        }
+        
         // 排除不需要驗證的欄位
-        if (field.equals("photo")) {
+        if ("photo".equals(field)) {
             return true;
         }
-        // 使用 switch 陳述式來動態呼叫對應的 repository 方法
-        return switch (field) {
-            case "account"    -> !employeeRepository.existsByAccount(value);
-            case "email"      -> !employeeRepository.existsByEmail(value);
-            case "nationalId" -> !employeeRepository.existsByNationalId(value);
-            default          -> true;
-        };
+        
+        try {
+            // 使用 switch 陳述式來動態呼叫對應的 repository 方法
+            boolean isAvailable = switch (field) {
+                case "account" -> {
+                    // 帳號格式預檢
+                    if (!trimmedValue.matches("^[a-zA-Z0-9_.-]+$")) {
+                        yield false;
+                    }
+                    yield !employeeRepository.existsByAccount(trimmedValue);
+                }
+                case "email" -> {
+                    // Email 格式預檢
+                    if (!trimmedValue.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
+                        yield false;
+                    }
+                    yield !employeeRepository.existsByEmail(trimmedValue.toLowerCase());
+                }
+                case "nationalId" -> {
+                    // 身分證格式預檢
+                    if (!trimmedValue.matches("^[A-Z][1-2]\\d{8}$")) {
+                        yield false;
+                    }
+                    yield !employeeRepository.existsByNationalId(trimmedValue.toUpperCase());
+                }
+                default -> {
+                    log.warn("不支援的欄位驗證類型: {}", field);
+                    yield true;
+                }
+            };
+            
+            log.debug("欄位可用性檢查 - field: {}, value: {}, available: {}", field, trimmedValue, isAvailable);
+            return isAvailable;
+            
+        } catch (Exception e) {
+            log.error("欄位驗證過程中發生錯誤 - field: {}, value: {}", field, trimmedValue, e);
+            return false;
+        }
     }
     
     // --- 私有輔助方法 ---
