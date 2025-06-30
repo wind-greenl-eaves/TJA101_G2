@@ -51,6 +51,12 @@ public class EmployeeDTO {
     /** 員工照片 URL */
     private String photoUrl;
 
+    /** 員工密碼 */
+    private String password;
+
+    /** 員工明文密碼 (不儲存於資料庫) */
+    private String rawPassword;
+
     // ================================================================
     //             標準 Getters and Setters
     // ================================================================
@@ -157,5 +163,21 @@ public class EmployeeDTO {
 
     public void setPhotoUrl(String photoUrl) {
         this.photoUrl = photoUrl;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getRawPassword() {
+        return rawPassword;
+    }
+
+    public void setRawPassword(String rawPassword) {
+        this.rawPassword = rawPassword;
     }
 }

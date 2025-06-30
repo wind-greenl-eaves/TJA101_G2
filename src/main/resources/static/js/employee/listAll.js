@@ -88,16 +88,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const statusClass = emp.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
             const statusText = emp.status === 'ACTIVE' ? '啟用' : '停用';
             const editUrl = `/employee/edit/${emp.employeeId}`;
-            // 注意: 此處假設 DTO 中有名為 photoUrl 的欄位，若無則需調整
             const employeePhotoUrl = emp.photoUrl ? emp.photoUrl : '/images/no_image.png';
+
+            // 創建一個安全的 JSON 字符串
+            const empDataStr = JSON.stringify(emp).replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
             row.innerHTML = `
                 <td class="p-3 align-middle">${emp.employeeId}</td>
                 <td class="p-3 align-middle">${emp.storeName || emp.storeId}</td>
                 <td class="p-3 align-middle">
                     <div class="relative w-12 h-12 mx-auto">
-                        <img src="${employeePhotoUrl}" alt="${emp.username}" class="w-full h-full rounded-full object-cover border-2 border-[var(--border-color)] cursor-pointer hover:border-[var(--primary-color)] transition-colors"
-                             onclick='showEmployeeDetail(${JSON.stringify(emp).replace(/'/g, "&apos;")})'
+                        <img src="${employeePhotoUrl}" 
+                             alt="${emp.username}" 
+                             class="w-full h-full rounded-full object-cover border-2 border-[var(--border-color)] cursor-pointer hover:border-[var(--primary-color)] transition-colors"
+                             data-employee='${empDataStr}'
                              onerror="this.onerror=null; this.src='/images/no_image.png';">
                     </div>
                 </td>
@@ -113,6 +117,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td class="p-3 align-middle"><a href="${editUrl}" class="font-semibold text-[var(--primary-color)] hover:text-[var(--primary-hover)]">修改</a></td>
                 <td class="p-3 align-middle"><button class="delete-btn font-semibold text-red-500 hover:text-red-700" data-id="${emp.employeeId}" data-name="${emp.username}">刪除</button></td>
             `;
+            
+            // 為照片添加點擊事件監聽器
+            const img = row.querySelector('img');
+            img.addEventListener('click', function() {
+                const employeeData = JSON.parse(this.dataset.employee.replace(/&quot;/g, '"'));
+                showEmployeeDetail(employeeData);
+            });
+
             tableBody.appendChild(row);
         });
     }
@@ -282,6 +294,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('modal-email').innerHTML = `<i class="fas fa-envelope mr-2"></i>${employee.email}`;
         document.getElementById('modal-phone').innerHTML = `<i class="fas fa-phone mr-2"></i>${employee.phone}`;
         document.getElementById('modal-account').innerHTML = `<i class="fas fa-user-circle mr-2"></i>${employee.account}`;
+        
+        // 修改密碼顯示方式
+        const passwordDisplay = `<i class="fas fa-key mr-2"></i><span class="text-red-600">${employee.rawPassword || employee.password}</span>`;
+        document.getElementById('modal-password').innerHTML = passwordDisplay;
         
         const roleData = roleInfo[employee.role] || { icon: 'fas fa-user', text: employee.role };
         document.getElementById('modal-role').innerHTML = `<span class="role-badge"><i class="${roleData.icon} mr-1"></i>${roleData.text}</span>`;
