@@ -48,26 +48,30 @@ body {
 /* 員工詳細資訊 Modal 樣式 */
 .modal-backdrop {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
     display: none;
-    place-items: center;
+    align-items: center;
+    justify-content: center;
     z-index: 50;
     padding: 1rem;
 }
 
 .modal-content {
-    background-color: white;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: white;
     border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    position: relative;
     width: 90%;
     max-width: 800px;
-    max-height: 90vh;
-    overflow-y: auto;
 }
 
 .modal-backdrop.show {
-    display: grid;
+    display: flex;
 }
 
 /* 【新增】權限列表項目樣式 */
@@ -87,6 +91,19 @@ body {
     text-align: center;
 }
 
+/* 員工詳細資訊內容容器 */
+.info-container {
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    gap: 2rem;
+    align-items: start;
+}
+
+.photo-container {
+    position: sticky;
+    top: 1rem;
+}
+
 /* 狀態徽章樣式 */
 .status-badge {
     display: inline-flex;
@@ -97,31 +114,12 @@ body {
     font-weight: 500;
 }
 
-.status-active {
-    background-color: rgba(76, 175, 80, 0.1);
-    color: #4CAF50;
+.status-badge.status-active {
+    background-color: #dcfce7;
+    color: #166534;
 }
 
-.status-inactive {
-    background-color: rgba(244, 67, 54, 0.1);
-    color: #F44336;
-}
-
-/* Modal 內容區塊的樣式 */
-.info-container {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-}
-
-.photo-container {
-    text-align: center;
-}
-
-.employee-photo {
-    width: 200px;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 0.5rem;
-    border: 2px solid var(--border-color);
+.status-badge.status-inactive {
+    background-color: #fee2e2;
+    color: #991b1b;
 }
