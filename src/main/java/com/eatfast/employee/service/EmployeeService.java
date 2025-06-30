@@ -49,4 +49,13 @@ public interface EmployeeService {
 	 * @return 所有啟用狀態的員工列表
 	 */
 	List<EmployeeDTO> findAllActiveEmployees();
+
+	/**
+	 * 【新增忘記密碼方法】: 處理忘記密碼請求
+	 * 根據帳號或郵件查找員工，並生成新的臨時密碼
+	 *
+	 * @param accountOrEmail 員工帳號或電子郵件
+	 * @return 處理結果訊息
+	 */
+	String processForgotPassword(String accountOrEmail);
 }

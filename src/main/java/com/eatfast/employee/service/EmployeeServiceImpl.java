@@ -40,6 +40,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -304,6 +305,59 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .map(employeeMapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * 【新增方法實作】- 處理忘記密碼請求
+     * 根據帳號或郵件查找員工，並生成新的臨時密碼
+     */
+    @Override
+    @Transactional
+    public String processForgotPassword(String accountOrEmail) {
+        // 輸入參數驗證
+        if (!StringUtils.hasText(accountOrEmail)) {
+            throw new IllegalArgumentException("帳號或電子郵件不可為空");
+        }
+        
+        String input = accountOrEmail.trim();
+        EmployeeEntity employee = null;
+        
+        // 嘗試按帳號查找
+        Optional<EmployeeEntity> employeeByAccount = employeeRepository.findByAccount(input);
+        if (employeeByAccount.isPresent()) {
+            employee = employeeByAccount.get();
+        } else {
+            // 如果按帳號找不到，嘗試按郵件查找
+            Optional<EmployeeEntity> employeeByEmail = employeeRepository.findByEmail(input.toLowerCase());
+            if (employeeByEmail.isPresent()) {
+                employee = employeeByEmail.get();
+            }
+        }
+        
+        // 如果找不到員工
+        if (employee == null) {
+            log.warn("忘記密碼請求 - 查無此帳號或郵件: {}", input);
+            return "查無此帳號或電子郵件，請確認輸入正確或聯絡系統管理員。";
+        }
+        
+        // 檢查帳號狀態
+        if (employee.getStatus() != com.eatfast.common.enums.AccountStatus.ACTIVE) {
+            log.warn("忘記密碼請求 - 帳號已停用: {}", employee.getAccount());
+            return "此帳號已被停用，請聯絡管理員。";
+        }
+        
+        // 生成新的臨時密碼（8位數英數混合）
+        String temporaryPassword = generateTemporaryPassword();
+        
+        // 更新員工密碼
+        employee.setPassword(temporaryPassword);
+        employeeRepository.save(employee);
+        
+        log.info("忘記密碼處理成功 - 帳號: {}, 姓名: {}, 新密碼: {}", 
+            employee.getAccount(), employee.getUsername(), temporaryPassword);
+        
+        // 返回成功訊息（包含新密碼，因為是明文系統）
+        return String.format("密碼重設成功！您的新臨時密碼是：%s\n請妥善保存並儘快登入後修改密碼。", temporaryPassword);
+    }
     
     // --- 私有輔助方法 ---
 
@@ -426,5 +480,37 @@ public class EmployeeServiceImpl implements EmployeeService {
                 "' 不適用於角色 '" + employee.getRole().name() + "'。"
             );
         }
+    }
+
+    /**
+     * 生成臨時密碼
+     * 格式：8位數英數混合（至少包含一個字母和一個數字）
+     */
+    private String generateTemporaryPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder password = new StringBuilder();
+        
+        // 確保至少有一個大寫字母
+        password.append("ABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt((int) (Math.random() * 26)));
+        // 確保至少有一個小寫字母
+        password.append("abcdefghijklmnopqrstuvwxyz".charAt((int) (Math.random() * 26)));
+        // 確保至少有一個數字
+        password.append("0123456789".charAt((int) (Math.random() * 10)));
+        
+        // 填滿剩餘的5位
+        for (int i = 3; i < 8; i++) {
+            password.append(chars.charAt((int) (Math.random() * chars.length())));
+        }
+        
+        // 隨機打亂字符順序
+        char[] passwordArray = password.toString().toCharArray();
+        for (int i = passwordArray.length - 1; i > 0; i--) {
+            int j = (int) (Math.random() * (i + 1));
+            char temp = passwordArray[i];
+            passwordArray[i] = passwordArray[j];
+            passwordArray[j] = temp;
+        }
+        
+        return new String(passwordArray);
     }
 }

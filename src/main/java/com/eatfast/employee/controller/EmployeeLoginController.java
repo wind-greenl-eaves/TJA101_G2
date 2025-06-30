@@ -157,4 +157,61 @@ public class EmployeeLoginController {
         redirectAttributes.addFlashAttribute("successMessage", "您已成功登出");
         return "redirect:/employee/login";
     }
+
+    /**
+     * 顯示忘記密碼頁面
+     * 路徑: GET /employee/forgot-password
+     */
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordPage(Model model) {
+        // 準備忘記密碼表單物件
+        model.addAttribute("forgotPasswordRequest", new com.eatfast.employee.dto.ForgotPasswordRequest());
+        return "back-end/employee/forgot-password";
+    }
+
+    /**
+     * 處理忘記密碼表單提交
+     * 路徑: POST /employee/forgot-password
+     */
+    @PostMapping("/forgot-password")
+    public String processForgotPassword(@Valid @ModelAttribute("forgotPasswordRequest") com.eatfast.employee.dto.ForgotPasswordRequest forgotPasswordRequest,
+                                      BindingResult bindingResult,
+                                      Model model) {
+        
+        // 如果表單驗證失敗，重新顯示忘記密碼頁面
+        if (bindingResult.hasErrors()) {
+            return "back-end/employee/forgot-password";
+        }
+
+        try {
+            // 處理忘記密碼請求
+            String resultMessage = employeeService.processForgotPassword(forgotPasswordRequest.getAccountOrEmail());
+            
+            // 判斷是否成功（根據訊息內容判斷）
+            boolean isSuccess = resultMessage.contains("密碼重設成功");
+            
+            model.addAttribute("message", resultMessage);
+            model.addAttribute("success", isSuccess);
+            
+            log.info("忘記密碼請求處理完成 - 輸入: {}, 結果: {}", 
+                forgotPasswordRequest.getAccountOrEmail(), 
+                isSuccess ? "成功" : "失敗");
+
+        } catch (IllegalArgumentException e) {
+            // 處理輸入參數錯誤
+            model.addAttribute("message", e.getMessage());
+            model.addAttribute("success", false);
+            log.warn("忘記密碼請求參數錯誤 - 輸入: {}, 錯誤: {}", 
+                forgotPasswordRequest.getAccountOrEmail(), e.getMessage());
+            
+        } catch (Exception e) {
+            // 處理其他未預期的錯誤
+            model.addAttribute("message", "系統處理忘記密碼請求時發生錯誤，請稍後再試或聯絡管理員");
+            model.addAttribute("success", false);
+            log.error("忘記密碼請求處理發生未預期錯誤 - 輸入: {}", 
+                forgotPasswordRequest.getAccountOrEmail(), e);
+        }
+
+        return "back-end/employee/forgot-password";
+    }
 }
