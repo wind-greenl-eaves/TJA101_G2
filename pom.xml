@@ -54,7 +54,16 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- Spring Data JPA 啟動器，簡化資料庫操作，預設使用 Hibernate 作為 ORM 框架 -->
+        <!-- Spring Boot 郵件發送啟動器，用於寄送電子郵件 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <!-- 
+          Spring Data JPA 啟動器，提供 JPA 持久化功能。
+          包含 Hibernate、Spring Data JPA 和 JDBC。
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -77,12 +86,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-
-        <!-- Spring Boot JavaMail 啟動器，用於寄送電子郵件 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
         <!-- Thymeleaf 模板引擎啟動器，用於伺服器端渲染 HTML 視圖 -->

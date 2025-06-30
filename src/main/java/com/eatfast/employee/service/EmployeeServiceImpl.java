@@ -7,6 +7,7 @@ package com.eatfast.employee.service;
 import com.eatfast.common.exception.DuplicateResourceException;
 import com.eatfast.common.exception.ResourceNotFoundException;
 import com.eatfast.common.service.FileService;
+import com.eatfast.common.service.MailService;
 import com.eatfast.employee.dto.CreateEmployeeRequest;
 import com.eatfast.employee.dto.EmployeeDTO;
 import com.eatfast.employee.dto.UpdateEmployeeRequest;
@@ -61,6 +62,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private FileService fileService;
+
+    @Autowired
+    private MailService mailService;
 
     @Autowired
     public EmployeeServiceImpl(EmployeeRepository employeeRepository, StoreRepository storeRepository,
@@ -307,8 +311,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     /**
-     * 【新增方法實作】- 處理忘記密碼請求
-     * 根據帳號或郵件查找員工，並生成新的臨時密碼
+     * 【修改方法實作】- 處理忘記密碼請求並發送郵件
+     * 根據帳號或郵件查找員工，生成臨時密碼，並發送郵件通知
      */
     @Override
     @Transactional
@@ -352,11 +356,38 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPassword(temporaryPassword);
         employeeRepository.save(employee);
         
-        log.info("忘記密碼處理成功 - 帳號: {}, 姓名: {}, 新密碼: {}", 
-            employee.getAccount(), employee.getUsername(), temporaryPassword);
-        
-        // 返回成功訊息（包含新密碼，因為是明文系統）
-        return String.format("密碼重設成功！您的新臨時密碼是：%s\n請妥善保存並儘快登入後修改密碼。", temporaryPassword);
+        // 【新增】發送郵件通知
+        try {
+            boolean emailSent = mailService.sendForgotPasswordEmail(
+                employee.getEmail(),
+                employee.getUsername(),
+                employee.getAccount(),
+                temporaryPassword
+            );
+            
+            if (emailSent) {
+                log.info("忘記密碼處理成功且郵件發送成功 - 帳號: {}, 姓名: {}, 郵件: {}", 
+                    employee.getAccount(), employee.getUsername(), employee.getEmail());
+                
+                return String.format("密碼重設成功！新的臨時密碼已發送至您的電子郵件 %s\n" +
+                    "請檢查您的郵箱（包含垃圾郵件資料夾）並使用新密碼登入。\n" +
+                    "如果您沒有收到郵件，您的臨時密碼是：%s", 
+                    maskEmail(employee.getEmail()), temporaryPassword);
+            } else {
+                log.warn("忘記密碼處理成功但郵件發送失敗 - 帳號: {}, 郵件: {}", 
+                    employee.getAccount(), employee.getEmail());
+                
+                return String.format("密碼重設成功！但郵件發送失敗。\n" +
+                    "您的新臨時密碼是：%s\n" +
+                    "請妥善保存並儘快登入後修改密碼。", temporaryPassword);
+            }
+        } catch (Exception e) {
+            log.error("忘記密碼郵件發送異常 - 帳號: {}, 錯誤: {}", employee.getAccount(), e.getMessage(), e);
+            
+            return String.format("密碼重設成功！但郵件發送遇到問題。\n" +
+                "您的新臨時密碼是：%s\n" +
+                "請妥善保存並儘快登入後修改密碼。", temporaryPassword);
+        }
     }
     
     // --- 私有輔助方法 ---
@@ -512,5 +543,27 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
         
         return new String(passwordArray);
+    }
+    
+    /**
+     * 遮罩電子郵件地址以保護隱私
+     * 例如: john.doe@example.com -> j***@example.com
+     */
+    private String maskEmail(String email) {
+        if (!StringUtils.hasText(email) || !email.contains("@")) {
+            return email;
+        }
+        
+        String[] parts = email.split("@");
+        String localPart = parts[0];
+        String domain = parts[1];
+        
+        if (localPart.length() <= 1) {
+            return email;
+        } else if (localPart.length() <= 3) {
+            return localPart.charAt(0) + "***@" + domain;
+        } else {
+            return localPart.charAt(0) + "***" + localPart.charAt(localPart.length() - 1) + "@" + domain;
+        }
     }
 }
