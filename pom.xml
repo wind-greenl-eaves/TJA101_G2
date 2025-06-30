@@ -189,15 +189,7 @@
                             <goal>install-node-and-npm</goal>
                         </goals>
                     </execution>
-                    <execution>
-                        <id>npm install</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>install</arguments>
-                        </configuration>
-                    </execution>
+                    
                 </executions>
                 <configuration>
                     <nodeVersion>v18.12.1</nodeVersion>

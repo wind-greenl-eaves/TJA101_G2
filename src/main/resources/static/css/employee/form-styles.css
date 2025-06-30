@@ -13,6 +13,9 @@
     --error-color: #D9534F;
     --success-color: #4CAF50;
     --placeholder-color: #B0A495;
+    --input-focus-ring: rgba(166, 123, 91, 0.2);
+    --input-error: #DC2626;
+    --input-success: #059669;
 }
 
 body {
@@ -57,7 +60,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 0.5rem;
     background-color: #FFFFFF;
-    transition: all 0.2s;
+    transition: all 0.2s ease-in-out;
 }
 
 .form-input::placeholder {
@@ -68,22 +71,37 @@ body {
 .form-input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(166, 123, 91, 0.2);
+    box-shadow: 0 0 0 3px var(--input-focus-ring);
 }
 
+.form-input.border-red-500 {
+    border-color: var(--input-error);
+}
+
+.form-input.border-red-500:focus {
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
+.form-input:valid:not([readonly]) {
+    border-color: var(--input-success);
+}
+
+.form-input:disabled,
 .form-input[readonly] {
-    background-color: #f3f4f6;
+    background-color: #F3F4F6;
     cursor: not-allowed;
+    opacity: 0.75;
 }
 
 .submit-button, .cancel-button {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     padding: 0.75rem 1.5rem;
     border-radius: 0.5rem;
     font-weight: 600;
     text-decoration: none;
-    transition: all 0.2s;
+    transition: all 0.2s ease-in-out;
     border: none;
 }
 
@@ -94,8 +112,20 @@ body {
 
 .submit-button:hover {
     background-color: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.submit-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.submit-button:disabled {
+    background-color: var(--border-color);
+    cursor: not-allowed;
+    transform: none;
 }
 
 .cancel-button {
@@ -108,10 +138,11 @@ body {
 }
 
 .error-message {
-    color: var(--error-color);
+    color: var(--input-error);
     font-size: 0.875rem;
     margin-top: 0.25rem;
     min-height: 1.25rem;
+    transition: all 0.2s ease-in-out;
 }
 
 .password-wrapper {
@@ -120,11 +151,17 @@ body {
 
 .password-toggle-icon {
     position: absolute;
-    top: 50%;
     right: 1rem;
+    top: 50%;
     transform: translateY(-50%);
+    color: var(--text-color);
+    opacity: 0.5;
     cursor: pointer;
-    color: #999;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.password-toggle-icon:hover {
+    opacity: 1;
 }
 
 #message-container.bg-error {

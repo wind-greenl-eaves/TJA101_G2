@@ -48,6 +48,9 @@ public class EmployeeDto {
     /** 帳號建立時間 */
     private LocalDateTime createTime;
 
+    /** 員工照片 URL */
+    private String photoUrl;
+
     // ================================================================
     //             標準 Getters and Setters
     // ================================================================
@@ -146,5 +149,13 @@ public class EmployeeDto {
 
     public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
+    }
+
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
     }
 }

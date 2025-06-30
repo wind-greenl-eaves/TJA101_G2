@@ -16,7 +16,7 @@ import com.eatfast.orderlist.model.OrderListEntity;
 import com.eatfast.announcement.model.AnnouncementEntity;
 import com.eatfast.cart.model.CartEntity;
 import com.eatfast.feedback.model.FeedbackEntity;
-import com.eatfast.storemeal.model.StoreMealStatusEntity;
+import com.eatfast.storemeal.model.StoreMealEntity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -106,7 +106,7 @@ public class StoreEntity {
     private Set<CartEntity> cartItems = new HashSet<>();
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Set<StoreMealStatusEntity> mealStatuses = new HashSet<>();
+    private Set<StoreMealEntity> mealStatuses = new HashSet<>();
 
     // ================================================================
     // 建構子、Getters、Setters
@@ -143,8 +143,8 @@ public class StoreEntity {
     public void setFeedback(Set<FeedbackEntity> feedback) { this.feedback = feedback; }
     public Set<CartEntity> getCartItems() { return cartItems; }
     public void setCartItems(Set<CartEntity> cartItems) { this.cartItems = cartItems; }
-    public Set<StoreMealStatusEntity> getMealStatuses() { return mealStatuses; }
-    public void setMealStatuses(Set<StoreMealStatusEntity> mealStatuses) { this.mealStatuses = mealStatuses; }
+    public Set<StoreMealEntity> getMealStatuses() { return mealStatuses; }
+    public void setMealStatuses(Set<StoreMealEntity> mealStatuses) { this.mealStatuses = mealStatuses; }
 
     // ================================================================
     // 物件核心方法 (equals, hashCode, toString)
