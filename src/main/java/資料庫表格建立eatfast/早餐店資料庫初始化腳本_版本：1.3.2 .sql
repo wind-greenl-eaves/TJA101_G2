@@ -161,6 +161,16 @@ INSERT INTO store (store_name, store_loc, store_phone, store_time, store_status)
 -- 資料表: employee (員工資料表)
 -- 功能: 儲存所有員工（包含總部及各分店）的詳細資料、帳號、角色及狀態。此為後台系統的核心使用者。
 -- =======================================================================================
+-- =======================================================================================
+-- 檔案: employee 資料表結構修正
+-- 說明: 根據架構審查報告，修正 employee 資料表的欄位定義，以符合 Java Entity 的設計。
+-- 核心變更:
+-- 1. 移除 `photo LONGBLOB` 欄位。
+-- 2. 新增 `photo_url VARCHAR(255)` 欄位，用於儲存員工照片的相對路徑或 URL。
+--    這種「存路徑，不存本體」的做法是業界標準，能大幅提升資料庫效能。
+-- =======================================================================================
+
+-- 修正後的 employee 資料表結構
 CREATE TABLE employee (
     employee_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '員工編號 (主鍵，自動增長)',
     store_id BIGINT NOT NULL COMMENT '所屬門市編號 (外鍵)',
@@ -168,16 +178,15 @@ CREATE TABLE employee (
     account VARCHAR(50) NOT NULL COMMENT '員工登入後台用的帳號 (不可重複)',
     created_by BIGINT NULL COMMENT '此員工帳號的建檔者 (外鍵)',
     password VARCHAR(255) NOT NULL COMMENT '登入密碼 (應儲存加密後的雜湊值)',
-    phone VARCHAR(20) NOT NULL COMMENT '員工連絡電話' ,
+    phone VARCHAR(20) NOT NULL COMMENT '員工連絡電話',
     email VARCHAR(100) NOT NULL COMMENT '員工的電子郵件 (不可重複)',
-     -- 【已修改】 role 欄位型別從 TINYINT 改為 VARCHAR(50) 以儲存 Enum 名稱
     role VARCHAR(50) NOT NULL COMMENT '員工角色 (儲存 Enum 名稱，例如: HEADQUARTERS_ADMIN)',
-    -- 【已修改】 status 欄位型別從 TINYINT 改為 VARCHAR(50) 以儲存 Enum 名稱
     status VARCHAR(50) NOT NULL COMMENT '帳號狀態 (儲存 Enum 名稱，例如: ACTIVE, INACTIVE)',
     gender CHAR(1) NOT NULL COMMENT '員工性別 (M=男性, F=女性, O=其他)',
     create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '此員工資料的建立時間',
     last_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '此員工資料的最後更新時間',
-    photo LONGBLOB NULL COMMENT '員工大頭照',
+    -- 【核心修正】: 將 photo 欄位從 LONGBLOB 修改為 photo_url VARCHAR
+    photo_url VARCHAR(255) NULL COMMENT '員工大頭照的路徑或URL',
     national_id VARCHAR(10) NOT NULL COMMENT '身分證字號 (不可重複)',
     PRIMARY KEY (employee_id),
     UNIQUE KEY uk_employee_account (account),
@@ -189,8 +198,10 @@ CREATE TABLE employee (
 
 /*
  * -----------------------------------------------------
- * 範例資料: employee - 【已修改】
- * 說明: role 和 status 欄位的值已更新為 Enum 的名稱字串。
+ * 範例資料: employee (對應修正後的結構)
+ * 說明: INSERT 陳述式本身無需變更，因為原先就未包含 `photo` 欄位。
+ * 新欄位 `photo_url` 為 NULLable，預設為 NULL 即可，
+ * 其值將由後端應用程式在上傳照片後更新。
  * -----------------------------------------------------
  */
 INSERT INTO employee (store_id, username, account, created_by, password, email, phone, role, status, gender, national_id) VALUES
@@ -205,7 +216,8 @@ INSERT INTO employee (store_id, username, account, created_by, password, email, 
 (2, '蔡怡靜', 'joyce.tsai', 1, '$2y$10$empHashPass009', 'joyce.tsai@gmail.com', '0980-888-999', 'STAFF', 'ACTIVE', 'F', 'C213892240'),
 (1, '許明翰', 'minghan.hsu', 2, '$2y$10$empHashPass010', 'minghan.hsu@gmail.com', '0911-123-456', 'STAFF', 'ACTIVE', 'M', 'E196350396'),
 (1, '鄭心儀', 'cindy.cheng', 1, '$2y$10$empHashPass011', 'cindy.cheng@gmail.com', '0922-234-567', 'STAFF', 'ACTIVE', 'F', 'E283693295'),
-(2, '方美琪', 'maggie.fang', 2, '$2y$10$empHashPass012', 'maggie.fang@gmail.com', '0955-567-890', 'STAFF', 'ACTIVE', 'F', 'E263360866');-- 二號店職員
+(2, '方美琪', 'maggie.fang', 2, '$2y$10$empHashPass012', 'maggie.fang@gmail.com', '0955-567-890', 'STAFF', 'ACTIVE', 'F', 'E263360866');
+
 
 -- =======================================================================================
 -- 資料表: permission (權限資料表)
