@@ -25,5 +25,6 @@ public interface StoreRepository extends JpaRepository<StoreEntity, Long>, JpaSp
      * @return 一個包含 StoreEntity 的 Optional 物件
      */
     Optional<StoreEntity> findByStoreName(String storeName);
+    Optional<StoreEntity> findByStoreId(Long storeId);
 
 }

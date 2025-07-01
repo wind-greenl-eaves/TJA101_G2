@@ -39,7 +39,7 @@ public class StoreMealStatusController {
      */
     @PutMapping("/{storeId}/meals/{mealId}/status")
     public ResponseEntity<StoreMealStatusEntity> updateSupplyStatus(
-            @PathVariable Integer storeId,
+            @PathVariable Long storeId,
             @PathVariable Long mealId,
             @Valid @RequestBody UpdateStatusRequest request) {
 
@@ -61,7 +61,7 @@ public class StoreMealStatusController {
      * @return 該門市所有餐點狀態的列表，以及 HTTP 200 OK
      */
     @GetMapping("/{storeId}/meals/statuses")
-    public ResponseEntity<List<StoreMealStatusEntity>> getAllStatusesForStore(@PathVariable Integer storeId) {
+    public ResponseEntity<List<StoreMealStatusEntity>> getAllStatusesForStore(@PathVariable Long storeId) {
         log.info("接收到 API 請求：查詢門市 ID: {} 的所有餐點狀態", storeId);
         List<StoreMealStatusEntity> statuses = statusService.getAllStatusesForStore(storeId);
         return ResponseEntity.ok(statuses);
@@ -78,7 +78,7 @@ public class StoreMealStatusController {
      */
     @GetMapping("/{storeId}/meals/{mealId}/status")
     public ResponseEntity<StoreMealStatusEntity> getStatusForStoreAndMeal(
-            @PathVariable Integer storeId,
+            @PathVariable Long storeId,
             @PathVariable Long mealId) {
         log.info("接收到 API 請求：查詢門市 ID: {}, 餐點 ID: {} 的狀態", storeId, mealId);
         
