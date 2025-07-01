@@ -14,7 +14,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.1</version>
+        <version>3.4.1</version>
         <relativePath/> <!-- 表示從 Maven Repository 查找父專案 -->
     </parent>
 
