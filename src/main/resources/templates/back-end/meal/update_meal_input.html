@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>修改餐點 - EatFast 後台</title>
+
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/member/style.css}" />
+    <style type="text/css">
+        /* 您原始的 CSS 樣式 */
+        form div {
+            display: block; /* 讓 form-group 不受 table-row 影響 */
+        }
+        /* 調整圖片預覽樣式 */
+        #mealPicPreview img {
+            max-width: 150px;
+            max-height: 100px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            object-fit: contain;
+            margin-top: 10px; /* 與上方輸入框保持距離 */
+        }
+        /* 讓 radio button 居中對齊 */
+        .th-generated-wrapper {
+            display: flex;
+            align-items: center; /* 垂直居中對齊 */
+            gap: 15px; /* 增加間距 */
+        }
+    </style>
+</head>
+<body>
+
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" th:href="@{/meal/select_page_meal}">
+            <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-2">
+            <span style="font-weight: 500; font-size: 1.25rem;">修改餐點 - EatFast 後台</span> </a>
+        <a class="btn btn-outline-light ml-auto" th:href="@{/meal/select_page_meal}">
+            <i class="fas fa-home"></i> 回首頁
+        </a>
+    </div>
+</nav>
+
+<div class="container mt-5 pt-4">
+    <div class="card mx-auto" style="max-width: 600px;">
+        <div class="card-header">
+            <i class="fas fa-edit"></i> 修改餐點資料 </div>
+        <div class="card-body">
+        	<form method="post" th:action="@{/meal/update}" th:object="${mealEntity}" enctype="multipart/form-data">
+
+                <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger mb-3">
+                    <strong>請修正以下錯誤：</strong>
+                    <ul>
+                        <li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
+                    </ul>
+                </div>
+                
+                <p th:if="${message}" th:text="${message}" style="color: green; font-weight: bold; text-align: center;"></p>
+
+                <input type="hidden" th:field="*{mealId}" />
+
+                <div class="form-group">
+				    <label for="mealType">餐點種類：</label>
+				    <select id="mealType" class="form-control" th:field="*{mealType.mealTypeId}"
+				            onchange="hideErrorMessage('mealType.mealTypeId.errors');">
+				        <option value=""> -- 請選擇種類 -- </option>
+				        <option th:each="mealTypeEntity : ${mealTypeListData}"
+				                th:value="${mealTypeEntity.mealTypeId}"
+				                th:text="${mealTypeEntity.mealName}"
+				                th:selected="${mealTypeEntity.mealTypeId == mealEntity.mealType.mealTypeId}">
+				        </option>
+				    </select>
+				    <span class="text-danger" th:if="${#fields.hasErrors('mealType.mealTypeId')}" th:errors="*{mealType.mealTypeId}" id="mealType.mealTypeId.errors"></span>
+				</div>
+				
+				<div class="form-group">
+				    <label for="mealName">餐點名稱：</label>
+				    <input type="text" id="mealName" class="form-control" th:field="*{mealName}"
+				           oninput="hideErrorMessage('mealName.errors');" />
+				    <span class="text-danger" th:if="${#fields.hasErrors('mealName')}" th:errors="*{mealName}" id="mealName.errors"></span>
+				</div>
+                
+                <div class="form-group">
+                    <label for="mealPrice">餐點價格：</label>
+                    <input type="text" id="mealPrice" class="form-control" th:field="*{mealPrice}"
+                           oninput="hideErrorMessage('mealPrice.errors');" />
+                    <span class="text-danger" th:if="${#fields.hasErrors('mealPrice')}" th:errors="*{mealPrice}" id="mealPrice.errors"></span>
+                </div>
+                
+				<div class="form-group">
+				    <div class="d-flex align-items-center mb-2"> 
+				        <label class="me-3 mb-0">餐點狀態：</label> 
+				        
+				        <div class="th-generated-wrapper">
+                            <div class="form-check me-3"> 
+				                <input class="form-check-input" type="radio" th:field="*{status}" id="statusOn" value="1"
+				                       th:checked="${mealEntity.status == 1}">
+				                <label class="form-check-label" for="statusOn">上架</label>
+				            </div>
+				            <div class="form-check">
+				                <input class="form-check-input" type="radio" th:field="*{status}" id="statusOff" value="0"
+				                       th:checked="${mealEntity.status == 0}">
+				                <label class="form-check-label" for="statusOff">下架</label>
+				            </div>
+				        </div>
+				    </div>
+				    <span class="text-danger" th:if="${#fields.hasErrors('status')}" th:errors="*{status}" id="status.errors"></span>
+				</div>
+                
+                <div class="form-group">
+                    <label for="mealPic">餐點圖片：</label>
+                    <input type="file" id="mealPic" name="mealPic" class="form-control-file" accept="image/png, image/jpeg, image/gif"
+                           onchange="hideErrorMessage('mealPic.errors'); previewFile();" />
+					<span class="text-danger" th:if="${errorMessage}" th:utext="${errorMessage}" id="mealPic.errors"></span>
+                	<div id="mealPicPreview" class="mt-2">
+                        <img th:if="${mealEntity.mealPic != null && mealEntity.mealPic.length > 0}"
+                             th:src="@{'/meal/mealPhoto?mealId=' + ${mealEntity.mealId}}"
+                             alt="Current Meal Image"  />
+                        <span th:if="${mealEntity.mealPic == null || mealEntity.mealPic.length == 0}"
+                              style="color: #6c757d;">目前無圖片</span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center">
+                    <button type="submit" class="btn btn-primary mx-2" id="submitButton"><i class="fas fa-check"></i> 送出修改</button> 
+                    <a th:href="@{/meal/select_page_meal}" class="btn btn-secondary mx-2"><i class="fas fa-times"></i> 返回管理</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+<script th:src="@{/webjars/popper.js/1.14.3/umd/popper.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+
+<script type="text/javascript">
+// 等待 DOM 完全載入後執行
+document.addEventListener('DOMContentLoaded', function() {
+    const mealPicInput = document.getElementById("mealPic");
+    const submitButton = document.getElementById("submitButton");
+    const mealPicPreview = document.getElementById("mealPicPreview");
+
+    // 清除提示訊息的函式
+    function hideErrorMessage(elementId) {
+        const errorElement = document.getElementById(elementId);
+        if (errorElement) {
+            errorElement.style.display = "none";
+        }
+    }
+
+    // 檔案讀取器支援檢查
+    const filereader_support = typeof FileReader != 'undefined';
+    if (!filereader_support) {
+        console.warn("您的瀏覽器不支援 FileReader API，無法預覽圖片。");
+    }
+    
+    // 接受的圖片類型
+    const acceptedTypes = {
+        'image/png': true,
+        'image/jpeg': true,
+        'image/gif': true
+    };
+        
+    // 處理圖片預覽的函式
+    function previewFile() {
+        const files = mealPicInput.files;
+
+        // 清除現有的預覽圖片，避免重複顯示舊圖片和新預覽
+        mealPicPreview.innerHTML = '';
+        submitButton.disabled = false; // 預設啟用送出按鈕
+
+        if (files.length === 0) {
+            // 如果沒有選擇新檔案，且原本有圖片，顯示原本的圖片
+            const currentImgSrc = mealPicPreview.getAttribute('data-original-img-src');
+            if (currentImgSrc) {
+                const image = new Image();
+                image.src = currentImgSrc;
+                image.style.maxWidth = '150px';
+                image.style.maxHeight = '100px';
+                image.style.border = '1px solid #ddd';
+                image.style.borderRadius = '4px';
+                image.style.objectFit = 'contain';
+                mealPicPreview.appendChild(image);
+            } else {
+                // 如果原本也沒圖片，顯示無圖片提示
+                mealPicPreview.innerHTML = '<span style="color: #6c757d;">目前無圖片</span>';
+            }
+            return;
+        }
+
+        const file = files[0]; // 只處理第一個檔案
+
+        if (filereader_support && acceptedTypes[file.type]) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const image = new Image();
+                image.src = event.target.result;
+                image.style.maxWidth = '150px';
+                image.style.maxHeight = '100px';
+                image.style.border = '1px solid #ddd';
+                image.style.borderRadius = '4px';
+                image.style.objectFit = 'contain';
+                mealPicPreview.appendChild(image);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            // 如果檔案類型不符，顯示錯誤訊息並禁用送出按鈕
+            mealPicPreview.innerHTML = `
+                <div style="text-align: left; color: red;">
+                    ● 檔名: ${file.name}<br>
+                    ● 檔案類型: ${file.type}<br>
+                    ● 大小: ${file.size} bytes<br>
+                    ● 僅接受圖片類型: <b>PNG, JPEG, GIF</b>
+                </div>
+            `;
+            submitButton.disabled = true; // 禁用送出按鈕
+        }
+    }
+
+    // 將 hideErrorMessage 函式暴露到全域
+    window.hideErrorMessage = hideErrorMessage;
+
+    // 綁定 input 的 change 事件
+    mealPicInput.addEventListener('change', previewFile);
+
+    // 頁面載入時，如果已有圖片，則顯示圖片
+    // 儲存原始圖片的 src，以便在用戶取消選擇新圖片時恢復顯示
+    const existingImg = mealPicPreview.querySelector('img');
+    if (existingImg) {
+        mealPicPreview.setAttribute('data-original-img-src', existingImg.src);
+    } else {
+         mealPicPreview.innerHTML = '<span style="color: #6c757d;">目前無圖片</span>';
+    }
+});
+</script>
+
+</body>
+</html>

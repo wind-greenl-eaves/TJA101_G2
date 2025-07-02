@@ -1,4 +1,3 @@
-
 package com.eatfast.meal.model;
 
 // 引入共享 Enum 與所有關聯實體
