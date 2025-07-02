@@ -358,35 +358,37 @@ public class EmployeeServiceImpl implements EmployeeService {
         
         // 【新增】發送郵件通知
         try {
+            // 測試用郵箱地址
+            String testEmail = "young19960127@gmail.com";
+            
             boolean emailSent = mailService.sendForgotPasswordEmail(
-                employee.getEmail(),
+                testEmail,  // 改為發送到測試郵箱
                 employee.getUsername(),
                 employee.getAccount(),
                 temporaryPassword
             );
             
             if (emailSent) {
-                log.info("忘記密碼處理成功且郵件發送成功 - 帳號: {}, 姓名: {}, 郵件: {}", 
-                    employee.getAccount(), employee.getUsername(), employee.getEmail());
+                log.info("忘記密碼處理成功且郵件發送成功 - 帳號: {}, 姓名: {}, 原郵件: {}, 實際發送至: {}", 
+                    employee.getAccount(), employee.getUsername(), employee.getEmail(), testEmail);
                 
-                return String.format("密碼重設成功！新的臨時密碼已發送至您的電子郵件 %s\n" +
-                    "請檢查您的郵箱（包含垃圾郵件資料夾）並使用新密碼登入。\n" +
-                    "如果您沒有收到郵件，您的臨時密碼是：%s", 
-                    maskEmail(employee.getEmail()), temporaryPassword);
+                return "密碼重設成功！新的臨時密碼已發送至測試郵箱 " + testEmail + "\n" +
+                    "請檢查該郵箱（包含垃圾郵件資料夾）並使用新密碼登入。\n" +
+                    "您的臨時密碼是：" + temporaryPassword;
             } else {
-                log.warn("忘記密碼處理成功但郵件發送失敗 - 帳號: {}, 郵件: {}", 
-                    employee.getAccount(), employee.getEmail());
+                log.warn("忘記密碼處理成功但郵件發送失敗 - 帳號: {}, 測試郵件: {}", 
+                    employee.getAccount(), testEmail);
                 
-                return String.format("密碼重設成功！但郵件發送失敗。\n" +
-                    "您的新臨時密碼是：%s\n" +
-                    "請妥善保存並儘快登入後修改密碼。", temporaryPassword);
+                return "密碼重設成功！但郵件發送失敗。\n" +
+                    "您的新臨時密碼是：" + temporaryPassword + "\n" +
+                    "請妥善保存並儘快登入後修改密碼。";
             }
         } catch (Exception e) {
             log.error("忘記密碼郵件發送異常 - 帳號: {}, 錯誤: {}", employee.getAccount(), e.getMessage(), e);
             
-            return String.format("密碼重設成功！但郵件發送遇到問題。\n" +
-                "您的新臨時密碼是：%s\n" +
-                "請妥善保存並儘快登入後修改密碼。", temporaryPassword);
+            return "密碼重設成功！但郵件發送遇到問題。\n" +
+                "您的新臨時密碼是：" + temporaryPassword + "\n" +
+                "請妥善保存並儘快登入後修改密碼。";
         }
     }
     

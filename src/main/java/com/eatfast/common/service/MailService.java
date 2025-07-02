@@ -42,7 +42,8 @@ public class MailService {
      */
     public boolean sendForgotPasswordEmail(String toEmail, String employeeName, String employeeAccount, String temporaryPassword) {
         try {
-            String subject = String.format("【%s】密碼重設通知", systemName);
+            // 修復亂碼問題：使用字符串連接而非 String.format()
+            String subject = "【早餐店管理系統】密碼重設通知";
             String content = buildForgotPasswordEmailContent(employeeName, employeeAccount, temporaryPassword);
             
             sendHtmlEmail(toEmail, subject, content);
@@ -95,6 +96,7 @@ public class MailService {
             }
             
             MimeMessage message = javaMailSender.createMimeMessage();
+            // 指定編碼為 UTF-8，並啟用多部分郵件支援
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             
             helper.setFrom(fromEmail);
@@ -139,146 +141,146 @@ public class MailService {
     private String buildForgotPasswordEmailContent(String employeeName, String employeeAccount, String temporaryPassword) {
         String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         
-        return String.format("""
-            <!DOCTYPE html>
-            <html lang="zh-TW">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>密碼重設通知</title>
-                <style>
-                    body {
-                        font-family: 'Microsoft JhengHei', Arial, sans-serif;
-                        line-height: 1.6;
-                        color: #333;
-                        max-width: 600px;
-                        margin: 0 auto;
-                        padding: 20px;
-                        background-color: #f5f5f5;
-                    }
-                    .container {
-                        background-color: #ffffff;
-                        border-radius: 8px;
-                        padding: 30px;
-                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    }
-                    .header {
-                        text-align: center;
-                        border-bottom: 2px solid #A67B5B;
-                        padding-bottom: 20px;
-                        margin-bottom: 30px;
-                    }
-                    .header h1 {
-                        color: #A67B5B;
-                        margin: 0;
-                        font-size: 24px;
-                    }
-                    .content {
-                        margin-bottom: 30px;
-                    }
-                    .password-box {
-                        background-color: #f8f9fa;
-                        border: 2px solid #A67B5B;
-                        border-radius: 6px;
-                        padding: 15px;
-                        text-align: center;
-                        margin: 20px 0;
-                    }
-                    .password {
-                        font-size: 24px;
-                        font-weight: bold;
-                        color: #A67B5B;
-                        font-family: 'Courier New', monospace;
-                        letter-spacing: 2px;
-                    }
-                    .warning {
-                        background-color: #fff3cd;
-                        border: 1px solid #ffeaa7;
-                        border-radius: 4px;
-                        padding: 15px;
-                        margin: 20px 0;
-                    }
-                    .footer {
-                        border-top: 1px solid #ddd;
-                        padding-top: 20px;
-                        text-align: center;
-                        font-size: 12px;
-                        color: #666;
-                    }
-                    .info-table {
-                        width: 100%%;
-                        border-collapse: collapse;
-                        margin: 20px 0;
-                    }
-                    .info-table td {
-                        padding: 8px;
-                        border-bottom: 1px solid #eee;
-                    }
-                    .info-table .label {
-                        font-weight: bold;
-                        width: 120px;
-                        color: #555;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>🔑 %s</h1>
-                        <p>密碼重設通知</p>
-                    </div>
-                    
-                    <div class="content">
-                        <p>親愛的 <strong>%s</strong> 您好，</p>
-                        
-                        <p>我們收到了您的密碼重設請求。為了確保您的帳戶安全，系統已為您生成一組新的臨時密碼。</p>
-                        
-                        <table class="info-table">
-                            <tr>
-                                <td class="label">員工姓名：</td>
-                                <td>%s</td>
-                            </tr>
-                            <tr>
-                                <td class="label">登入帳號：</td>
-                                <td>%s</td>
-                            </tr>
-                            <tr>
-                                <td class="label">重設時間：</td>
-                                <td>%s</td>
-                            </tr>
-                        </table>
-                        
-                        <div class="password-box">
-                            <p style="margin: 0; font-size: 16px;">您的新臨時密碼為：</p>
-                            <div class="password">%s</div>
-                        </div>
-                        
-                        <div class="warning">
-                            <h4 style="margin-top: 0; color: #856404;">⚠️ 重要提醒</h4>
-                            <ul style="margin-bottom: 0;">
-                                <li>請立即使用此臨時密碼登入系統</li>
-                                <li>登入後請儘快修改為您的個人密碼</li>
-                                <li>請勿將此密碼透露給他人</li>
-                                <li>如果這不是您本人的操作，請立即聯繫系統管理員</li>
-                            </ul>
-                        </div>
-                        
-                        <p>如有任何問題，請聯繫系統管理員。</p>
-                        
-                        <p>感謝您的使用！<br>
-                        %s 團隊</p>
-                    </div>
-                    
-                    <div class="footer">
-                        <p>此郵件由系統自動發送，請勿直接回覆。</p>
-                        <p>發送時間：%s</p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """, 
-            systemName, employeeName, employeeName, employeeAccount, currentTime, 
-            temporaryPassword, systemName, currentTime);
+        // 修復亂碼問題：使用 StringBuilder 而非 String.format()
+        StringBuilder htmlBuilder = new StringBuilder();
+        htmlBuilder.append("<!DOCTYPE html>\n")
+            .append("<html lang=\"zh-TW\">\n")
+            .append("<head>\n")
+            .append("    <meta charset=\"UTF-8\">\n")
+            .append("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n")
+            .append("    <title>密碼重設通知</title>\n")
+            .append("    <style>\n")
+            .append("        body {\n")
+            .append("            font-family: 'Microsoft JhengHei', Arial, sans-serif;\n")
+            .append("            line-height: 1.6;\n")
+            .append("            color: #333;\n")
+            .append("            max-width: 600px;\n")
+            .append("            margin: 0 auto;\n")
+            .append("            padding: 20px;\n")
+            .append("            background-color: #f5f5f5;\n")
+            .append("        }\n")
+            .append("        .container {\n")
+            .append("            background-color: #ffffff;\n")
+            .append("            border-radius: 8px;\n")
+            .append("            padding: 30px;\n")
+            .append("            box-shadow: 0 2px 10px rgba(0,0,0,0.1);\n")
+            .append("        }\n")
+            .append("        .header {\n")
+            .append("            text-align: center;\n")
+            .append("            border-bottom: 2px solid #A67B5B;\n")
+            .append("            padding-bottom: 20px;\n")
+            .append("            margin-bottom: 30px;\n")
+            .append("        }\n")
+            .append("        .header h1 {\n")
+            .append("            color: #A67B5B;\n")
+            .append("            margin: 0;\n")
+            .append("            font-size: 24px;\n")
+            .append("        }\n")
+            .append("        .content {\n")
+            .append("            margin-bottom: 30px;\n")
+            .append("        }\n")
+            .append("        .password-box {\n")
+            .append("            background-color: #f8f9fa;\n")
+            .append("            border: 2px solid #A67B5B;\n")
+            .append("            border-radius: 6px;\n")
+            .append("            padding: 15px;\n")
+            .append("            text-align: center;\n")
+            .append("            margin: 20px 0;\n")
+            .append("        }\n")
+            .append("        .password {\n")
+            .append("            font-size: 24px;\n")
+            .append("            font-weight: bold;\n")
+            .append("            color: #A67B5B;\n")
+            .append("            font-family: 'Courier New', monospace;\n")
+            .append("            letter-spacing: 2px;\n")
+            .append("        }\n")
+            .append("        .warning {\n")
+            .append("            background-color: #fff3cd;\n")
+            .append("            border: 1px solid #ffeaa7;\n")
+            .append("            border-radius: 4px;\n")
+            .append("            padding: 15px;\n")
+            .append("            margin: 20px 0;\n")
+            .append("        }\n")
+            .append("        .footer {\n")
+            .append("            border-top: 1px solid #ddd;\n")
+            .append("            padding-top: 20px;\n")
+            .append("            text-align: center;\n")
+            .append("            font-size: 12px;\n")
+            .append("            color: #666;\n")
+            .append("        }\n")
+            .append("        .info-table {\n")
+            .append("            width: 100%;\n")
+            .append("            border-collapse: collapse;\n")
+            .append("            margin: 20px 0;\n")
+            .append("        }\n")
+            .append("        .info-table td {\n")
+            .append("            padding: 8px;\n")
+            .append("            border-bottom: 1px solid #eee;\n")
+            .append("        }\n")
+            .append("        .info-table .label {\n")
+            .append("            font-weight: bold;\n")
+            .append("            width: 120px;\n")
+            .append("            color: #555;\n")
+            .append("        }\n")
+            .append("    </style>\n")
+            .append("</head>\n")
+            .append("<body>\n")
+            .append("    <div class=\"container\">\n")
+            .append("        <div class=\"header\">\n")
+            .append("            <h1>🔑 【早餐店管理系統】").append("專題使用").append("</h1>\n")
+            .append("            <p>密碼重設通知</p>\n")
+            .append("        </div>\n")
+            .append("        \n")
+            .append("        <div class=\"content\">\n")
+            .append("            <p>親愛的 <strong>").append(employeeName).append("</strong> 您好，</p>\n")
+            .append("            \n")
+            .append("            <p>我們收到了您的密碼重設請求。為了確保您的帳戶安全，系統已為您生成一組新的臨時密碼。</p>\n")
+            .append("            \n")
+            .append("            <table class=\"info-table\">\n")
+            .append("                <tr>\n")
+            .append("                    <td class=\"label\">員工姓名：</td>\n")
+            .append("                    <td>").append(employeeName).append("</td>\n")
+            .append("                </tr>\n")
+            .append("                <tr>\n")
+            .append("                    <td class=\"label\">登入帳號：</td>\n")
+            .append("                    <td>").append(employeeAccount).append("</td>\n")
+            .append("                </tr>\n")
+            .append("                <tr>\n")
+            .append("                    <td class=\"label\">重設時間：</td>\n")
+            .append("                    <td>").append(currentTime).append("</td>\n")
+            .append("                </tr>\n")
+            .append("            </table>\n")
+            .append("            \n")
+            .append("            <div class=\"password-box\">\n")
+            .append("                <p style=\"margin: 0; font-size: 16px;\">您的新臨時密碼為：</p>\n")
+            .append("                <div class=\"password\">").append(temporaryPassword).append("</div>\n")
+            .append("            </div>\n")
+            .append("            \n")
+            .append("            <div class=\"warning\">\n")
+            .append("                <h4 style=\"margin-top: 0; color: #856404;\">⚠️ 重要提醒</h4>\n")
+            .append("                <ul style=\"margin-bottom: 0;\">\n")
+            .append("                    <li>請立即使用此臨時密碼登入系統</li>\n")
+            .append("                    <li>登入後請儘快修改為您的個人密碼</li>\n")
+            .append("                    <li>請勿將此密碼透露給他人</li>\n")
+            .append("                    <li>如果這不是您本人的操作，請立即聯繫系統管理員</li>\n")
+            .append("                </ul>\n")
+            .append("            </div>\n")
+            .append("            \n")
+            .append("            <p>如有任何問題，請聯繫系統管理員。</p>\n")
+            .append("            \n")
+            .append("            <p>感謝您的使用！<br>\n")
+            .append("            ").append("EatFast").append(" 團隊</p>\n")
+            .append("        </div>\n")
+            .append("        \n")
+            .append("        <div class=\"footer\">\n")
+            .append("            <p>此郵件由系統自動發送，請勿直接回覆。</p>\n")
+            .append("            <p>發送時間：").append(currentTime).append("</p>\n")
+            .append("        </div>\n")
+            .append("    </div>\n")
+            .append("</body>\n")
+            .append("</html>");
+        
+        return htmlBuilder.toString();
     }
 
     /**
