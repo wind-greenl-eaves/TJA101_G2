@@ -311,6 +311,19 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     /**
+     * 【新增方法實作】- 獲取所有已停權員工列表
+     * 用於登入頁面的管理員小幫手功能
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<EmployeeDTO> findAllInactiveEmployees() {
+        return employeeRepository.findAll().stream()
+                .filter(employee -> employee.getStatus() == com.eatfast.common.enums.AccountStatus.INACTIVE)
+                .map(employeeMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 【修改方法實作】- 處理忘記密碼請求並發送郵件
      * 根據帳號或郵件查找員工，生成臨時密碼，並發送郵件通知
      */

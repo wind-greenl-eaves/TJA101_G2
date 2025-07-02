@@ -51,6 +51,12 @@ public interface EmployeeService {
 	List<EmployeeDTO> findAllActiveEmployees();
 
 	/**
+	 * 【新增方法】: 獲取所有已停權員工列表（用於登入頁面的管理員小幫手）
+	 * @return 所有已停權的員工列表
+	 */
+	List<EmployeeDTO> findAllInactiveEmployees();
+
+	/**
 	 * 【新增忘記密碼方法】: 處理忘記密碼請求
 	 * 根據帳號或郵件查找員工，並生成新的臨時密碼
 	 *
