@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>訂單資料管理 - 查詢主頁</title>
+
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/orderlist/order-list-styles.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/error.css}"/>
+	
+
+    <style>
+        body { padding-top: 80px; }
+        .container { max-width: 800px; margin: auto; }
+        .query-section { list-style-type: none; padding-left: 0; }
+        .query-section li { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 1rem; margin-bottom: 1rem; border-radius: 0.25rem; }
+        .query-section h5 { margin-top: 0; color: #007bff; }
+        /* 【確認】使用您檔案中定義的 result-div 樣式 */
+        .result-div { position: fixed; bottom: 1%; right: 2%; width: 45%; padding: 1rem; border: 1px solid var(--primary-color, #007bff); background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 0.5rem;}
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-md navbar-dark main-navbar fixed-top justify-content-center">
+    <div align="center">
+        <h2>訂單資料管理<a class="navbar-brand" th:href="@{/}"><img th:src="@{/images/back1.gif}"> 回首頁</a></h2>
+    </div>
+</nav>
+<div class="container">
+
+
+    <h3><span>資料查詢:</span></h3>
+    
+    
+    <ul class="query-section">
+        <li><h4><a th:href="@{/orderlist/listAllOrderList}">列出所有訂單</a></h4></li>
+        <li>
+            <form method="post" th:action="@{/orderlist/getOne_For_Display}">
+                選擇訂單編號:
+                <select name="orderListId" class="form-control d-inline-block w-auto">
+                    <option th:each="orderListVO : ${orderListData}" th:value="${orderListVO.orderListId}" th:text="${orderListVO.orderListId}" />
+                </select>
+                <input type="submit" value="送出" class="btn btn-primary">
+            </form>
+        </li>
+    </ul>
+
+    <div class="result-div" th:if="${orderListVO != null}">
+        <div th:insert="~{/back-end/orderlist/listOneOrderList :: listOneOrderList-div}"></div>
+    </div>
+
+</div>
+</body>
+</html>
