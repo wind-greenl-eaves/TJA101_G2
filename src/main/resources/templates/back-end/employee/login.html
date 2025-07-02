@@ -471,6 +471,21 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // 成功訊息自動消失功能
+        const successMessage = document.querySelector('.success-msg');
+        if (successMessage) {
+            // 3秒後淡出並移除成功訊息
+            setTimeout(function() {
+                successMessage.style.transition = 'opacity 0.5s ease-out';
+                successMessage.style.opacity = '0';
+                
+                // 淡出完成後移除元素
+                setTimeout(function() {
+                    successMessage.remove();
+                }, 500); // 0.5秒淡出動畫時間
+            }, 3000); // 3秒後開始淡出
+        }
+
         // 管理員小幫手互動邏輯
         const employeeItems = document.querySelectorAll('.employee-item');
         employeeItems.forEach(item => {

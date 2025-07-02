@@ -39,9 +39,19 @@ public class EmployeeLoginController {
      * 路徑: GET /employee/login
      */
     @GetMapping("/login")
-    public String showLoginPage(Model model) {
+    public String showLoginPage(@RequestParam(value = "logout", required = false) String logout, 
+                               @RequestParam(value = "shown", required = false) String shown,
+                               Model model, RedirectAttributes redirectAttributes) {
         // 準備登入表單物件
         model.addAttribute("loginRequest", new EmployeeLoginRequest());
+        
+        // 處理登出成功訊息 - 只在第一次顯示，避免重新整理時重複顯示
+        if ("success".equals(logout) && !"true".equals(shown)) {
+            // 使用 RedirectAttributes 來傳遞訊息，這樣重定向後訊息不會丟失
+            redirectAttributes.addFlashAttribute("successMessage", "登出成功！感謝您的使用。");
+            // 重定向到同一頁面但加上 shown=true 參數，避免重新整理時重複顯示訊息
+            return "redirect:/employee/login?shown=true";
+        }
         
         // 獲取所有啟用狀態的員工列表，用於管理員小幫手
         try {
