@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帳號設定 - 早餐店會員系統</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #A67B5B;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+        .navigation-bar {
+            background-color: #A67B5B;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .navigation-bar a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .navigation-bar a:hover, .navigation-bar a.active {
+            background-color: rgba(255,255,255,0.2);
+        }
+        .settings-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .settings-section h2 {
+            color: #A67B5B;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+        .settings-section .icon {
+            font-size: 1.3em;
+            margin-right: 10px;
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        .setting-info {
+            flex: 1;
+        }
+        .setting-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .setting-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .setting-action {
+            margin-left: 20px;
+        }
+        .btn {
+            background-color: #A67B5B;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #8B5A3C;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .alert {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .alert-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        .privacy-section {
+            background-color: #e8f4fd;
+            border: 1px solid #b8daff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .privacy-section h3 {
+            color: #004085;
+            margin-top: 0;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #A67B5B;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .danger-zone {
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        .danger-zone h3 {
+            color: #c62828;
+            margin-top: 0;
+        }
+        @media (max-width: 768px) {
+            .setting-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .setting-action {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ 帳號設定</h1>
+        
+        <!-- 導航欄 -->
+        <div class="navigation-bar">
+            <a href="/member/dashboard">🏠 首頁</a>
+            <a href="/member/profile">👤 個人資料</a>
+            <a href="/member/orders">📋 訂單記錄</a>
+            <a href="/member/favorites">❤️ 我的收藏</a>
+            <a href="/member/settings" class="active">⚙️ 帳號設定</a>
+            <a href="/logout" onclick="return confirm('確定要登出嗎？')">🚪 登出</a>
+        </div>
+        
+        <!-- 顯示操作結果 -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+        
+        <!-- 帳號安全設定 -->
+        <div class="settings-section">
+            <h2><span class="icon">🔐</span>帳號安全</h2>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">變更密碼</div>
+                    <div class="setting-description">定期變更密碼可以提高帳號安全性</div>
+                </div>
+                <div class="setting-action">
+                    <a href="/member/change-password" class="btn">🔒 變更密碼</a>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">帳號狀態</div>
+                    <div class="setting-description">目前帳號的啟用狀態</div>
+                </div>
+                <div class="setting-action">
+                    <span class="status-badge" 
+                          th:classappend="${member?.enabled} ? 'status-active' : 'status-inactive'"
+                          th:text="${member?.enabled} ? '正常使用' : '已停用'">正常使用</span>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">最後登入時間</div>
+                    <div class="setting-description">顯示您最近一次的登入時間</div>
+                </div>
+                <div class="setting-action">
+                    <span class="setting-description" th:text="${member?.lastUpdatedAt != null ? #temporals.format(member.lastUpdatedAt, 'yyyy-MM-dd HH:mm') : '首次登入'}">2025-01-02 10:30</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 通知設定 -->
+        <div class="settings-section">
+            <h2><span class="icon">🔔</span>通知設定</h2>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">訂單通知</div>
+                    <div class="setting-description">接收訂單狀態變更的通知</div>
+                </div>
+                <div class="setting-action">
+                    <label class="switch">
+                        <input type="checkbox" checked onchange="updateNotificationSetting('order', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">促銷活動通知</div>
+                    <div class="setting-description">接收最新優惠和促銷活動資訊</div>
+                </div>
+                <div class="setting-action">
+                    <label class="switch">
+                        <input type="checkbox" checked onchange="updateNotificationSetting('promotion', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">電子郵件通知</div>
+                    <div class="setting-description">透過電子郵件接收重要通知</div>
+                </div>
+                <div class="setting-action">
+                    <label class="switch">
+                        <input type="checkbox" onchange="updateNotificationSetting('email', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 隱私設定 -->
+        <div class="settings-section">
+            <h2><span class="icon">🛡️</span>隱私設定</h2>
+            
+            <div class="privacy-section">
+                <h3>資料使用說明</h3>
+                <p>我們會依據您的設定來處理個人資料，包括訂單記錄、收藏清單和個人偏好等。您可以隨時調整這些設定。</p>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">個人化推薦</div>
+                    <div class="setting-description">根據您的訂購記錄提供個人化商品推薦</div>
+                </div>
+                <div class="setting-action">
+                    <label class="switch">
+                        <input type="checkbox" checked onchange="updatePrivacySetting('personalization', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">匿名統計</div>
+                    <div class="setting-description">允許使用匿名化資料改善服務品質</div>
+                </div>
+                <div class="setting-action">
+                    <label class="switch">
+                        <input type="checkbox" onchange="updatePrivacySetting('analytics', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 資料管理 -->
+        <div class="settings-section">
+            <h2><span class="icon">📊</span>資料管理</h2>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">下載個人資料</div>
+                    <div class="setting-description">下載您在本系統中的所有個人資料</div>
+                </div>
+                <div class="setting-action">
+                    <button class="btn btn-secondary" onclick="downloadPersonalData()">📥 下載資料</button>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">清除瀏覽記錄</div>
+                    <div class="setting-description">清除您的商品瀏覽和搜尋記錄</div>
+                </div>
+                <div class="setting-action">
+                    <button class="btn btn-secondary" onclick="clearBrowsingHistory()">🧹 清除記錄</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 危險區域 -->
+        <div class="danger-zone">
+            <h3>⚠️ 危險操作</h3>
+            <p style="color: #c62828; margin-bottom: 20px;">以下操作將會永久影響您的帳號，請謹慎考慮：</p>
+            
+            <div class="setting-item" style="border: none; padding: 15px 0;">
+                <div class="setting-info">
+                    <div class="setting-title" style="color: #c62828;">停用帳號</div>
+                    <div class="setting-description">暫時停用您的帳號，您可以隨時重新啟用</div>
+                </div>
+                <div class="setting-action">
+                    <button class="btn btn-danger" onclick="deactivateAccount()">🚫 停用帳號</button>
+                </div>
+            </div>
+            
+            <div class="setting-item" style="border: none; padding: 15px 0;">
+                <div class="setting-info">
+                    <div class="setting-title" style="color: #c62828;">刪除帳號</div>
+                    <div class="setting-description">永久刪除您的帳號和所有相關資料，此操作無法復原</div>
+                </div>
+                <div class="setting-action">
+                    <button class="btn btn-danger" onclick="deleteAccount()">❌ 刪除帳號</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 更新通知設定
+        function updateNotificationSetting(type, enabled) {
+            fetch('/member/settings/notifications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    type: type,
+                    enabled: enabled
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    showToast(`${type}通知設定已更新`, 'success');
+                } else {
+                    showToast('設定更新失敗', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('設定更新失敗', 'error');
+            });
+        }
+        
+        // 更新隱私設定
+        function updatePrivacySetting(type, enabled) {
+            fetch('/member/settings/privacy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    type: type,
+                    enabled: enabled
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    showToast('隱私設定已更新', 'success');
+                } else {
+                    showToast('設定更新失敗', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('設定更新失敗', 'error');
+            });
+        }
+        
+        // 下載個人資料
+        function downloadPersonalData() {
+            if (confirm('確定要下載個人資料嗎？')) {
+                window.location.href = '/member/settings/download-data';
+            }
+        }
+        
+        // 清除瀏覽記錄
+        function clearBrowsingHistory() {
+            if (confirm('確定要清除所有瀏覽記錄嗎？此操作無法復原。')) {
+                fetch('/member/settings/clear-history', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        showToast('瀏覽記錄已清除', 'success');
+                    } else {
+                        showToast('清除失敗，請稍後再試', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('清除失敗，請稍後再試', 'error');
+                });
+            }
+        }
+        
+        // 停用帳號
+        function deactivateAccount() {
+            if (confirm('確定要停用帳號嗎？停用後您將無法登入，但可以隨時聯繫客服重新啟用。')) {
+                if (confirm('再次確認：您真的要停用帳號嗎？')) {
+                    fetch('/member/settings/deactivate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('帳號已停用，您將被登出');
+                            window.location.href = '/logout';
+                        } else {
+                            showToast('停用失敗，請稍後再試', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('停用失敗，請稍後再試', 'error');
+                    });
+                }
+            }
+        }
+        
+        // 刪除帳號
+        function deleteAccount() {
+            if (confirm('⚠️ 警告：刪除帳號後，您的所有資料將永久消失，包括訂單記錄、收藏清單等，且無法復原！')) {
+                const confirmText = prompt('請輸入「確認刪除」以繼續：');
+                if (confirmText === '確認刪除') {
+                    fetch('/member/settings/delete-account', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('帳號已刪除，感謝您的使用');
+                            window.location.href = '/';
+                        } else {
+                            showToast('刪除失敗，請稍後再試', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('刪除失敗，請稍後再試', 'error');
+                    });
+                } else {
+                    alert('確認文字不正確，取消刪除操作');
+                }
+            }
+        }
+        
+        // 顯示提示訊息
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
+            toast.textContent = message;
+            toast.style.position = 'fixed';
+            toast.style.top = '20px';
+            toast.style.right = '20px';
+            toast.style.zIndex = '9999';
+            toast.style.minWidth = '200px';
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
