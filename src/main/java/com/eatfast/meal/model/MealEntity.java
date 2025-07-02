@@ -255,7 +255,7 @@ public class MealEntity {
         }
         return Objects.equals(mealId, that.mealId);
     }
-
+ 
     /**
      * 重寫 hashCode 方法，與 equals 方法保持一致性。
      * 返回基於 mealId 的哈希碼，以便在集合 (如 HashSet, HashMap) 中正確儲存和檢索物件。
