@@ -50,7 +50,6 @@ public class MealEntity implements Serializable {
 		@Column(name = "review_total_stars", nullable = false)
 		@Min(0)
 	    @Max(5)
-		@NotNull(message = "總星數不可為空")
 		private Integer reviewTotalStars;
 		
 		@Column(name = "status", nullable = false)

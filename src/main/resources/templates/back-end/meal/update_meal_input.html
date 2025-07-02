@@ -119,7 +119,7 @@
                 	<div id="mealPicPreview" class="mt-2">
                         <img th:if="${mealEntity.mealPic != null && mealEntity.mealPic.length > 0}"
                              th:src="@{'/meal/mealPhoto?mealId=' + ${mealEntity.mealId}}"
-                             alt="Current Meal Image" />
+                             alt="Current Meal Image"  />
                         <span th:if="${mealEntity.mealPic == null || mealEntity.mealPic.length == 0}"
                               style="color: #6c757d;">目前無圖片</span>
                     </div>
