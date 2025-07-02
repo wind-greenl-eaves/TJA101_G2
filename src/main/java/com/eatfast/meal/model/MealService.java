@@ -31,13 +31,13 @@ public class MealService {
 
 	// 查一筆餐點（依ID）
 	@Transactional(readOnly = true)
-	public MealEntity getOneMeal(Integer mealId) {
+	public MealEntity getOneMeal(Long mealId) {
 		Optional<MealEntity> optional = repository.findById(mealId);
 		return optional.orElse(null);  // public T orElse(T other) : 如果值存在就回傳其值，否則回傳other的值
 	}
 
 	// 查特定類別餐點
-    public List<MealEntity> getMealsByType(Integer mealTypeId) {
+    public List<MealEntity> getMealsByType(Long mealTypeId) {
         return repository.findByMealTypeMealTypeId(mealTypeId);
     }
 

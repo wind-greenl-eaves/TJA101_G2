@@ -29,7 +29,7 @@ public class HibernateUtil_CompositeQuery_Meal {
 			predicate = builder.like(root.get(columnName), "%" + value + "%");
 		else if ("meal_type_id".equals(columnName)) {
 			MealTypeEntity mealTypeEntity = new MealTypeEntity();
-			mealTypeEntity.setMealTypeId(Integer.valueOf(value));
+			mealTypeEntity.setMealTypeId(Long.valueOf(value));
 			predicate = builder.equal(root.get("mealTypeEntity"), mealTypeEntity); // 用ManyToOne
 		}
 
