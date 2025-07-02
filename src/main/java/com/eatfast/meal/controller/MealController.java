@@ -30,7 +30,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.eatfast.meal.model.MealEntity;
 import com.eatfast.meal.model.MealService;
 import com.eatfast.mealtype.model.MealTypeEntity;
-import com.eatfast.mealtype.model.MealTypeService;
+import com.eatfast.mealtype.service.MealTypeService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -101,9 +101,9 @@ public class MealController {
             return "back-end/meal/select_page_meal";
         }
 
-        Integer id = null;
+        Long id = null;
         try {
-            id = Integer.valueOf(mealId);
+            id = Long.valueOf(mealId);
         } catch (NumberFormatException e) {
             model.addAttribute("errorMessage", "餐點編號格式錯誤");
             return "back-end/meal/select_page_meal";
@@ -122,7 +122,7 @@ public class MealController {
     // 取得餐點資料並準備進行修改
     @PostMapping("/getOne_For_Update")
     public String getOneForUpdate(@RequestParam("mealId") String mealId, ModelMap model) {
-        MealEntity mealEntity = mealService.getOneMeal(Integer.valueOf(mealId));
+        MealEntity mealEntity = mealService.getOneMeal(Long.valueOf(mealId));
         // 確保 mealType 被初始化，因為更新表單也會使用下拉選單，避免 NullPointerException
         if (mealEntity.getMealType() == null) {
             mealEntity.setMealType(new MealTypeEntity());
@@ -168,7 +168,7 @@ public class MealController {
 
     // 查詢特定類別的餐點
     @PostMapping("/byType")
-    public String getMealsByType(@RequestParam("mealTypeId") Integer mealTypeId, Model model) {
+    public String getMealsByType(@RequestParam("mealTypeId") Long mealTypeId, Model model) {
     	List<MealEntity> meals;
         if (mealTypeId == null || mealTypeId == 0) { // 假設 0 或 null 代表顯示所有種類
              meals = mealService.getAll();
@@ -227,7 +227,7 @@ public class MealController {
 	
 	// 獲取餐點圖片，如果沒有則返回預設圖片
     @GetMapping("/mealPhoto")
-    public ResponseEntity<byte[]> getMealPhoto(@RequestParam("mealId") Integer mealId) throws IOException {
+    public ResponseEntity<byte[]> getMealPhoto(@RequestParam("mealId") Long mealId) throws IOException {
         MealEntity mealEntity = mealService.getOneMeal(mealId); // 透過 mealId 取得餐點實體
         
         byte[] imageBytes = null;
