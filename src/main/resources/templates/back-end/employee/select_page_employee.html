@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>員工管理後台 - EatFast</title>
+    
+    <!-- 引入 Tailwind CSS 框架 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 引入 Google Fonts (思源黑體) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- 引入 Font Awesome 圖示庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    
+    <style>
+        /* 自定義 CSS 變數，實現奶茶色主題 */
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #F5EFE6;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --error-color: #D9534F;
+        }
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 14px;  /* 縮小基礎字體大小 */
+        }
+
+        /* 基礎元素調整 */
+        /* 調整表單容器 */
+        .form-container {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;  /* 縮小圓角 */
+            padding: 0.75rem;  /* 縮小內距 */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;  /* 縮小間距 */
+            margin-bottom: 0.5rem;  /* 縮小底部間距 */
+        }
+        .form-label {
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        .form-input {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.375rem 0.5rem;  /* 縮小輸入框內距 */
+            font-size: 0.875rem;  /* 縮小輸入框字體 */
+            transition: all 0.2s;
+        }
+        .form-input:focus {
+            --tw-ring-color: var(--primary-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px var(--tw-ring-color);
+        }
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            padding: 0.375rem 1rem;  /* 縮小按鈕內距 */
+            font-size: 0.875rem;  /* 縮小按鈕字體 */
+            border-radius: 0.5rem;
+            white-space: nowrap;
+            transition: background-color 0.2s;
+        }
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+        .section-title-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;  /* 縮小標題底部內距 */
+            margin-bottom: 0.75rem;  /* 縮小標題下方間距 */
+        }
+        .section-title {
+            font-size: 1rem;  /* 縮小標題字體 */
+            font-weight: 700;
+        }
+        .toggle-btn {
+            background-color: transparent;
+            color: var(--primary-color);
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--primary-color);
+            transition: all 0.2s;
+        }
+        .toggle-btn:hover {
+            background-color: var(--container-bg);
+        }
+        .marquee-text {
+            animation: marquee-animation 20s linear infinite;
+            font-size: 0.875rem;
+            padding: 0.5rem;
+        }
+        @keyframes marquee-animation {
+            0%   { transform: translateX(100%); }
+            100% { transform: translateX(-150%); }
+        }
+        
+        /* 添加新的固定右側面板樣式 */
+        .page-container {
+            display: flex;
+            gap: 0.75rem;  /* 縮小間距 */
+            position: relative;
+            min-height: 100vh;
+            padding: 0.75rem;
+            max-width: 1200px; /* 從 1600px 縮小到 1200px */
+            margin: 0 auto;
+            width: 90%;      /* 增加寬度限制 */
+        }
+        
+        .main-content {
+            flex: 1;
+            max-width: calc(100% - 320px);  /* 從 360px 縮小到 320px */
+        }
+        
+        .detail-panel {
+            width: 300px;  /* 從 340px 縮小到 300px */
+            position: fixed;
+            right: calc((100% - 1200px) / 2 + 0.75rem); /* 配合新的最大寬度調整 */
+            top: 0.75rem;
+            bottom: 0.75rem;
+            overflow-y: auto;
+            background-color: white;
+            border-radius: 0.5rem;  /* 縮小圓角 */
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        @media (max-width: 1200px) {
+            .detail-panel {
+                right: 0.75rem;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .page-container {
+                flex-direction: column;
+                width: 95%;
+            }
+            .main-content {
+                max-width: 100%;
+            }
+            .detail-panel {
+                position: static;
+                width: 100%;
+            }
+        }
+
+        /* 調整表單容器的內距 */
+        .form-container {
+            padding: 0.75rem;  /* 縮小內距 */
+            margin-bottom: 0.5rem;  /* 縮小底部間距 */
+        }
+
+        /* 調整標題區塊的間距 */
+        .section-title-container {
+            margin-bottom: 0.75rem;  /* 縮小標題下方間距 */
+        }
+
+        /* 調整查詢區塊之間的間距 */
+        #single-query-section {
+            gap: 0.75rem;  /* 從 1rem 縮小到 0.75rem */
+        }
+
+        /* 調整複合查詢表單的內距 */
+        #composite-query-form {
+            padding: 0.75rem;
+            gap: 0.75rem;
+        }
+
+        /* 調整詳細資訊面板的內容間距 */
+        .detail-panel .p-6 {
+            padding: 0.75rem;  /* 縮小內容區塊內距 */
+        }
+
+        .detail-panel h3 {
+            font-size: 0.875rem;  /* 縮小子標題大小 */
+            margin-bottom: 0.5rem;  /* 縮小標題底部間距 */
+        }
+
+        .detail-panel .space-y-3 > p {
+            font-size: 0.875rem;  /* 縮小詳細資訊文字 */
+            margin-bottom: 0.375rem;  /* 縮小段落間距 */
+        }
+
+        /* Header 區塊調整 */
+        header {
+            padding: 0.75rem !important;  /* 縮小 header 內距 */
+            margin-bottom: 0.75rem !important;  /* 縮小 header 底部間距 */
+        }
+
+        header img {
+            width: 40px;  /* 縮小 logo */
+            height: 40px;
+        }
+
+        header h1 {
+            font-size: 1.125rem !important;  /* 縮小主標題 */
+        }
+
+        /* 調整錯誤訊息區塊 */
+        #error-messages {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        /* 員工詳細資訊樣式 */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+        }
+        
+        .status-inactive {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: #F44336;
+        }
+        
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--container-bg);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .detail-label {
+            font-weight: 500;
+            color: var(--text-color);
+            min-width: 100px;
+        }
+        
+        .detail-value {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .detail-panel .space-y-3 > p {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .detail-panel i {
+            width: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+<div class="page-container">
+    <!-- 主要內容區域 -->
+    <div class="main-content">
+        <!-- Header 區塊 -->
+        <header class="flex items-center p-4 bg-[var(--container-bg)] border border-[var(--border-color)] rounded-xl shadow-sm mb-6">
+            <div class="flex items-center">
+                <img src="/images/123.png" alt="Logo" class="w-12 h-12 rounded-full mr-2">
+                <div class="ml-4">
+                    <h1 class="text-xl font-bold">早餐店後台 - 員工資料管理系統</h1>
+                    <p class="text-sm text-gray-500">Thymeleaf 現代化版本</p>
+                </div>
+            </div>
+            <div class="ml-auto">
+                <button id="logoutBtn" class="submit-btn">登出系統</button>
+            </div>
+        </header>
+        
+        <!-- 跑馬燈訊息 -->
+        <div class="bg-white p-3 rounded-lg border border-[var(--border-color)] shadow-sm overflow-hidden whitespace-nowrap mb-8">
+            <p class="inline-block marquee-text text-[var(--primary-color)] font-medium">歡迎使用員工資料管理系統，今天也一起加油吧！為我們 5 人團隊的早餐店專案喝采！</p>
+        </div>
+        
+        <!-- 錯誤訊息提示區塊 -->
+        <div id="error-messages" class="hidden bg-red-100 border border-[var(--error-color)] text-[var(--error-color)] px-4 py-3 rounded-lg mb-6"></div>
+
+        <!-- 資料查詢區塊 -->
+        <section class="mb-10">
+            <!-- 【核心修改】: 標題與切換按鈕整合 -->
+            <div class="section-title-container">
+                <h2 class="section-title">資料查詢</h2>
+                <button id="toggle-composite-query-btn" class="toggle-btn">複合查詢功能</button>
+            </div>
+            
+            <!-- 單一查詢區塊 (維持不變) -->
+            <div id="single-query-section" class="space-y-6">
+                <a th:href="@{/employee/listAll}" class="form-container hover:shadow-md transition-shadow cursor-pointer">
+                    <span class="font-semibold text-lg">查詢所有員工資料</span>
+                    <span class="text-lg text-[var(--primary-color)]">➔</span>
+                </a>
+                <form id="query-by-id-input-form" class="form-container">
+                    <label for="employee-id-input" class="form-label text-lg">輸入員工編號：</label>
+                    <input type="text" id="employee-id-input" name="employeeId" placeholder="例如: 1" class="form-input text-lg">
+                    <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                </form>
+                <form id="query-by-id-select-form" class="form-container">
+                    <label for="employee-id-select" class="form-label text-lg">選擇員工編號：</label>
+                    <select id="employee-id-select" name="employeeId" class="form-input text-lg">
+                        <option value="">-- 載入中... --</option>
+                    </select>
+                    <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                </form>
+                <form id="query-by-name-select-form" class="form-container">
+                    <label for="employee-name-select" class="form-label text-lg">選擇員工姓名：</label>
+                    <select id="employee-name-select" name="employeeId" class="form-input text-lg">
+                        <option value="">-- 載入中... --</option>
+                    </select>
+                    <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                </form>
+            </div>
+            
+            <!-- 【全新】複合查詢區塊 (預設隱藏) -->
+            <div id="composite-query-section" class="hidden mt-6">
+                 <form id="composite-query-form" class="bg-white p-6 rounded-lg border border-[var(--border-color)] shadow-md grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <div>
+                        <label for="username" class="form-label">員工姓名</label>
+                        <input type="text" name="username" id="username" placeholder="輸入姓名關鍵字" class="form-input">
+                    </div>
+                    <div>
+                        <label for="role" class="form-label">員工角色</label>
+                        <select name="role" id="role" class="form-input">
+                            <option value="">-- 所有角色 --</option>
+                            <option th:each="roleOpt : ${roles}" th:value="${roleOpt}" th:text="${roleOpt.displayName}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="status" class="form-label">帳號狀態</label>
+                        <select name="status" id="status" class="form-input">
+                            <option value="">-- 所有狀態 --</option>
+                            <option th:each="statusOpt : ${statuses}" th:value="${statusOpt}" th:text="${statusOpt.displayName}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="storeId" class="form-label">所屬門市</label>
+                        <select name="storeId" id="storeId" class="form-input">
+                            <option value="">-- 所有門市 --</option>
+                            <option th:each="store : ${stores}" th:value="${store.storeId}" th:text="${store.storeName}"></option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2 flex justify-end items-center gap-4 pt-4">
+                         <button type="button" id="reset-btn" class="bg-gray-200 text-[var(--text-color)] font-semibold py-2 px-5 rounded-lg hover:bg-gray-300 transition-colors">清除條件</button>
+                         <button type="submit" class="submit-btn">執行查詢</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+        
+        <!-- 員工管理區塊 -->
+        <section>
+            <div class="section-title-container">
+               <h2 class="section-title">員工管理</h2>
+            </div>
+            <a th:href="@{/employee/add}" class="form-container hover:shadow-md transition-shadow cursor-pointer">
+                <span class="font-semibold text-lg">新增員工資料</span>
+                <span class="text-lg text-[var(--primary-color)]">➔</span>
+            </a>
+        </section>
+    </div>
+
+    <!-- 員工詳細資訊顯示區塊 - 固定在右側 -->
+    <section id="employee-detail-section" class="detail-panel hidden">
+        <div class="p-6">
+            <div class="section-title-container mb-6">
+                <h2 class="section-title">員工詳細資訊</h2>
+            </div>
+            <div class="space-y-6">
+                <!-- 基本資料區塊 -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-[var(--primary-color)]">基本資料</h3>
+                    <div class="space-y-3">
+                        <p><span class="font-medium">員工編號：</span><span id="detail-employee-id"></span></p>
+                        <p><span class="font-medium">姓名：</span><span id="detail-username"></span></p>
+                        <p><span class="font-medium">性別：</span><span id="detail-gender"></span></p>
+                        <p><span class="font-medium">身分證字號：</span><span id="detail-national-id"></span></p>
+                        <p><span class="font-medium">建立時間：</span><span id="detail-create-time"></span></p>
+                    </div>
+                </div>
+                
+                <!-- 聯絡資訊區塊 -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-[var(--primary-color)]">聯絡資訊</h3>
+                    <div class="space-y-3">
+                        <p><span class="font-medium">電子郵件：</span><span id="detail-email"></span></p>
+                        <p><span class="font-medium">聯絡電話：</span><span id="detail-phone"></span></p>
+                    </div>
+                </div>
+                
+                <!-- 系統資訊區塊 -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-[var(--primary-color)]">系統資訊</h3>
+                    <div class="space-y-3">
+                        <p><span class="font-medium">登入帳號：</span><span id="detail-account"></span></p>
+                        <p><span class="font-medium">員工角色：</span><span id="detail-role"></span></p>
+                        <p><span class="font-medium">帳號狀態：</span><span id="detail-status"></span></p>
+                        <p><span class="font-medium">所屬門市：</span><span id="detail-store"></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- 登出確認 Modal -->
+<div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-2xl text-center max-w-sm mx-auto">
+        <h3 class="text-xl font-bold mb-4">確認登出</h3>
+        <p class="mb-6">您確定要登出系統嗎？</p>
+        <div class="flex justify-center gap-4">
+            <button id="cancelLogoutBtn" class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors">取消</button>
+            <button id="confirmLogoutBtn" class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors">確認登出</button>
+        </div>
+    </div>
+</div>
+
+
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    // 獲取上下文路徑
+    const contextPath = /*[[@{/}]]*/ '/eatfast/';
+    const API_BASE_URL = contextPath + 'api/v1/employees';
+    
+    // 修改圖片路徑
+    const logoImg = document.querySelector('header img');
+    logoImg.src = contextPath + 'images/123.png';
+    
+    // --- 元素選擇 ---
+    const errorMessagesDiv = document.getElementById('error-messages');
+    const employeeIdSelect = document.getElementById('employee-id-select');
+    const employeeNameSelect = document.getElementById('employee-name-select');
+    const toggleBtn = document.getElementById('toggle-composite-query-btn');
+    const compositeSection = document.getElementById('composite-query-section');
+    const compositeForm = document.getElementById('composite-query-form');
+    const resetBtn = document.getElementById('reset-btn');
+
+    // 錯誤訊息顯示函數
+    function showError(messages) {
+        errorMessagesDiv.innerHTML = Array.isArray(messages) 
+            ? messages.map(msg => `<div>${msg}</div>`).join('') 
+            : `<div>${messages}</div>`;
+        errorMessagesDiv.classList.remove('hidden');
+    }
+
+    function clearError() {
+        errorMessagesDiv.innerHTML = '';
+        errorMessagesDiv.classList.add('hidden');
+    }
+
+    // --- 動態填充下拉選單 (單一查詢) ---
+    async function populateEmployeeSelects() {
+        try {
+            const response = await fetch(API_BASE_URL);
+            if (!response.ok) throw new Error(`無法載入員工列表 (狀態碼: ${response.status})`);
+            
+            const employees = await response.json();
+            
+            employeeIdSelect.innerHTML = '<option value="">-- 請選擇編號 --</option>';
+            employeeNameSelect.innerHTML = '<option value="">-- 請選擇姓名 --</option>'; 
+            
+            employees.forEach(emp => {
+                const idOption = new Option(`員編: ${emp.employeeId}`, emp.employeeId);
+                employeeIdSelect.appendChild(idOption);
+                const nameOption = new Option(`${emp.username} (ID: ${emp.employeeId})`, emp.employeeId);
+                employeeNameSelect.appendChild(nameOption);
+            });
+
+        } catch (error) {
+            const errorMessage = error.message || '載入員工資料時發生未知錯誤';
+            showError(errorMessage);
+            employeeIdSelect.innerHTML = `<option value="">-- 載入失敗 --</option>`;
+            employeeNameSelect.innerHTML = `<option value="">-- 載入失敗 --</option>`;
+            employeeIdSelect.disabled = true;
+            employeeNameSelect.disabled = true;
+        }
+    }
+
+    // --- 表單提交邏輯 ---
+    const singleQueryEndpoint = /*[[@{/employee/listOne}]]*/ '/employee/listOne';
+
+    // 處理「單一查詢」所有表單
+    document.getElementById('query-by-id-input-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const employeeId = document.getElementById('employee-id-input').value;
+        if (employeeId) {
+            handleSingleEmployeeQuery(employeeId);
+        }
+    });
+
+    document.getElementById('query-by-id-select-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const employeeId = document.getElementById('employee-id-select').value;
+        if (employeeId) {
+            handleSingleEmployeeQuery(employeeId);
+        }
+    });
+
+    document.getElementById('query-by-name-select-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const employeeId = document.getElementById('employee-name-select').value;
+        if (employeeId) {
+            handleSingleEmployeeQuery(employeeId);
+        }
+    });
+
+    // 【全新】複合查詢互動邏輯
+    toggleBtn.addEventListener('click', () => {
+        const isHidden = compositeSection.classList.toggle('hidden');
+        toggleBtn.textContent = isHidden ? '複合查詢功能' : '隱藏複合查詢';
+    });
+    
+    compositeForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(compositeForm);
+        const params = new URLSearchParams();
+        
+        for (const [key, value] of formData.entries()) {
+            if (value) {
+                params.append(key, value);
+            }
+        }
+        
+        try {
+            clearError();
+            const response = await fetch(`${API_BASE_URL}?${params.toString()}`);
+            if (!response.ok) {
+                throw new Error(`查詢失敗 (狀態碼: ${response.status})`);
+            }
+            const employees = await response.json();
+            if (employees.length === 0) {
+                showError('未找到符合條件的員工');
+                return;
+            }
+            // 如果是複合查詢且只有一個結果，直接顯示詳細資訊
+            if (employees.length === 1) {
+                displayEmployeeDetail(employees[0]);
+            } else {
+                // TODO: 如果有多筆結果，可以實作一個列表視圖
+                showError(`找到 ${employees.length} 名員工，請縮小搜尋範圍`);
+            }
+        } catch (error) {
+            showError(error.message);
+        }
+    });
+
+    resetBtn.addEventListener('click', function() {
+        compositeForm.reset();
+    });
+
+    // --- 登出 Modal 邏輯 ---
+    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutModal = document.getElementById('logoutModal');
+    const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+    const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+
+    // 顯示登出確認視窗
+    logoutBtn.addEventListener('click', function() {
+        logoutModal.classList.remove('hidden');
+        logoutModal.classList.add('flex');
+    });
+
+    // 取消登出
+    cancelLogoutBtn.addEventListener('click', function() {
+        logoutModal.classList.add('hidden');
+        logoutModal.classList.remove('flex');
+    });
+
+    // 確認登出
+    confirmLogoutBtn.addEventListener('click', async function() {
+        try {
+            const response = await fetch('/api/v1/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (response.ok) {
+                window.location.href = '/auth/login'; // 修改重定向路徑
+            } else {
+                throw new Error('登出失敗');
+            }
+        } catch (error) {
+            showError('登出失敗，請稍後再試');
+        } finally {
+            logoutModal.classList.add('hidden');
+            logoutModal.classList.remove('flex');
+        }
+    });
+
+    // 點擊背景關閉 Modal
+    logoutModal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            logoutModal.classList.add('hidden');
+            logoutModal.classList.remove('flex');
+        }
+    });
+
+    // --- 員工詳細資訊顯示 ---
+    function displayEmployeeDetail(employee) {
+        // 顯示詳細資訊區塊
+        document.getElementById('employee-detail-section').classList.remove('hidden');
+        
+        // 性別圖示和顯示文字
+        const genderDisplay = {
+            'M': '<i class="fas fa-mars text-blue-500 mr-1"></i>男',
+            'F': '<i class="fas fa-venus text-pink-500 mr-1"></i>女',
+            'O': '<i class="fas fa-genderless text-gray-500 mr-1"></i>其他'
+        };
+        
+        // 帳號狀態徽章
+        const statusBadges = {
+            'ACTIVE': '<span class="status-badge status-active"><i class="fas fa-check-circle mr-1"></i>啟用</span>',
+            'INACTIVE': '<span class="status-badge status-inactive"><i class="fas fa-times-circle mr-1"></i>停用</span>'
+        };
+        
+        // 員工角色徽章和圖示
+        const roleInfo = {
+            'STAFF': { icon: 'fas fa-user', text: '一般員工' },
+            'MANAGER': { icon: 'fas fa-user-tie', text: '門市經理' },
+            'HEADQUARTERS_ADMIN': { icon: 'fas fa-user-shield', text: '總部管理員' }
+        };
+        
+        // 格式化日期時間
+        const formatDateTime = (dateTimeStr) => {
+            const dt = new Date(dateTimeStr);
+            return dt.toLocaleString('zh-TW', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+        };
+
+        // 更新所有欄位的顯示，添加圖示和樣式
+        document.getElementById('detail-employee-id').innerHTML = 
+            `<i class="fas fa-id-card text-gray-500 mr-2"></i>${employee.employeeId}`;
+        
+        document.getElementById('detail-username').innerHTML = 
+            `<i class="fas fa-user text-gray-500 mr-2"></i>${employee.username}`;
+        
+        document.getElementById('detail-gender').innerHTML = genderDisplay[employee.gender] || 
+            `<i class="fas fa-question text-gray-500 mr-1"></i>${employee.gender}`;
+        
+        document.getElementById('detail-national-id').innerHTML = 
+            `<i class="fas fa-passport text-gray-500 mr-2"></i>${employee.nationalId}`;
+        
+        document.getElementById('detail-create-time').innerHTML = 
+            `<i class="far fa-calendar-alt text-gray-500 mr-2"></i>${formatDateTime(employee.createTime)}`;
+        
+        document.getElementById('detail-email').innerHTML = 
+            `<i class="fas fa-envelope text-gray-500 mr-2"></i>${employee.email}`;
+        
+        document.getElementById('detail-phone').innerHTML = 
+            `<i class="fas fa-phone text-gray-500 mr-2"></i>${employee.phone}`;
+        
+        document.getElementById('detail-account').innerHTML = 
+            `<i class="fas fa-user-circle text-gray-500 mr-2"></i>${employee.account}`;
+        
+        // 角色顯示
+        const roleData = roleInfo[employee.role] || { icon: 'fas fa-user', text: employee.role };
+        document.getElementById('detail-role').innerHTML = 
+            `<span class="role-badge"><i class="${roleData.icon} mr-1"></i>${roleData.text}</span>`;
+        
+        // 狀態顯示
+        document.getElementById('detail-status').innerHTML = 
+            statusBadges[employee.status] || `<span class="status-badge">${employee.status}</span>`;
+        
+        // 門市資訊
+        document.getElementById('detail-store').innerHTML = 
+            `<i class="fas fa-store text-gray-500 mr-2"></i>${employee.storeName} <span class="text-gray-500">(ID: ${employee.storeId})</span>`;
+        
+        // 在小螢幕上自動滾動到詳細資訊區域
+        if (window.innerWidth <= 1024) {
+            document.getElementById('employee-detail-section').scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    // 更新單一查詢的處理邏輯
+    async function handleSingleEmployeeQuery(employeeId) {
+        try {
+            clearError();
+            const response = await fetch(`${API_BASE_URL}/${employeeId}`);
+            if (!response.ok) {
+                throw new Error(`查詢失敗 (狀態碼: ${response.status})`);
+            }
+            const employee = await response.json();
+            displayEmployeeDetail(employee);
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    // --- 頁面初始化 ---
+    populateEmployeeSelects();
+
+});
+</script>
+
+</body>
+</html>

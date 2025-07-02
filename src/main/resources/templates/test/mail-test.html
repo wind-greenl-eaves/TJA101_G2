@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>郵件服務測試 - 早餐店管理系統</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #A67B5B;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h2 {
+            color: #666;
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"], input[type="email"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        button {
+            background-color: #A67B5B;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #8B5A3C;
+        }
+        .alert {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .temp-password {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 郵件服務測試</h1>
+        
+        <div class="instructions">
+            <h3>⚠️ 使用說明</h3>
+            <ul>
+                <li>此頁面用於測試郵件服務是否正常運作</li>
+                <li>請確保已正確設定 Gmail 應用程式密碼</li>
+                <li>建議先測試簡單文字郵件，再測試 HTML 格式郵件</li>
+                <li>如果郵件發送失敗，請檢查控制台日誌以了解詳細錯誤信息</li>
+            </ul>
+        </div>
+        
+        <!-- 顯示結果訊息 -->
+        <div th:if="${message}" th:class="${success} ? 'alert alert-success' : 'alert alert-error'">
+            <strong th:text="${success} ? '✅ 成功' : '❌ 失敗'"></strong>
+            <span th:text="${message}"></span>
+            <div th:if="${tempPassword}" class="temp-password">
+                測試用臨時密碼: <span th:text="${tempPassword}"></span>
+            </div>
+        </div>
+        
+        <!-- 測試忘記密碼郵件 -->
+        <div class="test-section">
+            <h2>🔑 測試忘記密碼郵件</h2>
+            <form th:action="@{/test/mail/forgot-password}" method="post">
+                <div class="form-group">
+                    <label for="email1">收件人郵箱:</label>
+                    <input type="email" id="email1" name="email" 
+                           th:value="${defaultEmail}" required>
+                </div>
+                <div class="form-group">
+                    <label for="employeeName">員工姓名:</label>
+                    <input type="text" id="employeeName" name="employeeName" 
+                           value="測試員工" required>
+                </div>
+                <div class="form-group">
+                    <label for="employeeAccount">員工帳號:</label>
+                    <input type="text" id="employeeAccount" name="employeeAccount" 
+                           value="testuser" required>
+                </div>
+                <button type="submit">發送忘記密碼郵件</button>
+            </form>
+        </div>
+        
+        <!-- 測試簡單文字郵件 -->
+        <div class="test-section">
+            <h2>📝 測試簡單文字郵件</h2>
+            <form th:action="@{/test/mail/simple}" method="post">
+                <div class="form-group">
+                    <label for="email2">收件人郵箱:</label>
+                    <input type="email" id="email2" name="email" 
+                           th:value="${defaultEmail}" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">郵件主旨:</label>
+                    <input type="text" id="subject" name="subject" 
+                           value="測試郵件 - 早餐店管理系統" required>
+                </div>
+                <div class="form-group">
+                    <label for="content">郵件內容:</label>
+                    <textarea id="content" name="content" required>這是一封測試郵件，用來確認郵件服務是否正常運作。
+
+如果您收到這封郵件，表示郵件服務設定正確。
+
+測試時間: [[${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd HH:mm:ss')}]]</textarea>
+                </div>
+                <button type="submit">發送簡單文字郵件</button>
+            </form>
+        </div>
+        
+        <!-- 系統信息 -->
+        <div class="test-section">
+            <h2>📊 系統信息</h2>
+            <p><strong>當前時間:</strong> <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd HH:mm:ss')}"></span></p>
+            <p><strong>測試目標:</strong> young19960127@gmail.com</p>
+            <p><strong>寄件者:</strong> ixlogic.wu@gmail.com</p>
+        </div>
+    </div>
+</body>
+</html>

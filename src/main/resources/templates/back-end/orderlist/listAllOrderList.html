@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>所有訂單資料</title>
+
+<link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}"/>
+<link rel="stylesheet" type="text/css" th:href="@{/css/orderlist/order-list-styles.css}">
+<link rel="stylesheet" type="text/css" th:href="@{/css/error.css}"/>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.jqueryui.min.css" />
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#orderTable').DataTable({
+            "lengthMenu": [5, 10, 20, 50],
+            "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.5/i18n/zh-HANT.json" }
+        });
+    });
+</script>
+<style> body { padding: 80px 2rem 2rem 2rem; } </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-md navbar-dark main-navbar fixed-top justify-content-center">
+    <div align="center">
+        <h2>所有訂單資料<a class="navbar-brand" th:href="@{/orderlist/select_page_OrderList}"><img th:src="@{/images/back1.gif}">回查詢頁<label th:text="${success}"></label></a></h2>
+    </div>
+</nav>
+
+<table id="orderTable" class="display" style="width: 100%">
+    <thead>
+        <tr style="background-color:#CCCCFF">
+            <th>計數</th>
+            <th>訂單編號</th>
+            <th>會員ID</th>
+            <th>門市ID</th>
+            <th>總金額</th>
+            <th>訂單狀態</th>
+            <th>取餐號</th>
+            <th>訂單日期</th>
+            <th>修改訂單</th>
+            <th>取消訂單</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="orderListVO, iterStat : ${orderListData}">
+            <td th:text="${iterStat.count}"></td>
+            <td th:text="${orderListVO.orderListId}"></td>
+            <td th:text="${orderListVO.member?.memberId}"></td>
+            <td th:text="${orderListVO.store?.storeId}"></td>
+            <td th:text="${orderListVO.orderAmount}"></td>
+            <td th:text="${orderListVO.orderStatus.name()}"></td>
+            <td th:text="${orderListVO.mealPickupNumber}"></td>
+            <td th:text="${#temporals.format(orderListVO.orderDate, 'yyyy-MM-dd HH:mm')}"></td>
+            <td>
+                <form method="post" th:action="@{/orderlist/getOne_For_Update}" style="margin-bottom: 0;">
+                    <input type="submit" value="修改" class="btn btn-sm btn-warning">
+                    <input type="hidden" name="orderListId" th:value="${orderListVO.orderListId}">
+                </form>
+            </td>
+            <td>
+                <form method="post" th:action="@{/orderlist/delete}" style="margin-bottom: 0;">
+                    <input type="submit" value="取消" class="btn btn-sm btn-danger">
+                    <input type="hidden" name="orderListId" th:value="${orderListVO.orderListId}">
+                </form>
+            </td>
+        </tr>
+    </tbody>
+</table>
+</body>
+</html>

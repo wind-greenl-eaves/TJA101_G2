@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-Hant">
+<!--頁面送出回饋後，跳轉到感謝回饋頁面  -->
+<head>
+    <meta charset="UTF-8">
+    <title>感謝您的回饋</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+</head>
+<body>
+<div class="container mt-5 text-center">
+    <h2 class="mb-4 text-success">感謝您的寶貴回饋！</h2>
+    <p>我們已收到您的意見，我們會持續努力改進服務品質。</p>
+    <a class="btn btn-primary mt-3" th:href="@{/}">返回首頁</a>
+</div>
+</body>
+</html>

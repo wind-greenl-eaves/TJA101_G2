@@ -1,0 +1,92 @@
+/* =======================================================================================
+ * 檔案: order-list-styles.css (修正版)
+ * ======================================================================================= */
+
+/* ===== 1. 全域變數與基本重置 ===== */
+:root {
+    --bg-color: #FDFBF6;
+    --container-bg: #F5EFE6;
+    --primary-color: #A67B5B;
+    --primary-hover: #8C684A;
+    --text-color: #5D534A;
+    --border-color: #DED0B6;
+    --table-header-bg: #EFEBE2;
+    --status-pending-bg: rgba(108, 117, 125, 0.1);
+    --status-pending-text: #6c757d;
+    --status-preparing-bg: rgba(0, 123, 255, 0.1);
+    --status-preparing-text: #007bff;
+    --status-completed-bg: rgba(40, 167, 69, 0.1);
+    --status-completed-text: #28a745;
+    --status-cancelled-bg: rgba(220, 53, 69, 0.1);
+    --status-cancelled-text: #dc3545;
+    --border-radius-sm: 0.25rem;
+    --border-radius-md: 0.5rem;
+    --box-shadow-light: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --transition-fast: all 0.2s ease-in-out;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    padding-top: 150px; /* 這個設定現在可以正確生效了 */
+    font-family: 'Noto Sans TC', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}	
+
+/* ===== 2. 佈局樣式 (Layout) ===== */
+.container {
+    max-width: 95%; 
+    margin: auto; 
+} /* 【關鍵修正】這裡補上缺少的右大括號 */
+
+.section-card {
+    padding: 1.5rem; 
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    background-color: #fff;
+    margin-bottom: 2rem;
+    box-shadow: var(--box-shadow-light);
+}
+
+.section-card h4 {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem;
+    margin-top: 0;
+}
+
+
+/* ===== 3. 元件樣式 (Components) ===== */
+
+/* --- 主導覽列 (Navbar) 專屬樣式 --- */
+.main-navbar {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.main-navbar h2,
+.main-navbar h3 {
+    color: white;
+    margin: 0.25rem 0;
+}
+.main-navbar .navbar-brand {
+    color: #f0f0f0;
+    transition: color 0.2s;
+}
+.main-navbar .navbar-brand:hover {
+    color: white;
+    text-decoration: none;
+}
+
+.main-navbar .navbar-brand img {
+   height: 30px; /* 您可以根據需要調整這個數值 */
+   vertical-align: middle; /* 讓圖片與旁邊的文字垂直對齊 */
+   margin-right: 5px; /* 可以增加圖片與文字之間的小間距 */
+}
+table thead tr {
+    background-color: var(--table-header-bg); /* 使用我們定義好的標頭背景色 */
+    color: var(--text-color);
+}

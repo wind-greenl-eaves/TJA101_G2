@@ -1,0 +1,174 @@
+<!-- =======================================================================================
+     檔案: addEmployee.html (後端驗證版)
+     說明: 核心修改 -> 已移除所有 HTML5 前端驗證屬性 (如 required, pattern)。
+           現在所有驗證將完全依賴後端 Spring Boot 的 @Valid 註解。
+     ======================================================================================= -->
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新增員工資料</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="stylesheet" th:href="@{/css/employee/form-styles.css}">
+</head>
+<body class="antialiased">
+
+<div class="form-wrapper">
+    <header class="form-header">
+        <div class="flex items-center gap-4">
+            <img th:src="@{/images/123.png}" alt="Icon" class="w-10 h-10 mr-2">
+            <div>
+                <h1 class="text-xl font-bold">新增員工資料</h1>
+                <p class="text-sm text-gray-500">請填寫所有必填欄位</p>
+            </div>
+        </div>
+        <a th:href="@{/employee/listAll}" class="cancel-button">
+            <i class="fas fa-list-ul mr-2"></i>返回列表
+        </a>
+    </header>
+
+    <div id="message-container" class="hidden p-4 mx-8 mt-6 text-sm rounded-lg" role="alert"></div>
+    
+    <form id="add-form"
+          th:action="@{/api/v1/employees}"
+          class="p-8 space-y-6">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+            <!-- 員工姓名 -->
+            <div>
+                <label for="username" class="form-label">員工姓名</label>
+                <!-- 【修正】: 移除 required, minlength, maxlength, title -->
+                <input type="text" id="username" name="username" class="form-input" placeholder="例如: 王大明" />
+                <div id="error-username" class="error-message"></div>
+            </div>
+            <!-- 登入帳號 -->
+            <div>
+                <label for="account" class="form-label">登入帳號</label>
+                <!-- 【修正】: 移除 required, maxlength, pattern, title -->
+                <input type="text" id="account" name="account" class="form-input" placeholder="限英數、底線、點、連字號" />
+                <div id="error-account" class="error-message"></div>
+            </div>
+            <!-- 電子郵件 -->
+            <div class="sm:col-span-2">
+                <label for="email" class="form-label">電子郵件</label>
+                <!-- 【修正】: 移除 required, title -->
+                <input type="email" id="email" name="email" class="form-input" placeholder="例如: david.wang@example.com" />
+                <div id="error-email" class="error-message"></div>
+            </div>
+            <!-- 聯絡電話 -->
+            <div class="sm:col-span-2">
+                <label for="phone" class="form-label">聯絡電話</label>
+                <!-- 【修正】: 移除 required, pattern, title -->
+                <input type="tel" id="phone" name="phone" class="form-input" placeholder="例如: 0912-345-678" />
+                <div id="error-phone" class="error-message"></div>
+            </div>
+             <!-- 身分證字號 -->
+            <div>
+                <label for="nationalId" class="form-label">身分證字號</label>
+                <!-- 【修正】: 移除 required, pattern, title -->
+                <input type="text" id="nationalId" name="nationalId" class="form-input" placeholder="例如: A123456789" />
+                <div id="error-nationalId" class="error-message"></div>
+            </div>
+             <!-- 密碼 -->
+            <div class="password-wrapper">
+                <label for="password" class="form-label">登入密碼</label>
+                <!-- 【修正】: 移除 required, pattern, title -->
+                <input type="password" id="password" name="password" class="form-input" placeholder="至少8碼，英數混合" />
+                <i class="fas fa-eye password-toggle-icon" id="password-toggle"></i>
+                <div id="error-password" class="error-message"></div>
+            </div>
+            <!-- 員工角色 -->
+            <div>
+                <label for="role" class="form-label">員工角色</label>
+                <!-- 【修正】: 移除 required -->
+                <select id="role" name="role" class="form-input">
+                     <option value="" disabled selected>-- 請選擇角色 --</option>
+                    <option th:each="roleOpt : ${T(com.eatfast.common.enums.EmployeeRole).values()}"
+                            th:value="${roleOpt}"
+                            th:text="${roleOpt.displayName}"></option>
+                </select>
+                <div id="error-role" class="error-message"></div>
+            </div>
+            <!-- 員工性別 -->
+            <div>
+                <label for="gender" class="form-label">員工性別</label>
+                 <!-- 【修正】: 移除 required -->
+                <select id="gender" name="gender" class="form-input">
+                    <option value="" disabled selected>-- 請選擇性別 --</option>
+                    <option th:each="genderOpt : ${T(com.eatfast.common.enums.Gender).values()}"
+                            th:value="${genderOpt}"
+                            th:text="${genderOpt.name()}"></option>
+                </select>
+                <div id="error-gender" class="error-message"></div>
+            </div>
+            <!-- 所屬門市 -->
+            <div class="sm:col-span-2">
+                <label for="storeId" class="form-label">所屬門市</label>
+                <!-- 【修正】: 移除 required -->
+                <select id="storeId" name="storeId" class="form-input">
+                    <option value="" disabled selected>-- 請選擇門市 --</option>
+                    <option th:each="store : ${storeList}"
+                            th:value="${store.storeId}"
+                            th:text="${store.storeName}"></option>
+                </select>
+                <div id="error-storeId" class="error-message"></div>
+            </div>
+        </div>
+
+        <!-- 員工照片上傳 -->
+        <div class="mt-8 border-t border-[var(--border-color)] pt-8">
+            <label for="photo" class="form-label block mb-4">員工照片</label>
+            <div class="mt-2 flex justify-center rounded-lg border border-dashed border-[var(--border-color)] px-6 py-10 transition-colors hover:border-[var(--primary-color)]" id="drop-zone">
+                <div class="text-center">
+                    <img id="preview-image" class="mx-auto h-32 w-32 object-cover rounded-full hidden mb-4">
+                    <div id="upload-placeholder" class="flex flex-col items-center">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                        <div class="flex text-sm leading-6 text-gray-600">
+                            <label for="photo" class="relative cursor-pointer rounded-md font-semibold text-[var(--primary-color)] hover:text-[var(--primary-hover)] focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary-color)] focus-within:ring-offset-2">
+                                <span>上傳照片</span>
+                                <input id="photo" name="photo" type="file" class="sr-only" accept="image/*">
+                            </label>
+                            <p class="pl-1">或將檔案拖曳至此處</p>
+                        </div>
+                        <p class="text-xs leading-5 text-gray-600 mt-1">PNG, JPG, JPEG 最大 5MB</p>
+                    </div>
+                </div>
+            </div>
+            <div id="error-photo" class="error-message mt-2"></div>
+        </div>
+
+        <div class="flex items-center justify-end pt-6 border-t border-[var(--border-color)]">
+            <button type="submit" class="submit-button">
+                <i class="fas fa-plus mr-2"></i>確認新增
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- 成功提示 Modal (維持不變) -->
+<div id="success-modal" class="fixed inset-0 z-50 hidden">
+    <div class="fixed inset-0 bg-black bg-opacity-50"></div>
+    <div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 shadow-xl w-96">
+        <div class="text-center">
+            <div class="w-16 h-16 rounded-full bg-green-100 p-2 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-3xl text-green-500"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-4" id="success-modal-message"></h3>
+            <button id="success-modal-confirm" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
+                返回列表
+            </button>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/employee/add.js}"></script>
+
+</body>
+</html>

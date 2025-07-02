@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div align="center" th:fragment="listOneOrderList-div">
+    <h3><span>查詢結果 :</span></h3>
+    <span>訂單編號:</span><span th:text="${orderListVO.orderListId}"></span><br/>
+    <span>會員ID:</span><span th:text="${orderListVO.member?.memberId} + ' - ' + ${orderListVO.member?.username}"></span><br/>
+    <span>門市ID:</span><span th:text="${orderListVO.store?.storeId} + ' - ' + ${orderListVO.store?.storeName}"></span><br/>
+    <span>總金額:</span><span th:text="${orderListVO.orderAmount}"></span><br/>
+    <span>訂單狀態:</span><span th:text="${orderListVO.orderStatus.name()}"></span><br/>
+    <span>取餐號:</span><span th:text="${orderListVO.mealPickupNumber}"></span><br/>
+    <span>訂單日期:</span><span th:text="${#temporals.format(orderListVO.orderDate, 'yyyy-MM-dd HH:mm:ss')}"></span><br/>
+</div>
+</body>
+</html>

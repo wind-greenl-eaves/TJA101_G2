@@ -1,0 +1,217 @@
+<!-- =======================================================================================
+     檔案: listAllEmployees.html (已重構)
+     路徑: resources/templates/back-end/employee/listAllEmployees.html
+     說明: 這是重構後的 HTML 檔案。
+           【本次修改】: 在最下方新增了一個用於顯示角色權限的 Modal (#permission-modal)。
+     ======================================================================================= -->
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>所有員工資料</title>
+    
+    <!-- 外部函式庫 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- 引入外部自定義的 CSS 檔案 -->
+    <link rel="stylesheet" th:href="@{/css/employee/list-styles.css}">
+</head>
+<body class="antialiased">
+
+<div class="container mx-auto my-8 px-4">
+    <!-- 頂部標題與按鈕 -->
+    <header class="flex justify-between items-center p-4 bg-[var(--container-bg)] border border-[var(--border-color)] rounded-xl shadow-sm mb-4">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center">
+                <img th:src="@{/images/123.png}" alt="Icon" class="w-8 h-8 mr-2">
+                <h3 class="text-xl font-bold">所有員工資料列表</h3>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <a th:href="@{/employee/add}" class="bg-[var(--primary-color)] text-white font-semibold py-2 px-5 rounded-lg hover:bg-[var(--primary-hover)] transition-colors">新增員工</a>
+            <a th:href="@{/employee/select_page}" class="bg-gray-200 text-[var(--text-color)] font-semibold py-2 px-5 rounded-lg hover:bg-gray-300 transition-colors">返回查詢</a>
+        </div>
+    </header>
+
+    <!-- 主要內容區域 -->
+    <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
+        <!-- 左側查詢區塊 -->
+        <div class="bg-white rounded-lg shadow-md p-4">
+            <h3 class="text-lg font-semibold mb-4 text-[var(--primary-color)]">複合查詢</h3>
+            <form id="search-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">員工編號</label>
+                    <input type="number"
+                           id="search-id"
+                           min="1"
+                           step="1"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value < 1) this.value = '';"
+                           class="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg focus:outline-none focus:border-[var(--primary-color)]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">姓名</label>
+                    <input type="text" id="search-name" class="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg focus:outline-none focus:border-[var(--primary-color)]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">門市編號</label>
+                    <select id="search-store" class="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg focus:outline-none focus:border-[var(--primary-color)]">
+                        <option value="">全部</option>
+                        <option value="1">門市 1</option>
+                        <option value="2">門市 2</option>
+                        <option value="3">總部</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">角色</label>
+                    <select id="search-role" class="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg focus:outline-none focus:border-[var(--primary-color)]">
+                        <option value="">全部</option>
+                        <option value="STAFF">一般員工</option>
+                        <option value="MANAGER">門市經理</option>
+                        <option value="HEADQUARTERS_ADMIN">總部管理員</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">狀態</label>
+                    <select id="search-status" class="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg focus:outline-none focus:border-[var(--primary-color)]">
+                        <option value="">全部</option>
+                        <option value="ACTIVE">啟用</option>
+                        <option value="INACTIVE">停用</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="flex-1 bg-[var(--primary-color)] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[var(--primary-hover)] transition-colors">
+                        <i class="fas fa-search mr-1"></i>搜尋
+                    </button>
+                    <button type="reset" class="flex-1 bg-gray-200 text-[var(--text-color)] font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
+                        <i class="fas fa-undo mr-1"></i>重置
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 右側資料顯示區域 -->
+        <div class="space-y-4">
+            <div id="message-toast" class="hidden fixed top-5 right-5 bg-green-500 text-white py-3 px-6 rounded-lg shadow-lg transition-opacity duration-300"></div>
+            <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+                <table class="w-full text-center text-sm">  <!-- 調整表格文字大小 -->
+                    <thead class="bg-[var(--table-header-bg)] font-medium">
+                        <tr>
+                            <th class="p-2">員工編號</th>
+                            <th class="p-2">門市編號</th>
+                            <th class="p-2">照片</th>
+                            <th class="p-2">姓名</th>
+                            <th class="p-2">帳號</th>
+                            <th class="p-2">角色</th>
+                            <th class="p-2">狀態</th>
+                            <th class="p-2">Email</th>
+                            <th class="p-2">修改</th>
+                            <th class="p-2">刪除</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employee-table-body">
+                        <!-- JS 動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-3">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="text-sm text-gray-600">
+                        顯示第 <span id="display-range" class="font-medium text-[var(--primary-color)]"></span> 筆，
+                        共 <span id="total-count" class="font-medium text-[var(--primary-color)]"></span> 筆資料
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="rows-per-page" class="text-sm">每頁顯示：</label>
+                        <select id="rows-per-page" class="px-2 py-0.5 border border-[var(--border-color)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary-color)]">
+                            <option value="3">3</option>
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="pagination-container" class="flex justify-center items-center gap-0.5">
+                    <!-- 分頁按鈕將由 JS 動態生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 員工詳細資訊 Modal -->
+<div id="employee-detail-modal" class="modal-backdrop">
+    <div class="modal-content p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-[var(--primary-color)]">員工詳細資訊</h2>
+        </div>
+        <div class="info-container">
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-[var(--primary-color)]">基本資料</h3>
+                    <div class="space-y-3">
+                        <p><span class="font-medium">員工編號：</span><span id="modal-employee-id"></span></p>
+                        <p><span class="font-medium">姓名：</span><span id="modal-username"></span></p>
+                        <p><span class="font-medium">性別：</span><span id="modal-gender"></span></p>
+                        <p><span class="font-medium">身分證字號：</span><span id="modal-national-id"></span></p>
+                        <p><span class="font-medium">建立時間：</span><span id="modal-create-time"></span></p>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-[var(--primary-color)]">聯絡資訊</h3>
+                    <div class="space-y-3">
+                        <p><span class="font-medium">電子郵件：</span><span id="modal-email"></span></p>
+                        <p><span class="font-medium">聯絡電話：</span><span id="modal-phone"></span></p>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-[var(--primary-color)]">系統資訊</h3>
+                    <div class="space-y-3">
+                        <p><span class="font-medium">登入帳號：</span><span id="modal-account"></span></p>
+                        <p><span class="font-medium">密碼：</span><span id="modal-password" class="text-red-600"></span></p>
+                        <p><span class="font-medium">員工角色：</span><span id="modal-role"></span></p>
+                        <p><span class="font-medium">帳號狀態：</span><span id="modal-status"></span></p>
+                        <p><span class="font-medium">所屬門市：</span><span id="modal-store"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="photo-container">
+                <img id="modal-employee-photo" th:src="@{/images/no_image.png}" alt="員工照片" class="employee-photo">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 照片預覽 Modal -->
+<div id="photo-preview-modal" class="modal-backdrop">
+    <div class="relative bg-white rounded-lg shadow-xl max-w-2xl mx-auto">
+        <button id="close-preview" class="absolute right-2 top-2 text-gray-500 hover:text-gray-700 z-10">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+        <img id="preview-image" src="" alt="" class="w-full h-full object-contain rounded-lg">
+    </div>
+</div>
+
+<!-- 【新增】角色權限 Modal -->
+<div id="permission-modal" class="modal-backdrop">
+    <div class="modal-content p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="permission-modal-title" class="text-xl font-bold text-[var(--primary-color)]">角色權限</h2>
+            <button id="close-permission-modal" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <ul id="permission-list" class="space-y-3">
+            <!-- JS 動態生成權限列表 -->
+        </ul>
+    </div>
+</div>
+
+
+<!-- 引入外部自定義的 JavaScript 檔案 -->
+<script th:src="@{/js/employee/listAll.js}"></script>
+
+</body>
+</html>
