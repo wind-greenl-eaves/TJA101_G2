@@ -25,7 +25,7 @@ public interface StoreMealStatusRepository extends JpaRepository<StoreMealStatus
      * @param mealId  餐點的 ID
      * @return Optional 包裝的 StoreMealStatusEntity 物件，用於優雅地處理可能找不到結果的情況
      */
-    Optional<StoreMealStatusEntity> findByStore_StoreIdAndMeal_MealId(Long storeId, Long mealId);
+    Optional<StoreMealStatusEntity> findByStore_StoreIdAndMealId(Long storeId, Long mealId);
 
     /**
      * 查找某個特定門市所有的餐點供應狀態。
@@ -39,5 +39,5 @@ public interface StoreMealStatusRepository extends JpaRepository<StoreMealStatus
      * @param mealId 餐點的 ID
      * @return 該餐點在所有門市狀態的列表
      */
-    List<StoreMealStatusEntity> findByMeal_MealId(Long mealId);
+    List<StoreMealStatusEntity> findByMealId(Long mealId);
 }
