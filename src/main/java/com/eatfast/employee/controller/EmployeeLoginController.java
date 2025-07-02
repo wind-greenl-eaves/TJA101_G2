@@ -52,6 +52,15 @@ public class EmployeeLoginController {
             // 即使獲取員工列表失敗，也不影響登入頁面的顯示
         }
         
+        // 獲取所有已停權員工列表，用於管理員小幫手
+        try {
+            List<EmployeeDTO> inactiveEmployees = employeeService.findAllInactiveEmployees();
+            model.addAttribute("inactiveEmployeeList", inactiveEmployees);
+        } catch (Exception e) {
+            log.warn("無法獲取已停權員工列表: {}", e.getMessage());
+            // 即使獲取已停權員工列表失敗，也不影響登入頁面的顯示
+        }
+        
         return "back-end/employee/login";
     }
 
@@ -75,6 +84,15 @@ public class EmployeeLoginController {
             } catch (Exception e) {
                 log.warn("無法獲取員工列表: {}", e.getMessage());
             }
+            
+            // 重新添加已停權員工列表
+            try {
+                List<EmployeeDTO> inactiveEmployees = employeeService.findAllInactiveEmployees();
+                model.addAttribute("inactiveEmployeeList", inactiveEmployees);
+            } catch (Exception e) {
+                log.warn("無法獲取已停權員工列表: {}", e.getMessage());
+            }
+            
             return "back-end/employee/login";
         }
 
@@ -124,6 +142,14 @@ public class EmployeeLoginController {
             model.addAttribute("employeeList", activeEmployees);
         } catch (Exception e) {
             log.warn("無法獲取員工列表: {}", e.getMessage());
+        }
+        
+        // 重新添加已停權員工列表
+        try {
+            List<EmployeeDTO> inactiveEmployees = employeeService.findAllInactiveEmployees();
+            model.addAttribute("inactiveEmployeeList", inactiveEmployees);
+        } catch (Exception e) {
+            log.warn("無法獲取已停權員工列表: {}", e.getMessage());
         }
         
         return "back-end/employee/login";

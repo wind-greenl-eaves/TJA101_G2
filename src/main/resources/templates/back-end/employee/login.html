@@ -252,6 +252,25 @@
             width: 80px;
         }
 
+        /* 已停權員工樣式 */
+        .inactive-employees {
+            border-top: 2px solid #D9534F;
+            margin-top: 30px;
+            padding-top: 15px;
+        }
+        
+        .inactive-employees h3 {
+            color: #D9534F;
+        }
+        
+        .inactive-employees .info-list {
+            max-height: 300px;
+        }
+        
+        .inactive-item {
+            opacity: 0.7;
+        }
+
         /* 響應式設計 */
         @media (max-width: 850px) {
             .page-wrapper {
@@ -399,7 +418,7 @@
                         </p>
                         <p>
                             <span class="label">角色職位:</span> 
-                            <span th:text="${emp.role}"></span>
+                            <span th:text="${emp.role.displayName}"></span>
                         </p>
                         <p>
                             <span class="label">帳號狀態:</span> 
@@ -408,6 +427,41 @@
                         <p>
                             <span class="label">員工密碼:</span> 
                             <span th:text="${emp.password}" style="font-family: monospace; color: #666;"></span>
+                        </p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- 已停權員工區塊 -->
+        <div class="admin-helper inactive-employees" th:if="${inactiveEmployeeList != null and !inactiveEmployeeList.isEmpty()}">
+            <h3>已停權員工列表</h3>
+            <ul class="info-list">
+                <li th:each="emp : ${inactiveEmployeeList}" class="employee-item inactive-item">
+                    <div class="employee-main-info">
+                        <span class="info-name" th:text="${emp.username}"></span>
+                        <span class="info-account" th:text="${emp.account}"></span>
+                    </div>
+                    <div class="employee-details">
+                        <p>
+                            <span class="label">所屬分店:</span> 
+                            <span th:text="${emp.storeName != null ? emp.storeName : '門市ID ' + emp.storeId}"></span>
+                        </p>
+                        <p>
+                            <span class="label">角色職位:</span> 
+                            <span th:text="${emp.role.displayName}"></span>
+                        </p>
+                        <p>
+                            <span class="label">帳號狀態:</span> 
+                            <span th:text="${emp.status}" style="color: #D9534F; font-weight: bold;"></span>
+                        </p>
+                        <p>
+                            <span class="label">員工密碼:</span> 
+                            <span th:text="${emp.password}" style="font-family: monospace; color: #666;"></span>
+                        </p>
+                        <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            此帳號已停權，無法登入系統
                         </p>
                     </div>
                 </li>
