@@ -26,7 +26,7 @@ import java.util.Objects;
     }
 )
 public class StoreMealStatusEntity {
- 
+  
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "sms_id")
