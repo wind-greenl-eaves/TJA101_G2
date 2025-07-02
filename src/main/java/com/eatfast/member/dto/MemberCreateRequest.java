@@ -1,6 +1,7 @@
 package com.eatfast.member.dto;
 
 import com.eatfast.common.enums.Gender;
+import com.eatfast.member.validation.CreateValidation;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 
@@ -32,52 +33,52 @@ public class MemberCreateRequest {
 	 * 會員姓名。 - @NotBlank: 不可變動的 Validation 關鍵字，驗證字串不能是 null 或只包含空白字元。 - @Size: 不可變動的
 	 * Validation 關鍵字，限制字串的長度範圍。 - message: 可自定義的錯誤訊息，當驗證失敗時，會回傳給前端。
 	 */
-	@NotBlank(message = "會員姓名：請勿空白")
-	@Size(min = 2, max = 20, message = "會員姓名：長度必須介於 2 到 20 個字元之間")
+	@NotBlank(message = "會員姓名：請勿空白", groups = CreateValidation.class)
+	@Size(min = 2, max = 20, message = "會員姓名：長度必須介於 2 到 20 個字元之間", groups = CreateValidation.class)
 	private String username;
 
 	/**
 	 * 登入帳號。 - @Pattern: 不可變動的 Validation 關鍵字，使用正規表示式進行格式驗證。
 	 */
-	@NotBlank(message = "登入帳號：請勿空白")
-	@Size(min = 4, max = 50, message = "登入帳號：長度必須介於 4 到 50 個字元之間")
-	@Pattern(regexp = "^[a-zA-Z0-9_.]+$", message = "登入帳號：僅能包含英數字、底線及小數點")
+	@NotBlank(message = "登入帳號：請勿空白", groups = CreateValidation.class)
+	@Size(min = 4, max = 50, message = "登入帳號：長度必須介於 4 到 50 個字元之間", groups = CreateValidation.class)
+	@Pattern(regexp = "^[a-zA-Z0-9_.]+$", message = "登入帳號：僅能包含英數字、底線及小數點", groups = CreateValidation.class)
 	private String account;
 
 	/**
 	 * 登入密碼。 註：此處僅驗證格式，加密邏輯應在 Service 層處理。
 	 */
-	@NotBlank(message = "登入密碼：請勿空白")
-	@Size(min = 8, max = 100, message = "登入密碼：長度建議介於 8 到 100 個字元之間")
+	@NotBlank(message = "登入密碼：請勿空白", groups = CreateValidation.class)
+	@Size(min = 8, max = 100, message = "登入密碼：長度建議介於 8 到 100 個字元之間", groups = CreateValidation.class)
 	private String password;
 
 	/**
 	 * 電子郵件。 - @Email: 不可變動的 Validation 關鍵字，驗證字串是否為有效的 Email 格式。
 	 */
-	@NotBlank(message = "電子郵件：請勿空白")
-	@Email(message = "電子郵件：請填寫有效的格式")
-	@Size(max = 100, message = "電子郵件：長度不可超過 100 個字元")
+	@NotBlank(message = "電子郵件：請勿空白", groups = CreateValidation.class)
+	@Email(message = "電子郵件：請填寫有效的格式", groups = CreateValidation.class)
+	@Size(max = 100, message = "電子郵件：長度不可超過 100 個字元", groups = CreateValidation.class)
 	private String email;
 
 	/**
 	 * 連絡電話。
 	 */
-	@NotBlank(message = "連絡電話：請勿空白")
-	@Pattern(regexp = "^09\\d{2}-?\\d{3}-?\\d{3}$", message = "連絡電話：請填寫有效的台灣手機號碼格式 (例如 0912-345-678)")
+	@NotBlank(message = "連絡電話：請勿空白", groups = CreateValidation.class)
+	@Pattern(regexp = "^09\\d{2}-?\\d{3}-?\\d{3}$", message = "連絡電話：請填寫有效的台灣手機號碼格式 (例如 0912-345-678)", groups = CreateValidation.class)
 	private String phone;
 
 	/**
 	 * 會員生日。 - @NotNull: 不可變動的 Validation 關鍵字，驗證物件不能是 null。 - @Past: 不可變動的
 	 * Validation 關鍵字，驗證日期必須是過去的時間。
 	 */
-	@NotNull(message = "會員生日：請勿空白")
-	@Past(message = "會員生日：必須為過去的日期")
+	@NotNull(message = "會員生日：請勿空白", groups = CreateValidation.class)
+	@Past(message = "會員生日：必須為過去的日期", groups = CreateValidation.class)
 	private LocalDate birthday;
 
 	/**
 	 * 性別。 使用 Enum 型別是確保資料正確性的最佳方式。
 	 */
-	@NotNull(message = "性別：請勿空白")
+	@NotNull(message = "性別：請勿空白", groups = CreateValidation.class)
 	private Gender gender;
 
 	// ================================================================

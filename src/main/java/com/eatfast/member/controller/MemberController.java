@@ -14,9 +14,11 @@ import com.eatfast.member.dto.PasswordUpdateRequest;
 // 【路徑】引入 Model, Service, 常數與驗證介面，建立 Controller -> Service -> Model 的標準呼叫鏈。
 import com.eatfast.member.model.MemberEntity;
 import com.eatfast.member.service.MemberService;
+import com.eatfast.member.validation.CreateValidation;
 import com.eatfast.member.validation.UpdateValidation;
 // (既有 import)
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +67,7 @@ public class MemberController {
      * 【請求路徑】: 處理 POST /member/insert 請求。
      */
     @PostMapping("/insert")
-    public String insert(@Validated @ModelAttribute("memberCreateRequest") MemberCreateRequest createRequest,
+    public String insert(@Validated(CreateValidation.class) @ModelAttribute("memberCreateRequest") MemberCreateRequest createRequest,
                          BindingResult result,
                          RedirectAttributes redirectAttributes) {
 
@@ -267,5 +269,103 @@ public class MemberController {
     @GetMapping("/getOne_For_Update_view")
     public String showUpdateFormAfterRedirect(@RequestParam("memberId") Long memberId, Model model, RedirectAttributes redirectAttributes) {
         return showUpdateForm(memberId, model, redirectAttributes);
+    }
+    
+    /**
+     * 【前端會員專區路由】會員專區主頁面
+     */
+    @GetMapping("/dashboard")
+    public String showMemberDashboard(Model model, HttpSession session) {
+        // 假設您有會員登入的session管理
+        // MemberEntity member = getCurrentMemberFromSession(session);
+        // model.addAttribute("member", member);
+        return "front-end/member/member-dashboard";
+    }
+    
+    /**
+     * 【前端會員專區路由】個人資料頁面
+     */
+    @GetMapping("/profile")
+    public String showMemberProfile(Model model, HttpSession session) {
+        // 獲取當前登入會員並準備更新表單
+        // MemberEntity member = getCurrentMemberFromSession(session);
+        // if (member != null) {
+        //     MemberUpdateRequest updateRequest = new MemberUpdateRequest();
+        //     // 設定現有資料到表單...
+        //     model.addAttribute("memberUpdateRequest", updateRequest);
+        //     model.addAttribute("member", member);
+        // }
+        return "front-end/member/member-profile";
+    }
+    
+    /**
+     * 【前端會員專區路由】個人資料更新處理
+     */
+    @PostMapping("/profile/update")
+    public String updateMemberProfile(@Validated(UpdateValidation.class) @ModelAttribute("memberUpdateRequest") MemberUpdateRequest updateRequest,
+                                    BindingResult result,
+                                    RedirectAttributes redirectAttributes,
+                                    Model model) {
+        if (result.hasErrors()) {
+            // 重新準備頁面資料
+            return "front-end/member/member-profile";
+        }
+        
+        try {
+            memberService.updateMemberDetails(updateRequest);
+            redirectAttributes.addFlashAttribute("successMessage", "個人資料更新成功！");
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "更新失敗：" + e.getMessage());
+        }
+        
+        return "redirect:/member/profile";
+    }
+    
+    /**
+     * 【前端會員專區路由】密碼變更頁面
+     */
+    @GetMapping("/change-password") 
+    public String showChangePasswordPage(Model model, HttpSession session) {
+        // 獲取當前會員ID並準備密碼更新表單
+        // Long memberId = getCurrentMemberIdFromSession(session);
+        // PasswordUpdateRequest passwordRequest = new PasswordUpdateRequest();
+        // passwordRequest.setMemberId(memberId);
+        // model.addAttribute("passwordUpdateRequest", passwordRequest);
+        return "front-end/member/change-password";
+    }
+    
+    /**
+     * 【前端會員專區路由】訂單記錄頁面
+     */
+    @GetMapping("/orders")
+    public String showMemberOrders(Model model, HttpSession session,
+                                 @RequestParam(required = false) String status,
+                                 @RequestParam(required = false) String startDate,
+                                 @RequestParam(required = false) String endDate) {
+        // 獲取當前會員的訂單列表
+        // List<OrderListEntity> orders = orderService.getMemberOrders(memberId, status, startDate, endDate);
+        // model.addAttribute("orders", orders);
+        return "front-end/member/member-orders";
+    }
+    
+    /**
+     * 【前端會員專區路由】我的收藏頁面
+     */
+    @GetMapping("/favorites")
+    public String showMemberFavorites(Model model, HttpSession session) {
+        // 獲取當前會員的收藏列表
+        // List<FavEntity> favorites = favService.getMemberFavorites(memberId);
+        // model.addAttribute("favorites", favorites);
+        return "front-end/member/member-favorites";
+    }
+    
+    /**
+     * 【前端會員專區路由】帳號設定頁面
+     */
+    @GetMapping("/settings")
+    public String showMemberSettings(Model model, HttpSession session) {
+        // MemberEntity member = getCurrentMemberFromSession(session);
+        // model.addAttribute("member", member);
+        return "front-end/member/member-settings";
     }
 }

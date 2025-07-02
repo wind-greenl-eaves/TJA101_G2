@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訂單記錄 - 早餐店會員系統</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #A67B5B;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+        .navigation-bar {
+            background-color: #A67B5B;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .navigation-bar a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .navigation-bar a:hover, .navigation-bar a.active {
+            background-color: rgba(255,255,255,0.2);
+        }
+        .order-filters {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .filter-group label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .filter-group input, .filter-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .btn {
+            background-color: #A67B5B;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #8B5A3C;
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .order-summary {
+            background-color: #e8f4fd;
+            border: 1px solid #b8daff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            text-align: center;
+        }
+        .summary-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .summary-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #A67B5B;
+        }
+        .summary-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .order-list {
+            margin-top: 20px;
+        }
+        .order-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background-color: white;
+            overflow: hidden;
+        }
+        .order-header {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .order-id {
+            font-weight: bold;
+            color: #A67B5B;
+        }
+        .order-date {
+            color: #666;
+            font-size: 14px;
+        }
+        .order-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-confirmed {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        .status-preparing {
+            background-color: #ffe6cc;
+            color: #cc6600;
+        }
+        .status-ready {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-completed {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .order-body {
+            padding: 20px;
+        }
+        .order-items {
+            margin-bottom: 15px;
+        }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        .item-name {
+            font-weight: bold;
+            color: #333;
+        }
+        .item-details {
+            color: #666;
+            font-size: 14px;
+        }
+        .item-price {
+            font-weight: bold;
+            color: #A67B5B;
+        }
+        .order-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 2px solid #A67B5B;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .total-amount {
+            color: #A67B5B;
+        }
+        .order-actions {
+            margin-top: 15px;
+            text-align: right;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .empty-state img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        @media (max-width: 768px) {
+            .order-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 訂單記錄</h1>
+        
+        <!-- 導航欄 -->
+        <div class="navigation-bar">
+            <a href="/member/dashboard">🏠 首頁</a>
+            <a href="/member/profile">👤 個人資料</a>
+            <a href="/member/orders" class="active">📋 訂單記錄</a>
+            <a href="/member/favorites">❤️ 我的收藏</a>
+            <a href="/member/settings">⚙️ 帳號設定</a>
+            <a href="/logout" onclick="return confirm('確定要登出嗎？')">🚪 登出</a>
+        </div>
+        
+        <!-- 訂單統計摘要 -->
+        <div class="order-summary">
+            <h3 style="margin-top: 0; color: #004085;">📊 訂單統計</h3>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-number" th:text="${orderStats?.totalOrders ?: 0}">0</div>
+                    <div class="summary-label">總訂單數</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number" th:text="${orderStats?.pendingOrders ?: 0}">0</div>
+                    <div class="summary-label">待處理</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number" th:text="${orderStats?.completedOrders ?: 0}">0</div>
+                    <div class="summary-label">已完成</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-number" th:text="${orderStats?.totalAmount ?: 0}">0</div>
+                    <div class="summary-label">總消費金額</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 訂單篩選器 -->
+        <div class="order-filters">
+            <h3 style="margin-top: 0; color: #333;">🔍 訂單篩選</h3>
+            <form method="get" th:action="@{/member/orders}">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="status">訂單狀態：</label>
+                        <select id="status" name="status" th:value="${param.status}">
+                            <option value="">所有狀態</option>
+                            <option value="PENDING" th:selected="${param.status == 'PENDING'}">待處理</option>
+                            <option value="CONFIRMED" th:selected="${param.status == 'CONFIRMED'}">已確認</option>
+                            <option value="PREPARING" th:selected="${param.status == 'PREPARING'}">製作中</option>
+                            <option value="READY" th:selected="${param.status == 'READY'}">待取餐</option>
+                            <option value="COMPLETED" th:selected="${param.status == 'COMPLETED'}">已完成</option>
+                            <option value="CANCELLED" th:selected="${param.status == 'CANCELLED'}">已取消</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="startDate">開始日期：</label>
+                        <input type="date" id="startDate" name="startDate" th:value="${param.startDate}">
+                    </div>
+                    <div class="filter-group">
+                        <label for="endDate">結束日期：</label>
+                        <input type="date" id="endDate" name="endDate" th:value="${param.endDate}">
+                    </div>
+                    <div class="filter-group" style="display: flex; align-items: end;">
+                        <button type="submit" class="btn">🔍 搜尋</button>
+                        <a href="/member/orders" class="btn" style="background-color: #6c757d;">🔄 重置</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- 訂單列表 -->
+        <div class="order-list">
+            <!-- 如果沒有訂單 -->
+            <div th:if="${#lists.isEmpty(orders)}" class="empty-state">
+                <div style="font-size: 48px; margin-bottom: 20px;">📋</div>
+                <h3>尚無訂單記錄</h3>
+                <p>您還沒有任何訂單，趕快去選購美味的早餐吧！</p>
+                <a href="/menu" class="btn">🛒 開始購物</a>
+            </div>
+            
+            <!-- 訂單卡片 -->
+            <div th:each="order : ${orders}" class="order-card">
+                <div class="order-header">
+                    <div>
+                        <span class="order-id" th:text="'訂單編號：' + ${order.orderListId}"></span>
+                        <div class="order-date" th:text="${#temporals.format(order.orderDate, 'yyyy年MM月dd日 HH:mm')}"></div>
+                    </div>
+                    <span class="order-status" 
+                          th:classappend="${order.orderStatus == 'PENDING' ? 'status-pending' : 
+                                          order.orderStatus == 'CONFIRMED' ? 'status-confirmed' : 
+                                          order.orderStatus == 'PREPARING' ? 'status-preparing' : 
+                                          order.orderStatus == 'READY' ? 'status-ready' : 
+                                          order.orderStatus == 'COMPLETED' ? 'status-completed' : 
+                                          'status-cancelled'}"
+                          th:text="${order.orderStatus == 'PENDING' ? '待處理' : 
+                                   order.orderStatus == 'CONFIRMED' ? '已確認' : 
+                                   order.orderStatus == 'PREPARING' ? '製作中' : 
+                                   order.orderStatus == 'READY' ? '待取餐' : 
+                                   order.orderStatus == 'COMPLETED' ? '已完成' : 
+                                   '已取消'}"></span>
+                </div>
+                
+                <div class="order-body">
+                    <!-- 訂單項目 -->
+                    <div class="order-items">
+                        <div th:each="item : ${order.orderItems}" class="order-item">
+                            <div>
+                                <div class="item-name" th:text="${item.productName}"></div>
+                                <div class="item-details" th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.unitPrice}"></div>
+                            </div>
+                            <div class="item-price" th:text="'$' + ${item.subtotal}"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 訂單總計 -->
+                    <div class="order-total">
+                        <span>訂單總額：</span>
+                        <span class="total-amount" th:text="'$' + ${order.totalAmount}"></span>
+                    </div>
+                    
+                    <!-- 訂單操作 -->
+                    <div class="order-actions">
+                        <a th:href="@{/member/orders/{id}(id=${order.orderListId})}" class="btn btn-sm">📄 查看詳情</a>
+                        <button th:if="${order.orderStatus == 'PENDING'}" 
+                                class="btn btn-sm" 
+                                style="background-color: #dc3545;"
+                                onclick="cancelOrder(this)" 
+                                th:data-order-id="${order.orderListId}">
+                            ❌ 取消訂單
+                        </button>
+                        <button th:if="${order.orderStatus == 'COMPLETED'}" 
+                                class="btn btn-sm" 
+                                style="background-color: #28a745;"
+                                onclick="reorder(this)" 
+                                th:data-order-id="${order.orderListId}">
+                            🔄 再次訂購
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function cancelOrder(button) {
+            const orderId = button.getAttribute('data-order-id');
+            if (confirm('確定要取消此訂單嗎？取消後無法恢復。')) {
+                // 發送取消訂單的請求
+                fetch(`/member/orders/${orderId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('訂單已成功取消');
+                        location.reload();
+                    } else {
+                        alert('取消訂單失敗，請稍後再試');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('取消訂單失敗，請稍後再試');
+                });
+            }
+        }
+        
+        function reorder(button) {
+            const orderId = button.getAttribute('data-order-id');
+            if (confirm('確定要重新訂購此訂單的所有商品嗎？')) {
+                // 發送重新訂購的請求
+                fetch(`/member/orders/${orderId}/reorder`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('商品已加入購物車');
+                        window.location.href = '/member/cart';
+                    } else {
+                        alert('重新訂購失敗，請稍後再試');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('重新訂購失敗，請稍後再試');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

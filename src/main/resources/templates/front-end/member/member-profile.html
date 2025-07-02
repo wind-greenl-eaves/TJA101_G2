@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人資料管理 - 早餐店會員系統</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #A67B5B;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+        .navigation-bar {
+            background-color: #A67B5B;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .navigation-bar a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .navigation-bar a:hover, .navigation-bar a.active {
+            background-color: rgba(255,255,255,0.2);
+        }
+        .alert {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .profile-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .profile-section h2 {
+            color: #A67B5B;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="date"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+        input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus, input[type="date"]:focus, select:focus {
+            outline: none;
+            border-color: #A67B5B;
+            box-shadow: 0 0 5px rgba(166, 123, 91, 0.3);
+        }
+        .readonly-field {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .btn {
+            background-color: #A67B5B;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #8B5A3C;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .info-note {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👤 個人資料管理</h1>
+        
+        <!-- 導航欄 -->
+        <div class="navigation-bar">
+            <a href="/member/dashboard">🏠 首頁</a>
+            <a href="/member/profile" class="active">👤 個人資料</a>
+            <a href="/member/orders">📋 訂單記錄</a>
+            <a href="/member/favorites">❤️ 我的收藏</a>
+            <a href="/member/settings">⚙️ 帳號設定</a>
+            <a href="/logout" onclick="return confirm('確定要登出嗎？')">🚪 登出</a>
+        </div>
+        
+        <!-- 顯示操作結果 -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+        
+        <!-- 個人資料編輯表單 -->
+        <div class="profile-section">
+            <h2>📝 編輯個人資料</h2>
+            
+            <div class="info-note">
+                <strong>📌 注意事項：</strong> 為了您的帳號安全，登入帳號無法修改。如需變更密碼，請使用「帳號設定」功能。
+            </div>
+            
+            <form th:action="@{/member/profile/update}" method="post" th:object="${memberUpdateRequest}">
+                <input type="hidden" th:field="*{memberId}">
+                
+                <div class="form-group">
+                    <label for="account">登入帳號：</label>
+                    <input type="text" id="account" th:value="${member?.account}" class="readonly-field" readonly>
+                    <small class="info-note" style="background: none; border: none; padding: 0; margin-top: 5px; display: block;">
+                        🔒 登入帳號無法修改，以確保帳號安全性
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="username">會員姓名：<span style="color: red;">*</span></label>
+                    <input type="text" id="username" th:field="*{username}" required 
+                           placeholder="請輸入您的真實姓名">
+                    <div class="error-message" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+                </div>
+                
+                <div class="two-column">
+                    <div class="form-group">
+                        <label for="email">電子郵件：<span style="color: red;">*</span></label>
+                        <input type="email" id="email" th:field="*{email}" required 
+                               placeholder="example@email.com">
+                        <div class="error-message" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">連絡電話：<span style="color: red;">*</span></label>
+                        <input type="tel" id="phone" th:field="*{phone}" required 
+                               placeholder="0912-345-678">
+                        <div class="error-message" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                    </div>
+                </div>
+                
+                <div class="two-column">
+                    <div class="form-group">
+                        <label for="birthday">出生日期：<span style="color: red;">*</span></label>
+                        <input type="date" id="birthday" th:field="*{birthday}" required>
+                        <div class="error-message" th:if="${#fields.hasErrors('birthday')}" th:errors="*{birthday}"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gender">性別：<span style="color: red;">*</span></label>
+                        <select id="gender" th:field="*{gender}" required>
+                            <option value="">請選擇性別</option>
+                            <option value="M">男性</option>
+                            <option value="F">女性</option>
+                        </select>
+                        <div class="error-message" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="isEnabled">帳號狀態：</label>
+                    <select id="isEnabled" th:field="*{isEnabled}" class="readonly-field" disabled>
+                        <option th:value="true" th:selected="*{isEnabled}">正常使用</option>
+                        <option th:value="false" th:selected="!*{isEnabled}">已停用</option>
+                    </select>
+                    <small class="info-note" style="background: none; border: none; padding: 0; margin-top: 5px; display: block;">
+                        🔒 帳號狀態由系統管理，如有問題請聯繫客服
+                    </small>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <button type="submit" class="btn" onclick="return confirm('確定要更新個人資料嗎？')">
+                        💾 儲存變更
+                    </button>
+                    <a href="/member/dashboard" class="btn btn-secondary">
+                        ↩️ 返回首頁
+                    </a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- 帳號資訊摘要 -->
+        <div class="profile-section" th:if="${member}">
+            <h2>📊 帳號資訊</h2>
+            <div class="two-column">
+                <div>
+                    <strong>註冊日期：</strong>
+                    <span th:text="${#temporals.format(member.createdAt, 'yyyy年MM月dd日')}"></span>
+                </div>
+                <div>
+                    <strong>最後更新：</strong>
+                    <span th:text="${member.lastUpdatedAt != null ? #temporals.format(member.lastUpdatedAt, 'yyyy年MM月dd日') : '尚未更新'}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
