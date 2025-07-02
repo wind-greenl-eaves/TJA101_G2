@@ -47,7 +47,7 @@
             </div>
             <div class="card-body">
                 <!-- ★【路徑重點 5】: 新增會員的表單。 -->
-                <form method="post" th:action="@{/member/insert}" th:object="${memberEntity}">
+                <form method="post" th:action="@{/member/insert}" th:object="${memberCreateRequest}">
                     
                     <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger" role="alert">
                          <b>請修正以下錯誤:</b>
