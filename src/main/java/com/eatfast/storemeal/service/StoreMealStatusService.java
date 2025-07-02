@@ -1,9 +1,7 @@
 package com.eatfast.storemeal.service;
 
-import com.eatfast.common.enums.SupplyStatus;
+import com.eatfast.common.enums.MealSupplyStatus;
 import com.eatfast.storemeal.exception.MealNotFoundException;
-import com.eatfast.meal.model.MealEntity;
-//import com.eatfast.meal.repository.MealRepository;
 import com.eatfast.store.exception.StoreNotFoundException;
 import com.eatfast.store.model.StoreEntity;
 import com.eatfast.store.repository.StoreRepository;
@@ -29,7 +27,6 @@ public class StoreMealStatusService {
 
     private final StoreMealStatusRepository statusRepository;
     private final StoreRepository storeRepository;
-//    private final MealRepository mealRepository;
 
     /**
      * 建構子注入 (Constructor Injection)。
@@ -37,11 +34,9 @@ public class StoreMealStatusService {
      */
     public StoreMealStatusService(StoreMealStatusRepository statusRepository,
                                   StoreRepository storeRepository
-//                                  ,MealRepository mealRepository
                                   ) {
         this.statusRepository = statusRepository;
         this.storeRepository = storeRepository;
-//        this.mealRepository = mealRepository;
     }
 
     /**
@@ -50,43 +45,33 @@ public class StoreMealStatusService {
      *
      * @param storeId 門市 ID
      * @param mealId  餐點 ID
-     * @param newStatus 新的供應狀態 (SupplyStatus.AVAILABLE 或 SupplyStatus.UNAVAILABLE)
+     * @param newStatus 新的供應狀態 (MealSupplyStatus.AVAILABLE, SOLD_OUT 或 UNAVAILABLE)
      * @return 更新或建立後的 StoreMealStatusEntity 物件
      * @throws StoreNotFoundException 如果提供的 storeId 無效
      * @throws MealNotFoundException 如果提供的 mealId 無效
      */
     @Transactional // 標記為可寫入交易
-    public StoreMealStatusEntity updateSupplyStatus(Long storeId, Long mealId, SupplyStatus newStatus) {
+    public StoreMealStatusEntity updateSupplyStatus(Long storeId, Long mealId, MealSupplyStatus newStatus) {
         log.info("準備更新門市 ID: {}, 餐點 ID: {} 的供應狀態為: {}", storeId, mealId, newStatus);
         
         // 嘗試查找現有的狀態紀錄
         Optional<StoreMealStatusEntity> existingStatusOpt =
-            statusRepository.findByStore_StoreIdAndMeal_MealId(storeId, mealId);
+            statusRepository.findByStore_StoreIdAndMealId(storeId, mealId);
 
         if (existingStatusOpt.isPresent()) {
             // --- 情況 1: 紀錄已存在，執行更新 ---
             StoreMealStatusEntity existingStatus = existingStatusOpt.get();
             log.debug("找到現有紀錄，進行狀態更新。");
             existingStatus.setStatus(newStatus);
-            // existingStatus.setLastUpdatedAt(...) 會由 @UpdateTimestamp 自動處理
             return statusRepository.save(existingStatus);
         } else {
             // --- 情況 2: 紀錄不存在，執行新增 ---
             log.debug("未找到現有紀錄，準備建立新紀錄。");
             
-            // 為了建立關聯，需要先從資料庫取得 Store 和 Meal 的實體物件
             StoreEntity store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreNotFoundException("找不到 ID 為 " + storeId + " 的門市"));
-            
-//            MealEntity meal = mealRepository.findById(mealId)
-//                .orElseThrow(() -> new MealNotFoundException("找不到 ID 為 " + mealId + " 的餐點"));
 
-            // 建立新的狀態實體並設定所有必要屬性
-            StoreMealStatusEntity newStatusEntity = new StoreMealStatusEntity();
-            newStatusEntity.setStore(store);
-//            newStatusEntity.setMeal(meal);
-            newStatusEntity.setStatus(newStatus);
-            
+            StoreMealStatusEntity newStatusEntity = new StoreMealStatusEntity(store, mealId, newStatus);
             return statusRepository.save(newStatusEntity);
         }
     }
@@ -99,7 +84,7 @@ public class StoreMealStatusService {
      */
     public Optional<StoreMealStatusEntity> getStatusForStoreAndMeal(Long storeId, Long mealId) {
         log.debug("查詢門市 ID: {}, 餐點 ID: {} 的供應狀態", storeId, mealId);
-        return statusRepository.findByStore_StoreIdAndMeal_MealId(storeId, mealId);
+        return statusRepository.findByStore_StoreIdAndMealId(storeId, mealId);
     }
     
     /**
@@ -110,5 +95,15 @@ public class StoreMealStatusService {
     public List<StoreMealStatusEntity> getAllStatusesForStore(Long storeId) {
         log.debug("查詢門市 ID: {} 的所有餐點供應狀態", storeId);
         return statusRepository.findByStore_StoreId(storeId);
+    }
+    
+    /**
+     * 【查詢】獲取特定餐點在所有門市的供應狀態列表。
+     * @param mealId 餐點 ID
+     * @return 狀態列表
+     */
+    public List<StoreMealStatusEntity> getAllStatusesForMeal(Long mealId) {
+        log.debug("查詢餐點 ID: {} 在所有門市的供應狀態", mealId);
+        return statusRepository.findByMealId(mealId);
     }
 }
