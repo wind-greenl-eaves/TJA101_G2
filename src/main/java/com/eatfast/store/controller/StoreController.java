@@ -22,7 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
-@RequestMapping("/store")
+@RequestMapping("/api/v1/store")
 public class StoreController {
 
     private final StoreService storeService;
@@ -32,12 +32,18 @@ public class StoreController {
         this.storeService = storeService;
         this.storeMapper = storeMapper;
     }
+    
+    @GetMapping("/select_page_store")
+    public String showSelectStorePage() {
+        
+        return "back-end/store/select_page_store"; 
+    }
 
-    @GetMapping("/list")
+    @GetMapping("/listAllStore")
     public String listAllStores(Model model) {
         List<StoreDto> stores = storeService.findAllStores();
         model.addAttribute("storeList", stores);
-        return "back-end/store/listAllStores";
+        return "back-end/store/listAllStore";
     }
 
     @GetMapping("/add")
