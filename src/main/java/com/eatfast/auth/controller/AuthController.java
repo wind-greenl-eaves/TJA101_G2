@@ -123,19 +123,19 @@ public class AuthController {
      * 顯示會員登入頁面
      * 
      * 路徑說明：
-     * - URL: GET /api/v1/auth/login
-     * - 完整 URL: http://localhost:8080/api/v1/auth/login
-     * - 視圖路徑: src/main/resources/templates/auth/member-login.html
+     * - URL: GET /api/v1/auth/member-login
+     * - 完整 URL: http://localhost:8080/api/v1/auth/member-login
+     * - 視圖路徑: src/main/resources/templates/front-end/member/member-login.html
      * 
      * 視圖解析說明：
-     * 1. 返回字符串 "auth/member-login"
+     * 1. 返回字符串 "front-end/member/member-login"
      * 2. Thymeleaf 視圖解析器會：
      *    - 在 src/main/resources/templates/ 目錄下
-     *    - 尋找 auth/member-login.html 文件
+     *    - 尋找 front-end/member/member-login.html 文件
      *    - 將其解析為完整的 HTML 頁面返回給用戶
      * 
      * @param model 用於傳遞資料到視圖的模型對象
-     * @return String 視圖名稱，會被解析到 templates/auth/member-login.html
+     * @return String 視圖名稱，會被解析到 templates/front-end/member/member-login.html
      */
     @GetMapping("/member-login")
     public String memberLoginPage(Model model) {
@@ -143,7 +143,7 @@ public class AuthController {
         model.addAttribute("showDemoAccounts", true);
         
         // 返回會員專用的登入頁面
-        return "auth/member-login";
+        return "front-end/member/member-login";
     }
     
     /**
@@ -294,12 +294,12 @@ public class AuthController {
      * 路徑說明：
      * - URL: GET /api/v1/auth/forgot-password
      * - 完整 URL: http://localhost:8080/api/v1/auth/forgot-password
-     * - 視圖路徑: src/main/resources/templates/auth/forgot-password.html
+     * - 視圖路徑: src/main/resources/templates/front-end/member/forgot-password.html
      */
     @GetMapping("/forgot-password")
     public String showForgotPasswordPage(Model model) {
         model.addAttribute("forgotPasswordRequest", new ForgotPasswordRequest());
-        return "auth/forgot-password";
+        return "front-end/member/forgot-password";
     }
     
     /**
@@ -317,7 +317,7 @@ public class AuthController {
         
         // 檢查表單驗證錯誤
         if (result.hasErrors()) {
-            return "auth/forgot-password";
+            return "front-end/member/forgot-password";
         }
         
         try {
@@ -337,13 +337,13 @@ public class AuthController {
             
         } catch (EntityNotFoundException e) {
             model.addAttribute("errorMessage", e.getMessage());
-            return "auth/forgot-password";
+            return "front-end/member/forgot-password";
         } catch (IllegalArgumentException e) {
             model.addAttribute("errorMessage", e.getMessage());
-            return "auth/forgot-password";
+            return "front-end/member/forgot-password";
         } catch (Exception e) {
             model.addAttribute("errorMessage", "系統錯誤，請稍後再試");
-            return "auth/forgot-password";
+            return "front-end/member/forgot-password";
         }
     }
     
@@ -352,7 +352,7 @@ public class AuthController {
      */
     @GetMapping("/forgot-password-success")
     public String showForgotPasswordSuccessPage() {
-        return "auth/forgot-password-success";
+        return "front-end/member/forgot-password-success";
     }
     
     /**
@@ -379,7 +379,7 @@ public class AuthController {
             model.addAttribute("resetPasswordRequest", resetRequest);
             model.addAttribute("token", token);
             
-            return "auth/reset-password";
+            return "front-end/member/reset-password";
             
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "重設連結無效或已過期，請重新申請");
@@ -403,7 +403,7 @@ public class AuthController {
         // 檢查表單驗證錯誤
         if (result.hasErrors()) {
             model.addAttribute("token", request.getToken());
-            return "auth/reset-password";
+            return "front-end/member/reset-password";
         }
         
         try {
@@ -418,14 +418,14 @@ public class AuthController {
         } catch (IllegalArgumentException e) {
             model.addAttribute("errorMessage", e.getMessage());
             model.addAttribute("token", request.getToken());
-            return "auth/reset-password";
+            return "front-end/member/reset-password";
         } catch (EntityNotFoundException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "重設連結無效，請重新申請");
             return "redirect:/api/v1/auth/forgot-password";
         } catch (Exception e) {
             model.addAttribute("errorMessage", "系統錯誤，請稍後再試");
             model.addAttribute("token", request.getToken());
-            return "auth/reset-password";
+            return "front-end/member/reset-password";
         }
     }
 }

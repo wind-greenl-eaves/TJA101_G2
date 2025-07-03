@@ -173,9 +173,9 @@ public class MemberController {
 
     /**
      * 【功能】: 處理「變更密碼」的請求 (後台管理用)。
-     * 【請求路徑】: 處理 POST /member/change-password 請求。
+     * 【請求路徑】: 處理 POST /member/admin/change-password 請求。
      */
-    @PostMapping("/change-password")
+    @PostMapping("/admin/change-password")
     public String handleChangePassword(@Validated @ModelAttribute("passwordUpdateRequest") PasswordUpdateRequest request,
                                      BindingResult result,
                                      RedirectAttributes redirectAttributes,
@@ -404,11 +404,11 @@ public class MemberController {
      * 【前端會員專區路由】密碼變更頁面 (前端專用)
      * 
      * 路徑說明：
-     * - URL: GET /member/member-change-password
-     * - 完整 URL: http://localhost:8080/member/member-change-password  
+     * - URL: GET /member/change-password
+     * - 完整 URL: http://localhost:8080/member/change-password  
      * - 視圖路徑: src/main/resources/templates/front-end/member/change-password.html
      */
-    @GetMapping("/member-change-password")
+    @GetMapping("/change-password")
     public String showMemberChangePasswordPage(Model model, HttpSession session) {
         // 【Session驗證】檢查登入狀態
         Long memberId = (Long) session.getAttribute("loggedInMemberId");
@@ -428,10 +428,10 @@ public class MemberController {
      * 【前端會員專區路由】處理密碼變更請求 (前端專用)
      * 
      * 路徑說明：
-     * - URL: POST /member/member-change-password
+     * - URL: POST /member/change-password
      * - 重定向: 成功後重新登入
      */
-    @PostMapping("/member-change-password")
+    @PostMapping("/change-password")
     public String processMemberPasswordChange(@Validated @ModelAttribute("passwordUpdateRequest") PasswordUpdateRequest request,
                                             BindingResult result,
                                             RedirectAttributes redirectAttributes,
@@ -460,7 +460,7 @@ public class MemberController {
         } catch (EntityNotFoundException | IllegalArgumentException e) {
             log.warn("密碼變更失敗：{}", e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/member/member-change-password";
+            return "redirect:/member/change-password";
         }
     }
     
