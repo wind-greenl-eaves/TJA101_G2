@@ -83,7 +83,20 @@
                         <i class="fas fa-edit"></i> 修改
                     </button>
                 </form>
-                <form method="post" th:action="@{/orderlist/delete}" class="d-inline" onsubmit="return confirm('確定要取消這筆訂單嗎？');">
+
+                <form method="post" th:action="@{/orderlist/markAsCompleted}" class="d-inline"
+                      th:if="${orderListVO.orderStatus.name() != 'COMPLETED' and orderListVO.orderStatus.name() != 'CANCELLED'}"
+                      onsubmit="return confirm('您確定要將此訂單標示為已完成嗎？此操作無法復原。');">
+                    <input type="hidden" name="orderListId" th:value="${orderListVO.orderListId}" />
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="fas fa-check-double"></i> 完成
+                    </button>
+                </form>
+
+
+                <form method="post" th:action="@{/orderlist/delete}" class="d-inline"
+                      th:data-status="${orderListVO.orderStatus.name()}"
+                      onsubmit="return checkCancelable(this);">
                     <input type="hidden" name="orderListId" th:value="${orderListVO.orderListId}">
                     <button type="submit" class="btn btn-sm btn-danger">
                         <i class="fas fa-trash-alt"></i> 取消
@@ -114,6 +127,24 @@
             "renderer": "bootstrap"
         });
     });
+</script>
+
+<script th:inline="javascript">
+    function checkCancelable(formElement) {
+        const status = formElement.dataset.status;
+
+        if (status === 'COMPLETED') {
+            alert('錯誤：已完成的訂單無法取消！');
+            return false;
+        }
+        
+        if (status === 'CANCELLED') {
+            alert('錯誤：此訂單已經是已取消狀態！');
+            return false;
+        }
+
+        return confirm('您確定要取消這筆訂單嗎？');
+    }
 </script>
 
 </body>
