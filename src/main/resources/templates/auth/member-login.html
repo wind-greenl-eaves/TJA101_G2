@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會員登入 - 早餐店會員系統</title>
+    
+    <!-- 【新增】引入 Font Awesome 圖示庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- 引入 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #FFFFFF;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --header-bg: #F5EFE6;
+            --error-color: #D9534F;
+            --success-color: #4CAF50;
+            --placeholder-color: #B0A495;
+            --input-focus-ring: rgba(166, 123, 91, 0.2);
+            --input-error: #DC2626;
+            --input-success: #059669;
+        }
+        
+        body {
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            /* 【新增】背景圖片設定 */
+            background: url('/images/eatfast2.jpg') center center / cover no-repeat fixed;
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 【新增】在背景圖片上方添加半透明遮罩 */
+            position: relative;
+        }
+        
+        /* 【新增】背景遮罩層，讓內容更清晰可讀 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(253, 251, 246, 0.85); /* 使用品牌背景色的半透明版本 */
+            z-index: -1;
+        }
+        
+        /* 【更新】整體容器，用於並排顯示登入表單和圖片 */
+        .page-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            box-sizing: border-box;
+            /* 【新增】確保容器在背景之上 */
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-container {
+            background: var(--container-bg);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            /* 【增強】加強陰影效果，讓容器在背景圖片上更突出 */
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            flex-shrink: 0;
+            /* 【新增】增加背景透明度，保持優雅外觀 */
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        /* 【更新】圖片區塊樣式 */
+        .image-container {
+            background: var(--container-bg);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            /* 【增強】加強陰影效果 */
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            flex-shrink: 0;
+            /* 【新增】背景模糊效果 */
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .image-container img {
+            width: 100%;
+            height: auto;
+            max-width: 450px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .image-container img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .image-title {
+            color: var(--primary-color);
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .image-subtitle {
+            color: var(--text-color);
+            font-size: 16px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .login-title {
+            color: var(--primary-color);
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .login-subtitle {
+            color: var(--text-color);
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            background-color: var(--container-bg);
+            color: var(--text-color);
+        }
+        
+        .form-control::placeholder {
+            color: var(--placeholder-color);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--input-focus-ring);
+        }
+        
+        .input-icon {
+            position: relative;
+        }
+        
+        .input-icon .form-control {
+            padding-left: 45px;
+        }
+        
+        .input-icon::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background-size: contain;
+            z-index: 1;
+        }
+        
+        .input-icon.account::before {
+            content: '👤';
+            font-size: 16px;
+        }
+        
+        .input-icon.password::before {
+            content: '🔒';
+            font-size: 16px;
+        }
+        
+        /* 【更新】密碼欄位的特殊樣式 - 右側留空間給眼睛圖示 */
+        .input-icon.password .form-control {
+            padding-right: 45px;
+        }
+        
+        /* 【更新】密碼顯示/隱藏切換圖示樣式 */
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--placeholder-color);
+            font-size: 16px;
+            transition: color 0.3s ease;
+            z-index: 2;
+        }
+        
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+        
+        .password-toggle.active {
+            color: var(--primary-color);
+        }
+        
+        .login-btn {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .login-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(166, 123, 91, 0.3);
+        }
+        
+        .login-btn:active {
+            transform: translateY(0);
+        }
+        
+        .login-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-color);
+        }
+        
+        .remember-me input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary-color);
+        }
+        
+        .forgot-password {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .forgot-password:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
+        }
+        
+        .register-link {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-color);
+            font-size: 14px;
+        }
+        
+        .register-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .register-link a:hover {
+            text-decoration: underline;
+            color: var(--primary-hover);
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            margin: 20px 0;
+            border-radius: 6px;
+            font-size: 14px;
+            border: 1px solid;
+        }
+        
+        .alert-error {
+            background-color: #fef2f2;
+            border-color: var(--error-color);
+            color: var(--error-color);
+        }
+        
+        .alert-success {
+            background-color: #f0fdf4;
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+        
+        .alert-warning {
+            background-color: #fffbeb;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+        
+        .loading {
+            display: none;
+            margin-left: 10px;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* 【更新】響應式設計 */
+        @media (max-width: 1024px) {
+            .page-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .image-container {
+                order: -1;
+                max-width: 400px;
+                padding: 20px;
+            }
+            
+            .login-container {
+                max-width: 400px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .page-container {
+                padding: 15px;
+            }
+            
+            .login-container, .image-container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .login-title {
+                font-size: 24px;
+            }
+            
+            .image-title {
+                font-size: 20px;
+            }
+        }
+        
+        .demo-accounts {
+            background-color: var(--header-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            /* 【新增】半透明背景 */
+            background: rgba(245, 239, 230, 0.9);
+        }
+        
+        .demo-accounts h4 {
+            margin: 0 0 10px 0;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+        
+        .demo-account {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding: 8px;
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            /* 【新增】半透明背景 */
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .demo-account:hover {
+            background-color: var(--header-bg);
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+            /* 【更新】懸停時增強背景 */
+            background: rgba(245, 239, 230, 0.95);
+        }
+        
+        .demo-account:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- 登入表單區塊 -->
+        <div class="login-container">
+            <div class="logo">🍳</div>
+            <h1 class="login-title">會員登入</h1>
+            <p class="login-subtitle">歡迎回來！請登入您的會員帳號</p>
+            
+            <!-- 顯示登入錯誤訊息 -->
+            <div th:if="${loginError}" class="alert alert-error" th:text="${loginError}"></div>
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${warningMessage}" class="alert alert-warning" th:text="${warningMessage}"></div>
+            
+            <!-- 測試帳號提示 (開發環境) -->
+            <div class="demo-accounts" th:if="${showDemoAccounts}">
+                <h4>📋 測試帳號 (點擊快速填入)</h4>
+                <div class="demo-account" onclick="fillLogin('member001', 'password123')">
+                    <span>👤 member001</span>
+                    <span>🔑 password123</span>
+                </div>
+                <div class="demo-account" onclick="fillLogin('user123', 'mypassword')">
+                    <span>👤 user123</span>
+                    <span>🔑 mypassword</span>
+                </div>
+                <div class="demo-account" onclick="fillLogin('testuser', 'test1234')">
+                    <span>👤 testuser</span>
+                    <span>🔑 test1234</span>
+                </div>
+            </div>
+            
+            <!-- 登入表單 -->
+            <form th:action="@{/api/v1/auth/process-login}" method="post" id="loginForm">
+                <div class="form-group">
+                    <label for="account">帳號</label>
+                    <div class="input-icon account">
+                        <input type="text" 
+                               id="account" 
+                               name="account" 
+                               class="form-control" 
+                               placeholder="請輸入您的帳號"
+                               th:value="${account}"
+                               required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">密碼</label>
+                    <div class="input-icon password">
+                        <input type="password" 
+                               id="password" 
+                               name="password" 
+                               class="form-control" 
+                               placeholder="請輸入您的密碼"
+                               required>
+                        <!-- 【新增】密碼顯示/隱藏切換圖示 -->
+                        <i class="fas fa-eye password-toggle" id="passwordToggle" title="顯示/隱藏密碼"></i>
+                    </div>
+                </div>
+                
+                <div class="remember-forgot">
+                    <label class="remember-me">
+                        <input type="checkbox" name="rememberMe" value="true">
+                        <span>記住我</span>
+                    </label>
+                    <a th:href="@{/api/v1/auth/forgot-password}" class="forgot-password">忘記密碼？</a>
+                </div>
+                
+                <button type="submit" class="login-btn" id="loginButton">
+                    登入
+                    <span class="loading" id="loading"></span>
+                </button>
+            </form>
+            
+            <div class="register-link">
+                還沒有帳號？
+                <a href="/member/addMember">立即註冊</a>
+            </div>
+        </div>
+        
+        <!-- 【新增】圖片展示區塊 -->
+        <div class="image-container">
+            <h2 class="image-title">🌅 EatFast 早餐店</h2>
+            <p class="image-subtitle">新鮮美味，快速便利<br>您的美好一天從這裡開始</p>
+            <img th:src="@{/images/eatfast1.png}" alt="EatFast 早餐店形象圖" />
+        </div>
+    </div>
+    
+    <script>
+        // 【新增】密碼顯示/隱藏功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const passwordToggle = document.getElementById('passwordToggle');
+            
+            if (passwordInput && passwordToggle) {
+                passwordToggle.addEventListener('click', function() {
+                    // 切換密碼輸入框的類型
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        passwordToggle.classList.remove('fa-eye');
+                        passwordToggle.classList.add('fa-eye-slash');
+                        passwordToggle.classList.add('active');
+                        passwordToggle.title = '隱藏密碼';
+                    } else {
+                        passwordInput.type = 'password';
+                        passwordToggle.classList.remove('fa-eye-slash');
+                        passwordToggle.classList.add('fa-eye');
+                        passwordToggle.classList.remove('active');
+                        passwordToggle.title = '顯示密碼';
+                    }
+                });
+            }
+        });
+        
+        // 表單提交處理
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const button = document.getElementById('loginButton');
+            const loading = document.getElementById('loading');
+            
+            // 簡單的前端驗證
+            const account = document.getElementById('account').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!account) {
+                alert('請輸入帳號');
+                e.preventDefault();
+                return;
+            }
+            
+            if (!password) {
+                alert('請輸入密碼');
+                e.preventDefault();
+                return;
+            }
+            
+            // 顯示載入狀態
+            button.disabled = true;
+            loading.style.display = 'inline-block';
+            button.innerHTML = '登入中...<span class="loading"></span>';
+        });
+        
+        // 快速填入測試帳號
+        function fillLogin(account, password) {
+            document.getElementById('account').value = account;
+            document.getElementById('password').value = password;
+            
+            // 添加視覺回饋
+            const accountInput = document.getElementById('account');
+            const passwordInput = document.getElementById('password');
+            
+            accountInput.style.backgroundColor = '#e8f5e8';
+            passwordInput.style.backgroundColor = '#e8f5e8';
+            
+            setTimeout(() => {
+                accountInput.style.backgroundColor = '';
+                passwordInput.style.backgroundColor = '';
+            }, 1000);
+            
+            // 自動聚焦到登入按鈕
+            document.getElementById('loginButton').focus();
+        }
+        
+        // 回車鍵快速登入
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const form = document.getElementById('loginForm');
+                if (form.checkValidity()) {
+                    form.submit();
+                }
+            }
+        });
+        
+        // 頁面載入完成後聚焦到帳號輸入框
+        window.addEventListener('load', function() {
+            const accountInput = document.getElementById('account');
+            if (!accountInput.value) {
+                accountInput.focus();
+            }
+        });
+        
+        // 清除錯誤狀態當用戶開始輸入
+        document.getElementById('account').addEventListener('input', function() {
+            const alerts = document.querySelectorAll('.alert-error');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0.5';
+            });
+        });
+        
+        document.getElementById('password').addEventListener('input', function() {
+            const alerts = document.querySelectorAll('.alert-error');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0.5';
+            });
+        });
+    </script>
+</body>
+</html>
