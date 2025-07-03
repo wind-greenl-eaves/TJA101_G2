@@ -67,6 +67,38 @@ public class MealTypeController {
         return "back-end/mealtype/listAllMealType";
     }
     
+ // 新增或修正此方法，用於處理單一查詢
+    @PostMapping("/getOne_For_Display") // 【關鍵】匹配 HTML 中的 th:action
+    public String getOneForDisplay(@RequestParam("mealTypeId") Long mealTypeId, // 【關鍵】接收表單送出的 mealTypeId
+                                   Model model,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            // 調用 Service 層方法來查詢單一餐點種類
+            MealTypeEntity mealType = mealTypeService.getOneMealType(mealTypeId);
+
+            if (mealType != null) {
+                // 如果找到資料，將結果加入 Model，並返回此頁面（或顯示結果的頁面）
+                model.addAttribute("mealTypeEntity", mealType);
+                // 為了讓「選擇餐點種類編號」和「選擇餐點種類名稱」的下拉選單能顯示所有選項
+                // 通常這個頁面也需要所有資料來填充下拉選單
+                model.addAttribute("mealTypeList", mealTypeService.getAll());
+                return "back-end/mealtype/select_page_mealtype"; // 【修正】返回正確的視圖路徑
+            } else {
+                // 如果找不到資料
+                redirectAttributes.addFlashAttribute("errorMessage", "查無此餐點種類編號！");
+                // 為了讓「選擇餐點種類編號」和「選擇餐點種類名稱」的下拉選單能顯示所有選項
+                redirectAttributes.addFlashAttribute("mealTypeList", mealTypeService.getAll());
+                return "redirect:/mealtype/select_page_mealtype"; // 重定向回查詢頁面並顯示錯誤訊息
+            }
+        } catch (Exception e) {
+            // 處理其他潛在的錯誤
+            redirectAttributes.addFlashAttribute("errorMessage", "查詢失敗：" + e.getMessage());
+             // 為了讓「選擇餐點種類編號」和「選擇餐點種類名稱」的下拉選單能顯示所有選項
+            redirectAttributes.addFlashAttribute("mealTypeList", mealTypeService.getAll());
+            return "redirect:/mealtype/select_page_mealtype"; // 重定向回查詢頁面並顯示錯誤訊息
+        }
+    }
+    
     // 【優化】: 改用 GET 和 PathVariable，更符合 RESTful 風格。
     // 這樣可以直接透過連結 <a th:href="@{/mealtype/update/{id}(id=${mealType.mealTypeId})}"> 進入修改頁。
     @GetMapping("/update/{id}")
@@ -98,6 +130,11 @@ public class MealTypeController {
             redirectAttributes.addFlashAttribute("errorMessage", "修改失敗: " + e.getMessage());
         }
         return "redirect:/mealtype/listAllMealType";
+    }
+    
+    @GetMapping("/select_page_mealtype") 
+    public String selectPageMealType(Model model) {
+    	return "back-end/mealtype/select_page_mealtype";
     }
     
     @PostMapping("/delete")
