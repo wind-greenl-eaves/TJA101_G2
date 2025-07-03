@@ -4,6 +4,8 @@ package com.eatfast.member.service;
 import com.eatfast.member.dto.MemberCreateRequest;
 import com.eatfast.member.dto.MemberUpdateRequest;
 import com.eatfast.member.dto.PasswordUpdateRequest;
+import com.eatfast.member.dto.ForgotPasswordRequest;
+import com.eatfast.member.dto.ResetPasswordRequest;
 import com.eatfast.member.mapper.MemberMapper;
 // (既有 import)
 import com.eatfast.member.model.MemberEntity;
@@ -11,6 +13,7 @@ import com.eatfast.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -154,6 +157,120 @@ public class MemberService {
         memberRepository.deleteById(memberId);
     }
 
+    /**
+     * 處理忘記密碼請求
+     * 根據電子郵件查找會員並生成重設密碼的 Token
+     * 
+     * @param request 忘記密碼請求，包含電子郵件
+     * @return 重設密碼的 Token（實際應用中應透過郵件發送）
+     * @throws EntityNotFoundException 如果找不到對應的會員
+     */
+    @Transactional
+    public String processForgotPassword(ForgotPasswordRequest request) {
+        // 根據電子郵件查找會員
+        Optional<MemberEntity> memberOpt = memberRepository.findByEmail(request.getEmail());
+        
+        if (memberOpt.isEmpty()) {
+            throw new EntityNotFoundException("找不到使用此電子郵件的會員帳號：" + request.getEmail());
+        }
+        
+        MemberEntity member = memberOpt.get();
+        
+        // 檢查帳號是否啟用
+        if (!member.isEnabled()) {
+            throw new IllegalArgumentException("此帳號已被停用，無法重設密碼");
+        }
+        
+        // 生成重設密碼的 Token（簡化版本，實際應用中應該更安全）
+        String resetToken = generateResetToken(member);
+        
+        log.info("會員 {} 請求重設密碼，生成 Token", member.getAccount());
+        
+        // 在實際應用中，這裡應該發送郵件給會員
+        // emailService.sendPasswordResetEmail(member.getEmail(), resetToken);
+        
+        return resetToken;
+    }
+    
+    /**
+     * 處理密碼重設請求
+     * 驗證 Token 並更新會員密碼
+     * 
+     * @param request 密碼重設請求，包含 Token 和新密碼
+     * @throws EntityNotFoundException 如果 Token 無效或會員不存在
+     * @throws IllegalArgumentException 如果密碼不符合要求
+     */
+    @Transactional
+    public void processResetPassword(ResetPasswordRequest request) {
+        // 檢查密碼是否一致
+        if (!request.isPasswordMatching()) {
+            throw new IllegalArgumentException("兩次輸入的密碼不一致");
+        }
+        
+        // 驗證並解析 Token
+        Long memberId = validateAndParseResetToken(request.getToken());
+        
+        // 查找會員
+        MemberEntity member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("找不到對應的會員"));
+        
+        // 檢查帳號是否啟用
+        if (!member.isEnabled()) {
+            throw new IllegalArgumentException("此帳號已被停用，無法重設密碼");
+        }
+        
+        // 更新密碼
+        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+        member.setPassword(encodedPassword);
+        memberRepository.save(member);
+        
+        log.info("會員 {} 成功重設密碼", member.getAccount());
+    }
+    
+    /**
+     * 生成重設密碼的 Token
+     * 簡化版本：使用 Base64 編碼的會員ID和時間戳
+     * 實際應用中應該使用更安全的方式，如 JWT
+     */
+    private String generateResetToken(MemberEntity member) {
+        String tokenData = member.getMemberId() + ":" + System.currentTimeMillis();
+        return Base64.getEncoder().encodeToString(tokenData.getBytes());
+    }
+    
+    /**
+     * 驗證並解析重設密碼的 Token
+     * 
+     * @param token 重設密碼的 Token
+     * @return 會員ID
+     * @throws IllegalArgumentException 如果 Token 無效或過期
+     */
+    private Long validateAndParseResetToken(String token) {
+        try {
+            String tokenData = new String(Base64.getDecoder().decode(token));
+            String[] parts = tokenData.split(":");
+            
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("Token 格式無效");
+            }
+            
+            Long memberId = Long.parseLong(parts[0]);
+            long timestamp = Long.parseLong(parts[1]);
+            
+            // 檢查 Token 是否過期（24小時有效期）
+            long currentTime = System.currentTimeMillis();
+            long validDuration = 24 * 60 * 60 * 1000; // 24小時
+            
+            if (currentTime - timestamp > validDuration) {
+                throw new IllegalArgumentException("重設連結已過期，請重新申請");
+            }
+            
+            return memberId;
+            
+        } catch (Exception e) {
+            throw new IllegalArgumentException("無效的重設連結：" + e.getMessage());
+        }
+    }
+    
     // --- 以下為查詢相關方法，維持不變 ---
     
     public Optional<MemberEntity> getMemberById(Long memberId) {

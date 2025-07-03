@@ -16,14 +16,20 @@ import org.springframework.web.bind.annotation.GetMapping;     // 處理 GET 請
 import org.springframework.web.bind.annotation.PostMapping;    // 處理 POST 請求
 import org.springframework.web.bind.annotation.RequestMapping; // 設定基礎 URL 路徑
 import org.springframework.web.bind.annotation.ResponseBody;   // 標記直接返回數據而非視圖
+import org.springframework.validation.BindingResult;           // 表單驗證結果
+import org.springframework.validation.annotation.Validated;   // 驗證註解
+import org.springframework.web.bind.annotation.ModelAttribute; // 模型屬性綁定
 
 // 【Jakarta EE 相關】處理 HTTP 請求與 Session
 import jakarta.servlet.http.HttpServletRequest;  // 處理 HTTP 請求
 import jakarta.servlet.http.HttpSession;         // 管理用戶 Session
+import jakarta.persistence.EntityNotFoundException; // JPA 實體未找到異常
 
 // 【會員系統相關】引入會員相關的類別
 import com.eatfast.member.service.MemberService;  // 會員業務邏輯服務
 import com.eatfast.member.dto.MemberUpdateRequest;
+import com.eatfast.member.dto.ForgotPasswordRequest;
+import com.eatfast.member.dto.ResetPasswordRequest;
 import com.eatfast.member.model.MemberEntity;      // 會員實體類
 import org.springframework.security.crypto.password.PasswordEncoder;  // 密碼加密器
 import org.springframework.ui.Model;               // 用於傳遞資料到視圖
@@ -279,6 +285,147 @@ public class AuthController {
             redirectAttributes.addFlashAttribute("loginError", "系統錯誤，請稍後再試");
             redirectAttributes.addFlashAttribute("account", account);
             return "redirect:/api/v1/auth/member-login";
+        }
+    }
+    
+    /**
+     * 顯示忘記密碼頁面
+     * 
+     * 路徑說明：
+     * - URL: GET /api/v1/auth/forgot-password
+     * - 完整 URL: http://localhost:8080/api/v1/auth/forgot-password
+     * - 視圖路徑: src/main/resources/templates/auth/forgot-password.html
+     */
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordPage(Model model) {
+        model.addAttribute("forgotPasswordRequest", new ForgotPasswordRequest());
+        return "auth/forgot-password";
+    }
+    
+    /**
+     * 處理忘記密碼請求
+     * 
+     * 路徑說明：
+     * - URL: POST /api/v1/auth/forgot-password
+     * - 功能：接收會員的電子郵件，生成重設密碼連結
+     */
+    @PostMapping("/forgot-password")
+    public String processForgotPassword(@Validated @ModelAttribute("forgotPasswordRequest") ForgotPasswordRequest request,
+                                      BindingResult result,
+                                      RedirectAttributes redirectAttributes,
+                                      Model model) {
+        
+        // 檢查表單驗證錯誤
+        if (result.hasErrors()) {
+            return "auth/forgot-password";
+        }
+        
+        try {
+            // 處理忘記密碼請求
+            String resetToken = memberService.processForgotPassword(request);
+            
+            // 在開發環境中，我們直接顯示重設連結
+            // 實際部署時應該透過郵件發送
+            String resetUrl = "/api/v1/auth/reset-password?token=" + resetToken;
+            
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "重設密碼連結已生成！在實際環境中會透過郵件發送給您。");
+            redirectAttributes.addFlashAttribute("resetUrl", resetUrl);
+            redirectAttributes.addFlashAttribute("showResetLink", true);
+            
+            return "redirect:/api/v1/auth/forgot-password-success";
+            
+        } catch (EntityNotFoundException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "auth/forgot-password";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "auth/forgot-password";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "系統錯誤，請稍後再試");
+            return "auth/forgot-password";
+        }
+    }
+    
+    /**
+     * 顯示忘記密碼成功頁面
+     */
+    @GetMapping("/forgot-password-success")
+    public String showForgotPasswordSuccessPage() {
+        return "auth/forgot-password-success";
+    }
+    
+    /**
+     * 顯示密碼重設頁面
+     * 
+     * 路徑說明：
+     * - URL: GET /api/v1/auth/reset-password?token=xxx
+     * - 功能：驗證 token 並顯示重設密碼表單
+     */
+    @GetMapping("/reset-password")
+    public String showResetPasswordPage(@RequestParam("token") String token,
+                                      Model model,
+                                      RedirectAttributes redirectAttributes) {
+        
+        try {
+            // 這裡可以預先驗證 token 的格式
+            if (token == null || token.trim().isEmpty()) {
+                throw new IllegalArgumentException("無效的重設連結");
+            }
+            
+            ResetPasswordRequest resetRequest = new ResetPasswordRequest();
+            resetRequest.setToken(token);
+            
+            model.addAttribute("resetPasswordRequest", resetRequest);
+            model.addAttribute("token", token);
+            
+            return "auth/reset-password";
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "重設連結無效或已過期，請重新申請");
+            return "redirect:/api/v1/auth/forgot-password";
+        }
+    }
+    
+    /**
+     * 處理密碼重設請求
+     * 
+     * 路徑說明：
+     * - URL: POST /api/v1/auth/reset-password
+     * - 功能：驗證新密碼並更新會員密碼
+     */
+    @PostMapping("/reset-password")
+    public String processResetPassword(@Validated @ModelAttribute("resetPasswordRequest") ResetPasswordRequest request,
+                                     BindingResult result,
+                                     RedirectAttributes redirectAttributes,
+                                     Model model) {
+        
+        // 檢查表單驗證錯誤
+        if (result.hasErrors()) {
+            model.addAttribute("token", request.getToken());
+            return "auth/reset-password";
+        }
+        
+        try {
+            // 處理密碼重設
+            memberService.processResetPassword(request);
+            
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "密碼重設成功！請使用新密碼登入。");
+            
+            return "redirect:/api/v1/auth/member-login";
+            
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("token", request.getToken());
+            return "auth/reset-password";
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "重設連結無效，請重新申請");
+            return "redirect:/api/v1/auth/forgot-password";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "系統錯誤，請稍後再試");
+            model.addAttribute("token", request.getToken());
+            return "auth/reset-password";
         }
     }
 }
