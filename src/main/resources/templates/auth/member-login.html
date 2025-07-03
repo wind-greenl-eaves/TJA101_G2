@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>會員登入 - 早餐店會員系統</title>
+    
+    <!-- 【新增】引入 Font Awesome 圖示庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <style>
         body {
             font-family: 'Microsoft JhengHei', Arial, sans-serif;
@@ -101,6 +105,32 @@
         .input-icon.password::before {
             content: '🔒';
             font-size: 16px;
+        }
+        
+        /* 【新增】密碼欄位的特殊樣式 - 右側留空間給眼睛圖示 */
+        .input-icon.password .form-control {
+            padding-right: 45px;
+        }
+        
+        /* 【新增】密碼顯示/隱藏切換圖示樣式 */
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #999;
+            font-size: 16px;
+            transition: color 0.3s ease;
+            z-index: 2;
+        }
+        
+        .password-toggle:hover {
+            color: #A67B5B;
+        }
+        
+        .password-toggle.active {
+            color: #A67B5B;
         }
         
         .login-btn {
@@ -325,6 +355,8 @@
                            class="form-control" 
                            placeholder="請輸入您的密碼"
                            required>
+                    <!-- 【新增】密碼顯示/隱藏切換圖示 -->
+                    <i class="fas fa-eye password-toggle" id="passwordToggle" title="顯示/隱藏密碼"></i>
                 </div>
             </div>
             
@@ -349,6 +381,31 @@
     </div>
     
     <script>
+        // 【新增】密碼顯示/隱藏功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const passwordToggle = document.getElementById('passwordToggle');
+            
+            if (passwordInput && passwordToggle) {
+                passwordToggle.addEventListener('click', function() {
+                    // 切換密碼輸入框的類型
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        passwordToggle.classList.remove('fa-eye');
+                        passwordToggle.classList.add('fa-eye-slash');
+                        passwordToggle.classList.add('active');
+                        passwordToggle.title = '隱藏密碼';
+                    } else {
+                        passwordInput.type = 'password';
+                        passwordToggle.classList.remove('fa-eye-slash');
+                        passwordToggle.classList.add('fa-eye');
+                        passwordToggle.classList.remove('active');
+                        passwordToggle.title = '顯示密碼';
+                    }
+                });
+            }
+        });
+        
         // 表單提交處理
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             const button = document.getElementById('loginButton');
