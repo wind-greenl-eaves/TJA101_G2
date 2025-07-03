@@ -8,19 +8,41 @@
     <!-- 【新增】引入 Font Awesome 圖示庫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
+    <!-- 引入 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
     <style>
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #FFFFFF;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --header-bg: #F5EFE6;
+            --error-color: #D9534F;
+            --success-color: #4CAF50;
+            --placeholder-color: #B0A495;
+            --input-focus-ring: rgba(166, 123, 91, 0.2);
+            --input-error: #DC2626;
+            --input-success: #059669;
+        }
+        
         body {
-            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: var(--bg-color);
+            color: var(--text-color);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         
-        /* 【新增】整體容器，用於並排顯示登入表單和圖片 */
+        /* 【更新】整體容器，用於並排顯示登入表單和圖片 */
         .page-container {
             display: flex;
             align-items: center;
@@ -33,52 +55,53 @@
         }
         
         .login-container {
-            background: white;
+            background: var(--container-bg);
             padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
             width: 100%;
             max-width: 400px;
             text-align: center;
-            flex-shrink: 0; /* 防止被壓縮 */
+            flex-shrink: 0;
         }
         
-        /* 【新增】圖片區塊樣式 */
+        /* 【更新】圖片區塊樣式 */
         .image-container {
-            background: white;
+            background: var(--container-bg);
             padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
             width: 100%;
             max-width: 500px;
             text-align: center;
-            flex-shrink: 0; /* 防止被壓縮 */
+            flex-shrink: 0;
         }
         
         .image-container img {
             width: 100%;
             height: auto;
             max-width: 450px;
-            border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
         .image-container img:hover {
             transform: scale(1.02);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
         
         .image-title {
-            color: #A67B5B;
+            color: var(--primary-color);
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 20px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .image-subtitle {
-            color: #666;
+            color: var(--text-color);
             font-size: 16px;
             margin-bottom: 25px;
             line-height: 1.5;
@@ -90,14 +113,14 @@
         }
         
         .login-title {
-            color: #A67B5B;
+            color: var(--primary-color);
             font-size: 28px;
             font-weight: bold;
             margin-bottom: 10px;
         }
         
         .login-subtitle {
-            color: #666;
+            color: var(--text-color);
             margin-bottom: 30px;
             font-size: 14px;
         }
@@ -110,25 +133,31 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
-            font-weight: bold;
+            color: var(--text-color);
+            font-weight: 500;
             font-size: 14px;
         }
         
         .form-control {
             width: 100%;
             padding: 12px 16px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             font-size: 16px;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.3s ease;
             box-sizing: border-box;
+            background-color: var(--container-bg);
+            color: var(--text-color);
+        }
+        
+        .form-control::placeholder {
+            color: var(--placeholder-color);
         }
         
         .form-control:focus {
             outline: none;
-            border-color: #A67B5B;
-            box-shadow: 0 0 0 3px rgba(166, 123, 91, 0.1);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--input-focus-ring);
         }
         
         .input-icon {
@@ -161,48 +190,49 @@
             font-size: 16px;
         }
         
-        /* 【新增】密碼欄位的特殊樣式 - 右側留空間給眼睛圖示 */
+        /* 【更新】密碼欄位的特殊樣式 - 右側留空間給眼睛圖示 */
         .input-icon.password .form-control {
             padding-right: 45px;
         }
         
-        /* 【新增】密碼顯示/隱藏切換圖示樣式 */
+        /* 【更新】密碼顯示/隱藏切換圖示樣式 */
         .password-toggle {
             position: absolute;
             right: 15px;
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
-            color: #999;
+            color: var(--placeholder-color);
             font-size: 16px;
             transition: color 0.3s ease;
             z-index: 2;
         }
         
         .password-toggle:hover {
-            color: #A67B5B;
+            color: var(--primary-color);
         }
         
         .password-toggle.active {
-            color: #A67B5B;
+            color: var(--primary-color);
         }
         
         .login-btn {
             width: 100%;
-            background: linear-gradient(135deg, #A67B5B, #8B5A3C);
+            background-color: var(--primary-color);
             color: white;
             padding: 14px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            transition: all 0.3s ease;
         }
         
         .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(166, 123, 91, 0.3);
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(166, 123, 91, 0.3);
         }
         
         .login-btn:active {
@@ -210,7 +240,7 @@
         }
         
         .login-btn:disabled {
-            background: #ccc;
+            background-color: #ccc;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
@@ -228,40 +258,43 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            color: var(--text-color);
         }
         
         .remember-me input[type="checkbox"] {
             width: 16px;
             height: 16px;
+            accent-color: var(--primary-color);
         }
         
         .forgot-password {
-            color: #A67B5B;
+            color: var(--primary-color);
             text-decoration: none;
             transition: color 0.3s ease;
         }
         
         .forgot-password:hover {
-            color: #8B5A3C;
+            color: var(--primary-hover);
             text-decoration: underline;
         }
         
         .register-link {
             margin-top: 25px;
             padding-top: 25px;
-            border-top: 1px solid #eee;
-            color: #666;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-color);
             font-size: 14px;
         }
         
         .register-link a {
-            color: #A67B5B;
+            color: var(--primary-color);
             text-decoration: none;
-            font-weight: bold;
+            font-weight: 500;
         }
         
         .register-link a:hover {
             text-decoration: underline;
+            color: var(--primary-hover);
         }
         
         .alert {
@@ -269,24 +302,25 @@
             margin: 20px 0;
             border-radius: 6px;
             font-size: 14px;
+            border: 1px solid;
         }
         
         .alert-error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
+            background-color: #fef2f2;
+            border-color: var(--error-color);
+            color: var(--error-color);
         }
         
         .alert-success {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
+            background-color: #f0fdf4;
+            border-color: var(--success-color);
+            color: var(--success-color);
         }
         
         .alert-warning {
-            background-color: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
+            background-color: #fffbeb;
+            border-color: #f59e0b;
+            color: #92400e;
         }
         
         .loading {
@@ -319,7 +353,7 @@
             }
             
             .image-container {
-                order: -1; /* 在小螢幕上圖片顯示在上方 */
+                order: -1;
                 max-width: 400px;
                 padding: 20px;
             }
@@ -349,8 +383,8 @@
         }
         
         .demo-accounts {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
+            background-color: var(--header-bg);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 20px;
@@ -359,7 +393,7 @@
         
         .demo-accounts h4 {
             margin: 0 0 10px 0;
-            color: #495057;
+            color: var(--text-color);
             font-size: 14px;
         }
         
@@ -367,15 +401,18 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 5px;
-            padding: 5px;
-            background: white;
+            padding: 8px;
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition: all 0.2s ease;
         }
         
         .demo-account:hover {
-            background-color: #e9ecef;
+            background-color: var(--header-bg);
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
         }
         
         .demo-account:last-child {
