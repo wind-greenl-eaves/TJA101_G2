@@ -173,9 +173,9 @@ public class MemberController {
 
     /**
      * 【功能】: 處理「變更密碼」的請求 (後台管理用)。
-     * 【請求路徑】: 處理 POST /member/change-password 請求。
+     * 【請求路徑】: 處理 POST /member/admin/change-password 請求。
      */
-    @PostMapping("/change-password")
+    @PostMapping("/admin/change-password")
     public String handleChangePassword(@Validated @ModelAttribute("passwordUpdateRequest") PasswordUpdateRequest request,
                                      BindingResult result,
                                      RedirectAttributes redirectAttributes,
@@ -404,11 +404,11 @@ public class MemberController {
      * 【前端會員專區路由】密碼變更頁面 (前端專用)
      * 
      * 路徑說明：
-     * - URL: GET /member/member-change-password
-     * - 完整 URL: http://localhost:8080/member/member-change-password  
+     * - URL: GET /member/change-password
+     * - 完整 URL: http://localhost:8080/member/change-password  
      * - 視圖路徑: src/main/resources/templates/front-end/member/change-password.html
      */
-    @GetMapping("/member-change-password")
+    @GetMapping("/change-password")
     public String showMemberChangePasswordPage(Model model, HttpSession session) {
         // 【Session驗證】檢查登入狀態
         Long memberId = (Long) session.getAttribute("loggedInMemberId");
@@ -428,10 +428,10 @@ public class MemberController {
      * 【前端會員專區路由】處理密碼變更請求 (前端專用)
      * 
      * 路徑說明：
-     * - URL: POST /member/member-change-password
+     * - URL: POST /member/change-password
      * - 重定向: 成功後重新登入
      */
-    @PostMapping("/member-change-password")
+    @PostMapping("/change-password")
     public String processMemberPasswordChange(@Validated @ModelAttribute("passwordUpdateRequest") PasswordUpdateRequest request,
                                             BindingResult result,
                                             RedirectAttributes redirectAttributes,
@@ -460,7 +460,7 @@ public class MemberController {
         } catch (EntityNotFoundException | IllegalArgumentException e) {
             log.warn("密碼變更失敗：{}", e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/member/member-change-password";
+            return "redirect:/member/change-password";
         }
     }
     
@@ -519,5 +519,66 @@ public class MemberController {
             updateRequest.setIsEnabled(member.isEnabled());
             model.addAttribute("memberUpdateRequest", updateRequest);
         });
+    }
+    
+    // ================================================================
+    // 					前端會員註冊功能 (Front-end Member Registration)
+    // ================================================================
+    
+    /**
+     * 【功能】: 顯示前端會員註冊表單頁面。
+     * 【請求路徑】: 處理 GET /member/register 請求。
+     */
+    @GetMapping("/register")
+    public String showRegisterForm(Model model) {
+        try {
+            model.addAttribute("memberCreateRequest", new MemberCreateRequest());
+            log.info("註冊頁面載入成功");
+            return "front-end/member/member-register";
+        } catch (Exception e) {
+            log.error("載入註冊頁面時發生錯誤: {}", e.getMessage(), e);
+            // 如果發生錯誤，重定向到登入頁面
+            return "redirect:/api/v1/auth/member-login";
+        }
+    }
+    
+    /**
+     * 【功能】: 處理前端會員註冊表單提交。
+     * 【請求路徑】: 處理 POST /member/register 請求。
+     */
+    @PostMapping("/register")
+    public String registerMember(@Validated(CreateValidation.class) @ModelAttribute("memberCreateRequest") MemberCreateRequest createRequest,
+                                BindingResult result,
+                                RedirectAttributes redirectAttributes,
+                                Model model) {
+
+        // 驗證表單數據
+        if (result.hasErrors()) {
+            return "front-end/member/member-register";
+        }
+
+        try {
+            // 註冊會員
+            MemberEntity savedMember = memberService.registerMember(createRequest);
+            log.info("前端會員 {} 註冊成功，ID: {}", savedMember.getAccount(), savedMember.getMemberId());
+            
+            // 註冊成功，重定向到登入頁面並顯示成功訊息
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "註冊成功！歡迎加入 " + savedMember.getUsername() + "，請使用您的帳號密碼登入。");
+            return "redirect:/api/v1/auth/member-login";
+        
+        } catch (IllegalArgumentException e) {
+            log.warn("前端註冊失敗: {}", e.getMessage());
+            result.addError(new FieldError("memberCreateRequest", "account", e.getMessage()));
+            return "front-end/member/member-register";
+        }
+    }
+
+    /**
+     * 【測試方法】: 簡單的註冊頁面顯示 - 用於排除問題
+     */
+    @GetMapping("/register-test")
+    public String showRegisterTestForm() {
+        return "front-end/member/member-register";
     }
 }

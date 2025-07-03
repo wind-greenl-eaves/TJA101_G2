@@ -57,15 +57,26 @@ public class EmailService {
             String targetEmail = "young19960127@gmail.com";
             
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            // 【關鍵修正】設定 UTF-8 編碼，不使用 multipart
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
 
+            // 【修正】設定寄件者信息
             helper.setFrom(fromEmail, systemName);
             helper.setTo(targetEmail);
+            
+            // 【修正】確保郵件主旨的中文字符正確編碼
             helper.setSubject("【" + systemName + "】會員密碼重設通知");
 
             // 創建 HTML 郵件內容
             String htmlContent = createPasswordResetEmailContent(memberEmail, memberAccount, memberName, resetUrl);
+            
+            // 【關鍵修正】設定 HTML 內容，明確指定為 HTML 格式
             helper.setText(htmlContent, true);
+            
+            // 【移除】不設定額外的編碼標頭，讓 MimeMessageHelper 自動處理
+            // 這些標頭可能會導致編碼衝突
+            // message.setHeader("Content-Type", "text/html; charset=UTF-8");
+            // message.setHeader("Content-Transfer-Encoding", "quoted-printable");
 
             mailSender.send(message);
             
@@ -92,7 +103,7 @@ public class EmailService {
                 <title>密碼重設通知</title>
                 <style>
                     body {
-                        font-family: 'Microsoft JhengHei', Arial, sans-serif;
+                        font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif;
                         line-height: 1.6;
                         color: #333;
                         max-width: 600px;
@@ -130,19 +141,31 @@ public class EmailService {
                         color: #A67B5B;
                         margin-top: 0;
                     }
+                    /* 【修復】改善按鈕樣式，確保相容性 */
                     .reset-button {
                         display: inline-block;
-                        background-color: #A67B5B;
-                        color: white;
+                        background-color: #A67B5B !important;
+                        color: white !important;
                         padding: 15px 30px;
-                        text-decoration: none;
+                        text-decoration: none !important;
                         border-radius: 5px;
                         font-weight: bold;
                         margin: 20px 0;
                         text-align: center;
+                        font-size: 16px;
+                        border: none;
+                        cursor: pointer;
+                        /* 【新增】確保按鈕在各種郵件客戶端中都能正常顯示 */
+                        -webkit-text-size-adjust: none;
+                        -ms-text-size-adjust: none;
+                        mso-line-height-rule: exactly;
                     }
                     .reset-button:hover {
-                        background-color: #8C684A;
+                        background-color: #8C684A !important;
+                    }
+                    /* 【新增】為Outlook等郵件客戶端提供額外支援 */
+                    .reset-button:visited {
+                        color: white !important;
                     }
                     .warning {
                         background-color: #fff3cd;
@@ -165,15 +188,23 @@ public class EmailService {
                         padding: 10px;
                         border-radius: 5px;
                         word-break: break-all;
-                        font-family: monospace;
+                        font-family: 'Courier New', monospace;
                         margin: 10px 0;
+                        font-size: 14px;
+                    }
+                    /* 【新增】確保在深色模式下也能正常顯示 */
+                    @media (prefers-color-scheme: dark) {
+                        .reset-button {
+                            background-color: #A67B5B !important;
+                            color: white !important;
+                        }
                     }
                 </style>
             </head>
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>🍳 %s</h1>
+                        <h1>🍳 EatFast早安通</h1>
                         <p>會員密碼重設通知</p>
                     </div>
                     
@@ -195,29 +226,57 @@ public class EmailService {
                                 <li>此連結僅在 24 小時內有效</li>
                                 <li>每個連結只能使用一次</li>
                                 <li>如果不是本人操作，請忽略此郵件</li>
+                                <li>請勿將此連結分享給他人</li>
                             </ul>
                         </div>
                         
-                        <div style="text-align: center;">
-                            <p><strong>請點擊以下按鈕重設密碼：</strong></p>
-                            <a href="%s" class="reset-button">🔐 立即重設密碼</a>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <p style="font-size: 18px; margin-bottom: 20px;"><strong>請點擊以下按鈕重設密碼：</strong></p>
+                            <!-- 【修復】使用表格佈局確保按鈕相容性 -->
+                            <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                                <tr>
+                                    <td style="background-color: #A67B5B; border-radius: 5px; padding: 0;">
+                                        <a href="%s" class="reset-button" style="display: block; color: white; text-decoration: none; padding: 15px 30px; font-weight: bold; font-size: 16px;">
+                                            🔐 立即重設密碼
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
                         </div>
                         
-                        <p>如果按鈕無法點擊，請複製以下網址到瀏覽器中開啟：</p>
-                        <div class="url-box">%s</div>
+                        <p style="margin-top: 30px;"><strong>如果按鈕無法點擊，請複製以下網址到瀏覽器中開啟：</strong></p>
+                        <div class="url-box">
+                            <a href="%s" style="color: #A67B5B; text-decoration: none;">%s</a>
+                        </div>
+                        
+                        <div class="warning" style="margin-top: 30px;">
+                            <strong>🛡️ 安全提醒：</strong>
+                            <p>為了您的帳號安全，建議設定強密碼：</p>
+                            <ul>
+                                <li>至少8個字元，包含大小寫字母、數字和特殊符號</li>
+                                <li>不要使用容易猜到的個人資訊</li>
+                                <li>定期更換密碼</li>
+                            </ul>
+                        </div>
                     </div>
                     
                     <div class="footer">
                         <p>此郵件由系統自動發送，請勿直接回覆</p>
                         <p>如有疑問，請聯繫系統管理員</p>
-                        <p>&copy; 2025 %s</p>
+                        <p>&copy; 2025 %s - 早餐美味，服務貼心</p>
                     </div>
                 </div>
             </body>
             </html>
             """,
-            systemName, memberAccount, memberName, memberEmail, currentTime,
-            resetUrl, resetUrl, systemName
+            memberAccount,  // 第1個 %s：會員帳號
+            memberName,     // 第2個 %s：會員姓名
+            memberEmail,    // 第3個 %s：會員信箱
+            currentTime,    // 第4個 %s：請求時間
+            resetUrl,       // 第5個 %s：重設連結（按鈕）
+            resetUrl,       // 第6個 %s：重設連結（網址框內的連結）
+            resetUrl,       // 第7個 %s：重設連結（網址框顯示的文字）
+            systemName      // 第8個 %s：系統名稱（頁尾）
         );
     }
 

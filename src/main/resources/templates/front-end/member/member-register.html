@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會員註冊 - 早餐店會員系統</title>
+    
+    <!-- 引入 Font Awesome 圖示庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- 引入 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #FFFFFF;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --error-color: #D9534F;
+            --placeholder-color: #B0A495;
+            --input-focus-ring: rgba(166, 123, 91, 0.2);
+        }
+        
+        body {
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #FDFBF6 0%, #F5EFE6 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .register-container {
+            background: var(--container-bg);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            margin: 20px;
+        }
+        
+        .logo {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .register-title {
+            color: var(--primary-color);
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .register-subtitle {
+            color: var(--text-color);
+            margin-bottom: 30px;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .required {
+            color: var(--error-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            background-color: var(--container-bg);
+            color: var(--text-color);
+        }
+        
+        .form-control::placeholder {
+            color: var(--placeholder-color);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--input-focus-ring);
+        }
+        
+        .form-control.is-invalid {
+            border-color: var(--error-color);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+        
+        .gender-options {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+        }
+        
+        .gender-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .gender-option input[type="radio"] {
+            accent-color: var(--primary-color);
+        }
+        
+        .register-btn {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .register-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(166, 123, 91, 0.3);
+        }
+        
+        .quick-fill-btn {
+            width: 100%;
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .quick-fill-btn:hover {
+            background-color: #218838;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .password-field {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--placeholder-color);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            transition: color 0.3s ease;
+        }
+        
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+        
+        .password-toggle:focus {
+            outline: none;
+            color: var(--primary-color);
+        }
+        
+        .form-control.has-toggle {
+            padding-right: 45px;
+        }
+        
+        .input-field {
+            position: relative;
+        }
+        
+        .clear-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--placeholder-color);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+            transition: color 0.3s ease;
+            display: none;
+        }
+        
+        .clear-btn:hover {
+            color: var(--error-color);
+        }
+        
+        .clear-btn:focus {
+            outline: none;
+            color: var(--error-color);
+        }
+        
+        .form-control.has-clear {
+            padding-right: 35px;
+        }
+        
+        .password-field .clear-btn {
+            right: 45px;
+        }
+        
+        .input-field.has-value .clear-btn {
+            display: block;
+        }
+        
+        .login-link {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-color);
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .login-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+            color: var(--primary-hover);
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            margin: 20px 0;
+            border-radius: 6px;
+            font-size: 14px;
+            border: 1px solid;
+        }
+        
+        .alert-error {
+            background-color: #fef2f2;
+            border-color: var(--error-color);
+            color: var(--error-color);
+        }
+        
+        .invalid-feedback {
+            display: block;
+            color: var(--error-color);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        @media (max-width: 480px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .gender-options {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="logo">🍳</div>
+        <h1 class="register-title">會員註冊</h1>
+        <p class="register-subtitle">加入我們，享受美味早餐！</p>
+        
+        <!-- 註冊表單 -->
+        <form th:action="@{/member/register}" method="post" th:object="${memberCreateRequest}" id="registerForm">
+            <!-- 快速填入按鈕 -->
+            <button type="button" class="quick-fill-btn" id="quickFillBtn">
+                <i class="fas fa-magic"></i> 不想填資料就按這裡吧!
+            </button>
+            
+            <!-- 顯示錯誤訊息 -->
+            <div th:if="${#fields.hasAnyErrors()}" class="alert alert-error">
+                <ul style="margin: 0; padding-left: 20px;">
+                    <li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li>
+                </ul>
+            </div>
+            
+            <div class="form-group">
+                <label for="username">會員姓名 <span class="required">*</span></label>
+                <div class="input-field">
+                    <input type="text" 
+                           id="username" 
+                           th:field="*{username}"
+                           class="form-control" 
+                           placeholder="請輸入您的真實姓名"
+                           value="張測試"
+                           required>
+                    <button type="button" class="clear-btn" id="clearUsername">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div th:if="${#fields.hasErrors('username')}" class="invalid-feedback" th:errors="*{username}"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="account">登入帳號 <span class="required">*</span></label>
+                <div class="input-field">
+                    <input type="text" 
+                           id="account" 
+                           th:field="*{account}"
+                           class="form-control" 
+                           placeholder="請輸入登入帳號（英文、數字）"
+                           value="testuser001"
+                           required>
+                    <button type="button" class="clear-btn" id="clearAccount">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div th:if="${#fields.hasErrors('account')}" class="invalid-feedback" th:errors="*{account}"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">登入密碼 <span class="required">*</span></label>
+                <div class="password-field">
+                    <input type="password" 
+                           id="password" 
+                           th:field="*{password}"
+                           class="form-control" 
+                           placeholder="請輸入密碼（至少8位）"
+                           value="test123456"
+                           required>
+                    <button type="button" class="password-toggle" id="togglePassword">
+                        <i class="fas fa-eye" id="toggleIcon"></i>
+                    </button>
+                    <button type="button" class="clear-btn" id="clearPassword">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div th:if="${#fields.hasErrors('password')}" class="invalid-feedback" th:errors="*{password}"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmPassword">確認密碼 <span class="required">*</span></label>
+                <div class="password-field">
+                    <input type="password" 
+                           id="confirmPassword" 
+                           name="confirmPassword"
+                           class="form-control" 
+                           placeholder="請再次輸入密碼"
+                           value="test123456"
+                           required>
+                    <button type="button" class="password-toggle" id="toggleConfirmPassword">
+                        <i class="fas fa-eye" id="toggleConfirmIcon"></i>
+                    </button>
+                    <button type="button" class="clear-btn" id="clearConfirmPassword">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="confirmPasswordError" class="invalid-feedback" style="display: none;">密碼確認不一致</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">電子郵件 <span class="required">*</span></label>
+                <div class="input-field">
+                    <input type="email" 
+                           id="email" 
+                           th:field="*{email}"
+                           class="form-control" 
+                           placeholder="請輸入電子郵件地址"
+                           value="test@example.com"
+                           required>
+                    <button type="button" class="clear-btn" id="clearEmail">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div th:if="${#fields.hasErrors('email')}" class="invalid-feedback" th:errors="*{email}"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">連絡電話 <span class="required">*</span></label>
+                <div class="input-field">
+                    <input type="tel" 
+                           id="phone" 
+                           th:field="*{phone}"
+                           class="form-control" 
+                           placeholder="請輸入手機號碼（09XX-XXX-XXX）"
+                           pattern="^09\d{2}-?\d{3}-?\d{3}$"
+                           value="0912-345-678"
+                           required>
+                    <button type="button" class="clear-btn" id="clearPhone">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div th:if="${#fields.hasErrors('phone')}" class="invalid-feedback" th:errors="*{phone}"></div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="birthday">生日 <span class="required">*</span></label>
+                    <input type="date" 
+                           id="birthday" 
+                           th:field="*{birthday}"
+                           class="form-control" 
+                           value="1990-01-01"
+                           required>
+                    <div th:if="${#fields.hasErrors('birthday')}" class="invalid-feedback" th:errors="*{birthday}"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>性別 <span class="required">*</span></label>
+                    <div class="gender-options">
+                        <div class="gender-option">
+                            <input type="radio" id="male" th:field="*{gender}" value="M" checked required>
+                            <label for="male">👨 男性</label>
+                        </div>
+                        <div class="gender-option">
+                            <input type="radio" id="female" th:field="*{gender}" value="F" required>
+                            <label for="female">👩 女性</label>
+                        </div>
+                        <div class="gender-option">
+                            <input type="radio" id="other" th:field="*{gender}" value="O" required>
+                            <label for="other">🧑 其他</label>
+                        </div>
+                    </div>
+                    <div th:if="${#fields.hasErrors('gender')}" class="invalid-feedback" th:errors="*{gender}"></div>
+                </div>
+            </div>
+            
+            <button type="submit" class="register-btn" id="registerButton">
+                <i class="fas fa-user-plus"></i> 立即註冊
+            </button>
+        </form>
+        
+        <div class="login-link">
+            已經有帳號了？
+            <a th:href="@{/api/v1/auth/member-login}">立即登入</a>
+        </div>
+    </div>
+    
+    <script>
+        // 表單驗證
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const confirmPasswordError = document.getElementById('confirmPasswordError');
+            
+            // 檢查密碼是否一致
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                confirmPasswordError.style.display = 'block';
+                document.getElementById('confirmPassword').classList.add('is-invalid');
+                return false;
+            } else {
+                confirmPasswordError.style.display = 'none';
+                document.getElementById('confirmPassword').classList.remove('is-invalid');
+            }
+            
+            // 顯示載入狀態
+            const button = document.getElementById('registerButton');
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 註冊中...';
+        });
+        
+        // 密碼確認即時驗證
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            const confirmPasswordError = document.getElementById('confirmPasswordError');
+            
+            if (confirmPassword && password !== confirmPassword) {
+                confirmPasswordError.style.display = 'block';
+                this.classList.add('is-invalid');
+            } else {
+                confirmPasswordError.style.display = 'none';
+                this.classList.remove('is-invalid');
+            }
+        });
+        
+        // 手機號碼格式化
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 4 && value.length <= 7) {
+                value = value.replace(/(\d{4})(\d{0,3})/, '$1-$2');
+            } else if (value.length > 7) {
+                value = value.replace(/(\d{4})(\d{3})(\d{0,3})/, '$1-$2-$3');
+            }
+            e.target.value = value;
+        });
+        
+        // 快速填入測試資料
+        document.getElementById('quickFillBtn').addEventListener('click', function() {
+            // 隨機姓名數組
+            const firstNames = ['張', '李', '王', '陳', '林', '黃', '劉', '吳', '周', '徐', '趙', '孫', '馬', '朱', '胡'];
+            const lastNames = ['測試', '開發', '用戶', '會員', '客戶', '使用者', '實驗', '範例', '樣本', '模擬'];
+            
+            // 隨機帳號前綴
+            const accountPrefixes = ['test', 'demo', 'user', 'member', 'guest', 'sample', 'trial'];
+            
+            // 隨機信箱服務商
+            const emailDomains = ['example.com', 'test.com', 'demo.org', 'sample.net', 'trial.co'];
+            
+            // 隨機生成資料
+            const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+            const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+            const randomAccountPrefix = accountPrefixes[Math.floor(Math.random() * accountPrefixes.length)];
+            const randomNumber = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
+            const randomEmailDomain = emailDomains[Math.floor(Math.random() * emailDomains.length)];
+            
+            // 隨機生成手機號碼
+            const phoneMiddle = String(Math.floor(Math.random() * 900) + 100);
+            const phoneLast = String(Math.floor(Math.random() * 900) + 100);
+            
+            // 隨機生成生日（1970-2005年之間）
+            const randomYear = Math.floor(Math.random() * 36) + 1970; // 1970-2005
+            const randomMonth = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+            const randomDay = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0'); // 避免月份天數問題
+            
+            // 隨機選擇性別
+            const genders = ['M', 'F', 'O'];
+            const randomGender = genders[Math.floor(Math.random() * genders.length)];
+            
+            // 填入隨機資料
+            document.getElementById('username').value = randomFirstName + randomLastName;
+            document.getElementById('account').value = randomAccountPrefix + randomNumber;
+            document.getElementById('password').value = 'test123456';
+            document.getElementById('confirmPassword').value = 'test123456';
+            document.getElementById('email').value = randomAccountPrefix + randomNumber + '@' + randomEmailDomain;
+            document.getElementById('phone').value = '0912-' + phoneMiddle + '-' + phoneLast;
+            document.getElementById('birthday').value = randomYear + '-' + randomMonth + '-' + randomDay;
+            document.querySelector('input[name="gender"][value="' + randomGender + '"]').checked = true;
+            
+            // 更新所有清除按鈕的顯示狀態
+            setTimeout(() => {
+                document.querySelectorAll('.input-field input, .password-field input').forEach(function(input) {
+                    updateClearButton(input);
+                });
+            }, 100);
+            
+            // 添加視覺反饋
+            this.innerHTML = '<i class="fas fa-check"></i> 已填入隨機資料';
+            this.style.backgroundColor = '#218838';
+            
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-magic"></i>  不想填資料就按這裡吧!';
+                this.style.backgroundColor = '#28a745';
+            }, 1000);
+        });
+        
+        // 密碼顯示/隱藏功能
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const passwordToggleIcon = document.getElementById('toggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordToggleIcon.classList.remove('fa-eye');
+                passwordToggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                passwordToggleIcon.classList.remove('fa-eye-slash');
+                passwordToggleIcon.classList.add('fa-eye');
+            }
+        });
+        
+        document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const confirmPasswordToggleIcon = document.getElementById('toggleConfirmIcon');
+            
+            if (confirmPasswordInput.type === 'password') {
+                confirmPasswordInput.type = 'text';
+                confirmPasswordToggleIcon.classList.remove('fa-eye');
+                confirmPasswordToggleIcon.classList.add('fa-eye-slash');
+            } else {
+                confirmPasswordInput.type = 'password';
+                confirmPasswordToggleIcon.classList.remove('fa-eye-slash');
+                confirmPasswordToggleIcon.classList.add('fa-eye');
+            }
+        });
+        
+        // 清除按鈕功能
+        document.getElementById('clearUsername').addEventListener('click', function() {
+            document.getElementById('username').value = '';
+            this.style.display = 'none';
+        });
+        
+        document.getElementById('clearAccount').addEventListener('click', function() {
+            document.getElementById('account').value = '';
+            this.style.display = 'none';
+        });
+        
+        document.getElementById('clearPassword').addEventListener('click', function() {
+            document.getElementById('password').value = '';
+            this.style.display = 'none';
+        });
+        
+        document.getElementById('clearConfirmPassword').addEventListener('click', function() {
+            document.getElementById('confirmPassword').value = '';
+            this.style.display = 'none';
+        });
+        
+        document.getElementById('clearEmail').addEventListener('click', function() {
+            document.getElementById('email').value = '';
+            this.style.display = 'none';
+        });
+        
+        document.getElementById('clearPhone').addEventListener('click', function() {
+            document.getElementById('phone').value = '';
+            this.style.display = 'none';
+        });
+        
+        // 當輸入框有值時顯示清除按鈕
+        function updateClearButton(input) {
+            const clearBtn = input.parentElement.querySelector('.clear-btn');
+            if (clearBtn) {
+                if (input.value) {
+                    clearBtn.style.display = 'block';
+                } else {
+                    clearBtn.style.display = 'none';
+                }
+            }
+        }
+        
+        // 為所有輸入欄位添加事件監聽器
+        document.querySelectorAll('.input-field input, .password-field input').forEach(function(input) {
+            input.addEventListener('input', function() {
+                updateClearButton(this);
+            });
+            
+            // 頁面載入時檢查預設值
+            updateClearButton(input);
+        });
+        
+        // 頁面載入完成後立即檢查所有欄位
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.input-field input, .password-field input').forEach(function(input) {
+                updateClearButton(input);
+            });
+        });
+    </script>
+</body>
+</html>

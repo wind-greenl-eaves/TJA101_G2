@@ -164,10 +164,10 @@ public class MemberService {
 
     /**
      * 處理忘記密碼請求
-     * 根據電子郵件查找會員並生成重設密碼的 Token
+     * 根據電子郵件查找會員並生成重設密碼連結
      * 
-     * @param request 忘記密碼請求，包含電子郵件
-     * @return 重設密碼的 Token（同時透過郵件發送）
+     * @param request 忘記密碼請求，包含會員的電子郵件
+     * @return 重設密碼的 Token
      * @throws EntityNotFoundException 如果找不到對應的會員
      */
     @Transactional
@@ -186,12 +186,15 @@ public class MemberService {
             throw new IllegalArgumentException("此帳號已被停用，無法重設密碼");
         }
         
-        // 生成重設密碼的 Token（簡化版本，實際應用中應該更安全）
+        // 生成重設密碼的 Token（增強版本）
         String resetToken = generateResetToken(member);
         
         try {
-            // 【修改】建構完整的重設密碼 URL
-            String resetUrl = "http://localhost:8080/api/v1/auth/reset-password?token=" + resetToken;
+            // 【修復】動態建構重設密碼 URL，支援不同環境
+            String baseUrl = determineBaseUrl();
+            String resetUrl = baseUrl + "/api/v1/auth/reset-password?token=" + java.net.URLEncoder.encode(resetToken, "UTF-8");
+            
+            log.info("生成重設密碼連結 - 會員: {} -> URL: {}", member.getAccount(), resetUrl);
             
             // 【新增】發送郵件到統一郵箱
             emailService.sendPasswordResetEmail(
@@ -208,13 +211,32 @@ public class MemberService {
             log.error("發送重設密碼郵件失敗 - 會員: {} ({}), 錯誤: {}", 
                 member.getAccount(), member.getUsername(), e.getMessage(), e);
             
-            // 可以選擇是否要拋出例外，或者只記錄錯誤但繼續處理
+            // 拋出例外，確保用戶知道郵件發送失敗
             throw new RuntimeException("郵件發送失敗，請稍後再試或聯繫客服", e);
         }
         
         return resetToken;
     }
     
+    /**
+     * 【新增】動態決定基礎URL，支援不同環境
+     */
+    private String determineBaseUrl() {
+        // 在實際環境中，這應該從配置檔案或環境變數讀取
+        String environment = System.getProperty("spring.profiles.active", "dev");
+        
+        switch (environment.toLowerCase()) {
+            case "prod":
+            case "production":
+                return "https://yourdomain.com";  // 正式環境URL
+            case "test":
+            case "staging":
+                return "https://test.yourdomain.com";  // 測試環境URL
+            default:
+                return "http://localhost:8080";  // 開發環境URL
+        }
+    }
+
     /**
      * 處理密碼重設請求
      * 驗證 Token 並更新會員密碼

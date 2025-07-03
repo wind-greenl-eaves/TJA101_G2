@@ -234,6 +234,14 @@
                                     <td th:text="${member.account}"></td>
                                 </tr>
                                 <tr>
+                                    <th scope="row" style="background-color: var(--milk-tea-bg);">密碼狀態</th>
+                                    <td>
+                                        <span class="badge badge-danger" style="font-size: 0.9rem; padding: 0.4em 0.6em;">
+                                            <i class="fas fa-exclamation-triangle"></i> 密碼已加密保護
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
                                     <th scope="row" style="background-color: var(--milk-tea-bg);">電子郵件</th>
                                     <td th:text="${member.email}"></td>
                                 </tr>
@@ -360,6 +368,14 @@
                             <tr>
                                 <th style="background-color: var(--milk-tea-bg);">登入帳號</th>
                                 <td id="modal-account"></td>
+                            </tr>
+                            <tr>
+                                <th style="background-color: var(--milk-tea-bg);">密碼狀態</th>
+                                <td id="modal-password-status">
+                                    <span class="badge badge-danger" style="font-size: 0.9rem; padding: 0.4em 0.6em;">
+                                        <i class="fas fa-exclamation-triangle"></i> 密碼已加密保護
+                                    </span>
+                                </td>
                             </tr>
                             <tr>
                                 <th style="background-color: var(--milk-tea-bg);">電子郵件</th>

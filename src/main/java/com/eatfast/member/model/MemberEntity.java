@@ -1,76 +1,92 @@
-
 package com.eatfast.member.model;
 
-// 引入共享 Enum 與所有關聯實體
-import com.eatfast.common.enums.Gender;
-import com.eatfast.fav.model.FavEntity;
-import com.eatfast.orderlist.model.OrderListEntity;
-import com.eatfast.cart.model.CartEntity;
-import com.eatfast.feedback.model.FeedbackEntity;
+// ↓↓↓ 基礎資料型別與列舉的引入 ↓↓↓
+import com.eatfast.common.enums.Gender;  // 性別列舉，定義在 com.eatfast.common.enums 包下
+import java.time.LocalDate;              // 生日使用的日期類型
+import java.time.LocalDateTime;          // 時間戳記使用的日期時間類型
+import java.util.HashSet;               // 用於存放關聯集合的資料結構
+import java.util.Objects;               // 用於 equals 和 hashCode 方法
+import java.util.Set;                   // 集合介面
 
-// 引入 Jakarta Validation API 進行資料驗證
-import com.eatfast.member.validation.CreateValidation;
-import com.eatfast.member.validation.UpdateValidation;
-import jakarta.validation.constraints.*;
+// ↓↓↓ 關聯實體的引入（一對多關係中的「多」方） ↓↓↓
+import com.eatfast.fav.model.FavEntity;           // 收藏紀錄實體，路徑: /fav/model/FavEntity
+import com.eatfast.orderlist.model.OrderListEntity; // 訂單實體，路徑: /orderlist/model/OrderListEntity
+import com.eatfast.cart.model.CartEntity;         // 購物車實體，路徑: /cart/model/CartEntity
+import com.eatfast.feedback.model.FeedbackEntity; // 意見回饋實體，路徑: /feedback/model/FeedbackEntity
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+// ↓↓↓ 驗證相關的引入 ↓↓↓
+import com.eatfast.member.validation.CreateValidation;  // 創建驗證群組，路徑: /member/validation/CreateValidation
+import com.eatfast.member.validation.UpdateValidation;  // 更新驗證群組，路徑: /member/validation/UpdateValidation
+import jakarta.validation.constraints.*;  // 所有驗證註解，如 @NotBlank, @Email 等
 
-// 引入 Hibernate 專屬優化與功能註解
-import org.hibernate.annotations.*;
+// ↓↓↓ Hibernate 和 JPA 相關的引入 ↓↓↓
+import org.hibernate.annotations.*;        // Hibernate 特有的註解，如 @DynamicUpdate
+import jakarta.persistence.*;             // JPA 標準註解，如 @Entity, @Id 等
+import jakarta.persistence.CascadeType;   // 級聯操作類型
+import jakarta.persistence.Table;         // 資料表映射註解
 
-import jakarta.persistence.*;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Table;
-
-/*
- * ================================================================
- * MemberEntity.java (收藏關聯重構定版)
- * ================================================================
- * - 審查結論:
- * 1. 【關聯重構】: 已移除 @ManyToMany 關聯，並正確建立對 FavEntity 的 @OneToMany
- * 關聯，符合團隊決議。
- * 2. 【邏輯校正】:
- * - `orders` 關聯: 無級聯刪除，符合資料庫 ON DELETE RESTRICT 約束。
- * - `favorites`, `cartItems`, `feedback`: 正確配置級聯與孤兒移除，
- * 確保了依賴物件的生命週期與會員一致。
- * 3. 【結構完整】:
- * - 已修正 Getter/Setter 與成員變數不匹配的問題。
- * - 所有 JPA 與 Hibernate 註解均已正確配置。
- */
+// ↓↓↓ JSON 序列化相關的引入 ↓↓↓
+import com.fasterxml.jackson.annotation.JsonIgnore;  // 防止 JSON 循環引用的註解
 
 /**
- * 會員實體 (Member Entity)
- * <p>
- * 核心功能:
- * - 映射資料庫 `member` 表。
- * - 實現軟刪除機制 (@SQLDelete, @SQLRestriction)。
- * - 定義與訂單、收藏、購物車、意見回饋的一對多關聯。
+ * 會員實體類別 - 對應資料庫中的 member 表
+ * 
+ * 【重要路徑說明】
+ * 1. 資料庫對應：@Table(name = "member") 
+ *    → 對應到資料庫中的 member 表
+ * 
+ * 2. 關聯路徑：
+ *    - 訂單：member(1) → orders(多)，透過 member_id 欄位關聯
+ *    - 收藏：member(1) → favorites(多)，透過 member_id 欄位關聯
+ *    - 購物車：member(1) → cart_items(多)，透過 member_id 欄位關聯
+ *    - 意見回饋：member(1) → feedback(多)，透過 member_id 欄位關聯
+ *
+ * 3. URL 路徑：
+ *    - 查詢：GET /member/api/detail/{memberId}
+ *    - 新增：POST /member/insert
+ *    - 修改：POST /member/update
+ *    - 刪除：POST /member/delete
  */
-@Entity
-@Table(name = "member")
-@SQLDelete(sql = "UPDATE member SET is_enabled = false WHERE member_id = ?")
-@SQLRestriction("is_enabled = true")
-@DynamicUpdate
+
+@Entity  // 標記這是一個實體類別，會對應到資料庫的表
+@Table(name = "member")  // 指定對應的資料表名稱
+@SQLDelete(sql = "UPDATE member SET is_enabled = false WHERE member_id = ?")  // 軟刪除的SQL語句
+@SQLRestriction("is_enabled = true")  // 查詢時只顯示未刪除的記錄
+@DynamicUpdate  // 只更新有變更的欄位，提升效能
 public class MemberEntity {
 
     //================================================================
     // 							欄位定義
     //================================================================
 
+    /**
+     * 會員ID - 主鍵
+     * 1. @Id：標記這是主鍵
+     * 2. @GeneratedValue：自動生成值
+     * 3. 對應資料表欄位：member_id
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
     private Long memberId;
 
+    /**
+     * 會員姓名
+     * 1. @NotBlank：不能為空白
+     * 2. 驗證群組：新增和修改時都要檢查
+     * 3. 對應資料表欄位：username
+     */
     @NotBlank(message = "會員姓名：請勿空白", groups = {CreateValidation.class, UpdateValidation.class})
     @Column(name = "username", nullable = false, length = 20)
     private String username;
 
-    @NaturalId // 定義為業務上的自然主鍵，提升查詢效能
+    /**
+     * 登入帳號 - 自然鍵
+     * 1. @NaturalId：標記為業務邏輯上的唯一識別碼
+     * 2. @Column(unique = true)：確保資料庫層級的唯一性
+     * 3. updatable = false：建立後不可修改
+     */
+    @NaturalId
     @NotBlank(message = "登入帳號：請勿空白", groups = CreateValidation.class)
     @Column(name = "account", nullable = false, updatable = false, length = 50, unique = true)
     private String account;
@@ -119,7 +135,14 @@ public class MemberEntity {
     /**
      * 此會員的所有訂單。
      * 對應資料庫 ON DELETE RESTRICT，不設定級聯刪除。
+     * 
+     * 【路徑說明】
+     * 1. 資料庫：member表 ←→ order_list表（透過 member_id 欄位）
+     * 2. 程式碼：MemberEntity ←→ OrderListEntity（透過 @OneToMany）
+     * 3. @JsonIgnore：防止JSON序列化時的循環引用
+     * 4. mappedBy = "member"：對應到 OrderListEntity 中的 member 屬性
      */
+    @JsonIgnore
     @BatchSize(size = 10) // 優化: 抓取關聯集合時，每次最多抓 10 筆
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private Set<OrderListEntity> orders = new HashSet<>();
@@ -127,7 +150,13 @@ public class MemberEntity {
     /**
      * 此會員的所有收藏紀錄。
      * 級聯關係設為 ALL，刪除會員時將一併清除其收藏紀錄。
+     * 
+     * 【路徑說明】
+     * 1. 資料庫：member表 ←→ fav表（透過 member_id 欄位）
+     * 2. 程式碼：MemberEntity ←→ FavEntity（透過 @OneToMany）
+     * 3. cascade = ALL：刪除會員時，相關收藏也會被刪除
      */
+    @JsonIgnore
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<FavEntity> favorites = new HashSet<>();
@@ -135,6 +164,7 @@ public class MemberEntity {
     /**
      * 此會員的購物車項目。
      */
+    @JsonIgnore
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<CartEntity> cartItems = new HashSet<>();
@@ -142,6 +172,7 @@ public class MemberEntity {
     /**
      * 此會員的所有意見回饋。
      */
+    @JsonIgnore
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<FeedbackEntity> feedback = new HashSet<>();
