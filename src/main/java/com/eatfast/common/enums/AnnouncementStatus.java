@@ -15,5 +15,5 @@ public enum AnnouncementStatus {
     /**
      * 顯示 (1)
      */
-    VISIBLE
+    VISIBLE, INACTIVE, ACTIVE
 }

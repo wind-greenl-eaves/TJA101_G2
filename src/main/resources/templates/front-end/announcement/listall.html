@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>門市公告管理 - 溫馨奶茶風</title>
+
+    <!-- Bootstrap 與字型 -->
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- 自訂樣式 -->
+    <link rel="stylesheet" th:href="@{/css/member/style.css}" />
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4 text-center" style="font-family: 'Noto Sans TC';">🍵 門市公告清單</h2>
+
+    <!-- 新增按鈕 -->
+    <div class="text-right mb-3">
+        <a class="btn btn-success" th:href="@{/announcements/new}">
+            <i class="fas fa-plus"></i> 新增公告
+        </a>
+    </div>
+
+    <!-- 表格開始 -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover text-center">
+            <thead class="thead-light">
+                <tr>
+                    <th>公告標題</th>
+                    <th>門市</th>
+                    <th>狀態</th>
+                    <th>上架時間</th>
+                    <th>下架時間</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+            <tr th:each="announcement : ${announcements}">
+                <td th:text="${announcement.title}">標題</td>
+                <td th:text="${announcement.store.storeName}">門市名稱</td>
+                <td>
+                    <span th:switch="${announcement.status}">
+                        <span th:case="0">草稿</span>
+                        <span th:case="1">上架</span>
+                        <span th:case="2">下架</span>
+                        <span th:case="*">未知</span>
+                    </span>
+                </td>
+                <td th:text="${#temporals.format(announcement.startTime, 'yyyy-MM-dd HH:mm')}">起始</td>
+                <td th:text="${#temporals.format(announcement.endTime, 'yyyy-MM-dd HH:mm')}">結束</td>
+                <td>
+                    <a class="btn btn-info btn-sm" th:href="@{/announcements/{id}(id=${announcement.announcementId})}">
+                        <i class="fas fa-eye"></i> 查看
+                    </a>
+                    <a class="btn btn-danger btn-sm" 
+                       th:href="@{/announcements/delete/{id}(id=${announcement.announcementId})}"
+                       onclick="return confirm('確定要刪除這筆公告嗎？')">
+                        <i class="fas fa-trash-alt"></i> 刪除
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${#lists.isEmpty(announcements)}" class="text-center text-muted mt-4">
+        <i class="fas fa-info-circle"></i> 尚無公告資料
+    </div>
+</div>
+</body>
+</html>
