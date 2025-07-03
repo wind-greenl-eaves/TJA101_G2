@@ -520,4 +520,65 @@ public class MemberController {
             model.addAttribute("memberUpdateRequest", updateRequest);
         });
     }
+    
+    // ================================================================
+    // 					前端會員註冊功能 (Front-end Member Registration)
+    // ================================================================
+    
+    /**
+     * 【功能】: 顯示前端會員註冊表單頁面。
+     * 【請求路徑】: 處理 GET /member/register 請求。
+     */
+    @GetMapping("/register")
+    public String showRegisterForm(Model model) {
+        try {
+            model.addAttribute("memberCreateRequest", new MemberCreateRequest());
+            log.info("註冊頁面載入成功");
+            return "front-end/member/member-register";
+        } catch (Exception e) {
+            log.error("載入註冊頁面時發生錯誤: {}", e.getMessage(), e);
+            // 如果發生錯誤，重定向到登入頁面
+            return "redirect:/api/v1/auth/member-login";
+        }
+    }
+    
+    /**
+     * 【功能】: 處理前端會員註冊表單提交。
+     * 【請求路徑】: 處理 POST /member/register 請求。
+     */
+    @PostMapping("/register")
+    public String registerMember(@Validated(CreateValidation.class) @ModelAttribute("memberCreateRequest") MemberCreateRequest createRequest,
+                                BindingResult result,
+                                RedirectAttributes redirectAttributes,
+                                Model model) {
+
+        // 驗證表單數據
+        if (result.hasErrors()) {
+            return "front-end/member/member-register";
+        }
+
+        try {
+            // 註冊會員
+            MemberEntity savedMember = memberService.registerMember(createRequest);
+            log.info("前端會員 {} 註冊成功，ID: {}", savedMember.getAccount(), savedMember.getMemberId());
+            
+            // 註冊成功，重定向到登入頁面並顯示成功訊息
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "註冊成功！歡迎加入 " + savedMember.getUsername() + "，請使用您的帳號密碼登入。");
+            return "redirect:/api/v1/auth/member-login";
+        
+        } catch (IllegalArgumentException e) {
+            log.warn("前端註冊失敗: {}", e.getMessage());
+            result.addError(new FieldError("memberCreateRequest", "account", e.getMessage()));
+            return "front-end/member/member-register";
+        }
+    }
+
+    /**
+     * 【測試方法】: 簡單的註冊頁面顯示 - 用於排除問題
+     */
+    @GetMapping("/register-test")
+    public String showRegisterTestForm() {
+        return "front-end/member/member-register";
+    }
 }
