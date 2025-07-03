@@ -66,7 +66,7 @@ public class MealEntity {
     private byte[] mealPic; // 餐點圖片，以位元組陣列儲存
 
     @NotNull(message = "餐點單價不可為空")
-    @Min(value = 0, message = "餐點單價不可為負數")
+    @Min(value = 1, message = "餐點價格不可小於{value}")
     @Column(name = "meal_price", nullable = false)
     private Long mealPrice; // 餐點單價
 

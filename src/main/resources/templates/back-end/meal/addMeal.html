@@ -69,16 +69,17 @@
                 </div>
                 
 				<div class="form-group">
-				    <div class="d-flex align-items-center mb-2"> 
-				        <label class="me-3 mb-0">餐點狀態：</label> 
-				        
-				        <div class="th-generated-wrapper"> <div class="form-check me-3"> 
-				                <input class="form-check-input" type="radio" th:field="*{status}" id="statusOn" value="1">
-				                <label class="form-check-label" for="statusOn">上架</label>
+				    <div class="d-flex align-items-center mb-2">
+				        <label class="me-3 mb-0">餐點狀態：</label>
+				
+				        <div class="th-generated-wrapper">
+				            <div class="form-check me-3">
+				                <input type="radio" th:field="*{status}" value="AVAILABLE" id="statusAVAILABLE" />
+				                <label for="statusAVAILABLE" th:text="${T(com.eatfast.common.enums.MealStatus).AVAILABLE.description}"></label>
 				            </div>
 				            <div class="form-check">
-				                <input class="form-check-input" type="radio" th:field="*{status}" id="statusOff" value="0">
-				                <label class="form-check-label" for="statusOff">下架</label>
+				                <input type="radio" th:field="*{status}" value="UNAVAILABLE" id="statusUNAVAILABLE" />
+				                <label for="statusUNAVAILABLE" th:text="${T(com.eatfast.common.enums.MealStatus).UNAVAILABLE.description}"></label>
 				            </div>
 				        </div>
 				    </div>
@@ -89,7 +90,7 @@
                     <label for="mealPic">餐點圖片：</label>
                     <input type="file" id="mealPic" name="mealPic" class="form-control-file" accept="image/png, image/jpeg, image/gif"
                            onchange="hideErrorMessage('mealPic.errors'); previewFile();" />
-					<span class="text-danger" th:utext="${errorMessage}" id="mealPic.errors"></span>
+					<span class="text-danger" th:if="${#fields.hasErrors('mealPicFile')}" th:errors="*{mealPicFile}" id="mealPic.errors"></span>
                 	<div id="mealPicPreview" class="mt-2">
                         </div>
                 </div>

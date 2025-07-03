@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.eatfast.common.enums.MealStatus;
 import com.eatfast.meal.model.MealEntity;
 import com.eatfast.meal.model.MealService;
 import com.eatfast.mealtype.model.MealTypeEntity;
@@ -47,8 +48,9 @@ public class MealController {
     // 顯示新增餐點的表單頁面
     @GetMapping("/addMeal")
     public String addMealForm(ModelMap model) {
-    	MealEntity mealEntity = new MealEntity();
-        // 初始化 mealEntity 的 mealType 關聯物件，避免發生 NullPointerException
+    	MealEntity mealEntity = new MealEntity(); // 初始化 mealEntity 的 mealType 關聯物件，避免發生 NullPointerException
+    	mealEntity.setReviewTotalStars(0L);
+    	
     	mealEntity.setMealType(new MealTypeEntity());
         model.addAttribute("mealEntity", mealEntity);
      // @ModelAttribute("mealTypeListData") 會自動將餐點種類列表加入 Model，這裡不需重複添加
@@ -170,7 +172,7 @@ public class MealController {
     @PostMapping("/byType")
     public String getMealsByType(@RequestParam("mealTypeId") Long mealTypeId, Model model) {
     	List<MealEntity> meals;
-        if (mealTypeId == null || mealTypeId == 0) { // 假設 0 或 null 代表顯示所有種類
+        if (mealTypeId == null || mealTypeId == 0L) { // 假設 0 或 null 代表顯示所有種類
              meals = mealService.getAll();
         } else {
              meals = mealService.getMealsByType(mealTypeId);
@@ -178,13 +180,20 @@ public class MealController {
         model.addAttribute("mealListData", meals); // ListAllMeal頁面用這個key
         // 將選中的 mealTypeId 傳回，用於在下拉選單中保留上次的選擇
         model.addAttribute("selectedMealTypeId", mealTypeId);
+        
+        
         return "back-end/meal/listAllMeal";
     }
 
     // 查詢特定狀態的餐點（1:上架、0:下架）
     @PostMapping("/byStatus")
-    public String getMealsByStatus(@RequestParam("status") Integer status, Model model) {
-        List<MealEntity> meals = mealService.getMealsByStatus(status);
+    public String getMealsByStatus(@RequestParam(value = "status", required = false) MealStatus status, Model model) {
+        List<MealEntity> meals;
+        if (status == null) { // 如果沒有選擇狀態，則顯示所有餐點
+            meals = mealService.getAll(); // 這裡假設 getAll() 獲取所有餐點
+        } else {
+            meals = mealService.getMealsByStatus(status);
+        }
         model.addAttribute("mealListData", meals);
         model.addAttribute("selectedStatus", status); // 用於保留下拉選單的選擇狀態
         return "back-end/meal/listAllMeal";  // 共用查詢結果頁面
