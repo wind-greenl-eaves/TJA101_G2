@@ -1,4 +1,3 @@
-
 package com.eatfast.member.model;
 
 // 引入共享 Enum 與所有關聯實體
@@ -25,6 +24,9 @@ import org.hibernate.annotations.*;
 import jakarta.persistence.*;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Table;
+
+// 引入 Jackson 註解以處理 JSON 序列化
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /*
  * ================================================================
@@ -120,6 +122,7 @@ public class MemberEntity {
      * 此會員的所有訂單。
      * 對應資料庫 ON DELETE RESTRICT，不設定級聯刪除。
      */
+    @JsonIgnore
     @BatchSize(size = 10) // 優化: 抓取關聯集合時，每次最多抓 10 筆
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private Set<OrderListEntity> orders = new HashSet<>();
@@ -128,6 +131,7 @@ public class MemberEntity {
      * 此會員的所有收藏紀錄。
      * 級聯關係設為 ALL，刪除會員時將一併清除其收藏紀錄。
      */
+    @JsonIgnore
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<FavEntity> favorites = new HashSet<>();
@@ -135,6 +139,7 @@ public class MemberEntity {
     /**
      * 此會員的購物車項目。
      */
+    @JsonIgnore
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<CartEntity> cartItems = new HashSet<>();
@@ -142,6 +147,7 @@ public class MemberEntity {
     /**
      * 此會員的所有意見回饋。
      */
+    @JsonIgnore
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<FeedbackEntity> feedback = new HashSet<>();
