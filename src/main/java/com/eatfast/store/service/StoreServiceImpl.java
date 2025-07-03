@@ -5,6 +5,7 @@
 // =================================================================================
 package com.eatfast.store.service;
 
+import com.eatfast.common.enums.StoreStatus;
 import com.eatfast.store.dto.CreateStoreRequest;
 import com.eatfast.store.dto.StoreDto;
 import com.eatfast.store.dto.UpdateStoreRequest;
@@ -104,6 +105,19 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public List<StoreDto> findAllStores() {
         return storeRepository.findAll().stream()
+                .map(storeMapper::toDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<StoreDto> searchStores(String storeName, String storeLoc, String storeTime, StoreStatus storeStatus) {
+        // 調用 Repository 中定義的命名查詢方法
+        // Spring Data JPA 會自動處理 null 參數，不將其納入查詢條件
+        List<StoreEntity> entities = storeRepository.findByStoreNameContainingAndStoreLocContainingAndStoreTimeContainingAndStoreStatus(
+                storeName, storeLoc, storeTime, storeStatus);
+
+        // 將查詢到的 Entity 列表轉換為 DTO 列表並返回
+        return entities.stream()
                 .map(storeMapper::toDto)
                 .collect(Collectors.toList());
     }

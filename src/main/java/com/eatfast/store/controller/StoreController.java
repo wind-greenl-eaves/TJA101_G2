@@ -22,7 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
-@RequestMapping("/api/v1/store")
+@RequestMapping("/store")
 public class StoreController {
 
     private final StoreService storeService;
@@ -33,13 +33,13 @@ public class StoreController {
         this.storeMapper = storeMapper;
     }
     
-    @GetMapping("/select_page_store")
+    @GetMapping("/select_page")
     public String showSelectStorePage() {
         
         return "back-end/store/select_page_store"; 
     }
 
-    @GetMapping("/listAllStore")
+    @GetMapping("/listAll")
     public String listAllStores(Model model) {
         List<StoreDto> stores = storeService.findAllStores();
         model.addAttribute("storeList", stores);
@@ -66,7 +66,7 @@ public class StoreController {
             result.rejectValue("storeName", "duplicate", e.getMessage());
             return "back-end/store/addStore";
         }
-        return "redirect:/store/list";
+        return "redirect:/store/listAll";
     }
 
     @GetMapping("/edit/{id}")
@@ -79,9 +79,9 @@ public class StoreController {
             model.addAttribute("updateStoreRequest", updateRequest);
         } catch (StoreNotFoundException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/store/list";
+            return "redirect:/store/update_Store_input";
         }
-        return "back-end/store/updateStore";
+        return "back-end/store/update_Store_input";
     }
 
     @PostMapping("/update")
@@ -92,7 +92,7 @@ public class StoreController {
         Long storeId = request.getStoreId();
         
         if (result.hasErrors()) {
-            return "back-end/store/updateStore"; // 返回編輯頁面並顯示錯誤
+            return "back-end/store/update_Store_input"; // 返回編輯頁面並顯示錯誤
         }
         try {
             storeService.updateStore(storeId, request);
@@ -100,18 +100,7 @@ public class StoreController {
         } catch (StoreNotFoundException | IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "更新失敗：" + e.getMessage());
         }
-        return "redirect:/store/list";
+        return "redirect:/store/listAll";
     }
 
-    @PostMapping("/delete")
-    public String deleteStore(@RequestParam("storeId") Long storeId,
-                              RedirectAttributes redirectAttributes) {
-        try {
-            storeService.deleteStore(storeId);
-            redirectAttributes.addFlashAttribute("successMessage", "刪除門市成功！");
-        } catch (StoreNotFoundException | IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-        }
-        return "redirect:/store/list";
-    }
 }

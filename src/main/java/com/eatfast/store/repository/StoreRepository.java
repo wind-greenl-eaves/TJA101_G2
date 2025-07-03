@@ -1,10 +1,12 @@
 package com.eatfast.store.repository;
 
+import com.eatfast.common.enums.StoreStatus;
 import com.eatfast.store.model.StoreEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor; // 1. 引入 JpaSpecificationExecutor
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -26,5 +28,11 @@ public interface StoreRepository extends JpaRepository<StoreEntity, Long>, JpaSp
      */
     Optional<StoreEntity> findByStoreName(String storeName);
     Optional<StoreEntity> findByStoreId(Long storeId);
-
+    
+    // 根據多個條件查詢門市列表
+    List<StoreEntity> findByStoreNameContainingAndStoreLocContainingAndStoreTimeContainingAndStoreStatus(
+            String storeName, String storeLoc, String storeTime, StoreStatus storeStatus);
+    
+    // 定義只根據狀態查詢的方法 (精確匹配)
+    List<StoreEntity> findByStoreStatus(StoreStatus storeStatus);
 }

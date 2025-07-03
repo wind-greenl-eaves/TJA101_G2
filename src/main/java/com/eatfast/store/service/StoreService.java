@@ -1,48 +1,34 @@
-// =================================================================================
-// 檔案 1/2: StoreService.java (★★ 最終版 ★★)
-// 路徑: src/main/java/com/eatfast/store/service/StoreService.java
-// 說明: 定義了最為清晰的服務契約，Create 與 Update 操作使用不同的 DTO。
-// =================================================================================
 package com.eatfast.store.service;
 
+import com.eatfast.common.enums.StoreStatus;
 import com.eatfast.store.dto.CreateStoreRequest;
 import com.eatfast.store.dto.StoreDto;
 import com.eatfast.store.dto.UpdateStoreRequest;
+import com.eatfast.store.exception.StoreNotFoundException;
+import com.eatfast.store.mapper.StoreMapper;
+import com.eatfast.store.model.StoreEntity; // 確保引入 StoreEntity
+import com.eatfast.store.repository.StoreRepository; // 確保引入 StoreRepository
+
+import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.stream.Collectors; // 引入 Collectors
 
-public interface StoreService {
-    
-    /**
-     * 新增一間門市。
-     * @param request 包含新增所需資料的 DTO。
-     * @return 成功建立後的門市資料 DTO。
-     */
-    StoreDto createStore(CreateStoreRequest request);
 
-    /**
-     * 更新指定 ID 的門市資料。
-     * @param storeId 要更新的門市 ID。
-     * @param request 包含要更新欄位的 DTO。
-     * @return 更新成功後的門市資料 DTO。
-     */
-    StoreDto updateStore(Long storeId, UpdateStoreRequest request);
+	public interface StoreService {
 
-    /**
-     * 刪除指定 ID 的門市。
-     * @param storeId 要刪除的門市 ID。
-     */
-    void deleteStore(Long storeId);
+	    // 【可自定義名稱】: createStore, updateStore 等方法名稱
+	    // 【不可變動的關鍵字/語法】: public, StoreDto, List 等返回類型和參數類型
+	    StoreDto createStore(CreateStoreRequest request);
 
-    /**
-     * 根據 ID 查詢門市。
-     * @param storeId 門市 ID。
-     * @return 查詢到的門市資料 DTO。
-     */
-    StoreDto findStoreById(Long storeId);
+	    List<StoreDto> findAllStores();
 
-    /**
-     * 查詢所有門市。
-     * @return 所有門市資料 DTO 的列表。
-     */
-    List<StoreDto> findAllStores();
-}
+	    StoreDto findStoreById(Long storeId);
+
+	    StoreDto updateStore(Long storeId, UpdateStoreRequest request);
+
+	    void deleteStore(Long storeId);
+
+	    // 確保這裡的 searchStores 方法簽名與 StoreServiceImpl 中的實作完全一致
+	    // 參數 storeStatus 應該是 StoreStatus 枚舉類型
+	    List<StoreDto> searchStores(String storeName, String storeLoc, String storeTime, StoreStatus storeStatus);
+	}
