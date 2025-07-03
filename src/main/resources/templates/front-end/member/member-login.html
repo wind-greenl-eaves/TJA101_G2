@@ -450,6 +450,119 @@
         .demo-account:last-child {
             margin-bottom: 0;
         }
+        
+        /* 輪播相關樣式 */
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            height: 300px; /* 設定固定高度 */
+            background: #f8f9fa; /* 添加背景色以便調試 */
+        }
+
+        .carousel-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .carousel-slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .carousel-slide.active {
+            opacity: 1;
+        }
+
+        .carousel-slide img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .carousel-slide img:hover {
+            transform: scale(1.02);
+        }
+
+        /* 確保圖片載入失敗時的處理 */
+        .carousel-slide img:not([src]) {
+            display: none;
+        }
+
+        .carousel-slide img[src=""],
+        .carousel-slide img:not([src*="."]) {
+            display: none;
+        }
+
+        /* 輪播控制按鈕 */
+        .carousel-control {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.7);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+
+        .carousel-control:hover {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--primary-hover);
+        }
+
+        .carousel-control.prev {
+            left: 10px;
+        }
+
+        .carousel-control.next {
+            right: 10px;
+        }
+
+        /* 輪播指示器 */
+        .carousel-indicators {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 2;
+        }
+
+        .indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .indicator.active {
+            background: var(--primary-color);
+            transform: scale(1.2);
+        }
     </style>
 </head>
 <body>
@@ -531,11 +644,34 @@
             </div>
         </div>
         
-        <!-- 【新增】圖片展示區塊 -->
+        <!-- 圖片展示區塊 -->
         <div class="image-container">
             <h2 class="image-title">🌅 EatFast 早餐店</h2>
             <p class="image-subtitle">新鮮美味，快速便利<br>您的美好一天從這裡開始</p>
-            <img th:src="@{/images/eatfast1.png}" alt="EatFast 早餐店形象圖" />
+            <div class="carousel-container">
+                <div class="carousel-inner">
+                    <div class="carousel-slide active">
+                        <img th:src="@{/images/eatfast1.png}" alt="EatFast 早餐店形象圖 1" />
+                    </div>
+                    <div class="carousel-slide">
+                        <a href="https://www.melalife.com.tw/article/248" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+                            <img th:src="@{/images/eatfast3.jpg}" alt="EatFast 早餐店形象圖 2 - 點擊查看更多資訊" style="cursor: pointer;" />
+                        </a>
+                    </div>
+                </div>
+                <!-- 輪播控制按鈕 -->
+                <button class="carousel-control prev">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="carousel-control next">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <!-- 輪播指示器 -->
+                <div class="carousel-indicators">
+                    <span class="indicator active"></span>
+                    <span class="indicator"></span>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -644,6 +780,74 @@
             alerts.forEach(alert => {
                 alert.style.opacity = '0.5';
             });
+        });
+        
+        // 輪播功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.carousel-slide');
+            const indicators = document.querySelectorAll('.indicator');
+            const prevButton = document.querySelector('.carousel-control.prev');
+            const nextButton = document.querySelector('.carousel-control.next');
+            let currentSlide = 0;
+            const totalSlides = slides.length;
+            let autoplayInterval;
+
+            function updateSlides(newIndex) {
+                slides[currentSlide].classList.remove('active');
+                indicators[currentSlide].classList.remove('active');
+                
+                currentSlide = (newIndex + totalSlides) % totalSlides;
+                
+                slides[currentSlide].classList.add('active');
+                indicators[currentSlide].classList.add('active');
+            }
+
+            function nextSlide() {
+                updateSlides(currentSlide + 1);
+            }
+
+            function prevSlide() {
+                updateSlides(currentSlide - 1);
+            }
+
+            // 設置自動輪播
+            function startAutoplay() {
+                stopAutoplay();
+                autoplayInterval = setInterval(nextSlide, 5000); // 每5秒切換一次
+            }
+
+            function stopAutoplay() {
+                if (autoplayInterval) {
+                    clearInterval(autoplayInterval);
+                }
+            }
+
+            // 事件監聽器
+            prevButton.addEventListener('click', () => {
+                prevSlide();
+                startAutoplay(); // 重置自動輪播計時器
+            });
+
+            nextButton.addEventListener('click', () => {
+                nextSlide();
+                startAutoplay(); // 重置自動輪播計時器
+            });
+
+            // 指示器點擊事件
+            indicators.forEach((indicator, index) => {
+                indicator.addEventListener('click', () => {
+                    updateSlides(index);
+                    startAutoplay(); // 重置自動輪播計時器
+                });
+            });
+
+            // 滑鼠進入停止自動輪播
+            const carouselContainer = document.querySelector('.carousel-container');
+            carouselContainer.addEventListener('mouseenter', stopAutoplay);
+            carouselContainer.addEventListener('mouseleave', startAutoplay);
+
+            // 開始自動輪播
+            startAutoplay();
         });
     </script>
 </body>
