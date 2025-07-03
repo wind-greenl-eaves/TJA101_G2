@@ -57,7 +57,7 @@
                 <div class="card-body">
                     <!-- 餐點資料列表連結 -->
                     <div class="mb-3">
-                        <a href="@{/meal/listAllMeal}" class="btn btn-outline-secondary btn-block">
+                        <a th:href="@{/meal/listAllMeal}" class="btn btn-outline-secondary btn-block">
                             <i class="fas fa-list"></i> 餐點資料列表
                         </a>
                     </div>
@@ -80,11 +80,11 @@
                         <div class="form-group">
                             <label for="mealTypeId"><i class="fas fa-tags"></i> 選擇餐點類別：</label>
                             <select id="mealTypeId" name="mealTypeId" class="form-control">
-                                <option value=""> -- 請選擇種類 -- </option>
-                                <option th:each="type : ${mealTypeListData}" 
-                                		th:value="${type.mealTypeId}" 
-                                		th:text="'(' + ${type.mealTypeId} + ') ' + ${type.mealName}"
-										th:selected="${type.mealTypeId == selectedMealTypeId}">
+                                <option value="0"> -- 請選擇種類 -- </option>
+                                <option th:each="mealType : ${mealTypeListData}" 
+                                		th:value="${mealType.mealTypeId}" 
+                                		th:text="'(' + ${mealType.mealTypeId} + ') ' + ${mealType.mealName}"
+										th:selected="${mealType.mealTypeId == selectedMealTypeId}">
                                 </option>
                             </select>
                         </div>
@@ -96,13 +96,17 @@
                     <hr>
 
                     <!-- 餐點狀態查詢 -->
-                    <form method="post" th:action="@{/meal/byStatus}">
+                    <form method="post" th:action="@{/meal/byStatus}" class="mb-3">
                         <div class="form-group">
                             <label for="status"><i class="fas fa-toggle-on"></i> 選擇餐點狀態：</label>
                             <select id="status" name="status" class="form-control">
-                                <option value="1">上架</option>
-                                <option value="0">下架</option>
-                            </select>
+                                <option th:value="${T(com.eatfast.common.enums.MealStatus).AVAILABLE.name()}"
+		                                th:text="${T(com.eatfast.common.enums.MealStatus).AVAILABLE.description}"
+		                                th:selected="${selectedStatus != null and selectedStatus.name() == T(com.eatfast.common.enums.MealStatus).AVAILABLE.name()}">上架</option>
+		                        <option th:value="${T(com.eatfast.common.enums.MealStatus).UNAVAILABLE.name()}"
+		                                th:text="${T(com.eatfast.common.enums.MealStatus).UNAVAILABLE.description}"
+		                                th:selected="${selectedStatus != null and selectedStatus.name() == T(com.eatfast.common.enums.MealStatus).UNAVAILABLE.name()}">下架</option>
+		                    </select>
                         </div>
                         <button type="submit" class="btn btn-warning btn-block text-white">
                             <i class="fas fa-search"></i> 查詢
@@ -184,12 +188,12 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-4 text-center">
-                            <img class="meal-img"
-                                 th:src="@{'/meal/mealPhoto?mealId=' + ${meal.mealId}}"
-                                 th:alt="${meal.mealName}"
-                                 style="width: 100px; height: 100px; object-fit: cover;"
-                                 onerror="this.onerror=null;this.src='@{/images/nopic.png}';">
-                            <p th:unless="${meal.mealPic != null and meal.mealPic.length > 0}">無圖片</p>
+                          <img class="meal-img"
+						     th:src="@{'/meal/mealPhoto?mealId=' + ${meal.mealId}}"
+						     th:alt="${meal.mealName}"
+						     style="width: 100px; height: 100px; object-fit: cover;"
+						     th:onerror="'this.onerror=null;this.src=\'' + @{/images/nopic.png} + '\';'" />
+                          	 <p th:unless="${meal.mealPic != null and meal.mealPic.length > 0}">無圖片</p>
                         </div>
                         <div class="col-md-8">
                             <p><strong>餐點編號：</strong> <span th:text="${meal.mealId}"></span></p>
@@ -201,12 +205,11 @@
                                     <th:block th:each="i : ${#numbers.sequence(1, 5)}">
                                         <i th:class="${i <= stars} ? 'fas fa-star text-warning' : 'far fa-star text-secondary'"></i>
                                     </th:block>
-                                </span>
+                                </span>                                                                                                                                                     
                             </p>
-                            <p><strong>餐點狀態：</strong> 
-                                <span th:if="${meal.status == 1}" class="badge">上架</span>
-                                <span th:if="${meal.status == 0}" class="badge">下架</span>
-                            </p>
+							<p><strong>餐點狀態：</strong> 
+							    <span th:text="${meal.status?.description}"></span>
+							</p>
                             <div class="mt-3">
                                 <form th:action="@{/meal/getOne_For_Update}" method="post" style="display:inline-block; margin-right: 5px;">
                                     <input type="hidden" name="mealId" th:value="${meal.mealId}">
@@ -253,11 +256,11 @@
                                             </th:block>
                                         </span>
                                     </td> <!-- 星星評分（總星數） -->
-                                    <td>
-                                        <span th:if="${m.status == 1}" class="badge">上架</span>
-                                        <span th:if="${m.status == 0}" class="badge">下架</span>
-                                    </td> <!-- 狀態 -->
-                                   <td>
+                                    <td>	
+									    <span th:if="${m.status == T(com.eatfast.common.enums.MealStatus).AVAILABLE}" >上架</span>
+									    <span th:if="${m.status == T(com.eatfast.common.enums.MealStatus).UNAVAILABLE}">下架</span>
+									</td> <!-- 狀態 -->
+                                   	<td>
 									    <img class="meal-img"
 									         th:src="@{'/meal/mealPhoto?mealId=' + ${m.mealId}}"
 									         th:alt="${m.mealName}"
@@ -273,9 +276,7 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <div th:if="${#lists.isEmpty(mealListData)}" class="alert alert-warning text-center">
-                            目前沒有符合條件的餐點資料。
-                        </div>
+                        <div th:if="${#lists.isEmpty(mealListData)}" class="alert alert-warning text-center">目前沒有符合條件的餐點資料。</div>
                     </div>
                 </div>
             </div>

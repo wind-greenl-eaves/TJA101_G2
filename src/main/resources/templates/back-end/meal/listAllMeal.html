@@ -3,14 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <title>所有餐點 - EatFast 後台</title>
-<link rel="stylesheet"
-	th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
-<link rel="stylesheet"
-	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<link
-	href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap"
-	rel="stylesheet">
-<link rel="stylesheet" th:href="@{/css/member/style.css}" />
+		<link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}"/>
+		<link rel="stylesheet" th:href="@{/css/index.css}"/>
+		<link rel="stylesheet" th:href="@{/css/error.css}"/>
+	    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+	    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" />
+		<link rel="stylesheet" th:href="@{/css/member/style.css}" />
 </head>
 <body>
 
@@ -45,15 +43,29 @@
 				<i class="fas fa-filter"></i> 篩選餐點
 			</div>
 			<div class="card-body">
-				<form th:action="@{/meal/byType}" method="post" class="form-inline">
-					<label for="mealTypeId" class="my-1 mr-2">依種類篩選：</label> <select
-						id="mealTypeId" name="mealTypeId"
-						class="custom-select my-1 mr-sm-2">
-						<option value="">-- 請選擇種類 --</option>
+				<form th:action="@{/meal/byType}" method="post" class="form-inline mb-3">
+					<label for="mealTypeId" class="my-1 mr-2">依種類篩選：</label> 
+					<select id="mealTypeId" name="mealTypeId" class="custom-select my-1 mr-sm-2">
+						<option value="0">-- 請選擇種類 --</option>
 						<option th:each="mealType : ${mealTypeListData}"
-							th:value="${mealType.mealTypeId}" th:text="${mealType.mealName}"
+							th:value="${mealType.mealTypeId}" 
+							th:text="${mealType.mealName}"
 							th:selected="${mealType.mealTypeId == selectedMealTypeId}">
 						</option>
+					</select>
+					<button type="submit" class="btn btn-info my-1">篩選</button>
+					</form>
+
+				<form th:action="@{/meal/byStatus}" method="post" class="form-inline">
+					<label for="statusFilter" class="my-1 mr-2">依狀態篩選：</label> 
+					<select id="statusFilter" name="status" class="custom-select my-1 mr-sm-2">
+						<option value="">-- 請選擇狀態 --</option>
+						<option th:value="${T(com.eatfast.common.enums.MealStatus).AVAILABLE.name()}"
+								th:text="${T(com.eatfast.common.enums.MealStatus).AVAILABLE.description}"
+								th:selected="${selectedStatus != null and selectedStatus.name() == T(com.eatfast.common.enums.MealStatus).AVAILABLE.name()}">上架</option>
+						<option th:value="${T(com.eatfast.common.enums.MealStatus).UNAVAILABLE.name()}"
+								th:text="${T(com.eatfast.common.enums.MealStatus).UNAVAILABLE.description}"
+								th:selected="${selectedStatus != null and selectedStatus.name() == T(com.eatfast.common.enums.MealStatus).UNAVAILABLE.name()}">下架</option>
 					</select>
 					<button type="submit" class="btn btn-info my-1">篩選</button>
 					<a th:href="@{/meal/listAllMeal}" class="btn btn-secondary my-1 ml-2">顯示全部</a>
@@ -69,6 +81,7 @@
 						<th>餐點名稱</th>
 						<th>種類</th>
 						<th>價格</th>
+						<th>評價總星數</th>
 						<th>狀態</th>
 						<th>圖片</th>
 						<th>修改</th>
@@ -80,14 +93,23 @@
 						<td th:text="${meal.mealName}"></td>
 						<td th:text="${meal.mealType?.mealName}"></td>
 						<td th:text="${meal.mealPrice}"></td>
-						<td th:text="${meal.status == 1 ? '上架' : '下架'}"></td>
-						<td><img th:if="${meal.mealPic != null}"
+						<td>
+                           <span th:with="stars=${meal.reviewTotalStars}">
+                                <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                                    <i th:class="${i <= stars} ? 'fas fa-star text-warning' : 'far fa-star text-secondary'"></i>
+                                </th:block>
+                            </span>
+						</td> 
+						<td th:text="${meal.status?.description}"></td> 
+						<td>
+							<img th:if="${meal.mealPic != null}" 
 							th:src="@{'/meal/mealPhoto?mealId=' + ${meal.mealId}}"
 							width="100px" height="100px" style="object-fit: contain;">
-							<span th:unless="${meal.mealPic != null}">無圖片</span></td>
+							<img th:unless="${meal.mealPic != null}"th:src="@{/images/nopic.png}" 
+								alt="無圖片" width="100px" height="100px" style="object-fit: contain;">
+						</td>
 						<td>
-							<form th:action="@{/meal/getOne_For_Update}" method="post"
-								style="display: inline;">
+							<form th:action="@{/meal/getOne_For_Update}" method="post" style="display: inline;">
 								<input type="hidden" name="mealId" th:value="${meal.mealId}">
 								<button type="submit" class="btn btn-primary btn-sm">修改</button>
 							</form>
@@ -95,14 +117,13 @@
 					</tr>
 				</tbody>
 			</table>
-			<div th:if="${#lists.isEmpty(mealListData)}"
-				class="alert alert-warning text-center">目前沒有餐點資料。</div>
+			<div th:if="${#lists.isEmpty(mealListData)}" class="alert alert-warning text-center">目前沒有餐點資料。</div>
 		</div>
 	</div>
 
-	<script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
-	<script th:src="@{/webjars/popper.js/1.14.3/umd/popper.min.js}"></script>
-	<script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
 
 </body>
 </html>

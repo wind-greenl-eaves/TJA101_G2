@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.eatfast.common.enums.MealStatus;
+
 @Service("mealService")
 public class MealService {
 
@@ -25,6 +27,7 @@ public class MealService {
 	}
 
 	// 儲存或更新餐點（JPA 自動判斷新增/更新）
+	@Transactional
 	public void updateMeal(MealEntity mealEntity) {
 		repository.save(mealEntity);
 	}
@@ -42,7 +45,7 @@ public class MealService {
     }
 
     // 查特定狀態餐點（例如上架 1 / 下架 0）
-    public List<MealEntity> getMealsByStatus(Integer status) {
+    public List<MealEntity> getMealsByStatus(MealStatus status) {
         return repository.findByStatus(status);
     }
 

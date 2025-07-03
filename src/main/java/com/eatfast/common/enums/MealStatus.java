@@ -1,17 +1,28 @@
 /*
  * 檔案路徑: src/main/java/com/eatfast/common/enums/MealStatus.java
- * 說明:
- * 為了取代 meal.status 欄位的整數 (0, 1) 而建立的共享列舉。
- * 1. 提升可讀性: MealStatus.AVAILABLE 比數字 1 更容易理解。
- * 2. 提升型別安全: 編譯器會確保只能傳入此列舉定義好的值。
+ * 說明: 確保有 public 的 getDescription() 方法
  */
 package com.eatfast.common.enums;
 
 // [不可變動的關鍵字/語法]: public enum
-// 說明: 'enum' 是 Java 用於定義列舉型別的關鍵字。
 public enum MealStatus {
-	// [可自定義名稱]: UNAVAILABLE, AVAILABLE
-	// 說明: 這些是列舉的實例，其順序(ORDINAL)很重要。
-	UNAVAILABLE, // 下架 (對應資料庫的 0)
-	AVAILABLE // 上架 (對應資料庫的 1)
+    // [可自定義名稱]: AVAILABLE, UNAVAILABLE
+    UNAVAILABLE("下架"),
+    AVAILABLE("上架");
+
+    // [可自定義變數名稱]: description
+    // 這是私有屬性，需要公開的 getter 方法才能被 Thymeleaf 存取
+    private final String description;
+
+    // [不可變動的關鍵字/語法]: private MealStatus
+    // [可自定義參數名稱]: description
+    private MealStatus(String description) {
+        this.description = description;
+    }
+
+    // [不可變動的關鍵字/語法]: public String getDescription()
+    // 說明: 這是非常重要的部分！Thymeleaf 會透過這個 public getter 來取得 description 的值。
+    public String getDescription() {
+        return description;
+    }
 }
