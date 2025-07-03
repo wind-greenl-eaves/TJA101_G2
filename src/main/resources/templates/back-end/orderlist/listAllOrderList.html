@@ -5,32 +5,40 @@
 <title>所有訂單資料</title>
 
 <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}"/>
-<link rel="stylesheet" type="text/css" th:href="@{/css/orderlist/order-list-styles.css}">
-<link rel="stylesheet" type="text/css" th:href="@{/css/error.css}"/>
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.jqueryui.min.css" />
-<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $('#orderTable').DataTable({
-            "lengthMenu": [5, 10, 20, 50],
-            "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.5/i18n/zh-HANT.json" }
-        });
-    });
-</script>
-<style> body { padding: 80px 2rem 2rem 2rem; } </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" th:href="@{/css/member/style.css}" /> 
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap4.min.css" />
+
+<style>
+    body {
+        font-family: 'Noto Sans TC', sans-serif;
+        background-color: var(--milk-tea-page-bg, #fcfaf7);
+        padding: 80px 2rem 2rem 2rem;
+    }
+</style>
+
 </head>
 <body>
-<nav class="navbar navbar-expand-md navbar-dark main-navbar fixed-top justify-content-center">
-    <div align="center">
-        <h2>所有訂單資料<a class="navbar-brand" th:href="@{/orderlist/select_page_OrderList}"><img th:src="@{/images/back1.gif}">回查詢頁<label th:text="${success}"></label></a></h2>
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top justify-content-center">
+    <div class="d-flex align-items-center">
+        <h2 class="text-white mb-0">所有訂單資料</h2>
+        <a class="navbar-brand ml-4 d-flex align-items-center" th:href="@{/orderlist/select_page_OrderList}">
+            <img th:src="@{/images/123.png}" alt="Icon" width="30" height="30" class="mr-2">
+            回查詢頁
+        </a>
+        <label th:if="${success}" class="badge badge-success ml-2" th:text="${success}"></label>
     </div>
 </nav>
 
-<table id="orderTable" class="display" style="width: 100%">
+<table id="orderTable" class="table table-striped table-hover" style="width: 100%">
     <thead>
-        <tr style="background-color:#CCCCFF">
+        <tr>
             <th>計數</th>
             <th>訂單編號</th>
             <th>會員ID</th>
@@ -39,34 +47,74 @@
             <th>訂單狀態</th>
             <th>取餐號</th>
             <th>訂單日期</th>
-            <th>修改訂單</th>
-            <th>取消訂單</th>
+            <th>操作</th>
         </tr>
     </thead>
     <tbody>
         <tr th:each="orderListVO, iterStat : ${orderListData}">
             <td th:text="${iterStat.count}"></td>
             <td th:text="${orderListVO.orderListId}"></td>
-            <td th:text="${orderListVO.member?.memberId}"></td>
-            <td th:text="${orderListVO.store?.storeId}"></td>
-            <td th:text="${orderListVO.orderAmount}"></td>
-            <td th:text="${orderListVO.orderStatus.name()}"></td>
+            <td th:text="${orderListVO.member?.memberId} +' - ' + ${orderListVO.member?.username}"></td>
+            <td th:text="${orderListVO.store?.storeId}+' - ' + ${orderListVO.store?.storeName}"></td>
+            <td th:text="${'NT$ ' + orderListVO.orderAmount}"></td>
+            
+            <td>
+                <span th:switch="${orderListVO.orderStatus.name()}"
+                      class="badge" 
+                      th:classappend="${orderListVO.orderStatus.name() == 'COMPLETED'} ? 'badge-success' : 
+                                     (${orderListVO.orderStatus.name() == 'CANCELLED'} ? 'badge-danger' : 
+                                     (${orderListVO.orderStatus.name() == 'SHIPPED'} ? 'badge-primary' : 'badge-info'))">
+                    
+                    <span th:case="'PENDING'">處理中</span>
+                    <span th:case="'CONFIRMED'">已確認</span>
+                    <span th:case="'SHIPPED'">已出餐</span>
+                    <span th:case="'COMPLETED'">已完成</span>
+                    <span th:case="'CANCELLED'">已取消</span>
+                    <span th:case="*">未知狀態</span>
+                </span>
+            </td>
+            
             <td th:text="${orderListVO.mealPickupNumber}"></td>
             <td th:text="${#temporals.format(orderListVO.orderDate, 'yyyy-MM-dd HH:mm')}"></td>
-            <td>
-                <form method="post" th:action="@{/orderlist/getOne_For_Update}" style="margin-bottom: 0;">
-                    <input type="submit" value="修改" class="btn btn-sm btn-warning">
+            <td class="text-nowrap">
+                <form method="post" th:action="@{/orderlist/getOne_For_Update}" class="d-inline">
                     <input type="hidden" name="orderListId" th:value="${orderListVO.orderListId}">
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="fas fa-edit"></i> 修改
+                    </button>
                 </form>
-            </td>
-            <td>
-                <form method="post" th:action="@{/orderlist/delete}" style="margin-bottom: 0;">
-                    <input type="submit" value="取消" class="btn btn-sm btn-danger">
+                <form method="post" th:action="@{/orderlist/delete}" class="d-inline" onsubmit="return confirm('確定要取消這筆訂單嗎？');">
                     <input type="hidden" name="orderListId" th:value="${orderListVO.orderListId}">
+                    <button type="submit" class="btn btn-sm btn-danger">
+                        <i class="fas fa-trash-alt"></i> 取消
+                    </button>
                 </form>
             </td>
         </tr>
     </tbody>
 </table>
+
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap4.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#orderTable').DataTable({
+            "lengthMenu": [5, 10, 20, 50],
+            "language": {
+                "url": "https://cdn.datatables.net/plug-ins/1.13.5/i18n/zh-HANT.json"
+            },
+            "dom": "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                   "<'row'<'col-sm-12'tr>>" +
+                   "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            "renderer": "bootstrap"
+        });
+    });
+</script>
+
 </body>
 </html>
