@@ -21,6 +21,15 @@ import org.springframework.web.bind.annotation.ResponseBody;   // 標記直接�
 import jakarta.servlet.http.HttpServletRequest;  // 處理 HTTP 請求
 import jakarta.servlet.http.HttpSession;         // 管理用戶 Session
 
+// 【會員系統相關】引入會員相關的類別
+import com.eatfast.member.service.MemberService;  // 會員業務邏輯服務
+import com.eatfast.member.dto.MemberUpdateRequest;
+import com.eatfast.member.model.MemberEntity;      // 會員實體類
+import org.springframework.security.crypto.password.PasswordEncoder;  // 密碼加密器
+import org.springframework.ui.Model;               // 用於傳遞資料到視圖
+import org.springframework.web.bind.annotation.RequestParam;  // 獲取請求參數
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;  // 重定向屬性
+
 /**
  * 認證控制器：處理所有與用戶認證相關的請求
  * 
@@ -31,6 +40,22 @@ import jakarta.servlet.http.HttpSession;         // 管理用戶 Session
 @Controller
 @RequestMapping("/api/v1/auth")
 public class AuthController {
+
+    /**
+     * 【依賴注入】會員服務和密碼加密器
+     * - 使用 private final 確保服務在建構後不可變，符合最佳實踐
+     */
+    private final MemberService memberService;
+    private final PasswordEncoder passwordEncoder;
+
+    /**
+     * 【建構子注入】透過建構子注入必要的服務
+     * Spring 容器會自動完成依賴注入
+     */
+    public AuthController(MemberService memberService, PasswordEncoder passwordEncoder) {
+        this.memberService = memberService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     /**
      * 處理登出請求
@@ -86,5 +111,174 @@ public class AuthController {
         // 返回視圖名稱，會被 Thymeleaf 解析
         // 實際檔案位置：src/main/resources/templates/auth/login.html
         return "auth/login";
+    }
+    
+    /**
+     * 顯示會員登入頁面
+     * 
+     * 路徑說明：
+     * - URL: GET /api/v1/auth/login
+     * - 完整 URL: http://localhost:8080/api/v1/auth/login
+     * - 視圖路徑: src/main/resources/templates/auth/member-login.html
+     * 
+     * 視圖解析說明：
+     * 1. 返回字符串 "auth/member-login"
+     * 2. Thymeleaf 視圖解析器會：
+     *    - 在 src/main/resources/templates/ 目錄下
+     *    - 尋找 auth/member-login.html 文件
+     *    - 將其解析為完整的 HTML 頁面返回給用戶
+     * 
+     * @param model 用於傳遞資料到視圖的模型對象
+     * @return String 視圖名稱，會被解析到 templates/auth/member-login.html
+     */
+    @GetMapping("/member-login")
+    public String memberLoginPage(Model model) {
+        // 在開發環境中顯示測試帳號 (可以透過配置來控制)
+        model.addAttribute("showDemoAccounts", true);
+        
+        // 返回會員專用的登入頁面
+        return "auth/member-login";
+    }
+    
+    /**
+     * 處理會員登入請求 - 增強調試版
+     * 
+     * 路徑說明：
+     * - URL: POST /api/v1/auth/process-login
+     * - 完整 URL: http://localhost:8080/api/v1/auth/process-login
+     */
+    @PostMapping("/process-login")
+    public String processLogin(@RequestParam("account") String account,
+                              @RequestParam("password") String password,
+                              @RequestParam(value = "rememberMe", required = false) boolean rememberMe,
+                              HttpSession session,
+                              RedirectAttributes redirectAttributes) {
+        
+        // 【調試日誌】記錄登入嘗試
+        System.out.println("🔍 登入嘗試 - 帳號: " + account);
+        System.out.println("🔍 密碼長度: " + (password != null ? password.length() : "null"));
+        
+        try {
+            // 【第一步：資料驗證】
+            if (account == null || account.trim().isEmpty()) {
+                System.out.println("❌ 登入失敗: 帳號為空");
+                redirectAttributes.addFlashAttribute("loginError", "請輸入帳號");
+                return "redirect:/api/v1/auth/member-login";
+            }
+            
+            if (password == null || password.trim().isEmpty()) {
+                System.out.println("❌ 登入失敗: 密碼為空");
+                redirectAttributes.addFlashAttribute("loginError", "請輸入密碼");
+                return "redirect:/api/v1/auth/member-login";
+            }
+            
+            // 【第二步：查詢會員資料】
+            System.out.println("🔍 開始查詢會員: " + account.trim());
+            var memberOptional = memberService.getMemberByAccount(account.trim());
+            
+            if (memberOptional.isEmpty()) {
+                System.out.println("❌ 會員不存在: " + account);
+                redirectAttributes.addFlashAttribute("loginError", "帳號或密碼錯誤");
+                redirectAttributes.addFlashAttribute("account", account);
+                return "redirect:/api/v1/auth/member-login";
+            }
+            
+            MemberEntity member = memberOptional.get();
+            System.out.println("✅ 找到會員: " + member.getUsername() + " (ID: " + member.getMemberId() + ")");
+            
+            // 【第三步：檢查帳號狀態】
+            if (!member.isEnabled()) {
+                System.out.println("❌ 帳號已停用: " + account);
+                redirectAttributes.addFlashAttribute("loginError", "此帳號已被停用，請聯繫客服");
+                redirectAttributes.addFlashAttribute("account", account);
+                return "redirect:/api/v1/auth/member-login";
+            }
+            
+            // 【第四步：密碼驗證 - 增強調試 + 相容性處理】
+            System.out.println("🔍 開始密碼驗證...");
+            System.out.println("🔍 資料庫密碼長度: " + member.getPassword().length());
+            System.out.println("🔍 資料庫密碼前綴: " + (member.getPassword().length() > 10 ? 
+                member.getPassword().substring(0, 10) : member.getPassword()));
+            
+            boolean passwordMatches = false;
+            
+            // 【智慧密碼驗證】根據密碼格式自動選擇驗證方式
+            if (member.getPassword().startsWith("$2a$") || 
+                member.getPassword().startsWith("$2b$") || 
+                member.getPassword().startsWith("$2y$")) {
+                // BCrypt格式密碼 - 使用加密比對
+                System.out.println("🔍 偵測到BCrypt格式，使用加密比對");
+                passwordMatches = passwordEncoder.matches(password, member.getPassword());
+            } else {
+                // 明文密碼 - 直接比對（相容性處理）
+                System.out.println("⚠️ 偵測到明文密碼，使用直接比對");
+                passwordMatches = password.equals(member.getPassword());
+                
+                if (passwordMatches) {
+                    System.out.println("✅ 明文密碼驗證成功");
+                    System.out.println("💡 建議：登入成功後將密碼升級為BCrypt格式");
+                    
+                    // 【自動升級密碼】登入成功時自動將明文密碼升級為BCrypt
+                    try {
+                        String encryptedPassword = passwordEncoder.encode(password);
+                        member.setPassword(encryptedPassword);
+                        
+                        // 【修正】正確創建 MemberUpdateRequest 對象
+                        MemberUpdateRequest updateRequest = new MemberUpdateRequest();
+                        updateRequest.setMemberId(member.getMemberId());
+                        updateRequest.setUsername(member.getUsername());
+                        updateRequest.setEmail(member.getEmail());
+                        updateRequest.setPhone(member.getPhone());
+                        updateRequest.setBirthday(member.getBirthday());
+                        updateRequest.setGender(member.getGender());
+                        updateRequest.setIsEnabled(member.isEnabled());
+                        
+                        memberService.updateMemberDetails(updateRequest);
+                        System.out.println("✅ 密碼已自動升級為BCrypt格式");
+                    } catch (Exception e) {
+                        System.err.println("⚠️ 密碼升級失敗，但不影響登入：" + e.getMessage());
+                    }
+                }
+            }
+            
+            System.out.println("🔍 密碼比對結果: " + passwordMatches);
+            
+            if (!passwordMatches) {
+                System.out.println("❌ 密碼驗證失敗");
+                
+                redirectAttributes.addFlashAttribute("loginError", "帳號或密碼錯誤");
+                redirectAttributes.addFlashAttribute("account", account);
+                return "redirect:/api/v1/auth/member-login";
+            }
+            
+            // 【第五步：建立登入 Session】
+            System.out.println("✅ 密碼驗證成功，建立 Session");
+            session.setAttribute("loggedInMemberId", member.getMemberId());
+            session.setAttribute("loggedInMemberAccount", member.getAccount());
+            session.setAttribute("loggedInMemberName", member.getUsername());
+            session.setAttribute("isLoggedIn", true);
+            
+            // 設定 Session 過期時間
+            if (rememberMe) {
+                session.setMaxInactiveInterval(30 * 24 * 60 * 60); // 30天
+                System.out.println("🔍 Session 設定為 30 天");
+            } else {
+                session.setMaxInactiveInterval(2 * 60 * 60); // 2小時
+                System.out.println("🔍 Session 設定為 2 小時");
+            }
+            
+            // 【第六步：登入成功處理】
+            System.out.println("🎉 會員登入成功：" + member.getAccount() + " (" + member.getUsername() + ")");
+            return "redirect:/member/dashboard";
+            
+        } catch (Exception e) {
+            // 【異常處理】
+            System.err.println("💥 登入處理過程中發生錯誤：" + e.getMessage());
+            e.printStackTrace();
+            
+            redirectAttributes.addFlashAttribute("loginError", "系統錯誤，請稍後再試");
+            redirectAttributes.addFlashAttribute("account", account);
+            return "redirect:/api/v1/auth/member-login";
+        }
     }
 }

@@ -49,6 +49,10 @@ public class MemberController {
         this.memberService = memberService;
     }
     
+    // ================================================================
+    // 					後台管理功能 (Back-end Management)
+    // ================================================================
+    
     /**
      * 【功能】: 顯示新增會員的表單頁面。
      * 【請求路徑】: 處理 GET /member/addMember 請求。
@@ -168,8 +172,8 @@ public class MemberController {
     }
 
     /**
-     * 【功能】: 處理「變更密碼」的請求。
-     * 【請求路徑】: 處理 POST /member/change-password，這是一個獨立且安全的端點。
+     * 【功能】: 處理「變更密碼」的請求 (後台管理用)。
+     * 【請求路徑】: 處理 POST /member/change-password 請求。
      */
     @PostMapping("/change-password")
     public String handleChangePassword(@Validated @ModelAttribute("passwordUpdateRequest") PasswordUpdateRequest request,
@@ -245,24 +249,6 @@ public class MemberController {
     }
 
     /**
-     * 【輔助方法】: 重新準備修改頁面所需的 Model。
-     * - 作用: 抽取重複程式碼，當驗證失敗需要返回修改頁面時，由此方法統一準備頁面所需的資料。
-     */
-    private void prepareUpdatePageModel(Long memberId, Model model) {
-        memberService.getMemberById(memberId).ifPresent(member -> {
-            MemberUpdateRequest updateRequest = new MemberUpdateRequest();
-            updateRequest.setMemberId(member.getMemberId());
-            updateRequest.setUsername(member.getUsername());
-            updateRequest.setEmail(member.getEmail());
-            updateRequest.setPhone(member.getPhone());
-            updateRequest.setBirthday(member.getBirthday());
-            updateRequest.setGender(member.getGender());
-            updateRequest.setIsEnabled(member.isEnabled());
-            model.addAttribute("memberUpdateRequest", updateRequest);
-        });
-    }
-    
-    /**
      * 【新方法 for 密碼更新後的重定向】
      * 由於 POST 不能直接重定向到另一個 POST，我們建立一個 GET 端點來顯示更新頁面。
      */
@@ -271,43 +257,136 @@ public class MemberController {
         return showUpdateForm(memberId, model, redirectAttributes);
     }
     
+    // ================================================================
+    // 					前端會員專區功能 (Front-end Member Area)
+    // ================================================================
+    
     /**
      * 【前端會員專區路由】會員專區主頁面
+     * 
+     * 路徑說明：
+     * - URL: GET /member/dashboard
+     * - 完整 URL: http://localhost:8080/member/dashboard
+     * - 視圖路徑: src/main/resources/templates/front-end/member/member-dashboard.html
+     * 
+     * 功能說明：
+     * 1. 檢查用戶是否已登入（Session驗證）
+     * 2. 如果已登入，載入會員資訊並顯示會員專區首頁
+     * 3. 如果未登入，重定向到登入頁面
      */
     @GetMapping("/dashboard")
     public String showMemberDashboard(Model model, HttpSession session) {
-        // 假設您有會員登入的session管理
-        // MemberEntity member = getCurrentMemberFromSession(session);
-        // model.addAttribute("member", member);
+        // 【第一步：Session驗證】檢查用戶是否已登入
+        Long memberId = (Long) session.getAttribute("loggedInMemberId");
+        Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
+        
+        // 如果未登入，重定向到登入頁面
+        if (memberId == null || isLoggedIn == null || !isLoggedIn) {
+            return "redirect:/api/v1/auth/member-login";
+        }
+        
+        // 【第二步：載入會員資訊】從資料庫獲取最新的會員資料
+        try {
+            MemberEntity member = memberService.getMemberById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
+            
+            // 檢查帳號是否仍然啟用
+            if (!member.isEnabled()) {
+                // 如果帳號被停用，清除Session並重定向到登入頁面
+                session.invalidate();
+                return "redirect:/api/v1/auth/member-login?error=account_disabled";
+            }
+            
+            // 【第三步：準備頁面資料】將會員資訊傳遞給前端頁面
+            model.addAttribute("member", member);
+            model.addAttribute("memberName", member.getUsername());
+            model.addAttribute("memberAccount", member.getAccount());
+            
+            // 可以在這裡添加其他統計資料，如訂單數量、收藏數量等
+            // model.addAttribute("orderCount", orderService.getOrderCountByMemberId(memberId));
+            // model.addAttribute("favoriteCount", favService.getFavoriteCountByMemberId(memberId));
+            
+        } catch (Exception e) {
+            log.error("載入會員專區資料時發生錯誤：{}", e.getMessage());
+            model.addAttribute("errorMessage", "載入會員資料失敗，請重新登入");
+            return "redirect:/api/v1/auth/member-login";
+        }
+        
         return "front-end/member/member-dashboard";
     }
     
     /**
      * 【前端會員專區路由】個人資料頁面
+     * 
+     * 路徑說明：
+     * - URL: GET /member/profile  
+     * - 完整 URL: http://localhost:8080/member/profile
+     * - 視圖路徑: src/main/resources/templates/front-end/member/member-profile.html
      */
     @GetMapping("/profile")
     public String showMemberProfile(Model model, HttpSession session) {
-        // 獲取當前登入會員並準備更新表單
-        // MemberEntity member = getCurrentMemberFromSession(session);
-        // if (member != null) {
-        //     MemberUpdateRequest updateRequest = new MemberUpdateRequest();
-        //     // 設定現有資料到表單...
-        //     model.addAttribute("memberUpdateRequest", updateRequest);
-        //     model.addAttribute("member", member);
-        // }
+        // 【Session驗證】檢查登入狀態
+        Long memberId = (Long) session.getAttribute("loggedInMemberId");
+        if (memberId == null) {
+            return "redirect:/api/v1/auth/member-login";
+        }
+        
+        try {
+            // 【載入會員資料】獲取當前登入會員的詳細資訊
+            MemberEntity member = memberService.getMemberById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
+            
+            // 【準備更新表單】將現有資料填入表單中，供用戶編輯
+            MemberUpdateRequest updateRequest = new MemberUpdateRequest();
+            updateRequest.setMemberId(member.getMemberId());
+            updateRequest.setUsername(member.getUsername());
+            updateRequest.setEmail(member.getEmail());
+            updateRequest.setPhone(member.getPhone());
+            updateRequest.setBirthday(member.getBirthday());
+            updateRequest.setGender(member.getGender());
+            updateRequest.setIsEnabled(member.isEnabled());
+            
+            // 【傳遞資料到視圖】
+            model.addAttribute("memberUpdateRequest", updateRequest);
+            model.addAttribute("member", member);
+            
+        } catch (Exception e) {
+            log.error("載入個人資料頁面時發生錯誤：{}", e.getMessage());
+            model.addAttribute("errorMessage", "載入個人資料失敗");
+        }
+        
         return "front-end/member/member-profile";
     }
     
     /**
      * 【前端會員專區路由】個人資料更新處理
+     * 
+     * 路徑說明：
+     * - URL: POST /member/profile/update
+     * - 重定向: 成功後回到個人資料頁面顯示成功訊息
      */
     @PostMapping("/profile/update")
     public String updateMemberProfile(@Validated(UpdateValidation.class) @ModelAttribute("memberUpdateRequest") MemberUpdateRequest updateRequest,
                                     BindingResult result,
                                     RedirectAttributes redirectAttributes,
+                                    HttpSession session,
                                     Model model) {
+        
+        // 【Session驗證】確保用戶已登入且操作自己的帳號
+        Long sessionMemberId = (Long) session.getAttribute("loggedInMemberId");
+        if (sessionMemberId == null || !sessionMemberId.equals(updateRequest.getMemberId())) {
+            return "redirect:/api/v1/auth/member-login";
+        }
+        
         if (result.hasErrors()) {
             // 重新準備頁面資料
+            try {
+                MemberEntity member = memberService.getMemberById(updateRequest.getMemberId())
+                        .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
+                model.addAttribute("member", member);
+            } catch (Exception e) {
+                log.error("重新載入會員資料失敗：{}", e.getMessage());
+            }
             return "front-end/member/member-profile";
         }
         
@@ -322,16 +401,67 @@ public class MemberController {
     }
     
     /**
-     * 【前端會員專區路由】密碼變更頁面
+     * 【前端會員專區路由】密碼變更頁面 (前端專用)
+     * 
+     * 路徑說明：
+     * - URL: GET /member/member-change-password
+     * - 完整 URL: http://localhost:8080/member/member-change-password  
+     * - 視圖路徑: src/main/resources/templates/front-end/member/change-password.html
      */
-    @GetMapping("/change-password") 
-    public String showChangePasswordPage(Model model, HttpSession session) {
-        // 獲取當前會員ID並準備密碼更新表單
-        // Long memberId = getCurrentMemberIdFromSession(session);
-        // PasswordUpdateRequest passwordRequest = new PasswordUpdateRequest();
-        // passwordRequest.setMemberId(memberId);
-        // model.addAttribute("passwordUpdateRequest", passwordRequest);
+    @GetMapping("/member-change-password")
+    public String showMemberChangePasswordPage(Model model, HttpSession session) {
+        // 【Session驗證】檢查登入狀態
+        Long memberId = (Long) session.getAttribute("loggedInMemberId");
+        if (memberId == null) {
+            return "redirect:/api/v1/auth/member-login";
+        }
+        
+        // 【準備密碼更新表單】創建空的密碼更新請求對象
+        PasswordUpdateRequest passwordRequest = new PasswordUpdateRequest();
+        passwordRequest.setMemberId(memberId);
+        model.addAttribute("passwordUpdateRequest", passwordRequest);
+        
         return "front-end/member/change-password";
+    }
+    
+    /**
+     * 【前端會員專區路由】處理密碼變更請求 (前端專用)
+     * 
+     * 路徑說明：
+     * - URL: POST /member/member-change-password
+     * - 重定向: 成功後重新登入
+     */
+    @PostMapping("/member-change-password")
+    public String processMemberPasswordChange(@Validated @ModelAttribute("passwordUpdateRequest") PasswordUpdateRequest request,
+                                            BindingResult result,
+                                            RedirectAttributes redirectAttributes,
+                                            HttpSession session) {
+        
+        // 【Session驗證】確保用戶已登入且操作自己的帳號
+        Long sessionMemberId = (Long) session.getAttribute("loggedInMemberId");
+        if (sessionMemberId == null || !sessionMemberId.equals(request.getMemberId())) {
+            return "redirect:/api/v1/auth/member-login";
+        }
+        
+        // 【表單驗證】檢查驗證錯誤
+        if (result.hasErrors()) {
+            return "front-end/member/change-password";
+        }
+        
+        try {
+            // 【執行密碼變更】調用Service層的密碼變更方法
+            memberService.changePassword(request);
+            redirectAttributes.addFlashAttribute("successMessage", "密碼變更成功！為了安全起見，請重新登入。");
+            
+            // 【安全處理】密碼變更成功後清除Session，要求重新登入
+            session.invalidate();
+            return "redirect:/api/v1/auth/member-login";
+            
+        } catch (EntityNotFoundException | IllegalArgumentException e) {
+            log.warn("密碼變更失敗：{}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/member/member-change-password";
+        }
     }
     
     /**
@@ -367,5 +497,27 @@ public class MemberController {
         // MemberEntity member = getCurrentMemberFromSession(session);
         // model.addAttribute("member", member);
         return "front-end/member/member-settings";
+    }
+
+    // ================================================================
+    // 					輔助方法 (Helper Methods)
+    // ================================================================
+    
+    /**
+     * 【輔助方法】: 重新準備修改頁面所需的 Model。
+     * - 作用: 抽取重複程式碼，當驗證失敗需要返回修改頁面時，由此方法統一準備頁面所需的資料。
+     */
+    private void prepareUpdatePageModel(Long memberId, Model model) {
+        memberService.getMemberById(memberId).ifPresent(member -> {
+            MemberUpdateRequest updateRequest = new MemberUpdateRequest();
+            updateRequest.setMemberId(member.getMemberId());
+            updateRequest.setUsername(member.getUsername());
+            updateRequest.setEmail(member.getEmail());
+            updateRequest.setPhone(member.getPhone());
+            updateRequest.setBirthday(member.getBirthday());
+            updateRequest.setGender(member.getGender());
+            updateRequest.setIsEnabled(member.isEnabled());
+            model.addAttribute("memberUpdateRequest", updateRequest);
+        });
     }
 }

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會員登入診斷工具</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #A67B5B;
+            text-align: center;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background-color: #A67B5B;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background-color: #8B5A3C;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 會員登入診斷工具</h1>
+        
+        <!-- 測試1: 檢查會員是否存在 -->
+        <div class="test-section">
+            <h3>測試1: 檢查會員帳號</h3>
+            <form id="checkAccountForm">
+                <div class="form-group">
+                    <label for="checkAccount">輸入要檢查的帳號：</label>
+                    <input type="text" id="checkAccount" placeholder="請輸入帳號" required>
+                </div>
+                <button type="submit" class="btn">檢查帳號</button>
+            </form>
+            <div id="checkAccountResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <!-- 測試2: 測試密碼驗證 -->
+        <div class="test-section">
+            <h3>測試2: 密碼驗證測試</h3>
+            <form id="testPasswordForm">
+                <div class="form-group">
+                    <label for="testAccount">帳號：</label>
+                    <input type="text" id="testAccount" placeholder="請輸入帳號" required>
+                </div>
+                <div class="form-group">
+                    <label for="testPassword">密碼：</label>
+                    <input type="password" id="testPassword" placeholder="請輸入密碼" required>
+                </div>
+                <button type="submit" class="btn">測試密碼</button>
+            </form>
+            <div id="testPasswordResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <!-- 測試3: 創建測試帳號 -->
+        <div class="test-section">
+            <h3>測試3: 創建測試帳號</h3>
+            <button class="btn" onclick="createTestAccount()">創建測試帳號</button>
+            <div id="createTestResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <!-- 測試4: 查看所有會員 -->
+        <div class="test-section">
+            <h3>測試4: 查看所有會員資料</h3>
+            <button class="btn" onclick="getAllMembers()">查看所有會員</button>
+            <div id="getAllMembersResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <!-- 測試5: 批量密碼升級 -->
+        <div class="test-section">
+            <h3>測試5: 批量密碼升級 🔐</h3>
+            <p style="color: #856404; background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+                <strong>⚠️ 重要：</strong> 此功能會將所有明文密碼自動升級為BCrypt加密格式，提升系統安全性。
+            </p>
+            <button class="btn" style="background-color: #28a745;" onclick="upgradePasswords()">🔄 批量升級密碼</button>
+            <div id="upgradePasswordsResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 檢查帳號是否存在
+        document.getElementById('checkAccountForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const account = document.getElementById('checkAccount').value;
+            
+            fetch(`/test/auth/check-account?account=${encodeURIComponent(account)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const resultDiv = document.getElementById('checkAccountResult');
+                    resultDiv.style.display = 'block';
+                    
+                    if (data.exists) {
+                        resultDiv.className = 'result success';
+                        resultDiv.textContent = `✅ 帳號存在
+會員ID: ${data.memberId}
+會員姓名: ${data.username}
+電子郵件: ${data.email}
+帳號狀態: ${data.enabled ? '啟用' : '停用'}
+密碼格式: ${data.passwordFormat}`;
+                    } else {
+                        resultDiv.className = 'result error';
+                        resultDiv.textContent = '❌ 帳號不存在';
+                    }
+                })
+                .catch(error => {
+                    const resultDiv = document.getElementById('checkAccountResult');
+                    resultDiv.style.display = 'block';
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = '❌ 檢查失敗: ' + error.message;
+                });
+        });
+        
+        // 測試密碼驗證
+        document.getElementById('testPasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const account = document.getElementById('testAccount').value;
+            const password = document.getElementById('testPassword').value;
+            
+            fetch('/test/auth/test-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    account: account,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('testPasswordResult');
+                resultDiv.style.display = 'block';
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ 密碼驗證成功
+會員: ${data.memberName}
+登入流程測試: ${data.loginTestResult}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ 密碼驗證失敗
+原因: ${data.reason}
+詳細資訊: ${data.details}`;
+                }
+            })
+            .catch(error => {
+                const resultDiv = document.getElementById('testPasswordResult');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ 測試失敗: ' + error.message;
+            });
+        });
+        
+        // 創建測試帳號
+        function createTestAccount() {
+            fetch('/test/auth/create-test-account', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('createTestResult');
+                resultDiv.style.display = 'block';
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ 測試帳號創建成功
+帳號: ${data.account}
+密碼: ${data.password}
+請使用此帳號進行登入測試`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ 創建失敗: ${data.message}`;
+                }
+            })
+            .catch(error => {
+                const resultDiv = document.getElementById('createTestResult');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ 創建失敗: ' + error.message;
+            });
+        }
+        
+        // 查看所有會員
+        function getAllMembers() {
+            fetch('/test/auth/all-members')
+                .then(response => response.json())
+                .then(data => {
+                    const resultDiv = document.getElementById('getAllMembersResult');
+                    resultDiv.style.display = 'block';
+                    resultDiv.className = 'result info';
+                    
+                    if (data.members && data.members.length > 0) {
+                        let result = `📋 共找到 ${data.members.length} 個會員：\n\n`;
+                        data.members.forEach((member, index) => {
+                            result += `${index + 1}. 帳號: ${member.account}
+   姓名: ${member.username}
+   郵件: ${member.email}
+   狀態: ${member.enabled ? '啟用' : '停用'}
+   密碼格式: ${member.passwordFormat}
+   
+`;
+                        });
+                        resultDiv.textContent = result;
+                    } else {
+                        resultDiv.textContent = '📭 沒有找到任何會員資料';
+                    }
+                })
+                .catch(error => {
+                    const resultDiv = document.getElementById('getAllMembersResult');
+                    resultDiv.style.display = 'block';
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = '❌ 查詢失敗: ' + error.message;
+                });
+        }
+        
+        // 批量密碼升級
+        function upgradePasswords() {
+            if (!confirm('您確定要將所有明文密碼升級為BCrypt格式嗎？此操作無法撤銷！')) {
+                return;
+            }
+            
+            fetch('/test/auth/upgrade-passwords', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('upgradePasswordsResult');
+                resultDiv.style.display = 'block';
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ 密碼批量升級成功
+共升級 ${data.upgradedCount} 個會員的密碼`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ 升級失敗: ${data.message}`;
+                }
+            })
+            .catch(error => {
+                const resultDiv = document.getElementById('upgradePasswordsResult');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ 升級失敗: ' + error.message;
+            });
+        }
+    </script>
+</body>
+</html>
