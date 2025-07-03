@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>郵件服務測試工具</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #A67B5B;
+            text-align: center;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        .btn {
+            background-color: #A67B5B;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #8B5A3C;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        .btn-info {
+            background-color: #17a2b8;
+        }
+        .btn-info:hover {
+            background-color: #138496;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .config-info {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .loading {
+            display: none;
+        }
+        .loading.show {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 郵件服務測試工具</h1>
+        
+        <!-- 配置資訊 -->
+        <div class="config-info">
+            <h4>📋 當前郵件配置</h4>
+            <ul>
+                <li><strong>發送者：</strong>ghao2786@gmail.com</li>
+                <li><strong>接收者：</strong>young19960127@gmail.com（統一接收）</li>
+                <li><strong>SMTP 伺服器：</strong>smtp.gmail.com:465 (SSL)</li>
+                <li><strong>系統名稱：</strong>早餐店管理系統</li>
+            </ul>
+        </div>
+        
+        <!-- 測試1: 連接測試 -->
+        <div class="test-section">
+            <h3>測試1: 郵件服務連接測試</h3>
+            <p>測試系統是否能正常連接到 Gmail SMTP 伺服器</p>
+            <button class="btn btn-info" onclick="testEmailConnection()">
+                🔗 測試郵件連接
+                <span class="loading" id="connectionLoading">⏳</span>
+            </button>
+            <div id="connectionResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <!-- 測試2: 簡單測試郵件 -->
+        <div class="test-section">
+            <h3>測試2: 發送簡單測試郵件</h3>
+            <p>發送一封基本的文字郵件到目標信箱</p>
+            <button class="btn btn-success" onclick="sendTestEmail()">
+                📤 發送測試郵件
+                <span class="loading" id="testEmailLoading">⏳</span>
+            </button>
+            <div id="testEmailResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <!-- 測試3: 密碼重設郵件 -->
+        <div class="test-section">
+            <h3>測試3: 密碼重設 HTML 郵件測試</h3>
+            <p>測試完整的密碼重設郵件功能（含 HTML 格式和重設連結）</p>
+            <button class="btn" onclick="sendPasswordResetTest()">
+                🔐 發送密碼重設測試郵件
+                <span class="loading" id="passwordResetLoading">⏳</span>
+            </button>
+            <div id="passwordResetResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <!-- 測試4: 忘記密碼完整流程 -->
+        <div class="test-section">
+            <h3>測試4: 完整忘記密碼流程</h3>
+            <p>直接前往忘記密碼頁面測試完整流程</p>
+            <a href="/api/v1/auth/forgot-password" class="btn" target="_blank">
+                🌐 前往忘記密碼頁面
+            </a>
+            <a href="/api/v1/auth/member-login" class="btn btn-info" target="_blank">
+                👤 前往會員登入頁面
+            </a>
+        </div>
+        
+        <!-- 測試結果統計 -->
+        <div class="test-section">
+            <h3>📊 測試結果統計</h3>
+            <div id="testStats" class="info">
+                <p>尚未進行任何測試</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let testStats = {
+            connection: null,
+            simpleEmail: null,
+            passwordReset: null
+        };
+        
+        // 測試郵件連接
+        function testEmailConnection() {
+            const loading = document.getElementById('connectionLoading');
+            const result = document.getElementById('connectionResult');
+            
+            loading.classList.add('show');
+            result.style.display = 'none';
+            
+            fetch('/test/email/test-connection', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                result.style.display = 'block';
+                loading.classList.remove('show');
+                
+                if (data.success) {
+                    result.className = 'result success';
+                    result.textContent = '✅ ' + data.message;
+                    testStats.connection = true;
+                } else {
+                    result.className = 'result error';
+                    result.textContent = '❌ ' + data.message;
+                    testStats.connection = false;
+                }
+                updateTestStats();
+            })
+            .catch(error => {
+                result.style.display = 'block';
+                loading.classList.remove('show');
+                result.className = 'result error';
+                result.textContent = '❌ 測試失敗: ' + error.message;
+                testStats.connection = false;
+                updateTestStats();
+            });
+        }
+        
+        // 發送測試郵件
+        function sendTestEmail() {
+            const loading = document.getElementById('testEmailLoading');
+            const result = document.getElementById('testEmailResult');
+            
+            loading.classList.add('show');
+            result.style.display = 'none';
+            
+            fetch('/test/email/send-test-email', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                result.style.display = 'block';
+                loading.classList.remove('show');
+                
+                if (data.success) {
+                    result.className = 'result success';
+                    result.textContent = '✅ ' + data.message;
+                    testStats.simpleEmail = true;
+                } else {
+                    result.className = 'result error';
+                    result.textContent = '❌ ' + data.message;
+                    testStats.simpleEmail = false;
+                }
+                updateTestStats();
+            })
+            .catch(error => {
+                result.style.display = 'block';
+                loading.classList.remove('show');
+                result.className = 'result error';
+                result.textContent = '❌ 發送失敗: ' + error.message;
+                testStats.simpleEmail = false;
+                updateTestStats();
+            });
+        }
+        
+        // 發送密碼重設測試郵件
+        function sendPasswordResetTest() {
+            const loading = document.getElementById('passwordResetLoading');
+            const result = document.getElementById('passwordResetResult');
+            
+            loading.classList.add('show');
+            result.style.display = 'none';
+            
+            fetch('/test/email/send-password-reset-test', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                result.style.display = 'block';
+                loading.classList.remove('show');
+                
+                if (data.success) {
+                    result.className = 'result success';
+                    result.textContent = `✅ ${data.message}
+
+測試資訊：
+- 測試 Token: ${data.testToken}
+- 測試 URL: ${data.testUrl}
+
+請檢查 young19960127@gmail.com 信箱中的 HTML 格式郵件。`;
+                    testStats.passwordReset = true;
+                } else {
+                    result.className = 'result error';
+                    result.textContent = '❌ ' + data.message;
+                    testStats.passwordReset = false;
+                }
+                updateTestStats();
+            })
+            .catch(error => {
+                result.style.display = 'block';
+                loading.classList.remove('show');
+                result.className = 'result error';
+                result.textContent = '❌ 發送失敗: ' + error.message;
+                testStats.passwordReset = false;
+                updateTestStats();
+            });
+        }
+        
+        // 更新測試統計
+        function updateTestStats() {
+            const statsDiv = document.getElementById('testStats');
+            let passedTests = 0;
+            let totalTests = 0;
+            let details = [];
+            
+            for (const [test, result] of Object.entries(testStats)) {
+                if (result !== null) {
+                    totalTests++;
+                    if (result) {
+                        passedTests++;
+                        details.push(`✅ ${getTestName(test)}: 通過`);
+                    } else {
+                        details.push(`❌ ${getTestName(test)}: 失敗`);
+                    }
+                }
+            }
+            
+            if (totalTests === 0) {
+                statsDiv.innerHTML = '<p>尚未進行任何測試</p>';
+            } else {
+                statsDiv.innerHTML = `
+                    <p><strong>測試進度: ${passedTests}/${totalTests} 通過</strong></p>
+                    ${details.map(detail => `<p>${detail}</p>`).join('')}
+                    ${passedTests === totalTests && totalTests > 0 ? 
+                        '<p style="color: #28a745; font-weight: bold;">🎉 所有測試都通過了！郵件服務已成功整合。</p>' : 
+                        ''
+                    }
+                `;
+            }
+        }
+        
+        function getTestName(test) {
+            const names = {
+                connection: '連接測試',
+                simpleEmail: '簡單郵件',
+                passwordReset: '密碼重設郵件'
+            };
+            return names[test] || test;
+        }
+    </script>
+</body>
+</html>

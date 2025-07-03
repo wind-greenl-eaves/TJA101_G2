@@ -7,6 +7,8 @@ import com.eatfast.member.dto.PasswordUpdateRequest;
 import com.eatfast.member.dto.ForgotPasswordRequest;
 import com.eatfast.member.dto.ResetPasswordRequest;
 import com.eatfast.member.mapper.MemberMapper;
+// 【新增】引入郵件服務
+import com.eatfast.common.service.EmailService;
 // (既有 import)
 import com.eatfast.member.model.MemberEntity;
 import com.eatfast.member.repository.MemberRepository;
@@ -43,11 +45,14 @@ public class MemberService {
     // 不可變動的 final 宣告，確保依賴在建構後不被修改。
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    // 【新增】注入郵件服務
+    private final EmailService emailService;
 
     // 依賴注入的標準建構子模式
-    public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder) {
+    public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
     /**
      * 【新方法】變更會員密碼。
@@ -162,7 +167,7 @@ public class MemberService {
      * 根據電子郵件查找會員並生成重設密碼的 Token
      * 
      * @param request 忘記密碼請求，包含電子郵件
-     * @return 重設密碼的 Token（實際應用中應透過郵件發送）
+     * @return 重設密碼的 Token（同時透過郵件發送）
      * @throws EntityNotFoundException 如果找不到對應的會員
      */
     @Transactional
@@ -184,10 +189,28 @@ public class MemberService {
         // 生成重設密碼的 Token（簡化版本，實際應用中應該更安全）
         String resetToken = generateResetToken(member);
         
-        log.info("會員 {} 請求重設密碼，生成 Token", member.getAccount());
-        
-        // 在實際應用中，這裡應該發送郵件給會員
-        // emailService.sendPasswordResetEmail(member.getEmail(), resetToken);
+        try {
+            // 【修改】建構完整的重設密碼 URL
+            String resetUrl = "http://localhost:8080/api/v1/auth/reset-password?token=" + resetToken;
+            
+            // 【新增】發送郵件到統一郵箱
+            emailService.sendPasswordResetEmail(
+                member.getEmail(),           // 會員原本的信箱（用於識別）
+                member.getAccount(),         // 會員帳號
+                member.getUsername(),        // 會員姓名
+                resetToken,                  // 重設 Token
+                resetUrl                     // 完整重設 URL
+            );
+            
+            log.info("會員 {} 請求重設密碼成功，郵件已發送到 young19960127@gmail.com", member.getAccount());
+            
+        } catch (Exception e) {
+            log.error("發送重設密碼郵件失敗 - 會員: {} ({}), 錯誤: {}", 
+                member.getAccount(), member.getUsername(), e.getMessage(), e);
+            
+            // 可以選擇是否要拋出例外，或者只記錄錯誤但繼續處理
+            throw new RuntimeException("郵件發送失敗，請稍後再試或聯繫客服", e);
+        }
         
         return resetToken;
     }
