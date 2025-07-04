@@ -3,9 +3,11 @@ package com.eatfast.meal.model;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.eatfast.common.enums.MealStatus;
 
+@Repository
 public interface MealRepository extends JpaRepository<MealEntity, Long> {
 	// 查特定類別餐點（自動命名規則）
     List<MealEntity> findByMealTypeMealTypeId(Long mealTypeId);
