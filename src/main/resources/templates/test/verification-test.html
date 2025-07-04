@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>驗證碼測試工具</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .success {
+            background: #28a745;
+        }
+        .danger {
+            background: #dc3545;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 驗證碼測試工具</h1>
+        <p>這個工具可以幫助您測試和診斷驗證碼功能的問題。</p>
+        
+        <!-- Redis 連接測試 -->
+        <div class="test-section">
+            <h3>1. Redis 連接測試</h3>
+            <p>測試 Redis 服務是否正常運行</p>
+            <button class="button" onclick="testRedisConnection()">測試 Redis 連接</button>
+            <div id="redisResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <!-- 查看 Redis Keys -->
+        <div class="test-section">
+            <h3>2. 查看 Redis 數據</h3>
+            <p>查看 Redis 中現有的驗證碼數據</p>
+            <button class="button" onclick="viewRedisKeys()">查看 Redis Keys</button>
+            <div id="keysResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <!-- 驗證碼功能測試 -->
+        <div class="test-section">
+            <h3>3. 驗證碼功能測試</h3>
+            <div class="input-group">
+                <label for="testEmail">測試用電子郵件：</label>
+                <input type="email" id="testEmail" value="test@example.com" placeholder="輸入要測試的電子郵件">
+            </div>
+            <button class="button" onclick="testVerificationCode()">測試驗證碼生成和驗證</button>
+            <div id="verificationResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <!-- 手動設置驗證碼 -->
+        <div class="test-section">
+            <h3>4. 手動設置驗證碼</h3>
+            <p>為特定郵箱手動設置驗證碼（用於測試驗證流程）</p>
+            <div class="input-group">
+                <label for="manualEmail">電子郵件：</label>
+                <input type="email" id="manualEmail" value="trial607@trial.co" placeholder="輸入電子郵件">
+            </div>
+            <div class="input-group">
+                <label for="manualCode">驗證碼（6位數字）：</label>
+                <input type="text" id="manualCode" value="123456" placeholder="輸入6位數驗證碼" maxlength="6">
+            </div>
+            <button class="button success" onclick="setManualCode()">設置驗證碼</button>
+            <div id="manualResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <!-- 完整註冊流程測試 -->
+        <div class="test-section">
+            <h3>5. 完整註冊流程測試</h3>
+            <p>測試從註冊到驗證的完整流程</p>
+            <div class="status info">
+                <strong>測試步驟：</strong><br>
+                1. 點擊下方按鈕前往註冊頁面<br>
+                2. 使用「不想填資料就按這裡吧!」按鈕快速填入測試資料<br>
+                3. 提交註冊<br>
+                4. 查收郵件 (young19960127@gmail.com)<br>
+                5. 在驗證頁面輸入收到的驗證碼
+            </div>
+            <button class="button success" onclick="goToRegister()">前往註冊頁面測試</button>
+            <button class="button" onclick="goToVerify()">前往驗證頁面</button>
+        </div>
+        
+        <!-- 系統狀態 -->
+        <div class="test-section">
+            <h3>6. 系統狀態檢查</h3>
+            <div id="systemStatus" class="status info">
+                <strong>當前配置：</strong><br>
+                驗證碼存儲方式: <span id="storageType">檢查中...</span><br>
+                系統時間: <span id="systemTime"></span>
+            </div>
+            <button class="button" onclick="checkSystemStatus()">刷新系統狀態</button>
+        </div>
+    </div>
+
+    <script>
+        // 頁面載入時檢查系統狀態
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSystemStatus();
+            document.getElementById('systemTime').textContent = new Date().toLocaleString('zh-TW');
+        });
+
+        // 測試 Redis 連接
+        async function testRedisConnection() {
+            const resultDiv = document.getElementById('redisResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<strong>測試中...</strong>';
+            
+            try {
+                const response = await fetch('/test/redis-connection');
+                const data = await response.json();
+                
+                if (data.connection === '成功') {
+                    resultDiv.className = 'result status success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ Redis 連接成功</strong><br>
+                        寫入測試: ${data.testWrite}<br>
+                        讀取測試: ${data.testRead}<br>
+                        測試值: ${data.testValue}
+                    `;
+                } else {
+                    resultDiv.className = 'result status error';
+                    resultDiv.innerHTML = `
+                        <strong>❌ Redis 連接失敗</strong><br>
+                        錯誤: ${data.error}
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result status error';
+                resultDiv.innerHTML = `<strong>❌ 請求失敗:</strong> ${error.message}`;
+            }
+        }
+
+        // 查看 Redis Keys
+        async function viewRedisKeys() {
+            const resultDiv = document.getElementById('keysResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<strong>查詢中...</strong>';
+            
+            try {
+                const response = await fetch('/test/redis-keys');
+                const data = await response.json();
+                
+                resultDiv.className = 'result status info';
+                resultDiv.innerHTML = `
+                    <strong>📊 Redis 數據狀態</strong><br>
+                    總 Keys 數量: ${data.totalKeys}<br>
+                    驗證碼 Keys: ${data.verificationKeys ? data.verificationKeys.length : 0}<br>
+                    <br><strong>所有 Keys:</strong><br>
+                    ${data.allKeys && data.allKeys.length > 0 ? data.allKeys.join('<br>') : '無數據'}<br>
+                    <br><strong>驗證碼 Keys:</strong><br>
+                    ${data.verificationKeys && data.verificationKeys.length > 0 ? data.verificationKeys.join('<br>') : '無驗證碼數據'}
+                `;
+            } catch (error) {
+                resultDiv.className = 'result status error';
+                resultDiv.innerHTML = `<strong>❌ 查詢失敗:</strong> ${error.message}`;
+            }
+        }
+
+        // 測試驗證碼功能
+        async function testVerificationCode() {
+            const email = document.getElementById('testEmail').value;
+            const resultDiv = document.getElementById('verificationResult');
+            
+            if (!email) {
+                alert('請輸入電子郵件地址');
+                return;
+            }
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<strong>測試中...</strong>';
+            
+            try {
+                const response = await fetch(`/test/verification-code?email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                if (data.verifyResult === '成功') {
+                    resultDiv.className = 'result status success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ 驗證碼功能測試成功</strong><br>
+                        生成驗證碼: ${data.generatedCode}<br>
+                        存儲結果: ${data.storeResult}<br>
+                        存在檢查: ${data.existsCheck}<br>
+                        驗證結果: ${data.verifyResult}
+                    `;
+                } else {
+                    resultDiv.className = 'result status error';
+                    resultDiv.innerHTML = `
+                        <strong>❌ 驗證碼功能測試失敗</strong><br>
+                        生成驗證碼: ${data.generatedCode || '失敗'}<br>
+                        存儲結果: ${data.storeResult || '失敗'}<br>
+                        存在檢查: ${data.existsCheck || '失敗'}<br>
+                        驗證結果: ${data.verifyResult || '失敗'}<br>
+                        錯誤: ${data.error || '未知錯誤'}
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result status error';
+                resultDiv.innerHTML = `<strong>❌ 測試失敗:</strong> ${error.message}`;
+            }
+        }
+
+        // 手動設置驗證碼
+        async function setManualCode() {
+            const email = document.getElementById('manualEmail').value;
+            const code = document.getElementById('manualCode').value;
+            const resultDiv = document.getElementById('manualResult');
+            
+            if (!email || !code) {
+                alert('請輸入電子郵件和驗證碼');
+                return;
+            }
+            
+            if (!/^\d{6}$/.test(code)) {
+                alert('驗證碼必須是6位數字');
+                return;
+            }
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<strong>設置中...</strong>';
+            
+            try {
+                const response = await fetch('/test/set-verification-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`
+                });
+                const data = await response.json();
+                
+                if (data.result === '設置成功') {
+                    resultDiv.className = 'result status success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ 驗證碼設置成功</strong><br>
+                        郵箱: ${data.email}<br>
+                        驗證碼: ${data.code}<br>
+                        驗證存在: ${data.verifyExists}<br>
+                        <br><strong>💡 提示:</strong> 現在您可以使用這個驗證碼在驗證頁面進行測試
+                    `;
+                } else {
+                    resultDiv.className = 'result status error';
+                    resultDiv.innerHTML = `
+                        <strong>❌ 設置失敗</strong><br>
+                        錯誤: ${data.error}
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result status error';
+                resultDiv.innerHTML = `<strong>❌ 設置失敗:</strong> ${error.message}`;
+            }
+        }
+
+        // 前往註冊頁面
+        function goToRegister() {
+            window.open('/member/register', '_blank');
+        }
+
+        // 前往驗證頁面
+        function goToVerify() {
+            window.open('/member/verify', '_blank');
+        }
+
+        // 檢查系統狀態
+        async function checkSystemStatus() {
+            try {
+                // 檢查 Redis 連接來判斷存儲類型
+                const response = await fetch('/test/redis-connection');
+                const data = await response.json();
+                
+                const storageTypeElement = document.getElementById('storageType');
+                if (data.connection === '成功') {
+                    storageTypeElement.textContent = 'Redis (正常)';
+                    storageTypeElement.style.color = '#28a745';
+                } else {
+                    storageTypeElement.textContent = '內存存儲 (Redis 不可用)';
+                    storageTypeElement.style.color = '#ffc107';
+                }
+                
+                document.getElementById('systemTime').textContent = new Date().toLocaleString('zh-TW');
+            } catch (error) {
+                document.getElementById('storageType').textContent = '檢查失敗';
+                document.getElementById('storageType').style.color = '#dc3545';
+            }
+        }
+    </script>
+</body>
+</html>
