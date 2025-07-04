@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>門市管理後台 - EatFast</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    
+    <style>
+        /* 自定義 CSS 變數，實現奶茶色主題 */
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #F5EFE6;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --error-color: #D9534F;
+        }
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 14px;  /* 縮小基礎字體大小 */
+        }
+
+        /* 基礎元素調整 */
+        /* 調整表單容器 */
+        .form-container {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;  /* 縮小圓角 */
+            padding: 0.75rem;  /* 縮小內距 */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;  /* 縮小間距 */
+            margin-bottom: 0.5rem;  /* 縮小底部間距 */
+        }
+        .form-label {
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        .form-input {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.375rem 0.5rem;  /* 縮小輸入框內距 */
+            font-size: 0.875rem;  /* 縮小輸入框字體 */
+            transition: all 0.2s;
+        }
+        .form-input:focus {
+            --tw-ring-color: var(--primary-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px var(--tw-ring-color);
+        }
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            padding: 0.375rem 1rem;  /* 縮小按鈕內距 */
+            font-size: 0.875rem;  /* 縮小按鈕字體 */
+            border-radius: 0.5rem;
+            white-space: nowrap;
+            transition: background-color 0.2s;
+        }
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+        .section-title-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;  /* 縮小標題底部內距 */
+            margin-bottom: 0.75rem;  /* 縮小標題下方間距 */
+        }
+        .section-title {
+            font-size: 1rem;  /* 縮小標題字體 */
+            font-weight: 700;
+        }
+        .toggle-btn {
+            background-color: transparent;
+            color: var(--primary-color);
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--primary-color);
+            transition: all 0.2s;
+        }
+        .toggle-btn:hover {
+            background-color: var(--container-bg);
+        }
+        .marquee-text {
+            animation: marquee-animation 20s linear infinite;
+            font-size: 0.875rem;
+            padding: 0.5rem;
+        }
+        @keyframes marquee-animation {
+            0%   { transform: translateX(100%); }
+            100% { transform: translateX(-150%); }
+        }
+        
+        /* 添加新的固定右側面板樣式 */
+        .page-container {
+            display: flex;
+            gap: 0.75rem;  /* 縮小間距 */
+            position: relative;
+            min-height: 100vh;
+            padding: 0.75rem;
+            max-width: 1200px; /* 從 1600px 縮小到 1200px */
+            margin: 0 auto;
+            width: 90%;      /* 增加寬度限制 */
+        }
+        
+        .main-content {
+            flex: 1;
+            max-width: calc(100% - 320px);  /* 從 360px 縮小到 320px */
+        }
+        
+        .detail-panel {
+            width: 300px;  /* 從 340px 縮小到 300px */
+            position: fixed;
+            right: calc((100% - 1200px) / 2 + 0.75rem); /* 配合新的最大寬度調整 */
+            top: 0.75rem;
+            bottom: 0.75rem;
+            overflow-y: auto;
+            background-color: white;
+            border-radius: 0.5rem;  /* 縮小圓角 */
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        @media (max-width: 1200px) {
+            .detail-panel {
+                right: 0.75rem;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .page-container {
+                flex-direction: column;
+                width: 95%;
+            }
+            .main-content {
+                max-width: 100%;
+            }
+            .detail-panel {
+                position: static;
+                width: 100%;
+            }
+        }
+
+        /* 調整表單容器的內距 */
+        .form-container {
+            padding: 0.75rem;  /* 縮小內距 */
+            margin-bottom: 0.5rem;  /* 縮小底部間距 */
+        }
+
+        /* 調整標題區塊的間距 */
+        .section-title-container {
+            margin-bottom: 0.75rem;  /* 縮小標題下方間距 */
+        }
+
+        /* 調整查詢區塊之間的間距 */
+        #single-query-section {
+            gap: 0.75rem;  /* 從 1rem 縮小到 0.75rem */
+        }
+
+        /* 調整複合查詢表單的內距 */
+        #composite-query-form {
+            padding: 0.75rem;
+            gap: 0.75rem;
+        }
+
+        /* 調整詳細資訊面板的內容間距 */
+        .detail-panel .p-6 {
+            padding: 0.75rem;  /* 縮小內容區塊內距 */
+        }
+
+        .detail-panel h3 {
+            font-size: 0.875rem;  /* 縮小子標題大小 */
+            margin-bottom: 0.5rem;  /* 縮小標題底部間距 */
+        }
+
+        .detail-panel .space-y-3 > p {
+            font-size: 0.875rem;  /* 縮小詳細資訊文字 */
+            margin-bottom: 0.375rem;  /* 縮小段落間距 */
+        }
+
+        /* Header 區塊調整 */
+        header {
+            padding: 0.75rem !important;  /* 縮小 header 內距 */
+            margin-bottom: 0.75rem !important;  /* 縮小 header 底部間距 */
+        }
+
+        header img {
+            width: 40px;  /* 縮小 logo */
+            height: 40px;
+        }
+
+        header h1 {
+            font-size: 1.125rem !important;  /* 縮小主標題 */
+        }
+
+        /* 調整錯誤訊息區塊 */
+        #error-messages {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        /* 門市詳細資訊樣式 */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-operating { /* 對應 OPERATING */
+            background-color: rgba(76, 175, 80, 0.1); /* 綠色背景 */
+            color: #4CAF50; /* 綠色文字 */
+        }
+        .status-resting { /* 對應 RESTING */
+            background-color: rgba(255, 193, 7, 0.1); /* 黃色背景 */
+            color: #FFC107; /* 黃色文字 */
+        }
+        .status-ended { /* 對應 ENDED */
+            background-color: rgba(244, 67, 54, 0.1); /* 紅色背景 */
+            color: #F44336; /* 紅色文字 */
+        }
+        .status-headquarters { /* 對應 HEADQUARTERS */
+            background-color: rgba(0, 123, 255, 0.1); /* 藍色背景 */
+            color: #007BFF; /* 藍色文字 */
+        }
+        .status-unknown {
+            background-color: rgba(108, 117, 125, 0.1);
+            color: #6C757D;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+<div class="page-container">
+    <div class="main-content">
+        <header class="flex items-center p-4 bg-[var(--container-bg)] border border-[var(--border-color)] rounded-xl shadow-sm mb-6">
+            <div class="flex items-center">
+                <img th:src="@{/images/123.png}" alt="Logo" class="w-12 h-12 rounded-full mr-2">
+                <div class="ml-4">
+                    <h1 class="text-xl font-bold">早餐店後台 - 門市資料管理系統</h1>
+                    <p class="text-sm text-gray-500">Thymeleaf 現代化版本</p>
+                </div>
+            </div>
+
+        </header>
+        
+        <div class="bg-white p-3 rounded-lg border border-[var(--border-color)] shadow-sm overflow-hidden whitespace-nowrap mb-8">
+            <p class="inline-block marquee-text text-[var(--primary-color)] font-medium">歡迎使用門市資料管理系統~讓我們月月擴店！5 人團隊賺大錢！</p>
+        </div>
+        
+        <div id="error-messages" class="hidden bg-red-100 border border-[var(--error-color)] text-[var(--error-color)] px-4 py-3 rounded-lg mb-6"></div>
+
+        <section class="mb-10">
+            <div class="section-title-container">
+                <h2 class="section-title">資料查詢</h2>
+            </div>
+            
+            <div id="single-query-section" class="space-y-6">
+                <a th:href="@{/store/listAll}" class="form-container hover:shadow-md transition-shadow cursor-pointer">
+                    <span class="font-semibold text-lg">查詢所有門市資料</span>
+                    <span class="text-lg text-[var(--primary-color)]">➔</span>
+                </a>
+                <form id="query-by-id-input-form" class="form-container">
+                    <label for="storeIdInput" class="form-label text-lg">輸入門市編號：</label> 
+                    <input type="text" id="storeIdInput" name="storeId" placeholder="例如: 1" class="form-input text-lg"> 
+                    <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                </form>
+                <form id="query-by-name-input-form" class="form-container"> <label for="storeNameInput" class="form-label text-lg">輸入門市名稱：</label> 
+                    <input type="text" id="storeNameInput" name="storeName" placeholder="例如: 一號店" class="form-input text-lg"> 
+                    <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                </form>
+                
+                <form id="query-by-id-select-form" class="form-container">
+                    <label for="store-id-select" class="form-label text-lg">選擇門市編號：</label>
+                    <select id="store-id-select" name="storeId" class="form-input text-lg">
+                        <option value="">-- 載入中... --</option>
+                    </select>
+                    <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                </form>
+                <form id="query-by-name-select-form" class="form-container">
+                    <label for="store-name-select" class="form-label text-lg">選擇門市名稱：</label>
+                    <select id="store-name-select" name="storeId" class="form-input text-lg"> 
+                        <option value="">-- 載入中... --</option>
+                    </select>
+                    <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                </form>
+            </div>
+            
+        </section>
+        
+        <section>
+            <div class="section-title-container">
+               <h2 class="section-title">門市管理</h2>
+            </div>
+            <a th:href="@{/store/add}" class="form-container hover:shadow-md transition-shadow cursor-pointer">
+                <span class="font-semibold text-lg">新增門市資料</span>
+                <span class="text-lg text-[var(--primary-color)]">➔</span>
+            </a>
+        </section>
+    </div>
+
+    <section id="store-detail-section" class="detail-panel hidden">
+        <div class="p-6">
+            <div class="section-title-container mb-6">
+                <h2 class="section-title">門市詳細資訊</h2>
+            </div>
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-[var(--primary-color)]">基本資料</h3>
+                    <div class="space-y-3">
+                        <p><span class="font-medium">門市編號：</span><span id="detail-store-id"></span></p>
+                        <p><span class="font-medium">門市名稱：</span><span id="detail-store-name"></span></p>
+                        <p><span class="font-medium">門市地點：</span><span id="detail-store-loc"></span></p>
+                        <p><span class="font-medium">門市電話：</span><span id="detail-store-phone"></span></p>
+                        <p><span class="font-medium">營業時間：</span><span id="detail-store-time"></span></p>
+                        <p><span class="font-medium">營業狀態：</span><span id="detail-store-status"></span></p>
+                        <p><span class="font-medium">建立時間：</span><span id="detail-create-time"></span></p>
+                    </div>
+                </div>
+              </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+
+
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    // 獲取上下文路徑
+    const contextPath = /*[[@{/}]]*/ '/eatfast/';
+    const API_BASE_URL = contextPath + 'api/store';
+    
+    // 修改圖片路徑
+    const logoImg = document.querySelector('header img');
+    if (logoImg) {
+        logoImg.src = contextPath + 'images/123.png';
+    }
+    
+    // --- 元素選擇 ---
+    const errorMessagesDiv = document.getElementById('error-messages');
+    const storeIdSelect = document.getElementById('store-id-select');
+    const storeNameSelect = document.getElementById('store-name-select');
+    // 【新增】獲取門市名稱輸入框和表單
+    const storeNameInput = document.getElementById('storeNameInput');
+    const queryByNameInputForm = document.getElementById('query-by-name-input-form');
+
+    const toggleBtn = document.getElementById('toggle-composite-query-btn'); 
+    const compositeSection = document.getElementById('composite-query-section'); 
+    const compositeForm = document.getElementById('composite-query-form'); 
+    const resetBtn = document.getElementById('reset-btn'); 
+    const storeDetailSection = document.getElementById('store-detail-section'); 
+
+    // 錯誤訊息顯示函數
+    function showError(messages) {
+        errorMessagesDiv.innerHTML = Array.isArray(messages) 
+            ? messages.map(msg => `<div>${msg}</div>`).join('') 
+            : `<div>${messages}</div>`;
+        errorMessagesDiv.classList.remove('hidden');
+    }
+
+    function clearError() {
+        errorMessagesDiv.innerHTML = '';
+        errorMessagesDiv.classList.add('hidden');
+    }
+
+    // --- 動態填充下拉選單 (單一查詢) ---
+    async function populateStoreSelects() {
+        try {
+            const response = await fetch(API_BASE_URL); 
+            if (!response.ok) throw new Error(`無法載入門市列表 (狀態碼: ${response.status})`);
+            
+            let stores = await response.json(); 
+            
+            // 排序門市資料
+            stores.sort((a, b) => {
+                const nameA = a.storeName || '';
+                const nameB = b.storeName || '';
+                return nameA.localeCompare(nameB, 'zh-TW', { sensitivity: 'base' });
+            });
+
+            storeIdSelect.innerHTML = '<option value="">-- 請選擇門市編號 --</option>'; 
+            storeNameSelect.innerHTML = '<option value="">-- 請選擇門市名稱 --</option>'; 
+            
+            stores.forEach(store => { 
+                const idOption = new Option(`${store.storeId}`, store.storeId);
+                storeIdSelect.appendChild(idOption);
+                // 【修正】只顯示門市名稱
+                const nameOption = new Option(`${store.storeName}`, store.storeId); 
+                storeNameSelect.appendChild(nameOption);
+            });
+
+        } catch (error) {
+            const errorMessage = error.message || '載入門市資料時發生未知錯誤';
+            showError(errorMessage);
+            storeIdSelect.innerHTML = `<option value="">-- 載入失敗 --</option>`;
+            storeNameSelect.innerHTML = `<option value="">-- 載入失敗 --</option>`;
+            storeIdSelect.disabled = true;
+            storeNameSelect.disabled = true;
+        }
+    }
+
+    // --- 表單提交邏輯 ---
+    // 處理「單一查詢」輸入門市編號表單
+    document.getElementById('query-by-id-input-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const storeId = document.getElementById('storeIdInput').value; 
+        if (storeId) {
+            handleSingleStoreQuery(storeId);
+        } else {
+            showError('請輸入門市編號');
+        }
+    });
+
+    // 【新增】處理「單一查詢」輸入門市名稱表單
+    if (queryByNameInputForm) { // 確保元素存在
+        queryByNameInputForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const storeName = storeNameInput.value; // 從輸入框獲取門市名稱
+            if (storeName) {
+                handleStoreNameQuery(storeName); // 調用新的處理函數
+            } else {
+                showError('請輸入門市名稱');
+            }
+        });
+    }
+
+    // 處理「單一查詢」選擇門市編號表單
+    document.getElementById('query-by-id-select-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const storeId = storeIdSelect.value; 
+        if (storeId) {
+            handleSingleStoreQuery(storeId);
+        } else {
+            showError('請選擇門市編號');
+        }
+    });
+
+    // 處理「單一查詢」選擇門市名稱表單
+    document.getElementById('query-by-name-select-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const storeId = storeNameSelect.value; // 這個下拉選單的 value 仍然是 storeId
+        if (storeId) {
+            handleSingleStoreQuery(storeId); // 透過 ID 查詢
+        } else {
+            showError('請選擇門市名稱');
+        }
+    });
+
+    // 【註意】複合查詢的邏輯，如果您需要，請將其 HTML 加入到頁面中。
+    // 這個區塊我會保持其原有的 JavaScript 檢查，並提供 HTML 範例
+    if (toggleBtn && compositeSection && compositeForm && resetBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = compositeSection.classList.toggle('hidden');
+            toggleBtn.textContent = isHidden ? '顯示複合查詢功能' : '隱藏複合查詢功能';
+        });
+        
+        compositeForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(compositeForm);
+            const params = new URLSearchParams();
+            
+            for (const [key, value] of formData.entries()) {
+                if (value) {
+                    params.append(key, value);
+                }
+            }
+            
+            try {
+                clearError();
+                // 這裡假設 /api/store/search 是處理複合查詢的端點
+                const response = await fetch(`${API_BASE_URL}/search?${params.toString()}`); 
+                if (!response.ok) {
+                    throw new Error(`查詢失敗 (狀態碼: ${response.status})`);
+                }
+                const stores = await response.json();
+                if (stores.length === 0) {
+                    showError('未找到符合條件的門市');
+                    storeDetailSection.classList.add('hidden');
+                    return;
+                }
+                if (stores.length === 1) {
+                    displayStoreDetail(stores[0]);
+                } else {
+                    showError(`找到 ${stores.length} 筆門市資料，請縮小搜尋範圍或實作多結果列表`);
+                    storeDetailSection.classList.add('hidden');
+                }
+            } catch (error) {
+                showError(error.message);
+                storeDetailSection.classList.add('hidden');
+            }
+        });
+
+        resetBtn.addEventListener('click', function() {
+            compositeForm.reset();
+        });
+    } else {
+        console.warn("複合查詢相關 HTML 元素未找到，複合查詢功能將無法運作。");
+    }
+
+    // --- 門市詳細資訊顯示 ---
+    function displayStoreDetail(store) {
+        storeDetailSection.classList.remove('hidden');
+  
+        const formatDateTime = (dateTimeStr) => {
+            if (!dateTimeStr) return 'N/A';
+            const dt = new Date(dateTimeStr);
+            if (isNaN(dt.getTime())) return '無效日期';
+            
+            return dt.toLocaleString('zh-TW', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+        };
+
+        document.getElementById('detail-store-id').innerHTML = 
+            `<i class="fas fa-id-card text-gray-500 mr-2"></i>${store.storeId || 'N/A'}`;
+        
+        document.getElementById('detail-store-name').innerHTML = 
+            `<i class="fas fa-user text-gray-500 mr-2"></i>${store.storeName || 'N/A'}`;
+        
+        document.getElementById('detail-store-loc').innerHTML = 
+            `<i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>${store.storeLoc || 'N/A'}`;
+        
+        document.getElementById('detail-store-phone').innerHTML = 
+            `<i class="fas fa-phone text-gray-500 mr-2"></i>${store.storePhone || 'N/A'}`;
+            
+        document.getElementById('detail-store-time').innerHTML = 
+            `<i class="fas fa-clock text-gray-500 mr-2"></i>${store.storeTime || 'N/A'}`;
+        
+        const statusBadgeClass = getStatusBadgeClass(store.storeStatus); 
+        document.getElementById('detail-store-status').innerHTML = 
+            `<i class="fas fa-info-circle text-gray-500 mr-2"></i><span class="status-badge ${statusBadgeClass}">${store.storeStatus || 'N/A'}</span>`;
+            
+        document.getElementById('detail-create-time').innerHTML = 
+            `<i class="far fa-calendar-alt text-gray-500 mr-2"></i>${formatDateTime(store.createTime)}`;
+        
+        
+        if (window.innerWidth <= 1024) {
+            storeDetailSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    // 輔助函數：根據門市狀態獲取 CSS 類別
+    function getStatusBadgeClass(status) {
+        switch(status) {
+            case 'OPERATING': return 'status-operating';
+            case 'RESTING': return 'status-resting';
+            case 'ENDED': return 'status-ended';
+            case 'HEADQUARTERS': return 'status-headquarters';
+            default: return 'status-unknown';
+        }
+    }
+
+    // 更新單一查詢（依 ID）的處理邏輯
+    async function handleSingleStoreQuery(storeId) {
+        try {
+            clearError();
+            const response = await fetch(`${API_BASE_URL}/${storeId}`); 
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error(`找不到 ID 為 ${storeId} 的門市資料。`);
+                } else {
+                    throw new Error(`查詢失敗 (狀態碼: ${response.status})`);
+                }
+            }
+            const store = await response.json();
+            displayStoreDetail(store);
+        } catch (error) {
+            showError(error.message);
+            storeDetailSection.classList.add('hidden'); 
+        }
+    }
+
+    // 【新增】更新單一查詢（依名稱）的處理邏輯
+    async function handleStoreNameQuery(storeName) {
+        try {
+            clearError();
+            // 調用後端 /api/store/search?storename=XXX
+            const response = await fetch(`${API_BASE_URL}/search?storename=${encodeURIComponent(storeName)}`); 
+            if (!response.ok) {
+                if (response.status === 204) { // 204 No Content 表示找到0筆，但請求成功
+                    showError(`未找到名稱為 '${storeName}' 的門市資料。`);
+                    storeDetailSection.classList.add('hidden');
+                    return;
+                }
+                throw new Error(`查詢失敗 (狀態碼: ${response.status})`);
+            }
+            const stores = await response.json();
+            
+            if (stores.length === 0) {
+                showError(`未找到名稱為 '${storeName}' 的門市資料。`);
+                storeDetailSection.classList.add('hidden');
+                return;
+            } else if (stores.length === 1) {
+                // 如果只找到一筆，直接顯示詳細資訊
+                displayStoreDetail(stores[0]);
+            } else {
+                // 如果找到多筆，顯示提示並清空詳細資訊面板（或者您可以實現一個列表顯示）
+                showError(`找到 ${stores.length} 筆名稱包含 '${storeName}' 的門市資料，請縮小搜尋範圍或改用ID查詢。`);
+                storeDetailSection.classList.add('hidden');
+            }
+        } catch (error) {
+            showError(error.message);
+            storeDetailSection.classList.add('hidden');
+        }
+    }
+
+
+    // --- 頁面初始化 ---
+    populateStoreSelects();
+
+});
+</script>
+
+</body>
+</html>
