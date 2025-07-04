@@ -3,67 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <title>公告查詢頁面</title>
+
+    <!-- Bootstrap + 字體 -->
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <!-- 奶茶風樣式 -->
+    <style>
+        body {
+            background-color: #f6f0e8;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        .container {
+            background-color: #fffefb;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(175, 140, 100, 0.15);
+        }
+
+        h3 {
+            color: #6f4e37;
+        }
+
+        label {
+            color: #5c4433;
+            font-weight: 500;
+        }
+
+        .btn-success, .btn-primary, .btn-warning {
+            border-radius: 6px;
+        }
+
+        .btn-success {
+            background-color: #a87c5f;
+            border-color: #a87c5f;
+        }
+
+        .btn-success:hover {
+            background-color: #8b6249;
+            border-color: #8b6249;
+        }
+
+        .btn-primary {
+            background-color: #c09774;
+            border-color: #c09774;
+        }
+
+        .btn-primary:hover {
+            background-color: #a67b5b;
+            border-color: #a67b5b;
+        }
+
+        .btn-warning {
+            background-color: #d3a17e;
+            border-color: #d3a17e;
+        }
+
+        .btn-warning:hover {
+            background-color: #b98360;
+            border-color: #b98360;
+        }
+
+        .thead-light th {
+            background-color: #f0e0cf;
+            color: #5b4636;
+        }
+
+        .form-control {
+            border-radius: 6px;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
+<div class="container mt-5">
+    <h3 class="mb-4 text-center">📋 公告查詢頁面</h3>
 
-        <form th:action="@{/announcement/select_page_announcement}" method="post" class="mb-4">
-            <!-- 上方操作列 -->
-            <div class="d-flex justify-content-between mb-3">
+    <form th:action="@{/announcement/select_page_announcement}" method="post" class="mb-4">
+        <div class="d-flex justify-content-between mb-3">
+            <div>
                 <a class="btn btn-success" th:href="@{/announcement/new}">
                     <i class="fas fa-plus"></i> 新增公告
+                </a>
+                <a class="btn btn-warning" th:href="@{/announcement/drafts}">
+                    <i class="fas fa-folder"></i> 草稿列表
                 </a>
                 <a class="btn btn-outline-secondary" th:href="@{/announcement/listAll}">
                     <i class="fas fa-list"></i> 顯示目前上架公告
                 </a>
             </div>
+        </div>
 
-            <div class="form-row">
-                <div class="col-md-3">
-                    <label>標題關鍵字</label>
-                    <input type="text" name="title" class="form-control" placeholder="輸入公告標題">
-                </div>
-                <div class="col-md-2">
-                    <label>狀態</label>
-                    <select name="status" class="form-control">
-                        <option value="">-- 全部 --</option>
-                        <option th:each="opt : ${statusOptions}" th:value="${opt}" th:text="${opt}"></option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label>起始時間</label>
-                    <input type="datetime-local" name="startTime" class="form-control">
-                </div>
-                <div class="col-md-3">
-                    <label>結束時間</label>
-                    <input type="datetime-local" name="endTime" class="form-control">
-                </div>
-                <div class="col-md-1 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary btn-block">查詢</button>
-                </div>
+        <div class="form-row">
+            <div class="col-md-3">
+                <label>標題關鍵字</label>
+                <input type="text" name="title" class="form-control" placeholder="輸入公告標題">
             </div>
-        </form>
+            <div class="col-md-2">
+                <label>狀態</label>
+                <select name="status" class="form-control">
+                    <option value="">-- 全部 --</option>
+                    <option th:each="opt : ${statusOptions}" th:value="${opt}">
+                        <th:block th:switch="${opt}">
+                            <th:block th:case="'ACTIVE'">上架中</th:block>
+                            <th:block th:case="'INACTIVE'">草稿</th:block>
+                            <th:block th:case="'VISIBLE'">前台可見</th:block>
+                            <th:block th:case="'HIDDEN'">已隱藏</th:block>
+                            <th:block th:case="*">未知狀態</th:block>
+                        </th:block>
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>起始時間</label>
+                <input type="datetime-local" name="startTime" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label>結束時間</label>
+                <input type="datetime-local" name="endTime" class="form-control">
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary btn-block">查詢</button>
+            </div>
+        </div>
+    </form>
 
-        <table class="table table-bordered text-center" th:if="${announcements != null}">
-            <thead class="thead-light">
-                <tr>
-                    <th>標題</th>
-                    <th>狀態</th>
-                    <th>起始</th>
-                    <th>結束</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="a : ${announcements}">
-                    <td th:text="${a.title}">標題</td>
-                    <td th:text="${a.status}">狀態</td>
-                    <td th:text="${#temporals.format(a.startTime, 'yyyy-MM-dd HH:mm')}">起始</td>
-                    <td th:text="${#temporals.format(a.endTime, 'yyyy-MM-dd HH:mm')}">結束</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <table class="table table-bordered text-center" th:if="${announcements != null}">
+        <thead class="thead-light">
+        <tr>
+            <th>標題</th>
+            <th>狀態</th>
+            <th>起始</th>
+            <th>結束</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="a : ${announcements}">
+            <td th:text="${a.title}">標題</td>
+            <td>
+                <span th:switch="${a.status}">
+                    <span th:case="'ACTIVE'">上架中</span>
+                    <span th:case="'INACTIVE'">草稿</span>
+                    <span th:case="'VISIBLE'">前台可見</span>
+                    <span th:case="'HIDDEN'">已隱藏</span>
+                    <span th:case="*">未知</span>
+                </span>
+            </td>
+            <td th:text="${#temporals.format(a.startTime, 'yyyy-MM-dd HH:mm')}">起始</td>
+            <td th:text="${#temporals.format(a.endTime, 'yyyy-MM-dd HH:mm')}">結束</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
 </body>
 </html>

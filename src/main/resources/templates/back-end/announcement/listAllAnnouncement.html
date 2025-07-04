@@ -3,7 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <title>目前上架公告 - 員工專用</title>
+    <!-- 奶茶風樣式 -->
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f6f0e8; /* 奶茶底色 */
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        h3 {
+            color: #6f4e37; /* 奶茶文字色 */
+        }
+
+        .table th {
+            background-color: #f0e0cf;
+            color: #5b4636;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .btn-primary {
+            background-color: #a87c5f;
+            border-color: #a87c5f;
+        }
+
+        .btn-primary:hover {
+            background-color: #8a654b;
+            border-color: #8a654b;
+        }
+
+        .container {
+            background-color: #fffefb;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(175, 140, 100, 0.2);
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-5">
