@@ -29,4 +29,11 @@ public interface AnnouncementService {
 
     // 查詢指定門市的公告
     List<AnnouncementEntity> findByStoreId(Long storeId);
+
+	List<AnnouncementEntity> search(String title, AnnouncementStatus status, LocalDateTime startTime,
+			LocalDateTime endTime);
+	//這是列出公告清單的方法
+	List<AnnouncementEntity> findCurrentlyActive();
+
+	
 }

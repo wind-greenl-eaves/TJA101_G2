@@ -51,4 +51,19 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     public List<AnnouncementEntity> findByStoreId(Long storeId) {
         return announcementRepository.findByStore_StoreId(storeId);
     }
+
+	@Override
+	public List<AnnouncementEntity> search(String title, AnnouncementStatus status, LocalDateTime startTime,
+			LocalDateTime endTime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<AnnouncementEntity> findCurrentlyActive() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+
 }
