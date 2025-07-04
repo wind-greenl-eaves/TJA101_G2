@@ -35,6 +35,18 @@
     </style>
 </head>
 <body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center">
+                <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-3">
+                <span style="font-weight: 500; font-size: 1.25rem;">餐點種類資料管理 - EatFast 後台</span>
+            </a>
+            <a class="btn btn-outline-light" th:href="@{/}">
+                <i class="fas fa-home"></i> 回首頁
+            </a>
+        </div>
+    </nav>
+
     <div class="container mt-4">
     	 <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
 	        <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
