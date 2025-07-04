@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>公告內容 - EatFast</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h3 class="mb-3" th:text="${announcement.title}">公告標題</h3>
+    <p class="text-muted">
+        發布時間：
+        <span th:text="${#temporals.format(announcement.startTime, 'yyyy-MM-dd HH:mm')}">時間</span>
+    </p>
+    <hr>
+    <p th:text="${announcement.content}" style="white-space: pre-wrap;">公告內容</p>
+
+    <div class="mt-4 text-right">
+        <a th:href="@{/announcements}" class="btn btn-secondary">返回公告清單</a>
+    </div>
+</div>
+</body>
+</html>

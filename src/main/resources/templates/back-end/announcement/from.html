@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>新增 / 編輯公告 - 溫馨奶茶風</title>
+
+    <!-- 樣式與字體 -->
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/member/style.css}" />
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4 text-center" style="font-family: 'Noto Sans TC';">📝 公告編輯</h2>
+
+    <form th:action="@{/announcements/save}" th:object="${announcement}" method="post">
+        <!-- 標題 -->
+        <div class="form-group">
+            <label for="title">公告標題</label>
+            <input type="text" th:field="*{title}" class="form-control" id="title" placeholder="請輸入公告標題">
+            <div class="text-danger" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+        </div>
+
+        <!-- 公告內容 -->
+        <div class="form-group">
+            <label for="content">公告內容</label>
+            <textarea th:field="*{content}" class="form-control" id="content" rows="5" placeholder="請輸入公告內容"></textarea>
+            <div class="text-danger" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
+        </div>
+
+        <!-- 上架時間 -->
+        <div class="form-group">
+            <label for="startTime">上架時間</label>
+            <input type="datetime-local" th:field="*{startTime}" class="form-control" id="startTime">
+            <div class="text-danger" th:if="${#fields.hasErrors('startTime')}" th:errors="*{startTime}"></div>
+        </div>
+
+        <!-- 下架時間 -->
+        <div class="form-group">
+            <label for="endTime">下架時間</label>
+            <input type="datetime-local" th:field="*{endTime}" class="form-control" id="endTime">
+            <div class="text-danger" th:if="${#fields.hasErrors('endTime')}" th:errors="*{endTime}"></div>
+        </div>
+
+        <!-- 狀態選單 -->
+        <div class="form-group">
+            <label for="status">狀態</label>
+            <select th:field="*{status}" class="form-control" id="status">
+                <option th:each="opt : ${statusOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
+            <div class="text-danger" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></div>
+        </div>
+
+        <!-- 按鈕區塊 -->
+        <div class="text-right mt-4">
+            <a th:href="@{/announcements}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> 返回清單
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> 儲存公告
+            </button>
+        </div>
+    </form>
+</div>
+</body>
+</html>
