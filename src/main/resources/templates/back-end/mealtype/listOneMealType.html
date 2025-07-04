@@ -3,22 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <title>單筆餐點類別資料</title>
+    <style>
+        .meal-type-display {
+            float: right; /* 讓這個區塊靠右浮動 */
+            width: 300px; /* 可以根據需要調整寬度 */
+            border: 1px solid #ccc; /* 增加邊框以區分顯示區域 */
+            padding: 15px; /* 增加內邊距 */
+            margin-top: 20px; /* 調整上方外邊距 */
+            background-color: #f9f9f9; /* 淺色背景 */
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1); /* 輕微的陰影效果 */
+        }
+
+        .meal-type-display span {
+            display: inline-block; /* 讓標籤和值能在同一行顯示 */
+            width: 120px; /* 調整標籤寬度，使值對齊 */
+            font-weight: bold; /* 標籤文字加粗 */
+            margin-bottom: 8px; /* 行間距 */
+        }
+        .meal-type-display span + span { /* 選取第一個 span 後面的 span */
+            font-weight: normal; /* 值的部分不加粗 */
+            width: auto; /* 自動調整寬度 */
+        }
+    </style>
 </head>
 <body>
     <h2>餐點類別</h2>
 
     <div th:if="${success}" th:text="${success}" style="color:green;"></div>
 
-    <table border="1">
-        <tr>
-            <th>餐點類別編號</th>
-            <td th:text="${mealTypeEntity.mealTypeId}"></td>
-        </tr>
-        <tr>
-            <th>餐點類別名稱</th>
-            <td th:text="${mealTypeEntity.mealName}"></td>
-        </tr>
-    </table>
+    <div class="meal-type-display" th:fragment="listOneMealType-div">
+        <h3><span>查詢結果 :</span></h3>
+        <span>餐點類別編號:</span><span th:text="${mealTypeEntity.mealTypeId}"></span><br/>
+        <span>餐點類別名稱:</span><span th:text="${mealTypeEntity.mealName}"></span><br/>
+    </div>
+
+    <div style="clear:both;"></div>
 
     <a th:href="@{/mealtype/listAllMealType}">回全部列表</a>
 </body>

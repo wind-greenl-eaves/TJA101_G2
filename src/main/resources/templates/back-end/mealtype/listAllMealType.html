@@ -49,13 +49,16 @@
 						<th>餐點類別編號</th>
 						<th>餐點類別名稱</th>
 						<th>修改</th>
-						<th>刪除</th> </tr>
+						<th>刪除</th>
+					</tr>
 				</thead>
 				<tbody>
-					<tr th:each="mealType : ${mealTypeListData}"> <td th:text="${mealType.mealTypeId}"></td>
+					<tr th:each="mealType : ${mealTypeListData}">
+						<td th:text="${mealType.mealTypeId}"></td>
 						<td th:text="${mealType.mealName}"></td>
 						<td>
-							<form th:action="@{/mealtype/update/{id}(id=${mealType.mealTypeId})}" method="get" style="display: inline;">
+							<form th:action="@{/mealtype/getOne_For_Update}" method="post" style="display: inline;">
+								<input type="hidden" name="mealTypeId" th:value="${mealType.mealTypeId}" />
 								<button type="submit" class="btn btn-primary btn-sm">修改</button>
 							</form>
 						</td>

@@ -1,60 +1,89 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<title>修改餐點類別</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>修改餐點種類</title>
 
-<head th:insert="~{/back-end/emp/included-fragment}"></head>
-<style type="text/css">
-	
-	button {
-		padding: 5px;
-	}
-	form {
-		display: table;
-	}
-	form div {
-		display: table-row;
-	}
-	label, input, span, select {
-		display: table-cell;
-		margin: 5px;
-		text-align: left;		
-	}
-	input[type=text], input[type=password], select, textarea {
-		width: 200px;
-		margin: 5px;
-	}
-	form div div {
-		display: table-cell;
-	}
-	.center {
-        margin-left: auto;
-        margin-right: auto;
-    }
-</style>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+
+    <link rel="stylesheet" th:href="@{/css/member/style.css}" />
+
+    <style>
+        body {
+            /* 沿用會員頁面的背景色 */
+            background-color: var(--milk-tea-page-bg, #fcfaf7);
+            padding-top: 80px; /* 為了導覽列預留空間 */
+        }
+    </style>
 </head>
 <body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center">
+                <i class="fas fa-edit mr-3" style="font-size: 1.5rem;"></i>
+                <span style="font-weight: 500; font-size: 1.25rem;">修改餐點種類</span>
+            </a>
+            <a class="btn btn-outline-light" th:href="@{/mealtype/select_page_mealtype}">
+                <i class="fas fa-arrow-left"></i> 回查詢頁
+            </a>
+        </div>
+    </nav>
 
-	<h2>修改餐點類別</h2>
+    <div class="container mt-4 mb-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
 
-	<div align="center">
-		<h3><b>所有欄位皆為必填欄位</b></h3>
-		<form th:action="@{/mealtype/update}" th:object="${mealTypeEntity}" method="post">
+                <div class="card">
+                    <div class="card-header">
+                       <i class="fas fa-pencil-alt"></i> 請修改以下欄位
+                    </div>
+                    <div class="card-body">
+                    <form th:action="@{/mealtype/update}" method="post" th:object="${mealTypeEntity}">
+                    
+                        <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-circle"></i>
+                            請修正以下錯誤：
+                            <ul>
+                                <li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
+                            </ul>
+                        </div>
+                        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+                        </div>
 
-        <input type="hidden" th:field="*{mealTypeId}" />
+                            <div class="form-group">
+                                <label for="mealTypeId">餐點種類編號:</label>
+                                <input type="text" id="mealTypeId" th:field="*{mealTypeId}" class="form-control-plaintext" readonly />
+                                </div>
 
-        <label>餐點種類名稱：</label>
-        <input type="text" th:field="*{mealName}" />
-        <span th:if="${#fields.hasErrors('mealName')}" th:errors="*{mealName}"></span>
-        <br/>
+                            <div class="form-group">
+                                <label for="mealName">餐點種類名稱:</label>
+                                <input type="text" id="mealName" th:field="*{mealName}" class="form-control" />
+                                <div class="text-danger mt-1" th:if="${#fields.hasErrors('mealName')}" th:errors="*{mealName}"></div>
+                            </div>
 
-        <button type="submit">送出修改</button>
-    </form>
-	
-	</div>
+                            <hr>
 
-	<a th:href="@{/mealtype/listAllMealType}">回餐點種類列表</a>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-check"></i> 送出修改
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
 </body>
 </html>
