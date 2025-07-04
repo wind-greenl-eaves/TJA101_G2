@@ -20,7 +20,9 @@ import com.eatfast.member.validation.UpdateValidation;
 // (既有 import)
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpSession;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -444,6 +446,16 @@ public class MemberController {
             return "redirect:/api/v1/auth/member-login";
         }
         
+        // 【密碼確認驗證】檢查新密碼與確認密碼是否一致
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            result.rejectValue("confirmPassword", "password.mismatch", "新密碼與確認密碼不一致");
+        }
+        
+        // 【新舊密碼相同檢查】防止用戶設定相同的密碼
+        if (request.getOldPassword().equals(request.getNewPassword())) {
+            result.rejectValue("newPassword", "password.same", "新密碼不能與舊密碼相同");
+        }
+        
         // 【表單驗證】檢查驗證錯誤
         if (result.hasErrors()) {
             return "front-end/member/change-password";
@@ -460,8 +472,8 @@ public class MemberController {
             
         } catch (EntityNotFoundException | IllegalArgumentException e) {
             log.warn("密碼變更失敗：{}", e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/member/change-password";
+            result.rejectValue("oldPassword", "password.invalid", e.getMessage());
+            return "front-end/member/change-password";
         }
     }
     
@@ -495,9 +507,37 @@ public class MemberController {
      */
     @GetMapping("/settings")
     public String showMemberSettings(Model model, HttpSession session) {
-        // MemberEntity member = getCurrentMemberFromSession(session);
-        // model.addAttribute("member", member);
-        return "front-end/member/member-settings";
+        // 【第一步：Session驗證】檢查用戶是否已登入
+        Long memberId = (Long) session.getAttribute("loggedInMemberId");
+        Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
+        
+        // 如果未登入，重定向到登入頁面
+        if (memberId == null || isLoggedIn == null || !isLoggedIn) {
+            return "redirect:/api/v1/auth/member-login";
+        }
+        
+        // 【第二步：載入會員資訊】從資料庫獲取最新的會員資料
+        try {
+            MemberEntity member = memberService.getMemberById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
+            
+            // 檢查帳號是否仍然啟用
+            if (!member.isEnabled()) {
+                // 如果帳號被停用，清除Session並重定向到登入頁面
+                session.invalidate();
+                return "redirect:/api/v1/auth/member-login?error=account_disabled";
+            }
+            
+            // 【第三步：將會員資料傳遞給模板】
+            model.addAttribute("member", member);
+            
+            return "front-end/member/member-settings";
+            
+        } catch (EntityNotFoundException e) {
+            log.error("會員資料載入失敗: {}", e.getMessage());
+            session.invalidate();
+            return "redirect:/api/v1/auth/member-login?error=member_not_found";
+        }
     }
 
     // ================================================================
@@ -655,6 +695,100 @@ public class MemberController {
         } catch (Exception e) {
             log.error("重新發送驗證郵件時發生錯誤 - Email: {}, 錯誤: {}", email, e.getMessage());
             return ResponseEntity.status(500).body("系統錯誤，請稍後再試。");
+        }
+    }
+
+    // ================================================================
+    // 					即時驗證功能 (Real-time Validation)
+    // ================================================================
+    
+    /**
+     * 【即時驗證】檢查舊密碼是否正確
+     * 
+     * @param oldPassword 用戶輸入的舊密碼
+     * @param session HTTP Session 用來獲取當前會員ID
+     * @return JSON 回應包含驗證結果
+     */
+    @PostMapping("/validate-old-password")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> validateOldPassword(
+            @RequestParam("oldPassword") String oldPassword,
+            HttpSession session) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 【Session驗證】檢查用戶是否已登入
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            if (memberId == null) {
+                response.put("valid", false);
+                response.put("message", "請重新登入");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 【驗證舊密碼】調用Service層驗證
+            boolean isOldPasswordValid = memberService.validateOldPassword(memberId, oldPassword);
+            
+            if (isOldPasswordValid) {
+                response.put("valid", true);
+                response.put("message", "舊密碼驗證成功");
+            } else {
+                response.put("valid", false);
+                response.put("message", "舊密碼不正確");
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("驗證舊密碼時發生錯誤: {}", e.getMessage());
+            response.put("valid", false);
+            response.put("message", "驗證過程發生錯誤");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 【即時驗證】檢查新密碼與舊密碼是否相同
+     * 
+     * @param oldPassword 舊密碼
+     * @param newPassword 新密碼  
+     * @param session HTTP Session
+     * @return JSON 回應包含驗證結果
+     */
+    @PostMapping("/validate-password-difference")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> validatePasswordDifference(
+            @RequestParam("oldPassword") String oldPassword,
+            @RequestParam("newPassword") String newPassword,
+            HttpSession session) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 【Session驗證】
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            if (memberId == null) {
+                response.put("valid", false);
+                response.put("message", "請重新登入");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 【檢查新舊密碼是否相同】
+            if (oldPassword.equals(newPassword)) {
+                response.put("valid", false);
+                response.put("message", "新密碼不能與舊密碼相同");
+            } else {
+                response.put("valid", true);
+                response.put("message", "新密碼可以使用");
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("驗證密碼差異時發生錯誤: {}", e.getMessage());
+            response.put("valid", false);
+            response.put("message", "驗證過程發生錯誤");
+            return ResponseEntity.status(500).body(response);
         }
     }
 }

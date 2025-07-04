@@ -45,6 +45,12 @@ public class PasswordUpdateRequest {
 	@Size(min = 8, max = 100, message = "新密碼長度建議介於 8 到 100 個字元之間")
 	private String newPassword;
 
+	/**
+	 * 確認新密碼，用於驗證使用者輸入的一致性。
+	 */
+	@NotBlank(message = "確認密碼不可為空")
+	private String confirmPassword;
+
 	// ================================================================
 	// Getters and Setters
 	// ================================================================
@@ -72,5 +78,13 @@ public class PasswordUpdateRequest {
 
 	public void setNewPassword(String newPassword) {
 		this.newPassword = newPassword;
+	}
+
+	public String getConfirmPassword() {
+		return confirmPassword;
+	}
+
+	public void setConfirmPassword(String confirmPassword) {
+		this.confirmPassword = confirmPassword;
 	}
 }

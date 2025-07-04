@@ -613,4 +613,32 @@ public class MemberService {
         boolean hasVerificationCode(String email);
         void deleteVerificationCode(String email);
     }
+
+    /**
+     * 【即時驗證】驗證會員的舊密碼是否正確
+     * 
+     * @param memberId 會員ID
+     * @param oldPassword 用戶輸入的舊密碼
+     * @return true 如果舊密碼正確，false 如果不正確
+     */
+    @Transactional(readOnly = true)
+    public boolean validateOldPassword(Long memberId, String oldPassword) {
+        try {
+            // 【資料庫讀取】根據會員ID獲取會員資料
+            MemberEntity member = memberRepository.findById(memberId)
+                    .orElse(null);
+            
+            // 如果找不到會員，返回false
+            if (member == null) {
+                return false;
+            }
+            
+            // 【密碼驗證】使用Spring Security的密碼編碼器進行驗證
+            return passwordEncoder.matches(oldPassword, member.getPassword());
+            
+        } catch (Exception e) {
+            // 如果發生任何錯誤，返回false以確保安全性
+            return false;
+        }
+    }
 }
