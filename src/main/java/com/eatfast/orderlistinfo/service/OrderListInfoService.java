@@ -1,6 +1,7 @@
 package com.eatfast.orderlistinfo.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.eatfast.orderlist.model.OrderListEntity;
 import com.eatfast.orderlist.repository.OrderListRepository; // 可能需要訂單主表的 Repository
+import com.eatfast.orderlistinfo.model.OrderListInfoDTO;
 import com.eatfast.orderlistinfo.model.OrderListInfoEntity;
 import com.eatfast.orderlistinfo.repository.OrderListInfoRepository;
 
@@ -79,5 +81,19 @@ public class OrderListInfoService {
         // 2. 使用多條件查詢方法
         Long unreviewedFlag = 0L;
         return orderListInfoRepository.findByOrderListAndReviewStars(order, unreviewedFlag);
+    }
+    public List<OrderListInfoDTO> getDetailsForOrderDTO(String orderId) {
+        // 1. 呼叫 Repository 取得 Entity 列表
+        List<OrderListInfoEntity> details = orderListInfoRepository.findByOrderList_OrderListId(orderId);
+
+        // 2. 使用 Java Stream API 將 List<OrderListInfoEntity> 轉換為 List<OrderListInfoDTO>
+        return details.stream()
+                .map(entity -> new OrderListInfoDTO(
+                        entity.getMeal().getMealName(), // 從關聯的 MealEntity 取得餐點名稱
+                        entity.getQuantity(),
+                        entity.getMealPrice(),
+                        entity.getMealCustomization()
+                ))
+                .collect(Collectors.toList());
     }
 }

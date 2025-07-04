@@ -1,27 +1,22 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8">
-<title>所有訂單資料</title>
-
-<link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}"/>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" th:href="@{/css/member/style.css}" /> 
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap4.min.css" />
-
-<style>
-    body {
-        font-family: 'Noto Sans TC', sans-serif;
-        background-color: var(--milk-tea-page-bg, #fcfaf7);
-        padding: 80px 2rem 2rem 2rem;
-    }
-</style>
-
+    <meta charset="UTF-8">
+    <title>所有訂單資料</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/member/style.css}" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap4.min.css" />
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--milk-tea-page-bg, #fcfaf7);
+            padding: 80px 2rem 2rem 2rem;
+        }
+    </style>
 </head>
 <body>
 
@@ -41,14 +36,13 @@
         <tr>
             <th>計數</th>
             <th>訂單編號</th>
-            <th>會員ID</th>
-            <th>門市ID</th>
+            <th>會員</th>
+            <th>門市</th>
             <th>總金額</th>
             <th>訂單狀態</th>
             <th>取餐號</th>
             <th>訂單日期</th>
-            <th>操作</th>
-        </tr>
+            <th>操作</th> </tr>
     </thead>
     <tbody>
         <tr th:each="orderListVO, iterStat : ${orderListData}">
@@ -57,14 +51,12 @@
             <td th:text="${orderListVO.member?.memberId} +' - ' + ${orderListVO.member?.username}"></td>
             <td th:text="${orderListVO.store?.storeId}+' - ' + ${orderListVO.store?.storeName}"></td>
             <td th:text="${'NT$ ' + orderListVO.orderAmount}"></td>
-            
             <td>
                 <span th:switch="${orderListVO.orderStatus.name()}"
                       class="badge" 
                       th:classappend="${orderListVO.orderStatus.name() == 'COMPLETED'} ? 'badge-success' : 
                                      (${orderListVO.orderStatus.name() == 'CANCELLED'} ? 'badge-danger' : 
                                      (${orderListVO.orderStatus.name() == 'SHIPPED'} ? 'badge-primary' : 'badge-info'))">
-                    
                     <span th:case="'PENDING'">處理中</span>
                     <span th:case="'CONFIRMED'">已確認</span>
                     <span th:case="'SHIPPED'">已出餐</span>
@@ -73,10 +65,14 @@
                     <span th:case="*">未知狀態</span>
                 </span>
             </td>
-            
             <td th:text="${orderListVO.mealPickupNumber}"></td>
             <td th:text="${#temporals.format(orderListVO.orderDate, 'yyyy-MM-dd HH:mm')}"></td>
             <td class="text-nowrap">
+                <button type="button" class="btn btn-sm btn-info view-details-btn" 
+                        th:data-order-id="${orderListVO.orderListId}">
+                    <i class="fas fa-search-plus"></i> 明細
+                </button>
+
                 <form method="post" th:action="@{/orderlist/getOne_For_Update}" class="d-inline">
                     <input type="hidden" name="orderListId" th:value="${orderListVO.orderListId}">
                     <button type="submit" class="btn btn-sm btn-success">
@@ -93,7 +89,6 @@
                     </button>
                 </form>
 
-
                 <form method="post" th:action="@{/orderlist/delete}" class="d-inline"
                       th:data-status="${orderListVO.orderStatus.name()}"
                       onsubmit="return checkCancelable(this);">
@@ -107,29 +102,100 @@
     </tbody>
 </table>
 
+<div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel">訂單明細</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="orderDetailsBody"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
 <script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
-
 <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
-    $(document).ready(function() {
-        $('#orderTable').DataTable({
-            "lengthMenu": [5, 10, 20, 50],
-            "language": {
-                "url": "https://cdn.datatables.net/plug-ins/1.13.5/i18n/zh-HANT.json"
+$(document).ready(function() {
+    // 初始化 DataTables (維持不變)
+    $('#orderTable').DataTable({
+        "lengthMenu": [5, 10, 20, 50],
+        "language": {
+            "url": "https://cdn.datatables.net/plug-ins/1.13.5/i18n/zh-HANT.json"
+        },
+        "dom": "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+               "<'row'<'col-sm-12'tr>>" +
+               "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        "renderer": "bootstrap"
+    });
+
+    // --- ⭐【新增】點擊「明細」按鈕的事件監聽 ---
+    // 使用事件委派(Event Delegation)，確保 DataTables 換頁後按鈕依然有效
+    $('#orderTable tbody').on('click', '.view-details-btn', function() {
+        
+        // 1. 從按鈕的 data-order-id 屬性獲取訂單 ID
+        var orderId = $(this).data('order-id');
+        var modalBody = $('#orderDetailsBody');
+        
+        // 2. 清空上次的內容並顯示讀取中...
+        modalBody.html('<p class="text-center"><i class="fas fa-spinner fa-spin"></i> 讀取中...</p>');
+        
+        // 3. 顯示彈出視窗
+        $('#detailsModal').modal('show');
+        
+        // 4. 發送 AJAX 請求到後端 API
+        $.ajax({
+            url: '/api/order-details/by-order/' + orderId, // 呼叫我們在後端建立的 API
+            type: 'GET',
+            success: function(details) {
+                // 5. 請求成功後，建立 HTML 表格來顯示明細
+                if (details && details.length > 0) {
+                    var tableHtml = '<table class="table table-bordered">';
+                    tableHtml += '<thead><tr><th>餐點名稱</th><th>數量</th><th>單價</th><th>客製化</th></tr></thead>';
+                    tableHtml += '<tbody>';
+                    
+                    // 遍歷回傳的 JSON 陣列，產生每一筆明細的資料列
+                    $.each(details, function(index, item) {
+                        tableHtml += '<tr>';
+                        tableHtml += '<td>' + item.mealName + '</td>';
+                        tableHtml += '<td>' + item.quantity + '</td>';
+                        tableHtml += '<td> NT$ ' + item.mealPrice + '</td>';
+                        // 如果客製化備註是 null 或空字串，就顯示 "無"
+                        tableHtml += '<td>' + (item.mealCustomization || '無') + '</td>';
+                        tableHtml += '</tr>';
+                    });
+                    
+                    tableHtml += '</tbody></table>';
+                    modalBody.html(tableHtml); // 將產生的表格填入 Modal Body
+                } else {
+                    // 如果沒有明細資料
+                    modalBody.html('<p class="text-center text-muted">查無此訂單的詳細項目。</p>');
+                }
             },
-            "dom": "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-                   "<'row'<'col-sm-12'tr>>" +
-                   "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            "renderer": "bootstrap"
+            error: function() {
+                // 6. 請求失敗的處理
+                modalBody.html('<p class="text-center text-danger">無法載入訂單明細，請稍後再試。</p>');
+            }
         });
     });
+});
 </script>
 
 <script th:inline="javascript">
+    // ... (checkCancelable function 維持不變) ...
     function checkCancelable(formElement) {
         const status = formElement.dataset.status;
 
