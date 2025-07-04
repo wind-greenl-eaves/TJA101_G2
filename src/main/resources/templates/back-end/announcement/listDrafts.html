@@ -118,7 +118,7 @@
         const url = event.currentTarget.getAttribute("href");
 
         // 使用 AJAX 發佈
-        fetch(url)
+        fetch(url) 
             .then(response => {
                 if (response.ok) {
                     $('#publishedModal').modal('show');
