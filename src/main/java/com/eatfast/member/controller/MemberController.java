@@ -11,6 +11,7 @@ package com.eatfast.member.controller;
 import com.eatfast.member.dto.MemberCreateRequest;
 import com.eatfast.member.dto.MemberUpdateRequest;
 import com.eatfast.member.dto.PasswordUpdateRequest;
+import com.eatfast.member.dto.MemberVerificationRequest;
 // 【路徑】引入 Model, Service, 常數與驗證介面，建立 Controller -> Service -> Model 的標準呼叫鏈。
 import com.eatfast.member.model.MemberEntity;
 import com.eatfast.member.service.MemberService;
@@ -558,14 +559,15 @@ public class MemberController {
         }
 
         try {
-            // 註冊會員
+            // 註冊會員（此時會自動發送驗證郵件）
             MemberEntity savedMember = memberService.registerMember(createRequest);
-            log.info("前端會員 {} 註冊成功，ID: {}", savedMember.getAccount(), savedMember.getMemberId());
+            log.info("前端會員 {} 註冊成功，ID: {}，等待驗證", savedMember.getAccount(), savedMember.getMemberId());
             
-            // 註冊成功，重定向到登入頁面並顯示成功訊息
+            // 註冊成功，重定向到驗證頁面並顯示成功訊息
             redirectAttributes.addFlashAttribute("successMessage", 
-                "註冊成功！歡迎加入 " + savedMember.getUsername() + "，請使用您的帳號密碼登入。");
-            return "redirect:/api/v1/auth/member-login";
+                "註冊成功！驗證郵件已發送至 young19960127@gmail.com，請查收並輸入驗證碼來啟用您的帳號。");
+            redirectAttributes.addAttribute("email", savedMember.getEmail());
+            return "redirect:/member/verify";
         
         } catch (IllegalArgumentException e) {
             log.warn("前端註冊失敗: {}", e.getMessage());
@@ -580,5 +582,79 @@ public class MemberController {
     @GetMapping("/register-test")
     public String showRegisterTestForm() {
         return "front-end/member/member-register";
+    }
+
+    // ================================================================
+    // 					會員驗證功能 (Member Verification)
+    // ================================================================
+    
+    /**
+     * 顯示會員驗證頁面
+     */
+    @GetMapping("/verify")
+    public String showVerificationPage(@RequestParam(value = "email", required = false) String email, Model model) {
+        MemberVerificationRequest verificationRequest = new MemberVerificationRequest();
+        if (email != null && !email.trim().isEmpty()) {
+            verificationRequest.setEmail(email);
+        }
+        model.addAttribute("memberVerificationRequest", verificationRequest);
+        return "front-end/member/member-verification";
+    }
+
+    /**
+     * 處理會員驗證請求
+     */
+    @PostMapping("/verify")
+    public String verifyMember(@Validated @ModelAttribute("memberVerificationRequest") MemberVerificationRequest verificationRequest,
+                              BindingResult result,
+                              RedirectAttributes redirectAttributes) {
+        
+        // 檢查表單驗證錯誤
+        if (result.hasErrors()) {
+            return "front-end/member/member-verification";
+        }
+        
+        try {
+            // 執行驗證
+            boolean verificationSuccess = memberService.verifyMemberRegistration(verificationRequest);
+            
+            if (verificationSuccess) {
+                log.info("會員驗證成功 - Email: {}", verificationRequest.getEmail());
+                redirectAttributes.addFlashAttribute("successMessage", "帳號驗證成功！您現在可以登入系統了。");
+                return "redirect:/api/v1/auth/member-login";
+            } else {
+                log.warn("會員驗證失敗 - Email: {}", verificationRequest.getEmail());
+                result.addError(new FieldError("memberVerificationRequest", "verificationCode", "驗證碼錯誤或已過期，請重新確認。"));
+                return "front-end/member/member-verification";
+            }
+            
+        } catch (Exception e) {
+            log.error("會員驗證過程發生錯誤 - Email: {}, 錯誤: {}", verificationRequest.getEmail(), e.getMessage());
+            result.addError(new FieldError("memberVerificationRequest", "verificationCode", "驗證過程發生錯誤，請稍後再試。"));
+            return "front-end/member/member-verification";
+        }
+    }
+
+    /**
+     * 重新發送驗證郵件
+     */
+    @PostMapping("/resend-verification")
+    @ResponseBody
+    public ResponseEntity<String> resendVerificationEmail(@RequestParam("email") String email) {
+        try {
+            boolean success = memberService.resendVerificationEmail(email);
+            
+            if (success) {
+                log.info("重新發送驗證郵件成功 - Email: {}", email);
+                return ResponseEntity.ok("驗證郵件已重新發送，請查收信箱。");
+            } else {
+                log.warn("重新發送驗證郵件失敗 - Email: {}", email);
+                return ResponseEntity.badRequest().body("無法重新發送驗證郵件，請確認信箱地址是否正確。");
+            }
+            
+        } catch (Exception e) {
+            log.error("重新發送驗證郵件時發生錯誤 - Email: {}, 錯誤: {}", email, e.getMessage());
+            return ResponseEntity.status(500).body("系統錯誤，請稍後再試。");
+        }
     }
 }
