@@ -8,6 +8,6 @@ public class xxx {
 		this.name = name;
 		this.age = age;
 //		888888
-//		00000 0000
+//		7/4 首頁增加
 	}
 }
