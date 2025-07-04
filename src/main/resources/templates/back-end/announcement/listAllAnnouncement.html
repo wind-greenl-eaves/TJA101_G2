@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>目前上架公告 - 員工專用</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+</head>
+<body>
+<div class="container mt-5">
+    <h3 class="mb-4 text-center">📢 目前上架公告清單</h3>
+
+    <table class="table table-bordered text-center" th:if="${announcements != null}">
+        <thead class="thead-light">
+        <tr>
+            <th>標題</th>
+            <th>門市</th>
+            <th>起始</th>
+            <th>結束</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="a : ${announcements}">
+            <td th:text="${a.title}">標題</td>
+            <td th:text="${a.store.storeName}">門市名稱</td>
+            <td th:text="${#temporals.format(a.startTime, 'yyyy-MM-dd HH:mm')}">start</td>
+            <td th:text="${#temporals.format(a.endTime, 'yyyy-MM-dd HH:mm')}">end</td>
+            <td>
+                <a class="btn btn-sm btn-primary"
+                   th:href="@{/announcements/{id}(id=${a.announcementId})}">
+                    查看
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.eatfast.announcement.model.AnnouncementEntity;
@@ -24,7 +25,14 @@ public interface AnnouncementRepository extends JpaRepository<AnnouncementEntity
 	List<AnnouncementEntity> findByStore_StoreId(Long storeId);
 	//查找某個員工發布的公告
 	List<AnnouncementEntity> findByEmployee_EmployeeId(Long employeeId);
-
+	
+	// 處理查找目前上架的公告（狀態為 ACTIVE，時間在範圍內）
+    @Query("SELECT a FROM AnnouncementEntity a " +
+           "WHERE a.status = :status " +
+           "AND a.startTime <= CURRENT_TIMESTAMP " +
+           "AND a.endTime >= CURRENT_TIMESTAMP")
+    
+    List<AnnouncementEntity> findCurrentlyActiveAnnouncements(AnnouncementStatus status);
+}
 	
 
-}
