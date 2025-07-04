@@ -182,4 +182,17 @@ public class OrderListController {
 		return "back-end/orderlist/listAllOrderList";
 	}
 	
+	
+	@PostMapping("/markAsCompleted")
+	public String markAsCompleted(@RequestParam("orderListId") String orderListId, RedirectAttributes redirectAttributes) {
+	    
+	    // 我們可以重複使用之前在 delete 方法中用過的 updateOrderStatus 服務
+	    // 直接將狀態更新為 COMPLETED
+	    orderSvc.updateOrderStatus(orderListId, OrderStatus.COMPLETED);
+	    
+	    // 設定成功訊息並重導向
+	    redirectAttributes.addFlashAttribute("success", "-(訂單編號: " + orderListId + " 已標示為完成)");
+	    
+	    return "redirect:/orderlist/listAllOrderList";
+	}
 }
