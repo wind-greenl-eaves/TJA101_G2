@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EatFast 早餐店 - 歡迎光臨</title>
+    
+    <!-- 引入 Font Awesome 圖示庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- 引入 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- 引入 Swiper.js -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js" defer></script>
+
+    <!-- 引入 AOS 動畫庫 -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js" defer></script>
+    
+    <style>
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #FFFFFF;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --header-bg: #F5EFE6;
+            --accent-color: #E1A87A;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --info-color: #2196F3;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: linear-gradient(135deg, var(--bg-color) 0%, var(--header-bg) 100%);
+            min-height: 100vh;
+        }
+        
+        /* Header 區域 */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: white;
+            padding: 6rem 0 4rem; /* 增加上下間距 */
+            text-align: center;
+            box-shadow: 0 4px 20px var(--shadow-medium);
+            position: relative;
+            overflow: hidden;
+            margin-top: 60px; /* 為固定導航欄留出空間 */
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('/images/eatfast2.jpg') center center / cover;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .logo-section {
+            margin-bottom: 2rem;
+        }
+        
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        .brand-title {
+            font-size: 3.5rem; /* 調整標題大小 */
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .brand-subtitle {
+            font-size: 1.4rem;
+            font-weight: 400;
+            opacity: 0.9;
+            margin-bottom: 2.5rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .cta-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 1rem 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .cta-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .cta-button.primary {
+            background: white;
+            color: var(--primary-color);
+            border-color: white;
+        }
+        
+        .cta-button.primary:hover {
+            background: var(--header-bg);
+            color: var(--primary-hover);
+        }
+        
+        /* Navigation Bar */
+        .nav-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px; /* 固定導航欄高度 */
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.5rem 0;
+            box-shadow: 0 2px 10px var(--shadow-light);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: var(--primary-color);
+        }
+
+        .nav-logo-icon {
+            width: 35px; /* 調整 logo 大小 */
+            height: 35px;
+            object-fit: contain;
+        }
+
+        .nav-logo-text {
+            font-size: 1.2rem; /* 調整導航欄文字大小 */
+            font-weight: 700;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-login {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .nav-login:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+        
+        /* Hero Carousel */
+        .hero-carousel {
+            margin-top: 0; /* 移除原本的負margin */
+            height: calc(100vh - 60px); /* 調整輪播圖高度 */
+            width: 100%;
+        }
+
+        .hero-slide {
+            position: relative;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .hero-slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            padding: 2rem;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-cta {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .hero-cta:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+        
+        /* Main Content 區域 */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+        
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .section-description {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            line-height: 1.8;
+        }
+        
+        /* 功能卡片區域 */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        
+        .feature-card {
+            background: var(--container-bg);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px var(--shadow-light);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px var(--shadow-medium);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .feature-description {
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+        
+        .feature-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(166, 123, 91, 0.3);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #45a049;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .btn-info {
+            background: var(--info-color);
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #1976D2;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+        
+        /* 統計數據區域 */
+        .stats-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            margin-bottom: 4rem;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .stat-item {
+            padding: 1.5rem;
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--accent-color);
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        /* Footer 區域 */
+        .footer {
+            background: var(--primary-hover);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-link:hover {
+            color: var(--accent-color);
+        }
+        
+        .copyright {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        /* 新聞卡片樣式 */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .news-card {
+            background: var(--container-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px var(--shadow-light);
+            transition: transform 0.3s ease;
+        }
+
+        .news-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .news-image {
+            position: relative;
+            padding-bottom: 60%;
+            overflow: hidden;
+        }
+
+        .news-image img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .news-card:hover .news-image img {
+            transform: scale(1.1);
+        }
+
+        .news-content {
+            padding: 1.5rem;
+        }
+
+        .news-content h3 {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .news-content p {
+            color: var(--text-color);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        /* 產品卡片樣式 */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .product-card {
+            background: var(--container-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px var(--shadow-light);
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .product-image-container {
+            position: relative;
+            padding-bottom: 75%;
+            overflow: hidden;
+        }
+
+        .product-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover .product-image {
+            transform: scale(1.1);
+        }
+
+        .product-info {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .product-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .product-price {
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .add-to-cart {
+            width: 100%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .add-to-cart:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+        
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .header {
+                padding: 4rem 0 3rem;
+            }
+            
+            .brand-title {
+                font-size: 2.5rem;
+            }
+            
+            .brand-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .nav-logo-text {
+                font-size: 1rem;
+            }
+            
+            .nav-fixed {
+                height: 50px;
+            }
+            
+            .nav-logo-icon {
+                width: 30px;
+                height: 30px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 2rem 1rem;
+            }
+            
+            .header-content {
+                padding: 0 1rem;
+            }
+            
+            .feature-card {
+                padding: 1.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-actions {
+                flex-direction: column;
+            }
+            
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 動畫效果 */
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header 區域 -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo"></div>
+                <h1 class="brand-title"> EatFast 早餐店</h1>
+                <p class="brand-subtitle">新鮮美味，快速便利 · 您的美好一天從這裡開始</p>
+            </div>
+            
+            <div class="quick-actions">
+                <a th:href="@{/api/v1/auth/member-login}" class="cta-button primary">
+                    <i class="fas fa-sign-in-alt"></i>
+                    會員登入
+                </a>
+                <a th:href="@{/member/register}" class="cta-button">
+                    <i class="fas fa-user-plus"></i>
+                    立即註冊
+                </a>
+                <a href="#features" class="cta-button">
+                    <i class="fas fa-arrow-down"></i>
+                    了解更多
+                </a>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Navigation Bar -->
+    <nav class="nav-fixed">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="images/123.png" alt="EatFast Logo" class="nav-logo-icon">
+                <span class="nav-logo-text">歡迎來到 EatFast 早餐店</span>
+            </a>
+            
+            <div class="nav-menu">
+                <a href="/about" class="nav-link">關於我們</a>
+                <a href="/menu" class="nav-link">餐點菜單</a>
+                <a th:href="@{/api/v1/auth/member-login}" class="nav-link">會員登入</a>
+                <a href="/contact" class="nav-link">聯繫我們</a>
+                <a href="/privacy" class="nav-link">隱私政策</a>
+            </div>
+            
+            <a th:href="@{/api/v1/auth/member-login}" class="nav-login">
+                會員登入
+            </a>
+        </div>
+    </nav>
+    
+    <!-- Main Content 區域 -->
+    <main class="main-content">
+        <!-- 歡迎區域 -->
+        <section class="welcome-section fade-in">
+<!--             <h2 class="section-title">歡迎來到 EatFast 早餐店</h2> -->
+<!--             <p class="section-description"> -->
+<!--                 我們致力於為您提供最新鮮、最美味的早餐選擇。從經典的三明治到創新的健康輕食， -->
+<!--                 每一道餐點都是用心製作，讓您在忙碌的早晨也能享受到溫暖的美味。 -->
+<!--             </p> -->
+        </section>
+        
+        <!-- 輪播圖區域 -->
+        <div class="swiper hero-carousel">
+            <div class="swiper-wrapper">
+                <!-- 輪播項目 1 -->
+                <div class="swiper-slide hero-slide" style="background: url('/images/slide1.jpg') center/cover;">
+                    <div class="hero-content">
+                        <h2 class="hero-title">新鮮現做，美味早餐</h2>
+                        <p class="hero-subtitle">使用嚴選食材，為您打造完美的早晨</p>
+                        <a href="/menu" class="hero-cta">立即點餐</a>
+                    </div>
+                </div>
+                <!-- 輪播項目 2 -->
+                <div class="swiper-slide hero-slide" style="background: url('/images/slide2.jpg') center/cover;">
+                    <div class="hero-content">
+                        <h2 class="hero-title">本月優惠特餐</h2>
+                        <p class="hero-subtitle">精選套餐85折，限時特惠中</p>
+                        <a href="/menu" class="hero-cta">查看優惠</a>
+                    </div>
+                </div>
+                <!-- 輪播項目 3 -->
+                <div class="swiper-slide hero-slide" style="background: url('/images/slide3.jpg') center/cover;">
+                    <div class="hero-content">
+                        <h2 class="hero-title">會員專屬福利</h2>
+                        <p class="hero-subtitle">加入會員即送100元購物金</p>
+                        <a href="/register" class="hero-cta">立即加入</a>
+                    </div>
+                </div>
+            </div>
+            <!-- 導航按鈕 -->
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+            <!-- 分頁器 -->
+            <div class="swiper-pagination"></div>
+        </div>
+        
+        <!-- 最新消息區域 -->
+        <section class="news-section">
+            <h2 class="section-title">最新消息</h2>
+            <div class="news-grid">
+                <div class="news-card" data-aos="fade-up">
+                    <div class="news-image">
+                        <img src="/images/news1.jpg" alt="新品上市">
+                    </div>
+                    <div class="news-content">
+                        <h3>新品上市</h3>
+                        <p>全新健康早餐系列，以新鮮食材搭配特製醬料，讓您吃得健康美味。</p>
+                        <a href="/news/1" class="btn btn-outline">了解更多</a>
+                    </div>
+                </div>
+                <div class="news-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="news-image">
+                        <img src="/images/news2.jpg" alt="會員優惠">
+                    </div>
+                    <div class="news-content">
+                        <h3>會員專屬優惠</h3>
+                        <p>即日起至月底，會員購買指定套餐享有85折優惠。</p>
+                        <a href="/news/2" class="btn btn-outline">了解更多</a>
+                    </div>
+                </div>
+                <div class="news-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="news-image">
+                        <img src="/images/news3.jpg" alt="新門市開幕">
+                    </div>
+                    <div class="news-content">
+                        <h3>新門市開幕</h3>
+                        <p>台北市大安區新門市盛大開幕，開幕期間消費即送精美贈品。</p>
+                        <a href="/news/3" class="btn btn-outline">了解更多</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 熱門餐點區域 -->
+        <section class="popular-items">
+            <h2 class="section-title">熱門餐點</h2>
+            <div class="product-grid">
+                <div class="product-card" data-aos="fade-up">
+                    <div class="product-image-container">
+                        <img src="/images/product1.jpg" alt="招牌三明治" class="product-image">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">招牌三明治</h3>
+                        <p class="product-price">NT$ 60</p>
+                        <button class="add-to-cart">
+                            <i class="fas fa-shopping-cart"></i>
+                            加入購物車
+                        </button>
+                    </div>
+                </div>
+                <!-- 更多商品卡片 -->
+            </div>
+        </section>
+        
+        <!-- 門市資訊區域 -->
+        <section class="store-info" data-aos="fade-up">
+            <div class="store-image">
+                <img src="/images/store.jpg" alt="門市外觀">
+            </div>
+            <div class="store-details">
+                <h3>門市資訊</h3>
+                <div class="store-info-item">
+                    <i class="fas fa-map-marker-alt store-info-icon"></i>
+                    <p>台北市大安區復興南路一段390號</p>
+                </div>
+                <div class="store-info-item">
+                    <i class="fas fa-phone store-info-icon"></i>
+                    <p>(02) 2711-1234</p>
+                </div>
+                <div class="store-info-item">
+                    <i class="fas fa-clock store-info-icon"></i>
+                    <p>營業時間：週一至週日 06:00-14:00</p>
+                </div>
+                <div class="store-info-item">
+                    <i class="fas fa-envelope store-info-icon"></i>
+                    <p>service@eatfast.com.tw</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 功能特色區域 -->
+        <section id="features" class="features-section">
+            <div class="features-grid">
+                <!-- 會員系統卡片 -->
+                <div class="feature-card slide-in">
+                    <i class="fas fa-user-circle feature-icon"></i>
+                    <h3 class="feature-title">會員專區</h3>
+                    <p class="feature-description">
+                        成為會員享受專屬優惠！管理個人資料、查看訂單記錄、收藏喜愛商品，
+                        還有個人化的餐點推薦，讓您的用餐體驗更加便利。
+                    </p>
+                    <div class="feature-actions">
+                        <a th:href="@{/api/v1/auth/member-login}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i>
+                            立即登入
+                        </a>
+                        <a th:href="@{/member/register}" class="btn btn-outline">
+                            <i class="fas fa-user-plus"></i>
+                            免費註冊
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 線上訂購卡片 -->
+                <div class="feature-card slide-in">
+                    <i class="fas fa-shopping-cart feature-icon"></i>
+                    <h3 class="feature-title">線上訂購</h3>
+                    <p class="feature-description">
+                        瀏覽完整菜單，輕鬆下單訂購。支援多種付款方式，
+                        可選擇外帶或外送服務，讓您隨時隨地享受美味早餐。
+                    </p>
+                    <div class="feature-actions">
+                        <a href="/menu" class="btn btn-success">
+                            <i class="fas fa-utensils"></i>
+                            瀏覽菜單
+                        </a>
+                        <a href="/cart" class="btn btn-outline">
+                            <i class="fas fa-shopping-cart"></i>
+                            購物車
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 會員專屬功能卡片 -->
+                <div class="feature-card slide-in">
+                    <i class="fas fa-heart feature-icon"></i>
+                    <h3 class="feature-title">個人化服務</h3>
+                    <p class="feature-description">
+                        收藏喜愛的餐點、查看詳細的訂單記錄、管理個人設定，
+                        享受專為您打造的個人化用餐體驗。
+                    </p>
+                    <div class="feature-actions">
+                        <a th:href="@{/member/dashboard}" class="btn btn-info">
+                            <i class="fas fa-tachometer-alt"></i>
+                            會員中心
+                        </a>
+                        <a th:href="@{/member/favorites}" class="btn btn-outline">
+                            <i class="fas fa-heart"></i>
+                            我的收藏
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 客服支援卡片 -->
+                <div class="feature-card slide-in">
+                    <i class="fas fa-headset feature-icon"></i>
+                    <h3 class="feature-title">客服支援</h3>
+                    <p class="feature-description">
+                        提供意見回饋、查看常見問題、聯繫客服團隊。
+                        我們重視每一位顧客的聲音，持續改善服務品質。
+                    </p>
+                    <div class="feature-actions">
+                        <a href="/contact" class="btn btn-primary">
+                            <i class="fas fa-phone"></i>
+                            聯繫我們
+                        </a>
+                        <a href="/faq" class="btn btn-outline">
+                            <i class="fas fa-question-circle"></i>
+                            常見問題
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 統計數據區域 -->
+        <section class="stats-section fade-in">
+            <h2 class="section-title" style="color: white; margin-bottom: 2rem;">EatFast 數據一覽</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">50+</div>
+                    <div class="stat-label">精選餐點</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">1000+</div>
+                    <div class="stat-label">滿意會員</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">線上服務</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">5★</div>
+                    <div class="stat-label">服務評價</div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Footer 區域 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="/about" class="footer-link">關於我們</a>
+                <a href="/menu" class="footer-link">餐點菜單</a>
+                <a th:href="@{/api/v1/auth/member-login}" class="footer-link">會員登入</a>
+                <a href="/contact" class="footer-link">聯繫我們</a>
+                <a href="/privacy" class="footer-link">隱私政策</a>
+            </div>
+            <div class="copyright">
+                © 2025 EatFast 早餐店 - 版權所有 | 為您提供最優質的早餐服務
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // 平滑滾動效果
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // 滾動動畫效果
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // 監聽所有卡片元素
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+        
+        // 數字計數動畫
+        function animateNumbers() {
+            const statNumbers = document.querySelectorAll('.stat-number');
+            
+            statNumbers.forEach(stat => {
+                const target = stat.textContent;
+                const isNumber = target.match(/\d+/);
+                
+                if (isNumber) {
+                    const finalNumber = parseInt(isNumber[0]);
+                    const increment = finalNumber / 50;
+                    let current = 0;
+                    
+                    const updateNumber = () => {
+                        current += increment;
+                        if (current < finalNumber) {
+                            stat.textContent = target.replace(/\d+/, Math.floor(current));
+                            requestAnimationFrame(updateNumber);
+                        } else {
+                            stat.textContent = target;
+                        }
+                    };
+                    
+                    updateNumber();
+                }
+            });
+        }
+        
+        // 當統計區域進入視野時觸發數字動畫
+        const statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            const statsObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateNumbers();
+                        statsObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            statsObserver.observe(statsSection);
+        }
+        
+        // 頁面載入時的淡入效果
+        window.addEventListener('load', function() {
+            document.body.style.opacity = '1';
+        });
+        
+        // 初始化頁面透明度
+        document.body.style.opacity = '0';
+        document.body.style.transition = 'opacity 0.5s ease-in-out';
+        
+        // 初始化 Swiper
+        const swiper = new Swiper('.hero-carousel', {
+            // 自動播放
+            autoplay: {
+                delay: 5000,
+                disableOnInteraction: false,
+            },
+            // 循環播放
+            loop: true,
+            // 效果
+            effect: 'fade',
+            fadeEffect: {
+                crossFade: true
+            },
+            // 分頁器
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            // 導航按鈕
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+        });
+
+        // 初始化 AOS
+        AOS.init({
+            duration: 1000,
+            once: true,
+            offset: 100
+        });
+    </script>
+</body>
+</html>

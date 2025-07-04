@@ -78,28 +78,34 @@
             </div>
             
             <div class="mt-12 flex justify-center items-center gap-6 flex-wrap">
+                <!-- 【新增】前台網站首頁按鈕 -->
+                <a th:href="@{/welcome}" 
+                   class="bg-purple-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-purple-700 transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                   前台網站首頁
+                </a>
+                
                 <!-- 原有的會員功能按鈕 (路徑不變) -->
                 <a th:href="@{/member/select_page}" 
                    class="bg-brand-primary text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-brand-primary-hover transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
-                   進入會員功能
+                   後台會員管理功能
                 </a>
 
                 <!-- 【新增】會員登入系統按鈕 -->
                 <a th:href="@{/api/v1/auth/member-login}" 
                    class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-blue-700 transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
-                   會員登入系統
+                   前台會員登入系統
                 </a>
 
                 <!-- 【核心修正】進入員工管理系統 -->
                 <a th:href="@{/employee/select_page}" 
                    class="bg-brand-accent text-brand-deep font-bold py-3 px-8 rounded-full shadow-lg hover:bg-orange-400 transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
-                   進入員工管理系統
+                   後台員工管理系統
                 </a>
 
                 <!-- 【新增】員工登入入口 -->
                 <a th:href="@{/employee/login}" 
                    class="bg-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-green-700 transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
-                   員工後台登入
+                   後台員工後台登入
                 </a>
                 <!-- 【新增】門市管理後台 -->
                 <a th:href="@{/store/select_page}" 
