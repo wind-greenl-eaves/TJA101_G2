@@ -56,7 +56,7 @@ public class StoreEntity {
     @Column(name = "store_name", nullable = false, length = 10)
     private String storeName;
 
-    @NotBlank(message = "地點不可為空")
+    @NotBlank(message = "門市地址不可為空")
     @Size(max = 50, message = "門市地址長度不可超過 50 個字元")
     @Column(name = "store_loc", nullable = false, length = 50)
     private String storeLoc;

@@ -1,0 +1,171 @@
+/* =======================================================================================
+ * 檔案: form-styles.css (已復原)
+ * 說明: 已移除照片上傳區塊相關的所有樣式。
+ * ======================================================================================= */
+:root {
+    --bg-color: #FDFBF6;
+    --container-bg: #FFFFFF;
+    --primary-color: #A67B5B;
+    --primary-hover: #8C684A;
+    --text-color: #5D534A;
+    --border-color: #DED0B6;
+    --header-bg: #F5EFE6;
+    --error-color: #D9534F;
+    --success-color: #4CAF50;
+    --placeholder-color: #B0A495;
+    --input-focus-ring: rgba(166, 123, 91, 0.2);
+    --input-error: #DC2626;
+    --input-success: #059669;
+}
+
+body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.form-wrapper {
+    width: 100%;
+    max-width: 800px; /* 恢復原來的寬度 */
+    background-color: var(--container-bg);
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+    overflow: hidden;
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: var(--header-bg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background-color: #FFFFFF;
+    transition: all 0.2s ease-in-out;
+}
+
+.form-input::placeholder {
+    color: var(--placeholder-color);
+    font-style: italic;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--input-focus-ring);
+}
+
+.form-input.border-red-500 {
+    border-color: var(--input-error);
+}
+
+.form-input.border-red-500:focus {
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
+.form-input:valid:not([readonly]) {
+    border-color: var(--input-success);
+}
+
+.form-input:disabled,
+.form-input[readonly] {
+    background-color: #F3F4F6;
+    cursor: not-allowed;
+    opacity: 0.75;
+}
+
+.submit-button, .cancel-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+    border: none;
+}
+
+.submit-button {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.submit-button:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.submit-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.submit-button:disabled {
+    background-color: var(--border-color);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.cancel-button {
+    background-color: #e5e7eb;
+    color: var(--text-color);
+}
+
+.cancel-button:hover {
+    background-color: #d1d5db;
+}
+
+.error-message {
+    color: var(--input-error);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    min-height: 1.25rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-toggle-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-color);
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.password-toggle-icon:hover {
+    opacity: 1;
+}
+
+#message-container.bg-error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
