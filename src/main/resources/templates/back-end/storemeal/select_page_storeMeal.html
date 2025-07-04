@@ -351,16 +351,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const contextPath = /*[[@{/}]]*/ '/eatfast/';
     const API_BASE_URL = contextPath + 'api/store';
     
-    // 修改圖片路徑
-    const logoImg = document.querySelector('header img');
-    if (logoImg) {
-        logoImg.src = contextPath + 'images/123.png';
-    }
-    
     // --- 元素選擇 ---
     const errorMessagesDiv = document.getElementById('error-messages');
     const storeIdSelect = document.getElementById('store-id-select');
     const storeNameSelect = document.getElementById('store-name-select');
+    
     // 【新增】獲取門市名稱輸入框和表單
     const storeNameInput = document.getElementById('storeNameInput');
     const queryByNameInputForm = document.getElementById('query-by-name-input-form');

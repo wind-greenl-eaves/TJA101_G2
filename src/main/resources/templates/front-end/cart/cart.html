@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的購物車 - EatFast</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    
+    <style>
+        /* 您的自定義 CSS 變數，實現奶茶色主題 */
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #F5EFE6;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --error-color: #D9534F;
+        }
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 16px; /* 稍微放大基礎字體大小 */
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 960px; /* 保持內容區寬度適中 */
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .header {
+            background-color: var(--container-bg);
+            color: var(--primary-color);
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: -1.5rem -1.5rem 1.5rem -1.5rem; /* 與容器內邊距對齊 */
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+        .btn-danger {
+            background-color: var(--error-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .btn-danger:hover {
+            background-color: darken(var(--error-color), 10%);
+        }
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        .table-custom th, .table-custom td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+        }
+        .table-custom th {
+            background-color: var(--container-bg);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .quantity-input {
+            width: 4rem; /* 寬度適中 */
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+            padding: 0.25rem;
+        }
+        .message-box {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .message-success {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+        }
+        .message-error {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: #F44336;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+<div class="container">
+    <div class="header">
+        我的購物車
+    </div>
+
+    <div id="message-container" class="message-box hidden" role="alert"></div>
+
+    <div id="cart-content">
+        <table class="w-full table-custom">
+            <thead>
+                <tr>
+                    <th class="w-1/3">餐點名稱</th>
+                    <th class="w-1/6">單價</th>
+                    <th class="w-1/6">數量</th>
+                    <th class="w-1/6">小計</th>
+                    <th class="w-1/6">操作</th>
+                </tr>
+            </thead>
+            <tbody id="cart-items-body">
+                <tr id="loading-row">
+                    <td colspan="5" class="text-center py-4">載入中...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="flex justify-end items-center mt-6 py-4 border-t border-[var(--border-color)]">
+            <span class="text-xl font-bold mr-4">總金額: NT$ <span id="cart-total-amount">0</span></span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
+            <button id="clear-cart-btn" class="btn-danger flex-1 sm:flex-none w-full sm:w-auto">
+                <i class="fas fa-trash-alt mr-2"></i>清空購物車
+            </button>
+            <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                <a th:href="@{/}" class="btn-secondary flex-1 sm:flex-none text-center w-full sm:w-auto">
+                    <i class="fas fa-arrow-left mr-2"></i>繼續購物
+                </a>
+                <button id="checkout-btn" class="btn-primary flex-1 sm:flex-none w-full sm:w-auto">
+                    <i class="fas fa-shopping-cart mr-2"></i>前往結帳
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="empty-cart-message" class="text-center text-lg text-gray-500 py-8 hidden">
+        您的購物車是空的，快去選購吧！
+        <p class="mt-4"><a th:href="@{/}" class="btn-primary">開始購物</a></p>
+    </div>
+
+</div>
+
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    const contextPath = /*[[@{/}]]*/ '';
+    const API_CART_BASE_URL = contextPath + 'cart/api';
+    const MEMBER_ID = 1; // 【重要】這裡需要替換為實際登入會員的 ID！
+
+    const cartItemsBody = document.getElementById('cart-items-body');
+    const cartTotalAmountSpan = document.getElementById('cart-total-amount');
+    const messageContainer = document.getElementById('message-container');
+    const emptyCartMessageDiv = document.getElementById('empty-cart-message');
+    const cartContentDiv = document.getElementById('cart-content');
+    const clearCartBtn = document.getElementById('clear-cart-btn');
+    const checkoutBtn = document.getElementById('checkout-btn');
+
+    // 顯示通用訊息 (這個函數現在只用於 success 訊息，或者您可以考慮徹底移除頂部提示條)
+    function showMessage(type, message) {
+        messageContainer.textContent = message;
+        messageContainer.classList.remove('hidden', 'message-success', 'message-error');
+        if (type === 'success') {
+            messageContainer.classList.add('message-success');
+        } else if (type === 'error') {
+            // 如果您希望完全不顯示錯誤訊息，可以將這裡留空或僅在 console 打印
+            console.error("購物車操作發生錯誤 (僅開發者可見):", message);
+            messageContainer.classList.add('hidden'); // 確保錯誤訊息條隱藏
+        } else {
+            messageContainer.classList.add('hidden'); // 沒有類型則隱藏
+        }
+    }
+
+    // 加載購物車內容
+    async function loadCart() {
+        cartItemsBody.innerHTML = '<tr id="loading-row"><td colspan="5" class="text-center py-4">載入中...</td></tr>';
+        showMessage('', ''); // 清空舊訊息
+        try {
+            const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}`);
+            
+            if (response.status === 204) { // 後端返回 204 No Content，表示購物車為空
+                displayEmptyCart();
+                return; 
+            }
+
+            if (!response.ok) { // 如果是其他非 2xx 狀態碼（如 404, 500）
+                // 這裡不顯示錯誤訊息給用戶，只在控制台記錄
+                console.error(`載入購物車 API 返回非OK狀態: ${response.status} - ${await response.text()}`);
+                displayEmptyCart(); // 【關鍵修正】: 即使出錯，也直接顯示為空購物車
+                return; 
+            }
+
+            // 只有當響應是 200 OK 且有內容時才嘗試解析 JSON
+            const cartItems = await response.json(); 
+            
+            if (cartItems.length === 0) { // 如果 API 返回 200 OK 但 JSON 陣列是空的
+                displayEmptyCart();
+            } else {
+                renderCartItems(cartItems);
+            }
+        } catch (error) {
+            // 【關鍵修正】: 不論何種網路錯誤或 JSON 解析錯誤，都只顯示為空購物車
+            console.error('載入購物車發生網路或解析錯誤 (僅開發者可見):', error);
+            displayEmptyCart(); // 顯示為空購物車，不給用戶錯誤提示
+        }
+    }
+
+        // 渲染購物車項目
+        function renderCartItems(items) {
+            cartItemsBody.innerHTML = ''; // 清空載入提示
+            let totalAmount = 0;
+
+            items.forEach(item => {
+                // 假設單價是從某處獲取，這裡暫時寫死或您需要從 item.meal 獲取
+                // 在實際應用中，通常會在後端計算並包含在 CartItemDto 中，或者前端發送額外請求獲取單價
+                const mealPrice = 100; // 【重要】這裡需要從後端獲取或計算實際的餐點單價
+                const subtotal = mealPrice * item.quantity;
+                totalAmount += subtotal;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="py-2">${item.mealName || '未知餐點'} <p class="text-sm text-gray-600">${item.storeName ? `(${item.storeName})` : ''} ${item.mealCustomization ? `<br>備註: ${item.mealCustomization}` : ''}</p></td>
+                    <td class="py-2">NT$ ${mealPrice}</td>
+                    <td class="py-2">
+                        <div class="quantity-control">
+                            <button class="btn-secondary px-2 py-1 rounded-full text-sm minus-btn" data-cart-id="${item.cartId}" data-member-id="${item.memberId}" data-store-id="${item.storeId}" data-meal-id="${item.mealId}">-</button>
+                            <input type="number" value="${item.quantity}" min="1" class="quantity-input text-sm" data-cart-id="${item.cartId}" data-member-id="${item.memberId}" data-store-id="${item.storeId}" data-meal-id="${item.mealId}">
+                            <button class="btn-secondary px-2 py-1 rounded-full text-sm plus-btn" data-cart-id="${item.cartId}" data-member-id="${item.memberId}" data-store-id="${item.storeId}" data-meal-id="${item.mealId}">+</button>
+                        </div>
+                    </td>
+                    <td class="py-2">NT$ ${subtotal}</td>
+                    <td class="py-2">
+                        <button class="btn-danger px-3 py-1 rounded-full text-sm delete-btn" data-cart-id="${item.cartId}" data-member-id="${item.memberId}" data-store-id="${item.storeId}" data-meal-id="${item.mealId}">刪除</button>
+                    </td>
+                `;
+                cartItemsBody.appendChild(row);
+            });
+
+            cartTotalAmountSpan.textContent = totalAmount;
+            cartContentDiv.classList.remove('hidden');
+            emptyCartMessageDiv.classList.add('hidden');
+
+            attachEventListeners(); // 重新綁定事件監聽器
+        }
+
+        // 顯示空購物車訊息
+        function displayEmptyCart(isError = false) {
+            cartItemsBody.innerHTML = '';
+            cartTotalAmountSpan.textContent = '0';
+            cartContentDiv.classList.add('hidden');
+            emptyCartMessageDiv.classList.remove('hidden');
+            if (isError) {
+                emptyCartMessageDiv.innerHTML = '無法載入購物車內容，或購物車為空。';
+            }
+        }
+
+        // 顯示通用訊息
+        function showMessage(type, message) {
+            messageContainer.textContent = message;
+            messageContainer.classList.remove('hidden', 'message-success', 'message-error');
+            if (type === 'success') {
+                messageContainer.classList.add('message-success');
+            } else if (type === 'error') {
+                messageContainer.classList.add('message-error');
+            } else {
+                messageContainer.classList.add('hidden'); // 如果沒有類型則隱藏
+            }
+        }
+
+        // 綁定事件監聽器
+        function attachEventListeners() {
+            cartItemsBody.querySelectorAll('.plus-btn').forEach(button => {
+                button.onclick = (e) => updateQuantity(e.target, 1);
+            });
+            cartItemsBody.querySelectorAll('.minus-btn').forEach(button => {
+                button.onclick = (e) => updateQuantity(e.target, -1);
+            });
+            cartItemsBody.querySelectorAll('.quantity-input').forEach(input => {
+                input.onchange = (e) => updateQuantity(e.target, 0); // 數量輸入框直接修改
+            });
+            cartItemsBody.querySelectorAll('.delete-btn').forEach(button => {
+                button.onclick = (e) => deleteCartItem(e.target);
+            });
+
+            clearCartBtn.onclick = clearCart;
+            checkoutBtn.onclick = () => alert('結帳功能尚未實作！'); // 結帳按鈕點擊事件
+        }
+
+        // 更新數量函數
+        async function updateQuantity(element, delta) {
+            const memberId = element.dataset.memberId;
+            const storeId = element.dataset.storeId;
+            const mealId = element.dataset.mealId;
+            const quantityInput = element.parentNode.querySelector('.quantity-input');
+            let newQuantity;
+
+            if (delta === 0) { // 直接從輸入框獲取數量
+                newQuantity = parseInt(quantityInput.value);
+                if (isNaN(newQuantity) || newQuantity < 0) {
+                    showMessage('error', '數量必須是有效的數字且不小於0。');
+                    loadCart(); // 重新載入以恢復舊值
+                    return;
+                }
+            } else { // 增減按鈕
+                newQuantity = parseInt(quantityInput.value) + delta;
+            }
+
+            // 數量為 0 時直接刪除
+            if (newQuantity <= 0) {
+                if (confirm('確定要從購物車移除此餐點嗎？')) {
+                    deleteCartItem(element);
+                } else {
+                    loadCart(); // 取消刪除則重新載入購物車恢復舊數量
+                }
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_CART_BASE_URL}/member/${memberId}/store/${storeId}/meal/${mealId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ quantity: newQuantity, mealCustomization: '' }) // 假設備註不變或需要從頁面獲取
+                });
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('購物車項目不存在或已過期。');
+                    }
+                    throw new Error(`更新數量失敗 (狀態碼: ${response.status})`);
+                }
+
+                showMessage('success', '購物車數量已更新！');
+                loadCart(); // 重新載入購物車以反映最新狀態和總價
+
+            } catch (error) {
+                console.error('更新數量失敗:', error);
+                showMessage('error', `更新購物車失敗: ${error.message}`);
+                loadCart(); // 錯誤時重新載入購物車
+            }
+        }
+
+        // 刪除購物車項目函數
+        async function deleteCartItem(element) {
+            if (!confirm('確定要從購物車移除此餐點嗎？')) {
+                return;
+            }
+
+            const memberId = element.dataset.memberId;
+            const storeId = element.dataset.storeId;
+            const mealId = element.dataset.mealId;
+
+            try {
+                const response = await fetch(`${API_CART_BASE_URL}/member/${memberId}/store/${storeId}/meal/${mealId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('購物車項目不存在或已過期。');
+                    }
+                    throw new Error(`移除餐點失敗 (狀態碼: ${response.status})`);
+                }
+
+                showMessage('success', '餐點已從購物車移除！');
+                loadCart(); // 重新載入購物車以反映最新狀態
+
+            } catch (error) {
+                console.error('移除餐點失敗:', error);
+                showMessage('error', `移除餐點失敗: ${error.message}`);
+            }
+        }
+
+        // 清空購物車函數
+        async function clearCart() {
+            if (!confirm('確定要清空整個購物車嗎？')) {
+                return;
+            }
+            try {
+                const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`清空購物車失敗 (狀態碼: ${response.status})`);
+                }
+
+                showMessage('success', '購物車已清空！');
+                loadCart(); // 重新載入購物車以顯示空狀態
+
+            } catch (error) {
+                console.error('清空購物車失敗:', error);
+                showMessage('error', `清空購物車失敗: ${error.message}`);
+            }
+        }
+
+        // 初始載入購物車內容
+        loadCart();
+    });
+</script>
+
+</body>
+</html>
