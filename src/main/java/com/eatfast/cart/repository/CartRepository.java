@@ -51,7 +51,7 @@ public interface CartRepository extends JpaRepository<CartEntity, Long> {
      * @param mealId 餐點的主鍵 ID (Long)。
      * @return 一個包含唯一購物車項目的 Optional，若不存在則為 Optional.empty()。
      */
-    Optional<CartEntity> findByMember_MemberIdAndMeal_MealId(Long memberId, Long mealId);
+    Optional<CartEntity> findByMember_MemberIdAndStore_StoreIdAndMeal_MealId(Long memberId, Long storeId, Long mealId);
     
     /**
      * 根據會員主鍵 ID 刪除其所有購物車項目。

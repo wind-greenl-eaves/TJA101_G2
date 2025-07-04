@@ -258,14 +258,16 @@
                 <div class="ml-4">
                     <h1 class="text-xl font-bold">早餐店後台 - 門市資料管理系統</h1>
                     <p class="text-sm text-gray-500">Thymeleaf 現代化版本</p>
+                	<a class="btn btn-outline-light" th:href="@{/}">
+                		<i class="fas fa-home"></i> 回首頁
+            		</a>
                 </div>
             </div>
 
         </header>
         
         <div class="bg-white p-3 rounded-lg border border-[var(--border-color)] shadow-sm overflow-hidden whitespace-nowrap mb-8">
-            <p class="inline-block marquee-text text-[var(--primary-color)] font-medium">歡迎使用門市資料管理系統~讓我們月月擴店！5 人團隊賺大錢！</p>
-        </div>
+            <p class="inline-block marquee-text text-[var(--primary-color)] font-medium" id="marquee-content"></p> </div>
         
         <div id="error-messages" class="hidden bg-red-100 border border-[var(--error-color)] text-[var(--error-color)] px-4 py-3 rounded-lg mb-6"></div>
 
@@ -284,7 +286,8 @@
                     <input type="text" id="storeIdInput" name="storeId" placeholder="例如: 1" class="form-input text-lg"> 
                     <button type="submit" class="submit-btn text-lg">送出查詢</button>
                 </form>
-                <form id="query-by-name-input-form" class="form-container"> <label for="storeNameInput" class="form-label text-lg">輸入門市名稱：</label> 
+                <form id="query-by-name-input-form" class="form-container">
+                    <label for="storeNameInput" class="form-label text-lg">輸入門市名稱：</label> 
                     <input type="text" id="storeNameInput" name="storeName" placeholder="例如: 一號店" class="form-input text-lg"> 
                     <button type="submit" class="submit-btn text-lg">送出查詢</button>
                 </form>
@@ -351,19 +354,32 @@ document.addEventListener('DOMContentLoaded', function() {
     const contextPath = /*[[@{/}]]*/ '/eatfast/';
     const API_BASE_URL = contextPath + 'api/store';
     
-    // 修改圖片路徑
-    const logoImg = document.querySelector('header img');
-    if (logoImg) {
-        logoImg.src = contextPath + 'images/123.png';
-    }
-    
+
+    // --- 跑馬燈功能 ---
+    const marqueeContent = document.getElementById('marquee-content'); // 獲取跑馬燈 P 元素
+
+    const marqueeTexts = [
+        "歡迎使用門市資料管理系統~邁向月月擴店，5 人團隊賺大錢！",
+        "門市管理讓您輕鬆管理每家門市，大幅提升效率！",
+        "最新公告：系統將於今晚進行維護，請提前備份資料！",
+        "績效獎勵辦法將於7月底推出，讓你35歲財富自由",
+        "美好的一天從早餐通開始，吃得好睡得好，天天沒煩惱",
+        "您的成功是我們的動力，您的笑容是我們最大的鼓勵！",
+        "今天吃早餐了嗎？來早餐通吃飽飽^O^"
+    ];
+
+    // 隨機選擇一條跑馬燈內容
+    const randomIndex = Math.floor(Math.random() * marqueeTexts.length);
+    marqueeContent.textContent = marqueeTexts[randomIndex];
+
+
     // --- 元素選擇 ---
     const errorMessagesDiv = document.getElementById('error-messages');
     const storeIdSelect = document.getElementById('store-id-select');
     const storeNameSelect = document.getElementById('store-name-select');
-    // 【新增】獲取門市名稱輸入框和表單
-    const storeNameInput = document.getElementById('storeNameInput');
-    const queryByNameInputForm = document.getElementById('query-by-name-input-form');
+    const storeIdInput = document.getElementById('storeIdInput'); // 獲取輸入框元素
+    const storeNameInput = document.getElementById('storeNameInput'); // 獲取輸入框元素
+    const queryByNameInputForm = document.getElementById('query-by-name-input-form'); // 獲取門市名稱輸入表單
 
     const toggleBtn = document.getElementById('toggle-composite-query-btn'); 
     const compositeSection = document.getElementById('composite-query-section'); 
@@ -405,7 +421,6 @@ document.addEventListener('DOMContentLoaded', function() {
             stores.forEach(store => { 
                 const idOption = new Option(`${store.storeId}`, store.storeId);
                 storeIdSelect.appendChild(idOption);
-                // 【修正】只顯示門市名稱
                 const nameOption = new Option(`${store.storeName}`, store.storeId); 
                 storeNameSelect.appendChild(nameOption);
             });
@@ -424,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 處理「單一查詢」輸入門市編號表單
     document.getElementById('query-by-id-input-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        const storeId = document.getElementById('storeIdInput').value; 
+        const storeId = storeIdInput.value; // 從 input 獲取值
         if (storeId) {
             handleSingleStoreQuery(storeId);
         } else {
@@ -432,11 +447,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 【新增】處理「單一查詢」輸入門市名稱表單
+    // 處理「單一查詢」輸入門市名稱表單
     if (queryByNameInputForm) { // 確保元素存在
         queryByNameInputForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const storeName = storeNameInput.value; // 從輸入框獲取門市名稱
+            const storeName = storeNameInput.value; // 從 input 獲取值
             if (storeName) {
                 handleStoreNameQuery(storeName); // 調用新的處理函數
             } else {
@@ -468,7 +483,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 【註意】複合查詢的邏輯，如果您需要，請將其 HTML 加入到頁面中。
-    // 這個區塊我會保持其原有的 JavaScript 檢查，並提供 HTML 範例
     if (toggleBtn && compositeSection && compositeForm && resetBtn) {
         toggleBtn.addEventListener('click', () => {
             const isHidden = compositeSection.classList.toggle('hidden');
@@ -488,7 +502,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             try {
                 clearError();
-                // 這裡假設 /api/store/search 是處理複合查詢的端點
                 const response = await fetch(`${API_BASE_URL}/search?${params.toString()}`); 
                 if (!response.ok) {
                     throw new Error(`查詢失敗 (狀態碼: ${response.status})`);
@@ -604,7 +617,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 調用後端 /api/store/search?storename=XXX
             const response = await fetch(`${API_BASE_URL}/search?storename=${encodeURIComponent(storeName)}`); 
             if (!response.ok) {
-                if (response.status === 204) { // 204 No Content 表示找到0筆，但請求成功
+                if (response.status === 204) { 
                     showError(`未找到名稱為 '${storeName}' 的門市資料。`);
                     storeDetailSection.classList.add('hidden');
                     return;
@@ -618,10 +631,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 storeDetailSection.classList.add('hidden');
                 return;
             } else if (stores.length === 1) {
-                // 如果只找到一筆，直接顯示詳細資訊
                 displayStoreDetail(stores[0]);
             } else {
-                // 如果找到多筆，顯示提示並清空詳細資訊面板（或者您可以實現一個列表顯示）
                 showError(`找到 ${stores.length} 筆名稱包含 '${storeName}' 的門市資料，請縮小搜尋範圍或改用ID查詢。`);
                 storeDetailSection.classList.add('hidden');
             }
