@@ -28,19 +28,31 @@
         .navigation-bar {
             background-color: #A67B5B;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 8px;	
             margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 5px;
+            min-height: 30px;
         }
         .navigation-bar a {
             color: white;
             text-decoration: none;
-            margin-right: 20px;
-            padding: 8px 15px;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
+            padding: 12px 18px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 14px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .navigation-bar a:hover, .navigation-bar a.active {
             background-color: rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .settings-section {
             margin-bottom: 30px;
@@ -267,8 +279,8 @@
                 </div>
                 <div class="setting-action">
                     <span class="status-badge" 
-                          th:classappend="${member?.enabled} ? 'status-active' : 'status-inactive'"
-                          th:text="${member?.enabled} ? '正常使用' : '已停用'">正常使用</span>
+                          th:classappend="${member?.isEnabled} ? 'status-active' : 'status-inactive'"
+                          th:text="${member?.isEnabled} ? '正常使用' : '已停用'">正常使用</span>
                 </div>
             </div>
             

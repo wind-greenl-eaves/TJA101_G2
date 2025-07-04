@@ -150,11 +150,16 @@
             border: 1px solid #f5c6cb;
             color: #721c24;
         }
-        .navigation-bar {
+       .navigation-bar {
             background-color: #A67B5B;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 8px;	
             margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 5px;
+            min-height: 30px;
         }
         .navigation-bar a {
             color: white;
@@ -182,7 +187,7 @@
         
         <!-- 導航欄 -->
         <div class="navigation-bar">
-            <a href="/member/dashboard">🏠 首頁</a>
+            <a th:href="@{/welcome}">🏠 首頁</a>
             <a href="/member/profile">👤 個人資料</a>
             <a href="/member/orders">📋 訂單記錄</a>
             <a href="/member/favorites">❤️ 我的收藏</a>
