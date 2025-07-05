@@ -35,4 +35,7 @@ public interface StoreRepository extends JpaRepository<StoreEntity, Long>, JpaSp
     
     // 定義只根據狀態查詢的方法 (精確匹配)
     List<StoreEntity> findByStoreStatus(StoreStatus storeStatus);
+    
+    // 查詢門市名稱資料時，會按照中文字的排序
+    List<StoreEntity> findAllByOrderByStoreNameAsc();
 }

@@ -104,9 +104,11 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     public List<StoreDto> findAllStores() {
-        return storeRepository.findAll().stream()
-                .map(storeMapper::toDto)
-                .collect(Collectors.toList());
+        // 【修改】從呼叫 findAll() 改為呼叫我們新定義的排序方法
+        List<StoreEntity> sortedStores = storeRepository.findAllByOrderByStoreNameAsc();
+
+        // 後續的 Mapper 轉換邏輯不變，將排序好的 Entity 列表轉為 DTO 列表
+        return storeMapper.toDtoList(sortedStores); 
     }
     
     @Override

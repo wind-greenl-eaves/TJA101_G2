@@ -102,5 +102,28 @@ public class StoreController {
         }
         return "redirect:/store/listAll";
     }
+ // 請將此方法新增到您現有的 StoreController.java 中
+
+    @GetMapping("/storelist")
+    public String showStoreListView(Model model) {
+        
+        // 1. 從 Service 取得所有門市的列表
+        List<StoreDto> allStores = storeService.findAllStores();
+
+        // 2. 檢查列表是否為空
+        if (allStores == null || allStores.isEmpty()) {
+            // 如果沒有任何門市資料，可以設定一個提示訊息
+            model.addAttribute("errorMessage", "目前沒有任何門市資訊。");
+        } else {
+            // 3. 將【所有門市的列表】放進 Model，供左側選單使用
+            model.addAttribute("storeList", allStores);
+            
+            // 4. 將【列表中的第一個門市】設為預設選中項，放進 Model，供中間區塊初次載入時顯示
+            model.addAttribute("currentStore", allStores.get(0));
+        }
+        
+        // 5. 指定要去渲染的 HTML 樣板檔案
+        return "front-end/store/storelist"; // 假設我們將新頁面放在這個路徑
+    }
 
 }
