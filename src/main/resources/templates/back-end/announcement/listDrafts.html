@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>公告草稿列表 - 奶茶風</title>
+
+    <!-- Bootstrap & Font -->
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- 奶茶風樣式 -->
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8f3ef;
+            color: #5e4635;
+        }
+
+        .container {
+            background-color: #fffaf5;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(186, 152, 128, 0.3);
+            padding: 30px;
+            margin-top: 50px;
+        }
+
+        h3 {
+            color: #a1774e;
+        }
+
+        .btn {
+            border-radius: 8px;
+        }
+
+        .btn-info {
+            background-color: #d9b99b;
+            border-color: #d9b99b;
+        }
+
+        .btn-success {
+            background-color: #a1774e;
+            border-color: #a1774e;
+        }
+
+        .btn-secondary {
+            background-color: #cfc1b2;
+            border-color: #cfc1b2;
+        }
+
+        .btn-danger {
+            background-color: #e79c8b;
+            border-color: #e79c8b;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h3 class="mb-4 text-center">📝 草稿列表</h3>
+
+    <table class="table table-bordered text-center">
+        <thead class="thead-light">
+        <tr>
+            <th>標題</th>
+            <th>起始</th>
+            <th>結束</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="a : ${announcements}">
+            <td th:text="${a.title}">標題</td>
+            <td th:text="${#temporals.format(a.startTime, 'yyyy-MM-dd HH:mm')}">start</td>
+            <td th:text="${#temporals.format(a.endTime, 'yyyy-MM-dd HH:mm')}">end</td>
+            <td>
+                <a class="btn btn-sm btn-info" th:href="@{'/announcement/edit/' + ${a.announcementId}}">編輯</a>
+                <a class="btn btn-sm btn-success" th:href="@{'/announcement/publish/' + ${a.announcementId}}" onclick="showPublishedModal(event)">發佈</a>
+                <a class="btn btn-sm btn-danger" th:href="@{'/announcement/delete/' + ${a.announcementId}}">刪除</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- 返回查詢頁按鈕 -->
+    <div class="text-right mt-4">
+        <a class="btn btn-secondary" th:href="@{/announcement/select_page_announcement}">
+            <i class="fas fa-arrow-left"></i> 返回查詢頁
+        </a>
+    </div>
+</div>
+
+<!-- 🎉 發佈成功提示 Modal -->
+<div class="modal fade" id="publishedModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header" style="background-color: #fff2e0;">
+                <h5 class="modal-title" id="modalLabel">🎉 公告已成功發佈！</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="outline: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                您的公告已從草稿中發佈，現在可以到上架公告列表查看。
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script th:src="@{/webjars/jquery/3.6.0/jquery.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+
+<!-- Modal 控制 -->
+<script>
+    function showPublishedModal(event) {
+        event.preventDefault();
+        const url = event.currentTarget.getAttribute("href");
+
+        // 使用 AJAX 發佈
+        fetch(url) 
+            .then(response => {
+                if (response.ok) {
+                    $('#publishedModal').modal('show');
+                    // 延遲跳轉到上架清單
+                    setTimeout(() => {
+                        window.location.href = "/announcement/listAll";
+                    }, 2000);
+                } else {
+                    alert("發佈失敗，請稍後再試");
+                }
+            })
+            .catch(() => alert("發佈時發生錯誤"));
+    }
+</script>
+</body>
+</html>

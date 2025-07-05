@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>顧客意見表單</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+
+    <!-- Font Awesome 圖示 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <!-- Google 字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- 自訂樣式（選填） -->
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #fffaf0;
+            padding: 20px;
+        }
+
+        .feedback-container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #fffefb;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(204, 170, 130, 0.2);
+        }
+
+        .btn-primary {
+            background-color: #d8a07f;
+            border-color: #d8a07f;
+        }
+
+        .btn-primary:hover {
+            background-color: #c88b6e;
+            border-color: #c88b6e;
+        }
+
+        label {
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div class="feedback-container">
+    <h3 class="text-center mb-4"><i class="fas fa-comment-dots"></i> 意見回饋</h3>
+
+    <form th:action="@{/feedback/submit}" method="post" th:object="${feedback}">
+        <!-- 電話 -->
+        <div class="form-group">
+            <label for="phone">連絡電話</label>
+            <input type="text" class="form-control" id="phone" th:field="*{phone}" maxlength="20" required>
+        </div>
+
+        <!-- 意見 -->
+        <div class="form-group">
+            <label for="content">您的意見</label>
+            <textarea class="form-control" id="content" rows="5" th:field="*{content}" required></textarea>
+        </div>
+
+        <!-- 門市選單（暫註解） -->
+
+        <div class="form-group">
+            <label for="store">門市</label>
+            <select class="form-control" id="store" th:field="*{store.storeId}">
+                <option th:each="store : ${storeList}" th:value="${store.storeId}" th:text="${store.storeName}">門市名稱</option>
+            </select>
+        </div>
+
+
+        <!-- 隱藏欄位會員（暫註解） -->
+
+        <input type="hidden" th:field="*{member.memberId}" th:value="${memberId}" />
+
+
+        <button type="submit" class="btn btn-primary btn-block">送出意見</button>
+    </form>
+</div>
+
+</body>
+</html>
