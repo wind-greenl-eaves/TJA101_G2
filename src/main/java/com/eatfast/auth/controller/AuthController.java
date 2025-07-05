@@ -51,6 +51,7 @@ public class AuthController {
     /**
      * 【依賴注入】會員服務和密碼加密器
      * - 使用 private final 確保服務在建構後不可變，符合最佳實踐
+     * PasswordEncoder: 用於加密和驗證密碼
      */
     private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;

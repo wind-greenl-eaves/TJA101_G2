@@ -24,10 +24,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+// 【新增】時間處理和檔案下載相關的 import
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -1084,107 +1090,139 @@ public class MemberController {
             // Session驗證
             Long memberId = (Long) session.getAttribute("loggedInMemberId");
             if (memberId == null) {
+                log.warn("未登入用戶嘗試下載個人資料");
                 return ResponseEntity.status(401).build();
             }
             
-            // TODO: 實現個人資料導出邏輯
-            // byte[] data = memberService.exportPersonalData(memberId);
+            // 獲取會員詳細資料
+            MemberEntity member = memberService.getMemberById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
             
             log.info("會員 {} 請求下載個人資料", memberId);
             
-            // 暫時返回空文件
-            String content = "個人資料導出功能開發中...";
-            byte[] data = content.getBytes("UTF-8");
+            // 建構個人資料內容
+            StringBuilder content = new StringBuilder();
+            content.append("============================================================\n");
+            content.append("                  EatFast 早餐店會員系統\n");
+            content.append("                      個人資料匯出\n");
+            content.append("============================================================\n\n");
             
+            // 基本資料
+            content.append("【基本資料】\n");
+            content.append("----------------------------------------\n");
+            content.append("會員編號：").append(member.getMemberId()).append("\n");
+            content.append("帳號：").append(member.getAccount()).append("\n");
+            content.append("密碼(以BCrypt加密)：").append(member.getPassword()).append("\n");
+            content.append("姓名：").append(member.getUsername()).append("\n");
+            content.append("電子郵件：").append(member.getEmail()).append("\n");
+            content.append("電話號碼：").append(member.getPhone() != null ? member.getPhone() : "未設定").append("\n");
+            content.append("生日：").append(member.getBirthday() != null ? member.getBirthday().toString() : "未設定").append("\n");
+            content.append("性別：").append(getGenderText(member.getGender())).append("\n");
+            content.append("帳號狀態：").append(member.isEnabled() ? "正常使用" : "已停用").append("\n\n");
+            
+            // 帳號資訊
+            content.append("【帳號資訊】\n");
+            content.append("----------------------------------------\n");
+            
+            // 安全處理時間格式
+            if (member.getCreatedAt() != null) {
+                try {
+                    content.append("註冊時間：").append(
+                        member.getCreatedAt().format(
+                            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        )
+                    ).append("\n");
+                } catch (Exception e) {
+                    content.append("註冊時間：").append(member.getCreatedAt().toString()).append("\n");
+                }
+            } else {
+                content.append("註冊時間：不詳\n");
+            }
+            
+            if (member.getLastUpdatedAt() != null) {
+                try {
+                    content.append("最後更新：").append(
+                        member.getLastUpdatedAt().format(
+                            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        )
+                    ).append("\n");
+                } catch (Exception e) {
+                    content.append("最後更新：").append(member.getLastUpdatedAt().toString()).append("\n");
+                }
+            } else {
+                content.append("最後更新：不詳\n");
+            }
+            content.append("\n");
+            
+            // 系統資訊
+            content.append("【系統資訊】\n");
+            content.append("----------------------------------------\n");
+            content.append("資料匯出時間：").append(
+                java.time.LocalDateTime.now().format(
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                )
+            ).append("\n");
+            content.append("匯出格式：UTF-8 文字檔案\n\n");
+            
+            // 隱私聲明
+            content.append("【隱私聲明】\n");
+            content.append("----------------------------------------\n");
+            content.append("• 此檔案包含您的個人資料，請妥善保管\n");
+            content.append("• 請勿將此檔案分享給他人\n");
+            content.append("• 如有疑問，請聯繫 EatFast 客服\n");
+            content.append("• 客服信箱：support@eatfast.com\n\n");
+            
+            content.append("============================================================\n");
+            content.append("                 感謝您使用 EatFast 早餐店\n");
+            content.append("============================================================\n");
+            
+            // 轉換為位元組陣列
+            byte[] data = content.toString().getBytes("UTF-8");
+            
+            // 產生檔案名稱（包含時間戳記）
+            String timestamp = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String filename = String.format("EatFast_個人資料_%s_%s.txt", 
+                member.getAccount(), timestamp);
+            
+            // 設定回應標頭 - 使用安全的方式
             return ResponseEntity.ok()
-                    .header("Content-Disposition", "attachment; filename=personal-data.txt")
-                    .header("Content-Type", "application/octet-stream")
+                    .header("Content-Disposition", 
+                        "attachment; filename*=UTF-8''" + 
+                        java.net.URLEncoder.encode(filename, "UTF-8"))
+                    .header("Content-Type", "text/plain; charset=UTF-8")
+                    .header("Content-Length", String.valueOf(data.length))
                     .body(data);
             
+        } catch (EntityNotFoundException e) {
+            log.error("下載個人資料失敗 - 會員不存在: {}", e.getMessage());
+            return ResponseEntity.status(404).build();
+        } catch (java.io.UnsupportedEncodingException e) {
+            log.error("下載個人資料失敗 - 編碼錯誤: {}", e.getMessage());
+            return ResponseEntity.status(500).build();
         } catch (Exception e) {
-            log.error("下載個人資料失敗: {}", e.getMessage());
+            log.error("下載個人資料失敗 - 未預期錯誤: {}", e.getMessage(), e);
             return ResponseEntity.status(500).build();
         }
     }
     
     /**
-     * 【功能】: 清除瀏覽記錄
-     * 【請求路徑】: 處理 POST /member/settings/clear-history 請求
+     * 【輔助方法】將性別枚舉轉換為中文說明
      */
-    @PostMapping("/settings/clear-history")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> clearBrowsingHistory(HttpSession session) {
-        Map<String, Object> response = new HashMap<>();
-        
-        try {
-            // Session驗證
-            Long memberId = (Long) session.getAttribute("loggedInMemberId");
-            if (memberId == null) {
-                response.put("success", false);
-                response.put("message", "請重新登入");
-                return ResponseEntity.status(401).body(response);
-            }
-            
-            // TODO: 實現清除瀏覽記錄的邏輯
-            // memberService.clearBrowsingHistory(memberId);
-            
-            log.info("會員 {} 清除瀏覽記錄", memberId);
-            
-            response.put("success", true);
-            response.put("message", "瀏覽記錄已清除");
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            log.error("清除瀏覽記錄失敗: {}", e.getMessage());
-            response.put("success", false);
-            response.put("message", "清除失敗");
-            return ResponseEntity.status(500).body(response);
+    private String getGenderText(com.eatfast.common.enums.Gender gender) {
+        if (gender == null) {
+            return "未設定";
         }
-    }
-    
-    /**
-     * 【功能】: 刪除帳號 (永久刪除)
-     * 【請求路徑】: 處理 DELETE /member/settings/delete-account 請求
-     */
-    @DeleteMapping("/settings/delete-account")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> deleteAccount(HttpSession session) {
-        Map<String, Object> response = new HashMap<>();
         
-        try {
-            // Session驗證
-            Long memberId = (Long) session.getAttribute("loggedInMemberId");
-            if (memberId == null) {
-                response.put("success", false);
-                response.put("message", "請重新登入");
-                return ResponseEntity.status(401).body(response);
-            }
-            
-            // 獲取會員資料用於記錄
-            MemberEntity member = memberService.getMemberById(memberId)
-                    .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
-            
-            // TODO: 實現完整的帳號刪除邏輯
-            // 1. 備份重要資料
-            // 2. 刪除相關訂單記錄
-            // 3. 刪除收藏記錄
-            // 4. 刪除會員資料
-            // memberService.permanentlyDeleteAccount(memberId);
-            
-            log.info("會員帳號永久刪除 - ID: {}, Account: {}", memberId, member.getAccount());
-            
-            // 清除Session
-            session.invalidate();
-            
-            response.put("success", true);
-            response.put("message", "帳號已永久刪除");
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            log.error("刪除帳號失敗: {}", e.getMessage());
-            response.put("success", false);
-            response.put("message", "刪除失敗");
-            return ResponseEntity.status(500).body(response);
+        switch (gender) {
+            case F:
+                return "女性";
+            case M:
+                return "男性";
+            case O:
+                return "其他";
+            default:
+                return "未知 (" + gender + ")";
         }
     }
 }
