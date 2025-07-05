@@ -1,72 +1,346 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>修改餐點 - EatFast 後台</title>
 
-    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght=300;400;500;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" th:href="@{/css/member/style.css}" />
     <style type="text/css">
-        /* 您原始的 CSS 樣式 */
-        form div {
-            display: block; /* 讓 form-group 不受 table-row 影響 */
+        /* 定義全域 CSS 變數，與其他頁面保持一致的顏色系統 */
+        :root {
+            --new-bg-color: #F8F5EE;           /* 淺米白/輕柔奶茶 */
+            --new-container-bg: #FFFFFF;        /* 純白，增加清爽感 */
+            --new-primary-color: #9D7C64;       /* 溫暖棕，作為主要點綴色 (導覽列、標題、主要按鈕) */
+            --new-primary-hover: #8C6F5A;       /* 主色hover狀態 */
+            --new-text-color: #4A403A;          /* 深棕，更柔和的文字色 */
+            --new-border-color: #E2D7C1;        /* 淺棕灰，柔和的邊框色 */
+            --new-success-bg: #D4EDDA;          /* 淺綠成功背景 */
+            --new-success-text: #155724;        /* 深綠成功文字 */
+            --new-error-bg: #F8D7DA;            /* 淺紅錯誤背景 */
+            --new-error-text: #721C24;          /* 深紅錯誤文字 */
+            --new-info-bg: #F0E8DD;             /* 選中行背景色 (淺米白/奶茶) */
+            --new-info-dark: #4A403A;           /* 選中行文字色 (深棕) */
+            
+            /* 按鈕顏色 */
+            --primary-btn-bg: var(--new-primary-color);
+            --primary-btn-hover: var(--new-primary-hover);
+            --secondary-btn-bg: #A0B6C3;         /* 藍灰色 (舊的 modify-btn) */
+            --secondary-btn-hover: #8fa5b2;      /* 藍灰色hover */
         }
-        /* 調整圖片預覽樣式 */
-        #mealPicPreview img {
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--new-bg-color);
+            color: var(--new-text-color);
+            font-size: 15px;
+            line-height: 1.6;
+            padding-top: 5rem; /* 配合導覽列高度 */
+        }
+        
+        /* 導覽列樣式 (與 listAllMeal.html 保持一致) */
+        .navbar {
+            background-color: var(--new-primary-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 0.75rem 0;
+        }
+        .navbar-content {
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            text-decoration: none;
+        }
+        .navbar-brand img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+        .navbar-brand span {
+            font-size: 1.15rem;
+            font-weight: 600;
+        }
+        .navbar-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .navbar-button i {
+            margin-right: 0.5rem;
+        }
+        .navbar-button.home {
+            background-color: var(--new-container-bg);
+            color: var(--new-primary-color);
+            border: 1px solid var(--new-primary-color);
+        }
+        .navbar-button.home:hover {
+            background-color: var(--new-info-bg);
+            color: var(--new-primary-hover);
+            border-color: var(--new-primary-hover);
+        }
+
+        /* 主要內容容器 */
+        .page-container {
+            padding-top: 2rem; /* 與導覽列的間距 */
+            padding-left: 1rem;
+            padding-right: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: calc(100vh - 5rem - 2rem); /* 扣除導覽列和上 padding */
+        }
+
+        /* 卡片樣式 */
+        .card-style {
+            background-color: var(--new-container-bg);
+            border: 1px solid var(--new-border-color);
+            border-radius: 0.75rem;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08); /* 更柔和的陰影 */
+            max-width: 600px;
+            width: 95%; /* 響應式調整 */
+            overflow: hidden;
+        }
+        .card-header-style {
+            background-color: var(--new-primary-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--new-primary-hover);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .card-body-style {
+            padding: 1.5rem;
+        }
+
+        /* 表單組件樣式 (與 listAllMeal.html 中查詢表單的輸入框風格統一) */
+        .form-group-style {
+            margin-bottom: 1.25rem;
+        }
+        .form-group-style label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--new-text-color);
+            font-size: 0.95rem;
+        }
+        .form-control-style {
+            display: block;
+            width: 100%;
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--new-text-color);
+            background-color: #FDFCFB;
+            background-clip: padding-box;
+            border: 1px solid var(--new-border-color);
+            border-radius: 0.5rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .form-control-style:focus {
+            color: var(--new-text-color);
+            background-color: #fff;
+            border-color: var(--new-primary-color);
+            outline: 0;
+            box-shadow: 0 0 0 3px rgba(157, 124, 100, 0.2);
+        }
+        /* file input 的特殊樣式，與 form-control-style 類似但調整 padding */
+        .form-control-file-style {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+            color: var(--new-text-color);
+        }
+
+
+        /* 錯誤/成功訊息 */
+        .alert-style {
+            padding: 0.8rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid transparent;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .alert-danger-style {
+            color: var(--new-error-text);
+            background-color: var(--new-error-bg);
+            border-color: var(--new-error-text);
+        }
+        .success-message-style {
+            color: var(--new-success-text);
+            background-color: var(--new-success-bg);
+            border: 1px solid var(--new-success-text);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .text-danger-style { /* 針對個別欄位的錯誤提示 */
+            color: var(--new-error-text);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        /* 圖片預覽樣式 */
+        .meal-pic-preview {
+            margin-top: 0.75rem;
+        }
+        .meal-pic-preview img {
             max-width: 150px;
             max-height: 100px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 1px solid var(--new-border-color);
+            border-radius: 0.5rem;
             object-fit: contain;
-            margin-top: 10px; /* 與上方輸入框保持距離 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        /* 讓 radio button 居中對齊 */
-        .th-generated-wrapper {
+        .no-pic-text { /* 無圖片提示文字 */
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 0.75rem;
+            display: inline-block;
+        }
+
+        /* Radio button 居中對齊 (與 listAllMeal.html 統一) */
+        .radio-group-wrapper {
             display: flex;
-            align-items: center; /* 垂直居中對齊 */
-            gap: 15px; /* 增加間距 */
+            align-items: center;
+            gap: 1.25rem;
+        }
+        .radio-item-style { /* 每個 radio option */
+            display: flex;
+            align-items: center;
+        }
+        .radio-input-style {
+            margin-right: 0.5rem;
+            width: 1.15rem;
+            height: 1.15rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border: 2px solid var(--new-border-color);
+            border-radius: 50%;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .radio-input-style:checked {
+            background-color: var(--new-primary-color);
+            border-color: var(--new-primary-color);
+            box-shadow: 0 0 0 3px rgba(157, 124, 100, 0.2);
+        }
+        .radio-input-style:checked::before {
+            content: '';
+            display: block;
+            width: 0.5rem;
+            height: 0.5rem;
+            margin: 0.2rem;
+            background-color: white;
+            border-radius: 50%;
+        }
+        .radio-label-style {
+            margin-bottom: 0;
+            font-weight: normal;
+            font-size: 0.95rem;
+        }
+
+        /* 按鈕樣式 (與 listAllMeal.html 統一) */
+        .btn-style {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-primary-style {
+            background-color: var(--primary-btn-bg);
+            color: white;
+        }
+        .btn-primary-style:hover {
+            background-color: var(--primary-btn-hover);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .btn-secondary-style {
+            background-color: var(--secondary-btn-bg);
+            color: var(--new-text-color);
+        }
+        .btn-secondary-style:hover {
+            background-color: var(--secondary-btn-hover);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen">
 
-
-<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center" th:href="@{/meal/select_page_meal}">
-            <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-2">
-            <span style="font-weight: 500; font-size: 1.25rem;">修改餐點 - EatFast 後台</span> </a>
-        <a class="btn btn-outline-light ml-auto" th:href="@{/meal/select_page_meal}">
+<nav class="navbar fixed w-full z-10 top-0 left-0">
+    <div class="navbar-content">
+        <a class="navbar-brand" th:href="@{/meal/select_page_meal}">
+            <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon">
+            <span>修改餐點 - EatFast 後台</span>
+        </a>
+        <a class="navbar-button home" th:href="@{/meal/select_page_meal}">
             <i class="fas fa-home"></i> 回首頁
         </a>
     </div>
 </nav>
 
-<div class="container mt-5 pt-4">
-    <div class="card mx-auto" style="max-width: 600px;">
-        <div class="card-header">
-            <i class="fas fa-edit"></i> 修改餐點資料 </div>
-        <div class="card-body">
-        	<form method="post" th:action="@{/meal/update}" th:object="${mealEntity}" enctype="multipart/form-data">
+<div class="page-container">
+    <div class="card-style">
+        <div class="card-header-style">
+            <i class="fas fa-edit"></i> 修改餐點資料
+        </div>
+        <div class="card-body-style">
+        	<form th:action="@{/meal/update}" method="post" enctype="multipart/form-data" th:object="${mealEntity}">
 
-                <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger mb-3">
+                <div th:if="${#fields.hasErrors('*')}" class="alert-style alert-danger-style mb-4">
                     <strong>請修正以下錯誤：</strong>
-                    <ul>
+                    <ul class="list-disc pl-5 mt-1">
                         <li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
                     </ul>
                 </div>
                 
-                <p th:if="${message}" th:text="${message}" style="color: green; font-weight: bold; text-align: center;"></p>
+                <p th:if="${message}" th:text="${message}" class="success-message-style"></p>
 
                 <input type="hidden" th:field="*{mealId}" />
 
-                <div class="form-group">
+                <div class="form-group-style">
 				    <label for="mealType">餐點種類：</label>
-				    <select id="mealType" class="form-control" th:field="*{mealType.mealTypeId}"
+				    <select id="mealType" class="form-control-style" th:field="*{mealType.mealTypeId}"
 				            onchange="hideErrorMessage('mealType.mealTypeId.errors');">
 				        <option value=""> -- 請選擇種類 -- </option>
 				        <option th:each="mealTypeEntity : ${mealTypeListData}"
@@ -75,69 +349,84 @@
 				                th:selected="${mealTypeEntity.mealTypeId == mealEntity.mealType.mealTypeId}">
 				        </option>
 				    </select>
-				    <span class="text-danger" th:if="${#fields.hasErrors('mealType.mealTypeId')}" th:errors="*{mealType.mealTypeId}" id="mealType.mealTypeId.errors"></span>
+				    <span class="text-danger-style" th:if="${#fields.hasErrors('mealType.mealTypeId')}" th:errors="*{mealType.mealTypeId}" id="mealType.mealTypeId.errors"></span>
 				</div>
 				
-				<div class="form-group">
+				<div class="form-group-style">
 				    <label for="mealName">餐點名稱：</label>
-				    <input type="text" id="mealName" class="form-control" th:field="*{mealName}"
+				    <input type="text" id="mealName" class="form-control-style" th:field="*{mealName}"
 				           oninput="hideErrorMessage('mealName.errors');" />
-				    <span class="text-danger" th:if="${#fields.hasErrors('mealName')}" th:errors="*{mealName}" id="mealName.errors"></span>
+				    <span class="text-danger-style" th:if="${#fields.hasErrors('mealName')}" th:errors="*{mealName}" id="mealName.errors"></span>
 				</div>
                 
-                <div class="form-group">
+                <div class="form-group-style">
                     <label for="mealPrice">餐點價格：</label>
-                    <input type="text" id="mealPrice" class="form-control" th:field="*{mealPrice}"
+                    <input type="text" id="mealPrice" class="form-control-style" th:field="*{mealPrice}"
                            oninput="hideErrorMessage('mealPrice.errors');" />
-                    <span class="text-danger" th:if="${#fields.hasErrors('mealPrice')}" th:errors="*{mealPrice}" id="mealPrice.errors"></span>
+                    <span class="text-danger-style" th:if="${#fields.hasErrors('mealPrice')}" th:errors="*{mealPrice}" id="mealPrice.errors"></span>
                 </div>
                 
-				<div class="form-group">
-				    <div class="d-flex align-items-center mb-2"> 
-				        <label class="me-3 mb-0">餐點狀態：</label> 
+				<div class="form-group-style">
+				    <div class="flex items-center mb-2"> 
+				        <label class="mr-3 mb-0">餐點狀態：</label> 
 				        
-				        <div class="th-generated-wrapper">
-                            <div class="form-check me-3"> 
-				                <input class="form-check-input" type="radio" th:field="*{status}" id="statusOn" value="1"
-				                       th:checked="${mealEntity.status == 1}">
-				                <label class="form-check-label" for="statusOn">上架</label>
+				        <div class="radio-group-wrapper">
+                            <div class="radio-item-style"> 
+				                <input class="radio-input-style" type="radio"
+				                	   th:id="${'statusAvailable_' + mealEntity.mealId}" 
+                                       th:field="*{status}"
+                                       th:value="${T(com.eatfast.common.enums.MealStatus).AVAILABLE}" />
+				                <label class="radio-label-style" th:for="${'statusAvailable_' + mealEntity.mealId}">上架</label>
 				            </div>
-				            <div class="form-check">
-				                <input class="form-check-input" type="radio" th:field="*{status}" id="statusOff" value="0"
-				                       th:checked="${mealEntity.status == 0}">
-				                <label class="form-check-label" for="statusOff">下架</label>
+				            <div class="radio-item-style">
+				                <input class="radio-input-style" type="radio"
+				                	   th:id="${'statusUnavailable_' + mealEntity.mealId}" 
+                                       th:field="*{status}"
+                                       th:value="${T(com.eatfast.common.enums.MealStatus).UNAVAILABLE}" />
+				                <label class="radio-label-style" th:for="${'statusUnavailable_' + mealEntity.mealId}">下架</label>
 				            </div>
 				        </div>
 				    </div>
-				    <span class="text-danger" th:if="${#fields.hasErrors('status')}" th:errors="*{status}" id="status.errors"></span>
+				    <span class="text-danger-style" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></span>
 				</div>
                 
                 <div class="form-group">
-                    <label for="mealPic">餐點圖片：</label>
-                    <input type="file" id="mealPic" name="mealPic" class="form-control-file" accept="image/png, image/jpeg, image/gif"
-                           onchange="hideErrorMessage('mealPic.errors'); previewFile();" />
-					<span class="text-danger" th:if="${errorMessage}" th:utext="${errorMessage}" id="mealPic.errors"></span>
-                	<div id="mealPicPreview" class="mt-2">
-                        <img th:if="${mealEntity.mealPic != null && mealEntity.mealPic.length > 0}"
-                             th:src="@{'/meal/mealPhoto?mealId=' + ${mealEntity.mealId}}"
-                             alt="Current Meal Image"  />
-                        <span th:if="${mealEntity.mealPic == null || mealEntity.mealPic.length == 0}"
-                              style="color: #6c757d;">目前無圖片</span>
-                    </div>
-                </div>
+				    <label for="mealPic" class="block mb-1 font-medium">餐點圖片：</label>
+				    <div class="flex items-start space-x-4">
+				        <!-- 左邊：上傳按鈕 -->
+				        <div class="flex-1">
+				            <input type="file" id="mealPic" name="mealPicFile"
+				                   class="block w-full text-sm border border-gray-400 rounded-md p-1 bg-white focus:outline-none"
+				                   accept="image/png, image/jpeg, image/gif"
+				                   onchange="hideErrorMessage('mealPic.errors'); previewFile();" />
+				            <span class="text-danger" th:if="${#fields.hasErrors('mealPic')}"
+				                  th:text="${#fields.errors('mealPic')[0]}" id="mealPic.errors"></span>
+				        </div>
+				
+				        <!-- 右邊：圖片預覽 -->
+						<div id="mealPicPreview" class="flex-none w-32 h-24"
+						     th:attr="data-original-img-src=${mealEntity.mealPic != null} ? '/meal/mealPhoto?mealId=' + ${mealEntity.mealId} : null">
+						
+						    <img th:if="${mealEntity.mealPic != null}" 
+						         th:src="@{'/meal/mealPhoto'(mealId=${mealEntity.mealId})}" 
+						         class="max-w-[150px] max-h-[100px] rounded border border-gray-300 object-contain shadow-sm" />
+						
+						    <span th:if="${mealEntity.mealPic == null}" class="no-pic-text">目前無圖片</span>
+						</div>
 
-                <div class="d-flex justify-content-center">
-                    <button type="submit" class="btn btn-primary mx-2" id="submitButton"><i class="fas fa-check"></i> 送出修改</button> 
-                    <a th:href="@{/meal/select_page_meal}" class="btn btn-secondary mx-2"><i class="fas fa-times"></i> 返回管理</a>
+				    </div>
+				</div>
+				
+				<input type="hidden" th:field="*{reviewTotalStars}" />
+		
+                <div class="flex justify-center mt-6 gap-x-4">
+                    <button type="submit" class="btn-style btn-primary-style" id="submitButton"><i class="fas fa-check"></i> 送出修改</button> 
+                    <a th:href="@{/meal/select_page_meal}" class="btn-style btn-secondary-style"><i class="fas fa-times"></i> 返回管理</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
-<script th:src="@{/webjars/popper.js/1.14.3/umd/popper.min.js}"></script>
-<script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
 
 <script type="text/javascript">
 // 等待 DOM 完全載入後執行
@@ -145,6 +434,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const mealPicInput = document.getElementById("mealPic");
     const submitButton = document.getElementById("submitButton");
     const mealPicPreview = document.getElementById("mealPicPreview");
+    
+    // 獲取上下文路徑 (Thymeleaf 會替換掉這行)
+    const contextPath = /*[[@{/}]]*/ '/';
+    const DEFAULT_NOPIC_PATH = contextPath + 'images/nopic.png'; 
 
     // 清除提示訊息的函式
     function hideErrorMessage(elementId) {
@@ -178,18 +471,24 @@ document.addEventListener('DOMContentLoaded', function() {
         if (files.length === 0) {
             // 如果沒有選擇新檔案，且原本有圖片，顯示原本的圖片
             const currentImgSrc = mealPicPreview.getAttribute('data-original-img-src');
-            if (currentImgSrc) {
+            // 檢查 currentImgSrc 是否存在且非空字串/null，如果為空則顯示預設無圖片提示
+            if (currentImgSrc && currentImgSrc !== 'null' && currentImgSrc !== '') {
                 const image = new Image();
                 image.src = currentImgSrc;
+                // 注意: 這裡的 style 屬性會直接覆蓋 Tailwind 類別，
+                // 如果希望 Tailwind 類別生效，應使用 JavaScript 來操作 classList
+                // 但為了與之前的行為保持一致，暫時保留這種直接設定 style 的方式
                 image.style.maxWidth = '150px';
                 image.style.maxHeight = '100px';
-                image.style.border = '1px solid #ddd';
-                image.style.borderRadius = '4px';
+                image.style.border = '1px solid var(--new-border-color)';
+                image.style.borderRadius = '0.5rem';
                 image.style.objectFit = 'contain';
+                image.style.marginTop = '0.75rem';
+                image.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
                 mealPicPreview.appendChild(image);
             } else {
                 // 如果原本也沒圖片，顯示無圖片提示
-                mealPicPreview.innerHTML = '<span style="color: #6c757d;">目前無圖片</span>';
+                mealPicPreview.innerHTML = '<span class="no-pic-text">目前無圖片</span>';
             }
             return;
         }
@@ -203,16 +502,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 image.src = event.target.result;
                 image.style.maxWidth = '150px';
                 image.style.maxHeight = '100px';
-                image.style.border = '1px solid #ddd';
-                image.style.borderRadius = '4px';
+                image.style.border = '1px solid var(--new-border-color)';
+                image.style.borderRadius = '0.5rem';
                 image.style.objectFit = 'contain';
+                image.style.marginTop = '0.75rem';
+                image.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
                 mealPicPreview.appendChild(image);
             };
             reader.readAsDataURL(file);
         } else {
             // 如果檔案類型不符，顯示錯誤訊息並禁用送出按鈕
             mealPicPreview.innerHTML = `
-                <div style="text-align: left; color: red;">
+                <div class="text-danger-style" style="text-align: left;">
                     ● 檔名: ${file.name}<br>
                     ● 檔案類型: ${file.type}<br>
                     ● 大小: ${file.size} bytes<br>
@@ -223,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 將 hideErrorMessage 函式暴露到全域
+    // 將 hideErrorMessage 函式暴露到全域 (因為 onchange 屬性會直接呼叫)
     window.hideErrorMessage = hideErrorMessage;
 
     // 綁定 input 的 change 事件
@@ -235,7 +536,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (existingImg) {
         mealPicPreview.setAttribute('data-original-img-src', existingImg.src);
     } else {
-         mealPicPreview.innerHTML = '<span style="color: #6c757d;">目前無圖片</span>';
+        // 如果沒有現有圖片，也需要在這裡預設顯示「目前無圖片」
+        mealPicPreview.innerHTML = '<span class="no-pic-text">目前無圖片</span>';
+    }
+
+    // 處理導覽列圖片的路徑
+    const navLogoImg = document.querySelector('nav .navbar-brand img');
+    if (navLogoImg) {
+        navLogoImg.src = contextPath + 'images/eatfasticon.png';
     }
 });
 </script>
