@@ -307,6 +307,35 @@ public class MemberService {
         return memberRepository.save(dbMember); // 儲存更新
     }
 
+    /**
+     * 【修復】直接更新會員實體的方法 - 支持帳號停用/啟用功能
+     * 
+     * @param member 要更新的會員實體
+     * @return 更新後的會員實體
+     * @throws EntityNotFoundException 如果會員不存在
+     */
+    @Transactional
+    public MemberEntity updateMember(MemberEntity member) {
+        // 【修復】使用 findById 而不是 existsById，因為 findById 會返回實際的會員資料
+        // 這樣可以避免軟刪除限制的問題，並且能夠更準確地檢查會員是否存在
+        Optional<MemberEntity> existingMemberOpt = memberRepository.findById(member.getMemberId());
+        
+        if (existingMemberOpt.isEmpty()) {
+            throw new EntityNotFoundException("找不到ID為 " + member.getMemberId() + " 的會員");
+        }
+        
+        // 【可選】驗證會員實體的完整性
+        if (member.getAccount() == null || member.getUsername() == null) {
+            throw new IllegalArgumentException("會員資料不完整，無法更新");
+        }
+        
+        // 儲存更新
+        MemberEntity savedMember = memberRepository.save(member);
+        log.info("會員資料更新成功 - ID: {}, Account: {}, Enabled: {}", 
+                 savedMember.getMemberId(), savedMember.getAccount(), savedMember.isEnabled());
+        
+        return savedMember;
+    }
 
     /**
      * 根據會員ID刪除會員 (軟刪除)。
@@ -612,5 +641,33 @@ public class MemberService {
         boolean verifyCode(String email, String inputCode);
         boolean hasVerificationCode(String email);
         void deleteVerificationCode(String email);
+    }
+
+    /**
+     * 【即時驗證】驗證會員的舊密碼是否正確
+     * 
+     * @param memberId 會員ID
+     * @param oldPassword 用戶輸入的舊密碼
+     * @return true 如果舊密碼正確，false 如果不正確
+     */
+    @Transactional(readOnly = true)
+    public boolean validateOldPassword(Long memberId, String oldPassword) {
+        try {
+            // 【資料庫讀取】根據會員ID獲取會員資料
+            MemberEntity member = memberRepository.findById(memberId)
+                    .orElse(null);
+            
+            // 如果找不到會員，返回false
+            if (member == null) {
+                return false;
+            }
+            
+            // 【密碼驗證】使用Spring Security的密碼編碼器進行驗證
+            return passwordEncoder.matches(oldPassword, member.getPassword());
+            
+        } catch (Exception e) {
+            // 如果發生任何錯誤，返回false以確保安全性
+            return false;
+        }
     }
 }

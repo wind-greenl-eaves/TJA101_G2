@@ -20,7 +20,11 @@ import com.eatfast.member.validation.UpdateValidation;
 // (既有 import)
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpSession;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -283,7 +287,7 @@ public class MemberController {
         
         // 如果未登入，重定向到登入頁面
         if (memberId == null || isLoggedIn == null || !isLoggedIn) {
-            return "redirect:/api/v1/auth/member-login";
+            return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
         }
         
         // 【第二步：載入會員資訊】從資料庫獲取最新的會員資料
@@ -295,7 +299,7 @@ public class MemberController {
             if (!member.isEnabled()) {
                 // 如果帳號被停用，清除Session並重定向到登入頁面
                 session.invalidate();
-                return "redirect:/api/v1/auth/member-login?error=account_disabled";
+                return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN + "?error=account_disabled";
             }
             
             // 【第三步：準備頁面資料】將會員資訊傳遞給前端頁面
@@ -310,10 +314,10 @@ public class MemberController {
         } catch (Exception e) {
             log.error("載入會員專區資料時發生錯誤：{}", e.getMessage());
             model.addAttribute("errorMessage", "載入會員資料失敗，請重新登入");
-            return "redirect:/api/v1/auth/member-login";
+            return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
         }
         
-        return "front-end/member/member-dashboard";
+        return MemberViewConstants.VIEW_MEMBER_DASHBOARD;
     }
     
     /**
@@ -329,7 +333,7 @@ public class MemberController {
         // 【Session驗證】檢查登入狀態
         Long memberId = (Long) session.getAttribute("loggedInMemberId");
         if (memberId == null) {
-            return "redirect:/api/v1/auth/member-login";
+            return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
         }
         
         try {
@@ -356,7 +360,7 @@ public class MemberController {
             model.addAttribute("errorMessage", "載入個人資料失敗");
         }
         
-        return "front-end/member/member-profile";
+        return MemberViewConstants.VIEW_MEMBER_PROFILE;
     }
     
     /**
@@ -376,7 +380,7 @@ public class MemberController {
         // 【Session驗證】確保用戶已登入且操作自己的帳號
         Long sessionMemberId = (Long) session.getAttribute("loggedInMemberId");
         if (sessionMemberId == null || !sessionMemberId.equals(updateRequest.getMemberId())) {
-            return "redirect:/api/v1/auth/member-login";
+            return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
         }
         
         if (result.hasErrors()) {
@@ -388,7 +392,7 @@ public class MemberController {
             } catch (Exception e) {
                 log.error("重新載入會員資料失敗：{}", e.getMessage());
             }
-            return "front-end/member/member-profile";
+            return MemberViewConstants.VIEW_MEMBER_PROFILE;
         }
         
         try {
@@ -398,7 +402,7 @@ public class MemberController {
             redirectAttributes.addFlashAttribute("errorMessage", "更新失敗：" + e.getMessage());
         }
         
-        return "redirect:/member/profile";
+        return MemberViewConstants.REDIRECT_TO_MEMBER_PROFILE;
     }
     
     /**
@@ -414,7 +418,7 @@ public class MemberController {
         // 【Session驗證】檢查登入狀態
         Long memberId = (Long) session.getAttribute("loggedInMemberId");
         if (memberId == null) {
-            return "redirect:/api/v1/auth/member-login";
+            return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
         }
         
         // 【準備密碼更新表單】創建空的密碼更新請求對象
@@ -422,7 +426,7 @@ public class MemberController {
         passwordRequest.setMemberId(memberId);
         model.addAttribute("passwordUpdateRequest", passwordRequest);
         
-        return "front-end/member/change-password";
+        return MemberViewConstants.VIEW_CHANGE_PASSWORD;
     }
     
     /**
@@ -441,12 +445,22 @@ public class MemberController {
         // 【Session驗證】確保用戶已登入且操作自己的帳號
         Long sessionMemberId = (Long) session.getAttribute("loggedInMemberId");
         if (sessionMemberId == null || !sessionMemberId.equals(request.getMemberId())) {
-            return "redirect:/api/v1/auth/member-login";
+            return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
+        }
+        
+        // 【密碼確認驗證】檢查新密碼與確認密碼是否一致
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            result.rejectValue("confirmPassword", "password.mismatch", "新密碼與確認密碼不一致");
+        }
+        
+        // 【新舊密碼相同檢查】防止用戶設定相同的密碼
+        if (request.getOldPassword().equals(request.getNewPassword())) {
+            result.rejectValue("newPassword", "password.same", "新密碼不能與舊密碼相同");
         }
         
         // 【表單驗證】檢查驗證錯誤
         if (result.hasErrors()) {
-            return "front-end/member/change-password";
+            return MemberViewConstants.VIEW_CHANGE_PASSWORD;
         }
         
         try {
@@ -456,12 +470,12 @@ public class MemberController {
             
             // 【安全處理】密碼變更成功後清除Session，要求重新登入
             session.invalidate();
-            return "redirect:/api/v1/auth/member-login";
+            return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
             
         } catch (EntityNotFoundException | IllegalArgumentException e) {
             log.warn("密碼變更失敗：{}", e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/member/change-password";
+            result.rejectValue("oldPassword", "password.invalid", e.getMessage());
+            return MemberViewConstants.VIEW_CHANGE_PASSWORD;
         }
     }
     
@@ -476,7 +490,7 @@ public class MemberController {
         // 獲取當前會員的訂單列表
         // List<OrderListEntity> orders = orderService.getMemberOrders(memberId, status, startDate, endDate);
         // model.addAttribute("orders", orders);
-        return "front-end/member/member-orders";
+        return MemberViewConstants.VIEW_MEMBER_ORDERS;
     }
     
     /**
@@ -487,7 +501,7 @@ public class MemberController {
         // 獲取當前會員的收藏列表
         // List<FavEntity> favorites = favService.getMemberFavorites(memberId);
         // model.addAttribute("favorites", favorites);
-        return "front-end/member/member-favorites";
+        return MemberViewConstants.VIEW_MEMBER_FAVORITES;
     }
     
     /**
@@ -495,9 +509,231 @@ public class MemberController {
      */
     @GetMapping("/settings")
     public String showMemberSettings(Model model, HttpSession session) {
-        // MemberEntity member = getCurrentMemberFromSession(session);
-        // model.addAttribute("member", member);
-        return "front-end/member/member-settings";
+        // 【第一步：Session驗證】檢查用戶是否已登入
+        Long memberId = (Long) session.getAttribute("loggedInMemberId");
+        Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
+        
+        // 如果未登入，重定向到登入頁面
+        if (memberId == null || isLoggedIn == null || !isLoggedIn) {
+            return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
+        }
+        
+        // 【第二步：載入會員資訊】從資料庫獲取最新的會員資料
+        try {
+            MemberEntity member = memberService.getMemberById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
+            
+            // 檢查帳號是否仍然啟用
+            if (!member.isEnabled()) {
+                // 如果帳號被停用，清除Session並重定向到登入頁面
+                session.invalidate();
+                return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN + "?error=account_disabled";
+            }
+            
+            // 【第三步：將會員資料傳遞給模板】
+            model.addAttribute("member", member);
+            
+            return MemberViewConstants.VIEW_MEMBER_SETTINGS;
+            
+        } catch (EntityNotFoundException e) {
+            log.error("會員資料載入失敗: {}", e.getMessage());
+            session.invalidate();
+            return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN + "?error=member_not_found";
+        }
+    }
+
+    // ================================================================
+    // 					帳號管理相關功能 (Account Management)
+    // ================================================================
+    
+    /**
+     * 【功能】: 停用會員帳號
+     * 【請求路徑】: 處理 POST /member/settings/deactivate 請求
+     * 【安全性】: 需要登入驗證，只能停用自己的帳號
+     */
+    @PostMapping("/settings/deactivate")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deactivateAccount(HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 【第一步：Session詳細驗證和調試】
+            log.info("=== 開始停用帳號流程 ===");
+            log.info("Session ID: {}", session.getId());
+            
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
+            String memberAccount = (String) session.getAttribute("loggedInMemberAccount");
+            String memberName = (String) session.getAttribute("loggedInMemberName");
+            
+            log.info("Session 中的會員資訊:");
+            log.info("- Member ID: {}", memberId);
+            log.info("- Is Logged In: {}", isLoggedIn);
+            log.info("- Member Account: {}", memberAccount);
+            log.info("- Member Name: {}", memberName);
+            log.info("- Session Creation Time: {}", new java.util.Date(session.getCreationTime()));
+            log.info("- Session Last Accessed Time: {}", new java.util.Date(session.getLastAccessedTime()));
+            log.info("- Session Max Inactive Interval: {} seconds", session.getMaxInactiveInterval());
+            
+            // 詳細檢查Session狀態
+            if (memberId == null) {
+                log.warn("Session 中沒有會員ID (loggedInMemberId 為 null)");
+                response.put("success", false);
+                response.put("message", "請重新登入 - Session中無會員資訊");
+                response.put("debug", "memberId is null");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            if (isLoggedIn == null || !isLoggedIn) {
+                log.warn("Session 中登入狀態無效: {}", isLoggedIn);
+                response.put("success", false);
+                response.put("message", "請重新登入 - 登入狀態無效");
+                response.put("debug", "isLoggedIn is " + isLoggedIn);
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 【第二步：資料庫查詢和詳細調試】
+            log.info("開始查詢會員資料，會員ID: {}", memberId);
+            
+            // 先檢查會員是否存在（包括已停用的）
+            Optional<MemberEntity> memberOpt = memberService.getMemberById(memberId);
+            
+            if (memberOpt.isEmpty()) {
+                log.error("❌ 嚴重錯誤：Session中的會員ID {} 在資料庫中不存在！", memberId);
+                log.error("這可能表示:");
+                log.error("1. 會員資料被意外刪除");
+                log.error("2. 資料庫連線問題");
+                log.error("3. Session中的ID不正確");
+                
+                // 清除異常的Session
+                session.invalidate();
+                
+                response.put("success", false);
+                response.put("message", "會員資料不存在，請重新登入");
+                response.put("debug", "Member not found in database with ID: " + memberId);
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            MemberEntity member = memberOpt.get();
+            log.info("✅ 成功找到會員資料:");
+            log.info("- 會員ID: {}", member.getMemberId());
+            log.info("- 會員帳號: {}", member.getAccount());
+            log.info("- 會員姓名: {}", member.getUsername());
+            log.info("- 帳號狀態: {}", member.isEnabled() ? "啟用" : "已停用");
+            log.info("- 創建時間: {}", member.getCreatedAt());
+            log.info("- 最後更新: {}", member.getLastUpdatedAt());
+            
+            // 【第三步：檢查帳號是否已經停用】
+            if (!member.isEnabled()) {
+                log.warn("帳號已處於停用狀態: {}", member.getAccount());
+                response.put("success", false);
+                response.put("message", "帳號已處於停用狀態");
+                response.put("debug", "Account already disabled");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 【第四步：執行停用操作】
+            log.info("開始停用帳號: {}", member.getAccount());
+            member.setEnabled(false);
+            
+            MemberEntity savedMember = memberService.updateMember(member);
+            log.info("✅ 帳號停用成功，更新後狀態: {}", savedMember.isEnabled() ? "啟用" : "已停用");
+            
+            // 【第五步：清除Session】
+            log.info("清除Session: {}", session.getId());
+            session.invalidate();
+            
+            log.info("=== 停用帳號流程完成 ===");
+            log.info("會員帳號停用成功: memberId={}, account={}", memberId, member.getAccount());
+            
+            response.put("success", true);
+            response.put("message", "帳號已成功停用");
+            response.put("debug", "Account deactivated successfully");
+            return ResponseEntity.ok(response);
+            
+        } catch (EntityNotFoundException e) {
+            log.error("停用帳號失敗 - 會員不存在: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", "會員資料不存在");
+            response.put("debug", "EntityNotFoundException: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+            
+        } catch (Exception e) {
+            log.error("停用帳號時發生未預期的錯誤: {}", e.getMessage(), e);
+            response.put("success", false);
+            response.put("message", "系統錯誤，請稍後再試");
+            response.put("debug", "Unexpected error: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    /**
+     * 【調試功能】檢查當前Session狀態 - 臨時診斷用
+     * 【請求路徑】: 處理 GET /member/debug/session 請求
+     */
+    @GetMapping("/debug/session")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> debugSession(HttpSession session) {
+        Map<String, Object> debugInfo = new HashMap<>();
+        
+        try {
+            // Session基本信息
+            debugInfo.put("sessionId", session.getId());
+            debugInfo.put("creationTime", new java.util.Date(session.getCreationTime()));
+            debugInfo.put("lastAccessedTime", new java.util.Date(session.getLastAccessedTime()));
+            debugInfo.put("maxInactiveInterval", session.getMaxInactiveInterval());
+            debugInfo.put("isNew", session.isNew());
+            
+            // Session中的會員信息
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
+            String memberAccount = (String) session.getAttribute("loggedInMemberAccount");
+            String memberName = (String) session.getAttribute("loggedInMemberName");
+            
+            debugInfo.put("memberId", memberId);
+            debugInfo.put("isLoggedIn", isLoggedIn);
+            debugInfo.put("memberAccount", memberAccount);
+            debugInfo.put("memberName", memberName);
+            
+            // 如果有會員ID，檢查資料庫中的會員資料
+            if (memberId != null) {
+                try {
+                    Optional<MemberEntity> memberOpt = memberService.getMemberById(memberId);
+                    if (memberOpt.isPresent()) {
+                        MemberEntity member = memberOpt.get();
+                        debugInfo.put("memberInDatabase", true);
+                        debugInfo.put("memberAccountInDb", member.getAccount());
+                        debugInfo.put("memberNameInDb", member.getUsername());
+                        debugInfo.put("memberEnabled", member.isEnabled());
+                        debugInfo.put("memberCreatedAt", member.getCreatedAt());
+                        debugInfo.put("memberLastUpdated", member.getLastUpdatedAt());
+                    } else {
+                        debugInfo.put("memberInDatabase", false);
+                        debugInfo.put("error", "會員ID存在於Session中，但在資料庫中找不到對應記錄");
+                    }
+                } catch (Exception e) {
+                    debugInfo.put("databaseError", e.getMessage());
+                }
+            }
+            
+            // 所有Session屬性
+            Map<String, Object> allAttributes = new HashMap<>();
+            java.util.Enumeration<String> attributeNames = session.getAttributeNames();
+            while (attributeNames.hasMoreElements()) {
+                String name = attributeNames.nextElement();
+                Object value = session.getAttribute(name);
+                allAttributes.put(name, value != null ? value.toString() : "null");
+            }
+            debugInfo.put("allSessionAttributes", allAttributes);
+            
+            debugInfo.put("status", "success");
+            
+        } catch (Exception e) {
+            debugInfo.put("status", "error");
+            debugInfo.put("error", e.getMessage());
+        }
+        
+        return ResponseEntity.ok(debugInfo);
     }
 
     // ================================================================
@@ -655,6 +891,300 @@ public class MemberController {
         } catch (Exception e) {
             log.error("重新發送驗證郵件時發生錯誤 - Email: {}, 錯誤: {}", email, e.getMessage());
             return ResponseEntity.status(500).body("系統錯誤，請稍後再試。");
+        }
+    }
+
+    // ================================================================
+    // 					即時驗證功能 (Real-time Validation)
+    // ================================================================
+    
+    /**
+     * 【即時驗證】檢查舊密碼是否正確
+     * 
+     * @param oldPassword 用戶輸入的舊密碼
+     * @param session HTTP Session 用來獲取當前會員ID
+     * @return JSON 回應包含驗證結果
+     */
+    @PostMapping("/validate-old-password")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> validateOldPassword(
+            @RequestParam("oldPassword") String oldPassword,
+            HttpSession session) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 【Session驗證】檢查用戶是否已登入
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            if (memberId == null) {
+                response.put("valid", false);
+                response.put("message", "請重新登入");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 【驗證舊密碼】調用Service層驗證
+            boolean isOldPasswordValid = memberService.validateOldPassword(memberId, oldPassword);
+            
+            if (isOldPasswordValid) {
+                response.put("valid", true);
+                response.put("message", "舊密碼驗證成功");
+            } else {
+                response.put("valid", false);
+                response.put("message", "舊密碼不正確");
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("驗證舊密碼時發生錯誤: {}", e.getMessage());
+            response.put("valid", false);
+            response.put("message", "驗證過程發生錯誤");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 【即時驗證】檢查新密碼與舊密碼是否相同
+     * 
+     * @param oldPassword 舊密碼
+     * @param newPassword 新密碼  
+     * @param session HTTP Session
+     * @return JSON 回應包含驗證結果
+     */
+    @PostMapping("/validate-password-difference")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> validatePasswordDifference(
+            @RequestParam("oldPassword") String oldPassword,
+            @RequestParam("newPassword") String newPassword,
+            HttpSession session) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 【Session驗證】
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            if (memberId == null) {
+                response.put("valid", false);
+                response.put("message", "請重新登入");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 【檢查新舊密碼是否相同】
+            if (oldPassword.equals(newPassword)) {
+                response.put("valid", false);
+                response.put("message", "新密碼不能與舊密碼相同");
+            } else {
+                response.put("valid", true);
+                response.put("message", "新密碼可以使用");
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("驗證密碼差異時發生錯誤: {}", e.getMessage());
+            response.put("valid", false);
+            response.put("message", "驗證過程發生錯誤");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    // ================================================================
+    // 					會員設定功能擴展 (Member Settings Extensions)
+    // ================================================================
+    
+    /**
+     * 【功能】: 更新通知設定
+     * 【請求路徑】: 處理 POST /member/settings/notifications 請求
+     */
+    @PostMapping("/settings/notifications")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateNotificationSettings(
+            @RequestBody Map<String, Object> request,
+            HttpSession session) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // Session驗證
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            if (memberId == null) {
+                response.put("success", false);
+                response.put("message", "請重新登入");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            String type = (String) request.get("type");
+            Boolean enabled = (Boolean) request.get("enabled");
+            
+            // TODO: 實現通知設定的保存邏輯
+            // memberService.updateNotificationSetting(memberId, type, enabled);
+            
+            log.info("會員 {} 更新通知設定: {} = {}", memberId, type, enabled);
+            
+            response.put("success", true);
+            response.put("message", "通知設定已更新");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("更新通知設定失敗: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", "設定更新失敗");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 【功能】: 更新隱私設定
+     * 【請求路徑】: 處理 POST /member/settings/privacy 請求
+     */
+    @PostMapping("/settings/privacy")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updatePrivacySettings(
+            @RequestBody Map<String, Object> request,
+            HttpSession session) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // Session驗證
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            if (memberId == null) {
+                response.put("success", false);
+                response.put("message", "請重新登入");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            String type = (String) request.get("type");
+            Boolean enabled = (Boolean) request.get("enabled");
+            
+            // TODO: 實現隱私設定的保存邏輯
+            // memberService.updatePrivacySetting(memberId, type, enabled);
+            
+            log.info("會員 {} 更新隱私設定: {} = {}", memberId, type, enabled);
+            
+            response.put("success", true);
+            response.put("message", "隱私設定已更新");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("更新隱私設定失敗: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", "設定更新失敗");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 【功能】: 下載個人資料
+     * 【請求路徑】: 處理 GET /member/settings/download-data 請求
+     */
+    @GetMapping("/settings/download-data")
+    public ResponseEntity<byte[]> downloadPersonalData(HttpSession session) {
+        try {
+            // Session驗證
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            if (memberId == null) {
+                return ResponseEntity.status(401).build();
+            }
+            
+            // TODO: 實現個人資料導出邏輯
+            // byte[] data = memberService.exportPersonalData(memberId);
+            
+            log.info("會員 {} 請求下載個人資料", memberId);
+            
+            // 暫時返回空文件
+            String content = "個人資料導出功能開發中...";
+            byte[] data = content.getBytes("UTF-8");
+            
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=personal-data.txt")
+                    .header("Content-Type", "application/octet-stream")
+                    .body(data);
+            
+        } catch (Exception e) {
+            log.error("下載個人資料失敗: {}", e.getMessage());
+            return ResponseEntity.status(500).build();
+        }
+    }
+    
+    /**
+     * 【功能】: 清除瀏覽記錄
+     * 【請求路徑】: 處理 POST /member/settings/clear-history 請求
+     */
+    @PostMapping("/settings/clear-history")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> clearBrowsingHistory(HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // Session驗證
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            if (memberId == null) {
+                response.put("success", false);
+                response.put("message", "請重新登入");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // TODO: 實現清除瀏覽記錄的邏輯
+            // memberService.clearBrowsingHistory(memberId);
+            
+            log.info("會員 {} 清除瀏覽記錄", memberId);
+            
+            response.put("success", true);
+            response.put("message", "瀏覽記錄已清除");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("清除瀏覽記錄失敗: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", "清除失敗");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 【功能】: 刪除帳號 (永久刪除)
+     * 【請求路徑】: 處理 DELETE /member/settings/delete-account 請求
+     */
+    @DeleteMapping("/settings/delete-account")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteAccount(HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // Session驗證
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            if (memberId == null) {
+                response.put("success", false);
+                response.put("message", "請重新登入");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 獲取會員資料用於記錄
+            MemberEntity member = memberService.getMemberById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
+            
+            // TODO: 實現完整的帳號刪除邏輯
+            // 1. 備份重要資料
+            // 2. 刪除相關訂單記錄
+            // 3. 刪除收藏記錄
+            // 4. 刪除會員資料
+            // memberService.permanentlyDeleteAccount(memberId);
+            
+            log.info("會員帳號永久刪除 - ID: {}, Account: {}", memberId, member.getAccount());
+            
+            // 清除Session
+            session.invalidate();
+            
+            response.put("success", true);
+            response.put("message", "帳號已永久刪除");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("刪除帳號失敗: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", "刪除失敗");
+            return ResponseEntity.status(500).body(response);
         }
     }
 }

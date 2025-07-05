@@ -15,4 +15,5 @@ public interface FeedbackRepository extends JpaRepository<FeedbackEntity, Long> 
 	//針對會員提出的回饋做查詢
 	List<FeedbackEntity> findByStore_StoreId(Long storeId);
 	//針對分店提出的回饋做查詢
+
 }

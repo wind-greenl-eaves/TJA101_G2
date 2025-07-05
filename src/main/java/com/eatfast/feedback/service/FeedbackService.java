@@ -74,4 +74,6 @@ public class FeedbackService {
     public List<FeedbackEntity> findByStoreId(Long storeId) {
         return feedbackRepository.findByStore_StoreId(storeId);
     }
+
+
 }

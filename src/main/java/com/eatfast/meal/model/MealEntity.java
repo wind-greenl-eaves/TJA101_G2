@@ -1,24 +1,40 @@
 package com.eatfast.meal.model;
 
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import com.eatfast.cart.model.CartEntity;
 // 引入共享 Enum 與所有關聯實體
 import com.eatfast.common.enums.MealStatus;
-import com.eatfast.mealtype.model.MealTypeEntity;
 import com.eatfast.fav.model.FavEntity;
-import com.eatfast.cart.model.CartEntity;
+import com.eatfast.mealtype.model.MealTypeEntity;
 import com.eatfast.orderlistinfo.model.OrderListInfoEntity;
 import com.eatfast.storemeal.model.StoreMealEntity;
 
 // 引入 Jakarta Validation API 進行資料驗證
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
 
 /*
  * ================================================================
@@ -61,6 +77,7 @@ public class MealEntity {
     @Column(name = "meal_name", nullable = false, length = 50)
     private String mealName; // 餐點名稱
 
+    
     @Lob // 標示為大型物件欄位，適用於儲存圖片等二進位資料
     @Column(name = "meal_pic")
     private byte[] mealPic; // 餐點圖片，以位元組陣列儲存
@@ -80,6 +97,9 @@ public class MealEntity {
     @Enumerated(EnumType.ORDINAL) // 遵照團隊決議，將 Enum 以其序號存儲 (0, 1, ...)
     @Column(name = "status", nullable = false)
     private MealStatus status; // 餐點狀態 (例如：上架、下架)，使用 Enum 提升可讀性與型別安全
+    
+    @Transient
+    private MultipartFile mealPicFile;
 
     // ================================================================
     //                          主要關聯 (擁有方)
@@ -162,6 +182,15 @@ public class MealEntity {
 
     public void setMealPic(byte[] mealPic) {
         this.mealPic = mealPic;
+    }
+    
+    // Meal Picture File 的 Getter 和 Setter
+    public MultipartFile getMealPicFile() {
+        return mealPicFile;
+    }
+
+    public void setMealPicFile(MultipartFile mealPicFile) {
+        this.mealPicFile = mealPicFile;
     }
 
     // Meal Price 的 Getter 和 Setter

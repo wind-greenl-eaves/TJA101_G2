@@ -28,19 +28,31 @@
         .navigation-bar {
             background-color: #A67B5B;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 8px;	
             margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 5px;
+            min-height: 30px;
         }
         .navigation-bar a {
             color: white;
             text-decoration: none;
-            margin-right: 20px;
-            padding: 8px 15px;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
+            padding: 12px 18px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 14px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .navigation-bar a:hover, .navigation-bar a.active {
             background-color: rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .settings-section {
             margin-bottom: 30px;
@@ -267,8 +279,8 @@
                 </div>
                 <div class="setting-action">
                     <span class="status-badge" 
-                          th:classappend="${member?.enabled} ? 'status-active' : 'status-inactive'"
-                          th:text="${member?.enabled} ? '正常使用' : '已停用'">正常使用</span>
+                          th:classappend="${member?.isEnabled} ? 'status-active' : 'status-inactive'"
+                          th:text="${member?.isEnabled} ? '正常使用' : '已停用'">正常使用</span>
                 </div>
             </div>
             
@@ -500,23 +512,51 @@
         function deactivateAccount() {
             if (confirm('確定要停用帳號嗎？停用後您將無法登入，但可以隨時聯繫客服重新啟用。')) {
                 if (confirm('再次確認：您真的要停用帳號嗎？')) {
+                    // 獲取CSRF token（如果有的話）
+                    const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+                    
+                    const headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
+                    
+                    // 如果有CSRF token則添加
+                    if (csrfToken && csrfHeader) {
+                        headers[csrfHeader] = csrfToken;
+                    }
+                    
                     fetch('/member/settings/deactivate', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
+                        headers: headers,
+                        credentials: 'same-origin'  // 確保發送cookies
                     })
                     .then(response => {
+                        console.log('Response status:', response.status);
                         if (response.ok) {
-                            alert('帳號已停用，您將被登出');
-                            window.location.href = '/logout';
+                            return response.json();
                         } else {
-                            showToast('停用失敗，請稍後再試', 'error');
+                            // 嘗試讀取錯誤響應
+                            return response.text().then(text => {
+                                console.error('Error response:', text);
+                                throw new Error(`HTTP ${response.status}: ${text}`);
+                            });
+                        }
+                    })
+                    .then(data => {
+                        console.log('Success response:', data);
+                        if (data.success) {
+                            alert('帳號已停用，您將被登出');
+                            // 清除本地存儲（如果有的話）
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            window.location.href = '/api/v1/auth/member-login?message=account_deactivated';
+                        } else {
+                            showToast(data.message || '停用失敗，請稍後再試', 'error');
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
-                        showToast('停用失敗，請稍後再試', 'error');
+                        console.error('Deactivate account error:', error);
+                        showToast('停用失敗：' + error.message, 'error');
                     });
                 }
             }

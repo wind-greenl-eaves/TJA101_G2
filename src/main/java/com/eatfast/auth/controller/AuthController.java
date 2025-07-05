@@ -35,6 +35,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;  // 密碼�
 import org.springframework.ui.Model;               // 用於傳遞資料到視圖
 import org.springframework.web.bind.annotation.RequestParam;  // 獲取請求參數
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;  // 重定向屬性
+import org.springframework.web.context.request.RequestContextHolder;  // 用於獲取當前請求上下文
 
 /**
  * 認證控制器：處理所有與用戶認證相關的請求
@@ -180,7 +181,8 @@ public class AuthController {
             
             // 【第二步：查詢會員資料】
             System.out.println("🔍 開始查詢會員: " + account.trim());
-            var memberOptional = memberService.getMemberByAccount(account.trim());
+            // 【修正】使用 getMemberByAccountIncludeDisabled 來查詢包括停權會員在內的所有會員
+            var memberOptional = memberService.getMemberByAccountIncludeDisabled(account.trim());
             
             if (memberOptional.isEmpty()) {
                 System.out.println("❌ 會員不存在: " + account);
@@ -191,11 +193,12 @@ public class AuthController {
             
             MemberEntity member = memberOptional.get();
             System.out.println("✅ 找到會員: " + member.getUsername() + " (ID: " + member.getMemberId() + ")");
+            System.out.println("🔍 會員狀態: " + (member.isEnabled() ? "啟用" : "停權"));
             
             // 【第三步：檢查帳號狀態】
             if (!member.isEnabled()) {
-                System.out.println("❌ 帳號已停用: " + account);
-                redirectAttributes.addFlashAttribute("loginError", "此帳號已被停用，請聯繫客服");
+                System.out.println("❌ 帳號已停權: " + account);
+                redirectAttributes.addFlashAttribute("loginError", "此帳號已停權，請連絡EatFast");
                 redirectAttributes.addFlashAttribute("account", account);
                 return "redirect:/api/v1/auth/member-login";
             }
@@ -257,12 +260,24 @@ public class AuthController {
                 return "redirect:/api/v1/auth/member-login";
             }
             
-            // 【第五步：建立登入 Session】
+            // 【第五步：建立登入 Session - 修正安全性】
             System.out.println("✅ 密碼驗證成功，建立 Session");
+            
+            // 【安全改進】重新獲取Session以防止Session固定攻擊
+            session.invalidate();
+            // 重新獲取新的Session
+            HttpServletRequest request = 
+                ((org.springframework.web.context.request.ServletRequestAttributes) 
+                org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes()).getRequest();
+            session = request.getSession(true); // 創建新的Session
+            
+            // 設定Session屬性
             session.setAttribute("loggedInMemberId", member.getMemberId());
             session.setAttribute("loggedInMemberAccount", member.getAccount());
             session.setAttribute("loggedInMemberName", member.getUsername());
+            session.setAttribute("memberName", member.getUsername()); // 【新增】為前端模板提供一致的屬性名稱
             session.setAttribute("isLoggedIn", true);
+            session.setAttribute("loginTime", System.currentTimeMillis());
             
             // 設定 Session 過期時間
             if (rememberMe) {
@@ -273,8 +288,11 @@ public class AuthController {
                 System.out.println("🔍 Session 設定為 2 小時");
             }
             
-            // 【第六步：登入成功處理】
+            // 【第六步：登入成功處理 - 確保重定向路徑正確】
             System.out.println("🎉 會員登入成功：" + member.getAccount() + " (" + member.getUsername() + ")");
+            redirectAttributes.addFlashAttribute("successMessage", "歡迎回來，" + member.getUsername() + "！");
+            
+            // 【修正】確保重定向路徑與MemberController的路徑一致
             return "redirect:/member/dashboard";
             
         } catch (Exception e) {
@@ -286,6 +304,20 @@ public class AuthController {
             redirectAttributes.addFlashAttribute("account", account);
             return "redirect:/api/v1/auth/member-login";
         }
+    }
+    
+    /**
+     * 處理會員中心重定向 - 增加此方法以處理登入後的跳轉
+     * 
+     * 路徑說明：
+     * - URL: GET /api/v1/auth/member-center
+     * - 完整 URL: http://localhost:8080/api/v1/auth/member-center
+     * - 功能：作為登入成功後的中轉站，重定向到會員專區
+     */
+    @GetMapping("/member-center")
+    public String memberCenter() {
+        // 重定向到會員專區
+        return "redirect:/member/dashboard";
     }
     
     /**
