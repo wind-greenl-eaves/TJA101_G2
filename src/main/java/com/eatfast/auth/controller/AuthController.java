@@ -181,7 +181,8 @@ public class AuthController {
             
             // 【第二步：查詢會員資料】
             System.out.println("🔍 開始查詢會員: " + account.trim());
-            var memberOptional = memberService.getMemberByAccount(account.trim());
+            // 【修正】使用 getMemberByAccountIncludeDisabled 來查詢包括停權會員在內的所有會員
+            var memberOptional = memberService.getMemberByAccountIncludeDisabled(account.trim());
             
             if (memberOptional.isEmpty()) {
                 System.out.println("❌ 會員不存在: " + account);
@@ -192,11 +193,12 @@ public class AuthController {
             
             MemberEntity member = memberOptional.get();
             System.out.println("✅ 找到會員: " + member.getUsername() + " (ID: " + member.getMemberId() + ")");
+            System.out.println("🔍 會員狀態: " + (member.isEnabled() ? "啟用" : "停權"));
             
             // 【第三步：檢查帳號狀態】
             if (!member.isEnabled()) {
-                System.out.println("❌ 帳號已停用: " + account);
-                redirectAttributes.addFlashAttribute("loginError", "此帳號已被停用，請聯繫客服");
+                System.out.println("❌ 帳號已停權: " + account);
+                redirectAttributes.addFlashAttribute("loginError", "此帳號已停權，請連絡EatFast");
                 redirectAttributes.addFlashAttribute("account", account);
                 return "redirect:/api/v1/auth/member-login";
             }

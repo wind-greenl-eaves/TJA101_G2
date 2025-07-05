@@ -512,23 +512,51 @@
         function deactivateAccount() {
             if (confirm('確定要停用帳號嗎？停用後您將無法登入，但可以隨時聯繫客服重新啟用。')) {
                 if (confirm('再次確認：您真的要停用帳號嗎？')) {
+                    // 獲取CSRF token（如果有的話）
+                    const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+                    
+                    const headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
+                    
+                    // 如果有CSRF token則添加
+                    if (csrfToken && csrfHeader) {
+                        headers[csrfHeader] = csrfToken;
+                    }
+                    
                     fetch('/member/settings/deactivate', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
+                        headers: headers,
+                        credentials: 'same-origin'  // 確保發送cookies
                     })
                     .then(response => {
+                        console.log('Response status:', response.status);
                         if (response.ok) {
-                            alert('帳號已停用，您將被登出');
-                            window.location.href = '/logout';
+                            return response.json();
                         } else {
-                            showToast('停用失敗，請稍後再試', 'error');
+                            // 嘗試讀取錯誤響應
+                            return response.text().then(text => {
+                                console.error('Error response:', text);
+                                throw new Error(`HTTP ${response.status}: ${text}`);
+                            });
+                        }
+                    })
+                    .then(data => {
+                        console.log('Success response:', data);
+                        if (data.success) {
+                            alert('帳號已停用，您將被登出');
+                            // 清除本地存儲（如果有的話）
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            window.location.href = '/api/v1/auth/member-login?message=account_deactivated';
+                        } else {
+                            showToast(data.message || '停用失敗，請稍後再試', 'error');
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
-                        showToast('停用失敗，請稍後再試', 'error');
+                        console.error('Deactivate account error:', error);
+                        showToast('停用失敗：' + error.message, 'error');
                     });
                 }
             }
