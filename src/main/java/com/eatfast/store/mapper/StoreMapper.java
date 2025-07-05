@@ -9,6 +9,11 @@ import com.eatfast.store.dto.CreateStoreRequest;
 import com.eatfast.store.dto.StoreDto;
 import com.eatfast.store.dto.UpdateStoreRequest;
 import com.eatfast.store.model.StoreEntity;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Component;
 
 @Component
@@ -54,5 +59,20 @@ public class StoreMapper {
         request.setStoreTime(dto.getStoreTime());
         request.setStoreStatus(dto.getStoreStatus());
         return request;
+    }
+    
+    public List<StoreDto> toDtoList(List<StoreEntity> entities) {
+        // 防呆設計：如果傳入的列表是 null，就回傳一個空的列表
+        if (entities == null) {
+            return Collections.emptyList();
+        }
+
+        // 使用 Java Stream API:
+        // 1. .stream()       : 將 Entity 列表轉換為一個串流。
+        // 2. .map(this::toDto): 對串流中的「每一個」Entity 物件，都去呼叫 toDto 方法進行轉換。
+        // 3. .collect(...)   : 將轉換後的所有 Dto 物件，收集起來變成一個新的 List<StoreDto>。
+        return entities.stream()
+                     .map(this::toDto)
+                     .collect(Collectors.toList());
     }
 }

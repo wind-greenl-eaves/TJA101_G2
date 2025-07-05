@@ -16,6 +16,9 @@ public class StoreDto {
     private String storeTime;
     private StoreStatus storeStatus;
     private LocalDateTime createTime;
+    
+    //新增googleMap欄位
+    private String googleMapUrl; 
 
     // Getters and Setters...
     public Long getStoreId() { return storeId; }
@@ -32,4 +35,6 @@ public class StoreDto {
     public void setStoreStatus(StoreStatus storeStatus) { this.storeStatus = storeStatus; }
     public LocalDateTime getCreateTime() { return createTime; }
     public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
+    public String getGoogleMapUrl() { return googleMapUrl; }
+    public void setGoogleMapUrl(String googleMapUrl) { this.googleMapUrl = googleMapUrl; }
 }

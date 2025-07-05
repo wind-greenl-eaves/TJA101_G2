@@ -13,4 +13,9 @@ public class CartViewController {
     public String showCartPage() {
         return "front-end/cart/cart"; // 返回 Thymeleaf 模板的路徑
     }
+    
+    @GetMapping("/test")  //購物車測試，加入假資料
+    public String showCartTestPage() {
+        return "front-end/cart/carttest"; // 假設您的檔案是 templates/front-end/cart/carttest.html
+    }
 }

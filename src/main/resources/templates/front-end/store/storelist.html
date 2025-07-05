@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>門市據點 - EatFast</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Noto Sans TC', 'sans-serif'],
+          },
+          colors: {
+            'brand-bg': '#FDFBF6',      // 背景色 - 杏仁白
+            'brand-container': '#F5EFE6', // 容器背景 - 燕麥色
+            'brand-primary': '#A67B5B', // 主題色 - 奶茶棕
+            'brand-primary-hover': '#8C684A', // 主題懸停色 - 深焙奶茶
+            'brand-text': '#5D534A',    // 主要文字 - 炭焙棕
+            'brand-deep': '#3C2A21',     // 極深咖啡色，用於強調
+            'brand-accent': '#E1A87A',  // 點綴色 - 焦糖橘
+          }
+        }
+      }
+    }
+    </script>
+    
+    <style>
+        /* 為被選中的按鈕定義一個啟用狀態的樣式 */
+        .store-button.active {
+            background-color: #A67B5B; /* brand-primary */
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body class="bg-brand-bg text-brand-text antialiased">
+
+    <header class="bg-white shadow-md fixed top-0 left-0 w-full z-50 transition-all duration-300">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            
+            <div class="flex-shrink-0">
+                <a th:href="@{/welcome}" class="flex items-center">
+                    <img th:src="@{/images/123.png}" alt="Logo" class="w-12 h-12 rounded-full mr-2">
+                    <span class="text-xl font-bold text-brand-deep">EatFast 早安！</span>
+                </a>
+            </div>
+
+            <div class="hidden md:flex space-x-8"> 
+                <a href="/welcome" class="text-brand-text hover:text-brand-primary font-medium text-lg">關於我們</a>
+                <a href="/welcome" class="text-brand-text hover:text-brand-primary font-medium text-lg">最新消息</a>
+                <a th:href="@{/store/view}" class="text-brand-primary font-bold text-lg">門市據點</a> 
+                <a th:href="@{/welcome}" class="text-brand-text hover:text-brand-primary font-medium text-lg">我要訂餐</a> 
+                <a th:href="@{/cart}" class="text-brand-text hover:text-brand-primary font-medium text-lg">購物車</a>
+            </div>
+
+            <div class="hidden md:flex items-center space-x-4">
+                <a href="/api/v1/auth/member-login" class="bg-brand-accent text-brand-deep font-bold px-5 py-2 rounded-full hover:bg-orange-400 transition-colors shadow-sm">
+                    登入/註冊
+                </a>
+            </div>
+
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8 pt-28 md:pt-32">
+        
+        <div class="flex flex-col md:flex-row gap-8">
+
+            <aside class="w-full md:w-64 flex-shrink-0">
+                <div class="bg-brand-container p-4 rounded-lg shadow-md h-full">
+                    <h2 class="text-xl font-bold text-brand-deep mb-4 border-b-2 border-gray-300 pb-2">門市據點</h2>
+                    <nav class="space-y-2">
+                        <th:block th:each="store, iterStat : ${storeList}">
+                            <button
+                                class="store-button w-full text-left px-4 py-2 rounded-md transition-colors duration-200"
+                                th:classappend="${iterStat.index == 0} ? 'active'"
+                                th:data-id="${store.storeId}"
+                                th:data-name="${store.storeName}"
+                                th:data-loc="${store.storeLoc}"
+                                th:data-phone="${store.storePhone}"
+                                th:data-time="${store.storeTime}"
+                                th:data-map-url="${store.googleMapUrl}">
+                                <span th:text="${store.storeName}">一號店</span>
+                            </button>
+                        </th:block>
+                    </nav>
+                </div>
+            </aside>
+
+            <section class="flex-grow">
+                <div class="bg-brand-container p-6 md:p-8 rounded-lg shadow-md">
+                    <h1 id="store-name" class="text-3xl font-bold text-brand-deep mb-2" th:text="${currentStore.storeName}">一號店</h1>
+                    <p class="text-lg text-brand-primary mb-6" th:text="'門市詳細資訊'">門市詳細資訊</p>
+
+                    <div class="space-y-4 text-brand-text">
+                        <div class="flex items-center">
+                            <span class="font-bold w-24">📍 地點</span>
+                            <span id="store-loc" th:text="${currentStore.storeLoc}">104台北市中山區南京東路三段219號4F</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="font-bold w-24">📞 電話</span>
+                            <span id="store-phone" th:text="${currentStore.storePhone}">02-27120589</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="font-bold w-24">⏰ 營業時間</span>
+                            <span id="store-time" th:text="${currentStore.storeTime}">平日05:30~14:00 / 假日 07:00~16:00 (週三公休)</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 border rounded-lg overflow-hidden shadow-inner">
+                        <iframe id="store-map-iframe"
+                                th:src="${currentStore.googleMapUrl}"
+                                width="100%"
+                                height="400"
+                                style="border:0;"
+                                allowfullscreen=""
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                    </div>
+
+                    <div class="mt-8 text-center">
+                         <a id="order-now-button"
+                           th:href="@{/meal/list/{storeId}(storeId=${currentStore.storeId})}"
+                           class="bg-brand-accent text-brand-deep font-bold py-3 px-8 rounded-full shadow-lg hover:bg-orange-400 transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                           前往點餐
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-brand-deep text-brand-container text-center p-6 mt-16">
+        <p>&copy; © 2025 EatFast 早餐店 - 版權所有 | 為您提供最優質的早餐服務 </p>
+    </footer>
+
+    <script>
+        // 等待整個網頁文件都載入完成後，再執行裡面的程式碼
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // 找到所有代表門市的按鈕
+            const storeButtons = document.querySelectorAll('.store-button');
+            
+            // 找到右側要被更新內容的各個元素
+            const storeNameEl = document.getElementById('store-name');
+            const storeLocEl = document.getElementById('store-loc');
+            const storePhoneEl = document.getElementById('store-phone');
+            const storeTimeEl = document.getElementById('store-time');
+            const storeMapIframeEl = document.getElementById('store-map-iframe');
+            const orderNowButtonEl = document.getElementById('order-now-button');
+
+            // 為每一個按鈕加上點擊事件的監聽
+            storeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    
+                    // --- 更新右側詳細資訊 ---
+                    // 從被點擊的按鈕的 data-* 屬性中，讀取儲存的資料
+                    const data = this.dataset;
+                    
+                    storeNameEl.textContent = data.name;
+                    storeLocEl.textContent = data.loc;
+                    storePhoneEl.textContent = data.phone;
+                    storeTimeEl.textContent = data.time;
+                    storeMapIframeEl.src = data.mapUrl;
+                    
+                    // 更新 "前往點餐" 按鈕的連結
+                    const orderUrl = `[[@{/meal/list/}]]${data.id}`;
+                    orderNowButtonEl.href = orderUrl;
+
+                    // --- 更新按鈕的啟用狀態樣式 ---
+                    // 1. 先移除所有按鈕的 'active' class
+                    storeButtons.forEach(btn => btn.classList.remove('active'));
+                    // 2. 只為當前被點擊的按鈕加上 'active' class
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
