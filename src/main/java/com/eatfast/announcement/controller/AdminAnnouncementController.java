@@ -3,6 +3,7 @@ package com.eatfast.announcement.controller;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.eatfast.feedback.model.FeedbackEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -113,5 +114,7 @@ public class AdminAnnouncementController {
     }
 
 
+    public void save(FeedbackEntity feedback) {
     }
+}
 
