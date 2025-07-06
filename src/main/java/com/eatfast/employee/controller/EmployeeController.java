@@ -10,6 +10,7 @@ import com.eatfast.employee.dto.CreateEmployeeRequest;
 import com.eatfast.employee.dto.EmployeeDTO;
 import com.eatfast.employee.dto.UpdateEmployeeRequest;
 import com.eatfast.employee.service.EmployeeService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -48,8 +49,37 @@ public class EmployeeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id) {
+    public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id, HttpSession session) {
+        // 權限檢查：獲取當前登入員工資訊
+        EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+        if (currentEmployee == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         EmployeeDTO employeeDto = employeeService.findEmployeeById(id);
+        
+        // 根據員工角色進行權限控制
+        EmployeeRole currentRole = currentEmployee.getRole();
+        switch (currentRole) {
+            case HEADQUARTERS_ADMIN:
+                // 總部管理員：可以查看所有員工
+                break;
+                
+            case MANAGER:
+                // 門市經理：只能查看自己門市的員工
+                if (!employeeDto.getStoreId().equals(currentEmployee.getStoreId())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
+                break;
+                
+            case STAFF:
+                // 一般員工：無權限查看員工資料
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                
+            default:
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
         return ResponseEntity.ok(employeeDto);
     }
     
@@ -58,13 +88,45 @@ public class EmployeeController {
             @RequestParam(required = false) String username,
             @RequestParam(required = false) EmployeeRole role,
             @RequestParam(required = false) AccountStatus status,
-            @RequestParam(required = false) Long storeId
+            @RequestParam(required = false) Long storeId,
+            HttpSession session
     ) {
+        // 權限檢查：獲取當前登入員工資訊
+        EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+        if (currentEmployee == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // 根據員工角色進行權限控制
+        EmployeeRole currentRole = currentEmployee.getRole();
         Map<String, Object> searchParams = new HashMap<>();
-        if (StringUtils.hasText(username)) searchParams.put("username", username);
-        if (role != null) searchParams.put("role", role);
-        if (status != null) searchParams.put("status", status);
-        if (storeId != null) searchParams.put("storeId", storeId);
+        
+        switch (currentRole) {
+            case HEADQUARTERS_ADMIN:
+                // 總部管理員：可以查看所有員工
+                if (StringUtils.hasText(username)) searchParams.put("username", username);
+                if (role != null) searchParams.put("role", role);
+                if (status != null) searchParams.put("status", status);
+                if (storeId != null) searchParams.put("storeId", storeId);
+                break;
+                
+            case MANAGER:
+                // 門市經理：只能查看自己門市的員工
+                if (StringUtils.hasText(username)) searchParams.put("username", username);
+                if (role != null) searchParams.put("role", role);
+                if (status != null) searchParams.put("status", status);
+                // 強制限制為當前員工的門市
+                searchParams.put("storeId", currentEmployee.getStoreId());
+                break;
+                
+            case STAFF:
+                // 一般員工：無權限查看員工資料
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                
+            default:
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
         List<EmployeeDTO> employees = employeeService.searchEmployees(searchParams);
         return ResponseEntity.ok(employees);
     }
@@ -72,13 +134,76 @@ public class EmployeeController {
     @PutMapping("/{id}")
     public ResponseEntity<EmployeeDTO> updateEmployee(
             @PathVariable Long id,
-            @ModelAttribute @Valid UpdateEmployeeRequest request) {
+            @ModelAttribute @Valid UpdateEmployeeRequest request,
+            HttpSession session) {
+        // 權限檢查：獲取當前登入員工資訊
+        EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+        if (currentEmployee == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // 先查詢要更新的員工資料
+        EmployeeDTO targetEmployee = employeeService.findEmployeeById(id);
+        
+        // 根據員工角色進行權限控制
+        EmployeeRole currentRole = currentEmployee.getRole();
+        switch (currentRole) {
+            case HEADQUARTERS_ADMIN:
+                // 總部管理員：可以修改所有員工
+                break;
+                
+            case MANAGER:
+                // 門市經理：只能修改自己門市的員工
+                if (!targetEmployee.getStoreId().equals(currentEmployee.getStoreId())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
+                break;
+                
+            case STAFF:
+                // 一般員工：無權限修改員工資料
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                
+            default:
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
         EmployeeDTO updatedEmployee = employeeService.updateEmployee(id, request);
         return ResponseEntity.ok(updatedEmployee);
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteEmployee(@PathVariable Long id, HttpSession session) {
+        // 權限檢查：獲取當前登入員工資訊
+        EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+        if (currentEmployee == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // 先查詢要刪除的員工資料
+        EmployeeDTO targetEmployee = employeeService.findEmployeeById(id);
+        
+        // 根據員工角色進行權限控制
+        EmployeeRole currentRole = currentEmployee.getRole();
+        switch (currentRole) {
+            case HEADQUARTERS_ADMIN:
+                // 總部管理員：可以刪除所有員工
+                break;
+                
+            case MANAGER:
+                // 門市經理：只能刪除自己門市的員工
+                if (!targetEmployee.getStoreId().equals(currentEmployee.getStoreId())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
+                break;
+                
+            case STAFF:
+                // 一般員工：無權限刪除員工資料
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                
+            default:
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
     }

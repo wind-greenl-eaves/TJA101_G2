@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -74,13 +75,42 @@ public class EmployeeViewController {
     }
 
     /**
-     * 【方法更新】: 此方法現在僅作為一個跳轉入口。
-     * 真正的查詢邏輯已轉移到 `listAllEmployees.html` 頁面的 JavaScript 中，
-     * 它會根據 URL 的查詢參數動態呼叫後端 API。
+     * 【方法更新】: 此方法現在加入權限控制。
+     * 總部管理員可以看到所有員工，門市經理只能看到自己門市的員工，一般員工無權限訪問。
      */
     @GetMapping("/listAll")
-    public String showAllEmployees() {
-        // 不再需要於此處查詢資料，交由前端 JS 處理。
+    public String showAllEmployees(HttpSession session, RedirectAttributes redirectAttributes) {
+        // 權限檢查：獲取當前登入員工資訊
+        EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+        if (currentEmployee == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "請重新登入");
+            return "redirect:/employee/login";
+        }
+
+        // 根據員工角色進行權限控制
+        EmployeeRole currentRole = currentEmployee.getRole();
+        
+        switch (currentRole) {
+            case HEADQUARTERS_ADMIN:
+                // 總部管理員：可以查看所有員工
+                break;
+                
+            case MANAGER:
+                // 門市經理：可以查看，但前端會限制只顯示自己門市的員工
+                break;
+                
+            case STAFF:
+                // 一般員工：無權限查看員工資料
+                redirectAttributes.addFlashAttribute("errorMessage", "權限不足：您沒有權限查看員工列表");
+                return "redirect:/employee/select_page";
+                
+            default:
+                redirectAttributes.addFlashAttribute("errorMessage", "權限不足");
+                return "redirect:/employee/select_page";
+        }
+        
+        // 真正的查詢邏輯已轉移到 `listAllEmployees.html` 頁面的 JavaScript 中，
+        // 它會根據 URL 的查詢參數動態呼叫後端 API。
         return "back-end/employee/listAllEmployees";
     }
 

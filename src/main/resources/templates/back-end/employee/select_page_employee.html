@@ -245,10 +245,18 @@
                 <i class="fas fa-user-plus"></i>
                 <span>新增員工</span>
             </a>
-            <a th:href="@{/employee/listAll}" class="nav-item">
+            <!-- 修改員工列表權限：總部管理員和門市經理都可以訪問 -->
+            <a th:href="@{/employee/listAll}" class="nav-item" 
+               th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN' or session.loggedInEmployee?.role?.name() == 'MANAGER'}">
                 <i class="fas fa-list"></i>
                 <span>員工列表</span>
             </a>
+            <!-- 一般員工顯示禁用狀態 -->
+            <div class="nav-item bg-gray-100 cursor-not-allowed opacity-60" 
+                 th:if="${session.loggedInEmployee?.role?.name() == 'STAFF'}">
+                <i class="fas fa-list text-gray-400"></i>
+                <span class="text-gray-500">員工列表 (權限不足)</span>
+            </div>
         </div>
         
         <!-- 會員管理區塊 -->
@@ -327,29 +335,51 @@
             
             <!-- 單一查詢區塊 (維持不變) -->
             <div id="single-query-section" class="space-y-6">
-                <a th:href="@{/employee/listAll}" class="form-container hover:shadow-md transition-shadow cursor-pointer">
-                    <span class="font-semibold text-lg">查詢所有員工資料</span>
+                <!-- 查詢所有員工資料 - 根據權限顯示 -->
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}" 
+                     class="form-container hover:shadow-md transition-shadow cursor-pointer" 
+                     onclick="window.location.href='/employee/listAll'">
+                    <span class="font-semibold text-lg">查詢所有員工資料 (總部管理員專用)</span>
                     <span class="text-lg text-[var(--primary-color)]">➔</span>
-                </a>
-                <form id="query-by-id-input-form" class="form-container">
-                    <label for="employee-id-input" class="form-label text-lg">輸入員工編號：</label>
-                    <input type="text" id="employee-id-input" name="employeeId" placeholder="例如: 1" class="form-input text-lg">
-                    <button type="submit" class="submit-btn text-lg">送出查詢</button>
-                </form>
-                <form id="query-by-id-select-form" class="form-container">
-                    <label for="employee-id-select" class="form-label text-lg">選擇員工編號：</label>
-                    <select id="employee-id-select" name="employeeId" class="form-input text-lg">
-                        <option value="">-- 載入中... --</option>
-                    </select>
-                    <button type="submit" class="submit-btn text-lg">送出查詢</button>
-                </form>
-                <form id="query-by-name-select-form" class="form-container">
-                    <label for="employee-name-select" class="form-label text-lg">選擇員工姓名：</label>
-                    <select id="employee-name-select" name="employeeId" class="form-input text-lg">
-                        <option value="">-- 載入中... --</option>
-                    </select>
-                    <button type="submit" class="submit-btn text-lg">送出查詢</button>
-                </form>
+                </div>
+                
+                <!-- 門市經理的查詢功能 -->
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'MANAGER'}" 
+                     class="form-container hover:shadow-md transition-shadow cursor-pointer" 
+                     onclick="handleManagerEmployeeQuery()">
+                    <span class="font-semibold text-lg">查詢本門市員工資料 (門市經理專用)</span>
+                    <span class="text-lg text-[var(--primary-color)]">➔</span>
+                </div>
+                
+                <!-- 一般員工的提示訊息 -->
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'STAFF'}" 
+                     class="form-container bg-gray-100 cursor-not-allowed opacity-60">
+                    <span class="font-semibold text-lg text-gray-500">員工資料查詢 (權限不足)</span>
+                    <span class="text-lg text-gray-400">✗</span>
+                </div>
+                
+                <!-- 原有的查詢功能 - 根據權限控制 -->
+                <div th:if="${session.loggedInEmployee?.role?.name() != 'STAFF'}">
+                    <form id="query-by-id-input-form" class="form-container">
+                        <label for="employee-id-input" class="form-label text-lg">輸入員工編號：</label>
+                        <input type="text" id="employee-id-input" name="employeeId" placeholder="例如: 1" class="form-input text-lg">
+                        <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                    </form>
+                    <form id="query-by-id-select-form" class="form-container">
+                        <label for="employee-id-select" class="form-label text-lg">選擇員工編號：</label>
+                        <select id="employee-id-select" name="employeeId" class="form-input text-lg">
+                            <option value="">-- 載入中... --</option>
+                        </select>
+                        <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                    </form>
+                    <form id="query-by-name-select-form" class="form-container">
+                        <label for="employee-name-select" class="form-label text-lg">選擇員工姓名：</label>
+                        <select id="employee-name-select" name="employeeId" class="form-input text-lg">
+                            <option value="">-- 載入中... --</option>
+                        </select>
+                        <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                    </form>
+                </div>
             </div>
             
             <!-- 【全新】複合查詢區塊 (預設隱藏) -->
@@ -773,6 +803,96 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             showError(error.message);
         }
+    }
+
+    // --- 門市經理專用查詢功能 ---
+    window.handleManagerEmployeeQuery = async function() {
+        try {
+            clearError();
+            // 門市經理查詢本門市所有員工
+            const response = await fetch(API_BASE_URL);
+            if (!response.ok) {
+                if (response.status === 403) {
+                    showError('權限不足：您沒有權限查看員工資料');
+                } else if (response.status === 401) {
+                    showError('請重新登入');
+                    setTimeout(() => {
+                        window.location.href = '/employee/login';
+                    }, 2000);
+                } else {
+                    throw new Error(`查詢失敗 (狀態碼: ${response.status})`);
+                }
+                return;
+            }
+            
+            const employees = await response.json();
+            if (employees.length === 0) {
+                showError('您的門市目前沒有其他員工');
+                return;
+            }
+            
+            // 顯示門市員工列表
+            displayManagerEmployeesList(employees);
+            
+        } catch (error) {
+            showError(error.message || '查詢員工資料時發生錯誤');
+        }
+    };
+
+    // --- 顯示門市員工列表 ---
+    function displayManagerEmployeesList(employees) {
+        // 創建一個臨時的列表顯示區域
+        let listContainer = document.getElementById('manager-employees-list');
+        if (!listContainer) {
+            listContainer = document.createElement('div');
+            listContainer.id = 'manager-employees-list';
+            listContainer.className = 'bg-white p-4 rounded-lg border border-[var(--border-color)] shadow-sm mt-4';
+            
+            // 插入到單一查詢區塊後面
+            const singleQuerySection = document.getElementById('single-query-section');
+            singleQuerySection.parentNode.insertBefore(listContainer, singleQuerySection.nextSibling);
+        }
+        
+        let html = `
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-[var(--primary-color)]">本門市員工列表 (${employees.length} 人)</h3>
+                <button onclick="document.getElementById('manager-employees-list').remove()" 
+                        class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="grid gap-3">
+        `;
+        
+        employees.forEach(emp => {
+            const roleIcon = {
+                'STAFF': 'fas fa-user',
+                'MANAGER': 'fas fa-user-tie',
+                'HEADQUARTERS_ADMIN': 'fas fa-user-shield'
+            }[emp.role] || 'fas fa-user';
+            
+            const statusColor = emp.status === 'ACTIVE' ? 'text-green-600' : 'text-red-600';
+            
+            html += `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                     onclick="handleSingleEmployeeQuery(${emp.employeeId})">
+                    <div class="flex items-center">
+                        <i class="${roleIcon} text-[var(--primary-color)] mr-3"></i>
+                        <div>
+                            <p class="font-semibold">${emp.username}</p>
+                            <p class="text-sm text-gray-600">ID: ${emp.employeeId} | ${emp.role?.displayName || emp.role}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm ${statusColor}">${emp.status === 'ACTIVE' ? '啟用' : '停用'}</p>
+                        <p class="text-xs text-gray-500">${emp.email}</p>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        listContainer.innerHTML = html;
     }
 
     // --- 頁面初始化 ---
