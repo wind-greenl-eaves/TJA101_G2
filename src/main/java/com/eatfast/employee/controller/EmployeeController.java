@@ -310,4 +310,82 @@ public class EmployeeController {
         public String getValue() { return value; }
         public void setValue(String value) { this.value = value; }
     }
+
+    @PutMapping("/{id}/photo")
+    public ResponseEntity<?> updateEmployeePhoto(
+            @PathVariable Long id,
+            @RequestParam("photo") MultipartFile photo,
+            HttpSession session) {
+        try {
+            // 權限檢查：獲取當前登入員工資訊
+            EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+            if (currentEmployee == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            // 先查詢要更新的員工資料
+            EmployeeDTO targetEmployee = employeeService.findEmployeeById(id);
+            
+            // 根據員工角色進行權限控制
+            EmployeeRole currentRole = currentEmployee.getRole();
+            switch (currentRole) {
+                case HEADQUARTERS_ADMIN:
+                    // 總部管理員：可以修改所有員工照片
+                    break;
+                    
+                case MANAGER:
+                    // 門市經理：只能修改自己門市的員工照片
+                    if (!targetEmployee.getStoreId().equals(currentEmployee.getStoreId())) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    }
+                    break;
+                    
+                case STAFF:
+                    // 一般員工：無權限修改員工照片
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    
+                default:
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            // 驗證照片檔案
+            if (photo.isEmpty()) {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "請選擇要上傳的照片檔案");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 檢查檔案格式
+            String contentType = photo.getContentType();
+            if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "只支援 JPG 或 PNG 格式的圖片");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 檢查檔案大小 (5MB)
+            if (photo.getSize() > 5 * 1024 * 1024) {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "圖片大小不能超過 5MB");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 更新員工照片
+            EmployeeDTO updatedEmployee = employeeService.updateEmployeePhoto(id, photo);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "照片上傳成功");
+            response.put("employee", updatedEmployee);
+            return ResponseEntity.ok(response);
+            
+        } catch (IOException e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "照片上傳失敗：" + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }

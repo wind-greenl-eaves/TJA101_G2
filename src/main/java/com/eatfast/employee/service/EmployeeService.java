@@ -7,6 +7,8 @@ package com.eatfast.employee.service;
 import com.eatfast.employee.dto.CreateEmployeeRequest;
 import com.eatfast.employee.dto.EmployeeDTO;
 import com.eatfast.employee.dto.UpdateEmployeeRequest;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -64,4 +66,14 @@ public interface EmployeeService {
 	 * @return 處理結果訊息
 	 */
 	String processForgotPassword(String accountOrEmail);
+
+	/**
+	 * 【新增照片上傳方法】: 更新員工照片
+	 * 
+	 * @param employeeId 員工編號
+	 * @param photo 照片檔案
+	 * @return 更新後的員工資訊
+	 * @throws IOException 檔案處理異常
+	 */
+	EmployeeDTO updateEmployeePhoto(Long employeeId, MultipartFile photo) throws IOException;
 }
