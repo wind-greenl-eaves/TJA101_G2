@@ -7,6 +7,7 @@ import com.eatfast.employee.service.EmployeeService;
 import com.eatfast.store.dto.StoreDto;
 import com.eatfast.store.service.StoreService;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -39,10 +40,22 @@ public class EmployeeViewController {
      * [配對]: index.html 中的「進入員工管理系統」按鈕。
      */
     @GetMapping("/select_page")
-    public String showSelectPage(Model model) {
+    public String showSelectPage(Model model, HttpSession session,
+                                  @RequestParam(value = "welcome", required = false) String welcome) {
         // [不可變動的關鍵字]: model.addAttribute
         // 說明: 將後端資料傳遞給前端 Thymeleaf 模板。
-        
+
+        // 檢查是否有登入的員工資訊
+        EmployeeDTO loggedInEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+        String employeeName = (String) session.getAttribute("employeeName");
+
+        // 如果有 welcome 參數或者是剛登入的狀態，顯示歡迎訊息
+        if ("true".equals(welcome) || (loggedInEmployee != null && employeeName != null)) {
+            model.addAttribute("showWelcome", true);
+            model.addAttribute("welcomeMessage", "歡迎回來，" + (employeeName != null ? employeeName : "訪客") + "！");
+            model.addAttribute("loggedInEmployee", loggedInEmployee);
+        }
+
         // 1. 傳遞所有可選的「員工角色」
         model.addAttribute("roles", EmployeeRole.values());
         // 2. 傳遞所有可選的「帳號狀態」

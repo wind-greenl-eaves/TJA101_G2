@@ -563,9 +563,59 @@
             background: var(--primary-color);
             transform: scale(1.2);
         }
+        
+        /* 【新增】返回首頁按鈕樣式 */
+        .home-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(166, 123, 91, 0.3);
+            backdrop-filter: blur(10px);
+            background: rgba(166, 123, 91, 0.95);
+        }
+        
+        .home-button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(166, 123, 91, 0.4);
+            background: rgba(140, 104, 74, 0.95);
+        }
+        
+        .home-button:active {
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 480px) {
+            .home-button {
+                top: 15px;
+                right: 15px;
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- 【新增】返回首頁按鈕 -->
+    <a href="/welcome" class="home-button">
+        <i class="fas fa-home"></i>
+        返回首頁
+    </a>
+    
     <div class="page-container">
         <!-- 登入表單區塊 -->
         <div class="login-container">

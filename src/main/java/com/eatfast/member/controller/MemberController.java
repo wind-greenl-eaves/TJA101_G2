@@ -24,11 +24,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 // 【新增】時間處理和檔案下載相關的 import
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+// 【新增】驗證相關的 import
+import jakarta.validation.Validator;
+import jakarta.validation.Validation;
+import jakarta.validation.ConstraintViolation;
+// 【新增】枚舉 import
+import com.eatfast.common.enums.Gender;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,7 +136,6 @@ public class MemberController {
                 updateRequest.setPhone(memberEntity.getPhone());
                 updateRequest.setBirthday(memberEntity.getBirthday());
                 updateRequest.setGender(memberEntity.getGender());
-                updateRequest.setIsEnabled(memberEntity.isEnabled());
                 
                 // 【資料流路徑】: 提供「更新資料」的 DTO 給第一個表單。
                 model.addAttribute("memberUpdateRequest", updateRequest);
@@ -355,7 +362,7 @@ public class MemberController {
             updateRequest.setPhone(member.getPhone());
             updateRequest.setBirthday(member.getBirthday());
             updateRequest.setGender(member.getGender());
-            updateRequest.setIsEnabled(member.isEnabled());
+            // 【安全修正】移除 setIsEnabled，禁止會員修改帳號狀態
             
             // 【傳遞資料到視圖】
             model.addAttribute("memberUpdateRequest", updateRequest);
@@ -759,7 +766,6 @@ public class MemberController {
             updateRequest.setPhone(member.getPhone());
             updateRequest.setBirthday(member.getBirthday());
             updateRequest.setGender(member.getGender());
-            updateRequest.setIsEnabled(member.isEnabled());
             model.addAttribute("memberUpdateRequest", updateRequest);
         });
     }
@@ -903,6 +909,170 @@ public class MemberController {
     // ================================================================
     // 					即時驗證功能 (Real-time Validation)
     // ================================================================
+    
+    /**
+     * 【新增】前端個人資料即時驗證端點
+     * 
+     * @param field 要驗證的欄位名稱
+     * @param value 欄位值
+     * @param memberId 會員ID
+     * @param session HTTP Session
+     * @return JSON 回應包含驗證結果
+     */
+    @PostMapping("/profile/validate")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> validateProfileField(
+            @RequestParam("field") String field,
+            @RequestParam("value") String value,
+            @RequestParam("memberId") Long memberId,
+            HttpSession session) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 【Session驗證】檢查用戶是否已登入且操作自己的資料
+            Long sessionMemberId = (Long) session.getAttribute("loggedInMemberId");
+            if (sessionMemberId == null || !sessionMemberId.equals(memberId)) {
+                response.put("valid", false);
+                response.put("message", "請重新登入");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 【欄位驗證】根據不同欄位進行相應驗證
+            boolean isValid = false;
+            String message = "";
+            
+            switch (field) {
+                case "username":
+                    if (value.trim().length() < 2) {
+                        message = "姓名至少需要2個字元";
+                    } else if (value.trim().length() > 50) {
+                        message = "姓名不能超過50個字元";
+                    } else {
+                        isValid = true;
+                        message = "姓名格式正確";
+                    }
+                    break;
+                    
+                case "email":
+                    // 【修正】更嚴格的電子郵件格式驗證
+                    // 支援常見格式如：user@domain.com, user.name@domain.co.uk, user+tag@domain.org
+                    // 但拒絕無效格式如：user@domain.co (無效的頂級域名)
+                    boolean isValidEmail = false;
+                    String emailMessage = "";
+                    
+                    // 基本格式檢查：用戶名@域名.頂級域名
+                    if (!value.matches("^[A-Za-z0-9+_.'-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                        emailMessage = "請輸入有效的電子郵件格式";
+                    } else {
+                        // 進一步檢查頂級域名是否合理
+                        String[] parts = value.split("@");
+                        if (parts.length == 2) {
+                            String domain = parts[1];
+                            String[] domainParts = domain.split("\\.");
+                            
+                            if (domainParts.length >= 2) {
+                                String topLevelDomain = domainParts[domainParts.length - 1];
+                                
+                                // 【修正邏輯】更嚴格的頂級域名檢查
+                                if (topLevelDomain.length() >= 3) {
+                                    // 3個字母以上的頂級域名都接受 (.com, .org, .net, .edu 等)
+                                    isValidEmail = true;
+                                } else if (topLevelDomain.length() == 2 && isCommonTLD(topLevelDomain)) {
+                                    // 2個字母的必須是常見的國家代碼
+                                    isValidEmail = true;
+                                } else {
+                                    // 其他情況都拒絕
+                                    emailMessage = "請輸入有效的電子郵件格式（如：example@gmail.com）";
+                                }
+                            } else {
+                                emailMessage = "請輸入有效的電子郵件格式";
+                            }
+                        } else {
+                            emailMessage = "請輸入有效的電子郵件格式";
+                        }
+                    }
+                    
+                    if (!isValidEmail) {
+                        message = emailMessage;
+                    } else {
+                        // 檢查email是否被其他會員使用
+                        boolean emailExists = memberService.isEmailExistsForOtherMember(value, memberId);
+                        if (emailExists) {
+                            message = "此電子郵件已被其他會員使用";
+                        } else {
+                            isValid = true;
+                            message = "電子郵件可以使用";
+                        }
+                    }
+                    break;
+                    
+                case "phone":
+                    // 【修正】統一電話號碼驗證邏輯，與 DTO 驗證保持一致
+                    // 支援格式：0912345678, 0912-345-678, 09-12345678, (02)12345678, 02-12345678
+                    String phonePattern = "^(09\\d{8}|09\\d{2}[\\s-]\\d{3}[\\s-]\\d{3}|09[\\s-]\\d{8}|0[2-8][\\s-]?\\d{7,8}|\\(0[2-8]\\)\\d{7,8})$";
+                    
+                    if (!value.matches(phonePattern)) {
+                        message = "請輸入有效的電話號碼格式（如：0912345678、0912-345-678、02-12345678）";
+                    } else {
+                        // 檢查電話是否被其他會員使用
+                        boolean phoneExists = memberService.isPhoneExistsForOtherMember(value, memberId);
+                        if (phoneExists) {
+                            message = "此電話號碼已被其他會員使用";
+                        } else {
+                            isValid = true;
+                            message = "電話號碼可以使用";
+                        }
+                    }
+                    break;
+                    
+                case "birthday":
+                    try {
+                        LocalDate birthday = LocalDate.parse(value);
+                        LocalDate now = LocalDate.now();
+                        LocalDate minDate = now.minusYears(120); // 最大120歲
+                        LocalDate maxDate = now.minusYears(10);  // 最小10歲
+                        
+                        if (birthday.isBefore(minDate)) {
+                            message = "出生日期不能超過120年前";
+                        } else if (birthday.isAfter(maxDate)) {
+                            message = "年齡需滿10歲才能註冊";
+                        } else if (birthday.isAfter(now)) {
+                            message = "出生日期不能是未來日期";
+                        } else {
+                            isValid = true;
+                            message = "出生日期正確";
+                        }
+                    } catch (Exception e) {
+                        message = "請選擇有效的出生日期";
+                    }
+                    break;
+                    
+                case "gender":
+                    if ("M".equals(value) || "F".equals(value)) {
+                        isValid = true;
+                        message = "性別選擇正確";
+                    } else {
+                        message = "請選擇有效的性別";
+                    }
+                    break;
+                    
+                default:
+                    message = "未知的驗證欄位";
+                    break;
+            }
+            
+            response.put("valid", isValid);
+            response.put("message", message);
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("個人資料欄位驗證時發生錯誤: {}", e.getMessage());
+            response.put("valid", false);
+            response.put("message", "驗證過程發生錯誤");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
     
     /**
      * 【即時驗證】檢查舊密碼是否正確
@@ -1224,5 +1394,30 @@ public class MemberController {
             default:
                 return "未知 (" + gender + ")";
         }
+    }
+    
+    /**
+     * 【輔助方法】檢查是否為常見的2字母頂級域名（國家代碼）
+     * 
+     * @param tld 頂級域名
+     * @return true 如果是常見的2字母國家代碼
+     */
+    private boolean isCommonTLD(String tld) {
+        // 常見的2字母國家代碼頂級域名
+        String[] commonTLDs = {
+            "tw", "cn", "jp", "kr", "us", "uk", "ca", "au", "de", "fr", 
+            "it", "es", "nl", "se", "no", "dk", "fi", "be", "ch", "at",
+            "ie", "pt", "pl", "cz", "hu", "ro", "bg", "hr", "si", "sk",
+            "ee", "lv", "lt", "mt", "cy", "lu", "is", "li", "mc", "sm",
+            "va", "ad", "gi", "je", "gg", "im", "fo", "gl", "aw", "an",
+            "ai", "ag", "bb", "bz", "bs", "dm", "do", "gd", "gt", "ht",
+            "hn", "jm", "kn", "lc", "ms", "ni", "pa", "sv", "tt", "vc",
+            "vg", "vi", "pr", "mx", "cu", "cr", "bo", "br", "cl", "co",
+            "ec", "gy", "pe", "py", "sr", "uy", "ve", "ar", "fk", "gf",
+            "pf", "tf", "nc", "wf", "vu", "to", "tv", "tk", "nu", "nf",
+            "cx", "cc", "hm", "au", "nz", "fj", "pg", "sb", "vu", "nc"
+        };
+        
+        return java.util.Arrays.asList(commonTLDs).contains(tld.toLowerCase());
     }
 }
