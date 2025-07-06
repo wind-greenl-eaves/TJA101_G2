@@ -60,7 +60,6 @@ public class MealController {
 
     // 處理新增餐點請求，將填寫的資料、圖片存入資料庫
     @PostMapping("/insert")
-    // 使用 @ModelAttribute("mealEntity") 確保表單數據正確綁定回 mealEntity
     public String insert(@Validated MealEntity mealEntity, BindingResult result, ModelMap model,
            RedirectAttributes redirectAttributes) throws IOException {
     	
@@ -73,11 +72,11 @@ public class MealController {
           if (mealPic.getSize() > MAX_FILE_SIZE) {
         	 result.addError(new FieldError("mealEntity", "mealPicFile", "圖片大小不可超過 10MB"));
 	        } else {
-	            mealEntity.setMealPic(mealPic.getBytes()); // 將上傳的圖片轉換為位元組陣列
+	            mealEntity.setMealPic(mealPic.getBytes()); // 轉為 byte[] 存進 LONGBLOB
 	        }
         }
 
-        // 表單驗證錯誤則返回新增餐點表單頁面
+        // 表單驗證錯誤，則返回新增餐點表單頁面
         if (result.hasErrors()) {
             return "back-end/meal/addMeal";
         }
@@ -85,31 +84,29 @@ public class MealController {
         // 如果所有驗證都通過，執行新增操作
         mealService.addMeal(mealEntity);
         redirectAttributes.addFlashAttribute("success", "- (新增成功)");
-
-        // 重導向到顯示所有餐點的列表頁面，這會觸發一個新的請求，重新載入最新數據
         return "redirect:/meal/listAllMeal";
     
         }
 
     // 顯示或查詢一筆餐點資料（依ID）
     @PostMapping("/getOne_For_Display")
-    public String getOne_For_Display(@RequestParam("mealId") String mealId, Model model) {
+    public String getOne_For_Display(@RequestParam(value = "mealId", required = false) String mealId, Model model) {
         // 先載入所有餐點列表，確保頁面數據完整性
         List<MealEntity> allMeals = mealService.getAll();
         model.addAttribute("mealListData", allMeals);
 
         // 伺服器端基本驗證：防止空值查詢
         if (mealId == null || mealId.trim().isEmpty()) {
-            model.addAttribute("errorMessage", "餐點編號不可為空");
-            return "back-end/meal/listAllMeal"; // 統一導向餐點列表頁面
+            model.addAttribute("errorMessage", "請輸入或選擇餐點編號");
+            return "back-end/meal/select_page_meal"; // 統一導向餐點列表頁面
         }
 
         Long id = null;
         try {
             id = Long.valueOf(mealId);
         } catch (NumberFormatException e) {
-            model.addAttribute("errorMessage", "餐點編號格式錯誤");
-            return "back-end/meal/listAllMeal"; // 統一導向餐點列表頁面
+            model.addAttribute("errorMessage", "餐點編號格式錯誤，請輸入數字");
+            return "back-end/meal/select_page_meal"; // 統一導向餐點列表頁面
         }
 
         MealEntity meal = mealService.getOneMeal(id); // 查詢單一餐點
@@ -181,13 +178,21 @@ public class MealController {
     // 查詢特定類別的餐點
     @PostMapping("/byType")
     public String getMealsByType(@RequestParam("mealTypeId") Long mealTypeId, Model model) {
-        List<MealEntity> meals;
-        if (mealTypeId == null || mealTypeId == 0L) { // 假設 0 或 null 代表顯示所有種類
-             meals = mealService.getAll();
-        } else {
-             meals = mealService.getMealsByType(mealTypeId);
+    	// 檢查 mealTypeId 是否為預設的 "0" 或 null
+        if (mealTypeId == null || mealTypeId == 0L) {
+            model.addAttribute("errorMessage", "請選擇有效的餐點種類");
+            // 導向回原始查詢頁面，顯示錯誤訊息
+            return "back-end/meal/select_page_meal";
         }
-        model.addAttribute("mealListData", meals); // ListAllMeal頁面用這個key
+
+        // 執行查詢
+        List<MealEntity> meals = mealService.getMealsByType(mealTypeId); // 假設你的 service 有這個方法
+
+        if (meals.isEmpty()) {
+            model.addAttribute("errorMessage", "查無此餐點種類的資料。"); // 如果查無資料，顯示錯誤
+        } else {
+        	model.addAttribute("mealListData", meals); // ListAllMeal頁面用這個key
+        }
         // 將選中的 mealTypeId 傳回，用於在下拉選單中保留上次的選擇
         model.addAttribute("selectedMealTypeId", mealTypeId);
 
@@ -197,14 +202,22 @@ public class MealController {
     // 查詢特定狀態的餐點（透過 Enum）
     @PostMapping("/byStatus")
     public String getMealsByStatus(@RequestParam(value = "status", required = false) MealStatus status, Model model) {
-        List<MealEntity> meals;
-        if (status == null) { // 如果沒有選擇狀態，則顯示所有餐點
-            meals = mealService.getAll(); // 這裡假設 getAll() 獲取所有餐點
-        } else {
-            meals = mealService.getMealsByStatus(status);
+        // 檢查 status 是否為 null（即前端沒有選擇任何狀態，或選擇了預設的空值）
+        if (status == null) {
+            model.addAttribute("errorMessage", "請選擇有效的餐點狀態");
+            // 導向回原始查詢頁面，顯示錯誤訊息
+            return "back-end/meal/select_page_meal";
         }
-        model.addAttribute("mealListData", meals);
-        model.addAttribute("selectedStatus", status); // 用於保留下拉選單的選擇狀態
+
+        // 執行查詢
+        List<MealEntity> meals = mealService.getMealsByStatus(status); // 假設你的 service 有這個方法
+
+        if (meals.isEmpty()) {
+            model.addAttribute("errorMessage", "查無此餐點狀態的資料。"); // 如果查無資料，顯示錯誤
+        } else {
+	        model.addAttribute("mealListData", meals);
+	        model.addAttribute("selectedStatus", status); // 用於保留下拉選單的選擇狀態
+        }
         return "back-end/meal/listAllMeal"; // 返回餐點列表頁面
     }
 
@@ -225,8 +238,21 @@ public class MealController {
     @PostMapping("/listMeal_ByCompositeQuery")
     public String listAllMeal(HttpServletRequest req, ModelMap model) {
         Map<String, String[]> map = req.getParameterMap();
-        List<MealEntity> list = mealService.getAll(map); // 假設此 getAll(map) 方法處理複合查詢
+        List<MealEntity> list = mealService.getAll(map);
         model.addAttribute("mealListData", list);
+        model.addAttribute("param", map);
+        
+        String[] statusArr = map.get("status");
+        if (statusArr != null && statusArr.length > 0 && !statusArr[0].isBlank()) {
+            try {
+                model.addAttribute("selectedStatus", MealStatus.valueOf(statusArr[0].trim()));
+            } catch (IllegalArgumentException e) {
+                model.addAttribute("selectedStatus", null); // 無效值時不指定
+            }
+        } else {
+            model.addAttribute("selectedStatus", null);
+        }
+
         return "back-end/meal/listAllMeal"; // 返回餐點列表頁面
     }
 
@@ -243,6 +269,11 @@ public class MealController {
     public List<MealTypeEntity> referenceTypeList() {
         return mealTypeService.getAll();
     }
+    
+    @ModelAttribute("mealListData")
+    public List<MealEntity> getAllMeals() {
+        return mealService.getAll();
+    }
 
     // 獲取餐點圖片，如果沒有則返回預設圖片
     @GetMapping("/mealPhoto")
@@ -258,7 +289,6 @@ public class MealController {
         } else {
             // 如果資料庫中沒有圖片，載入預設圖片
             ClassPathResource imgFile = new ClassPathResource("static/images/nopic.png"); // 預設圖片路徑
-            // 讀取預設圖片的位元組
             imageBytes = StreamUtils.copyToByteArray(imgFile.getInputStream());
             mediaType = MediaType.IMAGE_PNG; // 預設圖片的媒體類型
         }
@@ -277,4 +307,17 @@ public class MealController {
         model.addAttribute("mealListData", list);       // 傳給畫面顯示
         return "back-end/meal/select_page_meal";       // 統一導向餐點列表頁面
     }
+    
+    // 刪除餐點
+    @PostMapping("/delete")
+    public String deleteMeal(@RequestParam("mealId") Long mealId, RedirectAttributes redirectAttributes) {
+        try {
+            mealService.deleteMeal(mealId);
+            redirectAttributes.addFlashAttribute("successMessage", "刪除成功！");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "刪除失敗：" + e.getMessage());
+        }
+        return "redirect:/meal/listAllMeal";
+    }
+
 }

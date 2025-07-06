@@ -28,14 +28,13 @@ public class MealTypeService {
 
     private final MealTypeRepository repository;
 
-    // 【優化】: 改用建構子注入，是 Spring 推薦的最佳實踐。
     public MealTypeService(MealTypeRepository repository) {
         this.repository = repository;
     }
 
     @Transactional // 覆蓋類別設定，標示為寫入交易
     public MealTypeEntity addMealType(String mealName) {
-        // 【優化】: 新增前檢查名稱是否已存在。
+        // 新增前檢查名稱是否已存在。
         repository.findByMealName(mealName).ifPresent(entity -> {
             throw new IllegalArgumentException("餐點種類名稱 '" + mealName + "' 已存在。");
         });
@@ -47,12 +46,12 @@ public class MealTypeService {
 
     @Transactional
     public MealTypeEntity updateMealType(Long mealTypeId, String mealName) {
-        // 【關鍵修正】: 更新操作的正確邏輯是「先從資料庫讀取，再修改，最後儲存」。
+        // 更新操作的正確邏輯是「先從資料庫讀取，再修改，最後儲存」。
         // 直接 new 一個 Entity 再 save，會被 JPA 視為「新增」，若 ID 相同則會覆蓋，導致其他欄位資料遺失。
         MealTypeEntity existingMealType = repository.findById(mealTypeId)
                 .orElseThrow(() -> new EntityNotFoundException("找不到要更新的餐點種類 ID: " + mealTypeId));
 
-        // 【優化】: 檢查新名稱是否與「其他」現存的種類名稱衝突。
+        // 檢查新名稱是否與「其他」現存的種類名稱衝突。
         Optional<MealTypeEntity> sameNameEntityOpt = repository.findByMealName(mealName);
         if (sameNameEntityOpt.isPresent() && !sameNameEntityOpt.get().getMealTypeId().equals(mealTypeId)) {
             throw new IllegalArgumentException("餐點種類名稱 '" + mealName + "' 已被其他種類使用。");
@@ -64,7 +63,7 @@ public class MealTypeService {
     }
 
     public MealTypeEntity getOneMealType(Long mealTypeId) { //【修正】型別 Integer -> Long
-        // 【優化】: 找不到時拋出例外，讓 Controller 層能明確地處理錯誤，而非回傳 null。
+        // 找不到時拋出例外，讓 Controller 層能明確地處理錯誤，而非回傳 null。
         return repository.findById(mealTypeId)
                 .orElseThrow(() -> new EntityNotFoundException("找不到餐點種類 ID: " + mealTypeId));
     }
@@ -75,7 +74,7 @@ public class MealTypeService {
     
     @Transactional
     public void deleteMealType(Long mealTypeId) {
-        // 【優化】: 刪除前先確認 ID 存在，可以提供更明確的錯誤訊息。
+        // 刪除前先確認 ID 存在，可以提供更明確的錯誤訊息。
         if (!repository.existsById(mealTypeId)) {
             throw new EntityNotFoundException("找不到要刪除的餐點種類 ID: " + mealTypeId);
         }

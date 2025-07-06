@@ -110,7 +110,7 @@ public class MealEntity {
      * MealEntity 是關係的擁有方，通過 meal_type_id 欄位連接 MealTypeEntity。
      */
     @NotNull(message = "餐點種類不可為空")
-    @ManyToOne(fetch = FetchType.LAZY) // 延遲加載，僅在需要時才加載餐點種類資訊
+    @ManyToOne
     @JoinColumn(name = "meal_type_id", nullable = false)
     private MealTypeEntity mealType; // 餐點所屬的種類實體
 
