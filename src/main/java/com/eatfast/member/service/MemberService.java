@@ -741,4 +741,45 @@ public class MemberService {
             return true;
         }
     }
+    
+    // ========== 即時驗證方法 ==========
+    
+    /**
+     * 檢查帳號是否已存在
+     * @param account 要檢查的帳號
+     * @return true 如果帳號已存在，false 如果可以使用
+     */
+    public boolean isAccountExists(String account) {
+        if (account == null || account.trim().isEmpty()) {
+            return false;
+        }
+        return memberRepository.existsByAccount(account.trim());
+    }
+    
+    /**
+     * 檢查電子郵件是否已存在
+     * @param email 要檢查的電子郵件
+     * @return true 如果電子郵件已存在，false 如果可以使用
+     */
+    public boolean isEmailExists(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        return memberRepository.existsByEmail(email.trim());
+    }
+    
+    /**
+     * 檢查手機號碼是否已存在
+     * @param phone 要檢查的手機號碼
+     * @return true 如果手機號碼已存在，false 如果可以使用
+     */
+    public boolean isPhoneExists(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return false;
+        }
+        // 移除格式符號進行比較
+        String cleanPhone = phone.replaceAll("-", "");
+        return memberRepository.existsByPhone(cleanPhone) || 
+               memberRepository.existsByPhone(phone);
+    }
 }

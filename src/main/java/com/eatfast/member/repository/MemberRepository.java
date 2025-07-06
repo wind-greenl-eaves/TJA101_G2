@@ -49,6 +49,29 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long>, Jpa
 	// 框架會自動生成高效的 EXISTS 查詢
 	boolean existsByAccountOrEmail(String account, String email);
     
+    // ========== 即時驗證專用方法 ========= =
+    
+    /**
+     * 檢查帳號是否已存在 - 用於即時驗證
+     * @param account 要檢查的帳號
+     * @return true 如果帳號已存在
+     */
+    boolean existsByAccount(String account);
+    
+    /**
+     * 檢查電子郵件是否已存在 - 用於即時驗證
+     * @param email 要檢查的電子郵件
+     * @return true 如果電子郵件已存在
+     */
+    boolean existsByEmail(String email);
+    
+    /**
+     * 檢查手機號碼是否已存在 - 用於即時驗證
+     * @param phone 要檢查的手機號碼
+     * @return true 如果手機號碼已存在
+     */
+    boolean existsByPhone(String phone);
+
     //================================================================
     // 				   自定義 JPQL 與原生 SQL 查詢
     //================================================================

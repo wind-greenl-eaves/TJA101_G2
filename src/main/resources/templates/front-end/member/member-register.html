@@ -403,9 +403,7 @@
                            id="username" 
                            th:field="*{username}"
                            class="form-control" 
-                           placeholder="請輸入您的真實姓名"
-                           value="張測試"
-                           required>
+                           placeholder="請輸入您的真實姓名">
                     <button type="button" class="clear-btn" id="clearUsername">
                         <i class="fas fa-times"></i>
                     </button>
@@ -420,9 +418,7 @@
                            id="account" 
                            th:field="*{account}"
                            class="form-control" 
-                           placeholder="請輸入登入帳號（英文、數字）"
-                           value="testuser001"
-                           required>
+                           placeholder="請輸入登入帳號（英文、數字）">
                     <button type="button" class="clear-btn" id="clearAccount">
                         <i class="fas fa-times"></i>
                     </button>
@@ -437,9 +433,7 @@
                            id="password" 
                            th:field="*{password}"
                            class="form-control" 
-                           placeholder="請輸入密碼（至少8位）"
-                           value="test123456"
-                           required>
+                           placeholder="請輸入密碼（至少8位）">
                     <button type="button" class="password-toggle" id="togglePassword">
                         <i class="fas fa-eye" id="toggleIcon"></i>
                     </button>
@@ -457,9 +451,7 @@
                            id="confirmPassword" 
                            name="confirmPassword"
                            class="form-control" 
-                           placeholder="請再次輸入密碼"
-                           value="test123456"
-                           required>
+                           placeholder="請再次輸入密碼">
                     <button type="button" class="password-toggle" id="toggleConfirmPassword">
                         <i class="fas fa-eye" id="toggleConfirmIcon"></i>
                     </button>
@@ -477,9 +469,7 @@
                            id="email" 
                            th:field="*{email}"
                            class="form-control" 
-                           placeholder="請輸入電子郵件地址"
-                           value="test@example.com"
-                           required>
+                           placeholder="請輸入電子郵件地址">
                     <button type="button" class="clear-btn" id="clearEmail">
                         <i class="fas fa-times"></i>
                     </button>
@@ -494,10 +484,7 @@
                            id="phone" 
                            th:field="*{phone}"
                            class="form-control" 
-                           placeholder="請輸入手機號碼（例：0912-345-678 或 0912-712-816）"
-                           pattern="^09\d{2}-?\d{3}-?\d{3,4}$"
-                           value="0912-345-678"
-                           required>
+                           placeholder="請輸入手機號碼（例：0912-345-678 或 0912-712-816）">
                     <button type="button" class="clear-btn" id="clearPhone">
                         <i class="fas fa-times"></i>
                     </button>
@@ -511,9 +498,7 @@
                     <input type="date" 
                            id="birthday" 
                            th:field="*{birthday}"
-                           class="form-control" 
-                           value="1990-01-01"
-                           required>
+                           class="form-control">
                     <div th:if="${#fields.hasErrors('birthday')}" class="invalid-feedback" th:errors="*{birthday}"></div>
                 </div>
                 
@@ -521,15 +506,15 @@
                     <label>性別 <span class="required">*</span></label>
                     <div class="gender-options">
                         <div class="gender-option">
-                            <input type="radio" id="male" th:field="*{gender}" value="M" checked required>
+                            <input type="radio" id="male" th:field="*{gender}" name="gender" value="M" checked>
                             <label for="male">👨 男性</label>
                         </div>
                         <div class="gender-option">
-                            <input type="radio" id="female" th:field="*{gender}" value="F" required>
+                            <input type="radio" id="female" th:field="*{gender}" name="gender" value="F">
                             <label for="female">👩 女性</label>
                         </div>
                         <div class="gender-option">
-                            <input type="radio" id="other" th:field="*{gender}" value="O" required>
+                            <input type="radio" id="other" th:field="*{gender}" name="gender" value="O">
                             <label for="other">🧑 其他</label>
                         </div>
                     </div>
@@ -717,32 +702,66 @@
         
         // 清除按鈕功能
         document.getElementById('clearUsername').addEventListener('click', function() {
-            document.getElementById('username').value = '';
+            const input = document.getElementById('username');
+            input.value = '';
+            input.classList.remove('is-invalid');
+            const errorDiv = input.parentElement.nextElementSibling;
+            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.style.display = 'none';
+            }
             this.style.display = 'none';
         });
         
         document.getElementById('clearAccount').addEventListener('click', function() {
-            document.getElementById('account').value = '';
+            const input = document.getElementById('account');
+            input.value = '';
+            input.classList.remove('is-invalid');
+            const errorDiv = input.parentElement.nextElementSibling;
+            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.style.display = 'none';
+            }
             this.style.display = 'none';
         });
         
         document.getElementById('clearPassword').addEventListener('click', function() {
-            document.getElementById('password').value = '';
+            const input = document.getElementById('password');
+            input.value = '';
+            input.classList.remove('is-invalid');
+            const errorDiv = input.parentElement.nextElementSibling;
+            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.style.display = 'none';
+            }
             this.style.display = 'none';
         });
         
         document.getElementById('clearConfirmPassword').addEventListener('click', function() {
-            document.getElementById('confirmPassword').value = '';
+            const input = document.getElementById('confirmPassword');
+            input.value = '';
+            input.classList.remove('is-invalid');
+            const confirmPasswordError = document.getElementById('confirmPasswordError');
+            confirmPasswordError.style.display = 'none';
             this.style.display = 'none';
         });
         
         document.getElementById('clearEmail').addEventListener('click', function() {
-            document.getElementById('email').value = '';
+            const input = document.getElementById('email');
+            input.value = '';
+            input.classList.remove('is-invalid');
+            const errorDiv = input.parentElement.nextElementSibling;
+            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.style.display = 'none';
+            }
             this.style.display = 'none';
         });
         
         document.getElementById('clearPhone').addEventListener('click', function() {
-            document.getElementById('phone').value = '';
+            const input = document.getElementById('phone');
+            input.value = '';
+            input.classList.remove('is-invalid');
+            const errorDiv = input.parentElement.nextElementSibling;
+            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.style.display = 'none';
+            }
             this.style.display = 'none';
         });
         
@@ -773,6 +792,184 @@
             document.querySelectorAll('.input-field input, .password-field input').forEach(function(input) {
                 updateClearButton(input);
             });
+        });
+        
+        // ========== 後端即時驗證功能 ==========
+        
+        // 通用的驗證函數
+        function validateField(fieldId, apiEndpoint, value) {
+            if (!value || !value.trim()) {
+                clearValidationMessage(fieldId);
+                return;
+            }
+            
+            const input = document.getElementById(fieldId);
+            const errorDiv = input.parentElement.nextElementSibling;
+            
+            // 顯示驗證中狀態
+            showValidationMessage(fieldId, 'validating', '驗證中...', 'info');
+            
+            // 發送 AJAX 請求
+            fetch(`/api/member/validate/${apiEndpoint}?${apiEndpoint}=${encodeURIComponent(value)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.valid) {
+                        showValidationMessage(fieldId, 'valid', data.message, 'success');
+                        input.classList.remove('is-invalid');
+                        input.classList.add('is-valid');
+                    } else {
+                        showValidationMessage(fieldId, 'invalid', data.message, 'error');
+                        input.classList.remove('is-valid');
+                        input.classList.add('is-invalid');
+                    }
+                })
+                .catch(error => {
+                    console.error('驗證錯誤:', error);
+                    showValidationMessage(fieldId, 'error', '網路錯誤，請稍後再試', 'error');
+                });
+        }
+        
+        // 顯示驗證訊息
+        function showValidationMessage(fieldId, status, message, type) {
+            const input = document.getElementById(fieldId);
+            const errorDiv = input.parentElement.nextElementSibling;
+            
+            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                
+                // 根據類型設置不同顏色
+                switch(type) {
+                    case 'success':
+                        errorDiv.style.color = '#28a745';
+                        break;
+                    case 'error':
+                        errorDiv.style.color = '#dc3545';
+                        break;
+                    case 'info':
+                        errorDiv.style.color = '#17a2b8';
+                        break;
+                    default:
+                        errorDiv.style.color = '#dc3545';
+                }
+            }
+        }
+        
+        // 清除驗證訊息
+        function clearValidationMessage(fieldId) {
+            const input = document.getElementById(fieldId);
+            const errorDiv = input.parentElement.nextElementSibling;
+            
+            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.style.display = 'none';
+                errorDiv.textContent = '';
+            }
+            
+            input.classList.remove('is-valid', 'is-invalid');
+        }
+        
+        // 防抖函數，避免頻繁請求
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        // 會員姓名即時驗證
+        const validateUsername = debounce((value) => {
+            validateField('username', 'username', value);
+        }, 500);
+        
+        document.getElementById('username').addEventListener('input', function() {
+            validateUsername(this.value);
+        });
+        
+        // 登入帳號即時驗證
+        const validateAccount = debounce((value) => {
+            validateField('account', 'account', value);
+        }, 500);
+        
+        document.getElementById('account').addEventListener('input', function() {
+            validateAccount(this.value);
+        });
+        
+        // 密碼即時驗證
+        const validatePassword = debounce((value) => {
+            validateField('password', 'password', value);
+        }, 500);
+        
+        document.getElementById('password').addEventListener('input', function() {
+            validatePassword(this.value);
+            // 如果確認密碼有值，也要重新驗證確認密碼
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            if (confirmPassword) {
+                validateConfirmPassword(this.value, confirmPassword);
+            }
+        });
+        
+        // 確認密碼即時驗證
+        function validateConfirmPassword(password, confirmPassword) {
+            const confirmPasswordError = document.getElementById('confirmPasswordError');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            
+            if (!confirmPassword || !confirmPassword.trim()) {
+                confirmPasswordError.style.display = 'none';
+                confirmPasswordInput.classList.remove('is-valid', 'is-invalid');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                confirmPasswordError.textContent = '密碼確認不一致';
+                confirmPasswordError.style.display = 'block';
+                confirmPasswordError.style.color = '#dc3545';
+                confirmPasswordInput.classList.remove('is-valid');
+                confirmPasswordInput.classList.add('is-invalid');
+            } else {
+                confirmPasswordError.textContent = '密碼確認一致';
+                confirmPasswordError.style.display = 'block';
+                confirmPasswordError.style.color = '#28a745';
+                confirmPasswordInput.classList.remove('is-invalid');
+                confirmPasswordInput.classList.add('is-valid');
+            }
+        }
+        
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            validateConfirmPassword(password, this.value);
+        });
+        
+        // 電子郵件即時驗證
+        const validateEmail = debounce((value) => {
+            validateField('email', 'email', value);
+        }, 500);
+        
+        document.getElementById('email').addEventListener('input', function() {
+            validateEmail(this.value);
+        });
+        
+        // 手機號碼即時驗證
+        const validatePhone = debounce((value) => {
+            validateField('phone', 'phone', value);
+        }, 500);
+        
+        document.getElementById('phone').addEventListener('input', function(e) {
+            // 先執行格式化
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 4 && value.length <= 7) {
+                value = value.replace(/(\d{4})(\d{0,3})/, '$1-$2');
+            } else if (value.length > 7) {
+                value = value.replace(/(\d{4})(\d{3})(\d{0,3})/, '$1-$2-$3');
+            }
+            e.target.value = value;
+            
+            // 然後進行驗證
+            validatePhone(value);
         });
     </script>
 </body>
