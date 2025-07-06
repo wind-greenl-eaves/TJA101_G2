@@ -59,7 +59,7 @@
                 <label for="email" class="form-label">電子郵件</label>
                 <input type="email" id="email" name="email" th:value="${employee.email}" 
                        class="form-input" required 
-                       pattern="[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" 
+                       pattern="[a-zA-Z0-9._\+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}" 
                        title="請輸入有效的電子郵件地址" />
                 <div id="error-email" class="error-message"></div>
             </div>
@@ -148,7 +148,7 @@
                             <input type="file"
                                    id="photo"
                                    name="photo"
-                                   accept="image/jpeg,image/png"
+                                   accept="image/jpeg,image/png,image/gif"
                                    class="hidden"
                                    data-max-size="5242880">
                             <button type="button"

@@ -17,7 +17,14 @@ public class FileService {
     private String uploadDir;
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-    private static final String[] ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"};
+    private static final String[] ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif"};
+    
+    // 支援的 MIME 類型
+    private static final String[] ALLOWED_MIME_TYPES = {
+        "image/jpeg", 
+        "image/png", 
+        "image/gif"
+    };
 
     public String saveEmployeePhoto(MultipartFile file) throws IOException {
         validateFile(file);
@@ -59,7 +66,20 @@ public class FileService {
         }
 
         if (!isValidExtension) {
-            throw new IllegalArgumentException("只允許上傳 JPG, JPEG 或 PNG 格式的圖片");
+            throw new IllegalArgumentException("只允許上傳 JPG, JPEG, PNG 或 GIF 格式的圖片");
+        }
+
+        String mimeType = file.getContentType();
+        boolean isValidMimeType = false;
+        for (String mime : ALLOWED_MIME_TYPES) {
+            if (mimeType.equals(mime)) {
+                isValidMimeType = true;
+                break;
+            }
+        }
+
+        if (!isValidMimeType) {
+            throw new IllegalArgumentException("不支援的檔案類型，請上傳圖片檔案");
         }
     }
 
