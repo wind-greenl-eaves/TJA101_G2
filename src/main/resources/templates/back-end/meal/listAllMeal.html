@@ -19,6 +19,87 @@
       border-radius: 0.5rem;
       border: 1px solid #e2d7c1; /* 淺棕灰邊框 */
     }
+    /* 自定義按鈕樣式，與您的導覽列按鈕保持一致 */
+    .btn-custom-primary {
+      background-color: #9D7C64; /* 主題色 */
+      color: white;
+      padding: 0.75rem 1.5rem; /* 更舒適的內邊距 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      transition: background-color 0.2s ease-in-out;
+    }
+    .btn-custom-primary:hover {
+      background-color: #8a6c5a; /* 稍深的 hover 色 */
+    }
+    .btn-custom-outline {
+      background-color: white;
+      color: #9D7C64;
+      border: 1px solid #9D7C64;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      transition: background-color 0.2s ease-in-out;
+    }
+    .btn-custom-outline:hover {
+      background-color: #f0e8dd;
+    }
+    .card-custom {
+      border: 1px solid #E2D7C1; /* 邊框 */
+      background-color: white; /* 背景色 */
+      border-radius: 0.5rem; /* 圓角 */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); /* 輕微陰影 */
+    }
+    .card-header-custom {
+      background-color: #D8CFC4; /* 表格頭部背景色 */
+      padding: 1rem 1.5rem;
+      font-weight: 700;
+      color: #4A403A;
+      border-bottom: 1px solid #E2D7C1;
+      border-top-left-radius: 0.5rem;
+      border-top-right-radius: 0.5rem;
+    }
+    /* 讓查詢結果表格更緊湊 */
+    .table-compact th, .table-compact td {
+      padding: 0.5rem 0.75rem;
+    }
+    /* 表格通用樣式，允許文字換行 */
+    .table-auto-wrap th, .table-auto-wrap td {
+        white-space: normal; /* 允許內容換行 */
+        word-break: break-word; /* 長單詞可斷行 */
+    }
+    /* 調整 Th 標籤的預設對齊 */
+    .min-w-full thead th {
+        text-align: center;
+    }
+
+    /* ====== 以下為針對所有餐點列表表格的調整 ====== */
+    .table-meals th, .table-meals td {
+        padding-left: 0.4rem; /* 左右邊距進一步縮小 */
+        padding-right: 0.4rem;
+        padding-top: 0.3rem; /* 上下邊距也進一步縮小 */
+        padding-bottom: 0.3rem;
+        vertical-align: middle; /* 垂直居中對齊 */
+    }
+    .table-meals th:nth-child(1), .table-meals td:nth-child(1) { width: 7%; } /* 編號 (減少) */
+    .table-meals th:nth-child(2), .table-meals td:nth-child(2) { width: 20%; } /* 名稱 (增加) */
+    .table-meals th:nth-child(3), .table-meals td:nth-child(3) { width: 10%; } /* 種類 (減少) */
+    .table-meals th:nth-child(4), .table-meals td:nth-child(4) { width: 8%; } /* 價格 (減少) */
+    .table-meals th:nth-child(5), .table-meals td:nth-child(5) { width: 12%; } /* 評價 (不變或微調) */
+    .table-meals th:nth-child(6), .table-meals td:nth-child(6) { width: 10%; } /* 狀態 (不變或微調) */
+    .table-meals th:nth-child(7), .table-meals td:nth-child(7) { width: 15%; } /* 圖片 (不變) */
+    .table-meals th:nth-child(8), .table-meals td:nth-child(8) { width: 9%; } /* 修改 (增加，讓按鈕有空間) */
+    .table-meals th:nth-child(9), .table-meals td:nth-child(9) { width: 9%; } /* 刪除 (增加，讓按鈕有空間) */
+    
+    /* 調整按鈕大小以適應更小的表格儲存格 */
+    .btn-in-table {
+        padding: 0.2rem 0.4rem; /* 更小的內邊距 */
+        font-size: 0.7rem; /* 更小的字體 */
+    }
+    .single-query-result-placeholder {
+      text-align: left; /* 將文字靠左對齊 */
+      padding: 0; /* 移除可能的內邊距，使內容更緊湊 */
+    }
+    
   </style>
 </head>
 <body class="min-h-screen text-[#4A403A]">
@@ -43,66 +124,256 @@
   <main class="pt-24 px-4 max-w-7xl mx-auto">
     <h2 class="text-2xl font-bold text-center text-[#9D7C64] mb-6">餐點列表</h2>
 
-    <div th:if="${success}" class="bg-[#D4EDDA] border border-[#155724] text-[#155724] px-4 py-3 rounded mb-4" th:text="${success}"></div>
-    <div th:if="${errorMessage}" class="bg-[#F8D7DA] border border-[#721C24] text-[#721C24] px-4 py-3 rounded mb-4" th:text="${errorMessage}"></div>
+    <div th:if="${successMessage}" class="bg-[#D4EDDA] border border-[#155724] text-[#155724] px-4 py-3 rounded mb-4" role="alert">
+        <i class="fas fa-check-circle mr-2"></i> <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="bg-[#F8D7DA] border border-[#721C24] text-[#721C24] px-4 py-3 rounded mb-4" role="alert">
+        <i class="fas fa-exclamation-triangle mr-2"></i> <span th:text="${errorMessage}"></span>
+    </div>
+    
+    <!-- ✅ 複合條件查詢區塊 -->
+	<div class="card-custom mb-6">
+	  <div class="card-header-custom">
+	    <i class="fas fa-filter mr-2"></i> 複合條件查詢
+	  </div>
+	  <div class="p-6">
+	    <form id="searchForm" method="post" th:action="@{/meal/listMeal_ByCompositeQuery}" 
+	    	class="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+	
+	      <div>
+	        <label class="block text-sm font-medium mb-1"><i class="fas fa-utensils mr-1"></i> 餐點名稱</label>
+	        <input type="text" name="mealName" placeholder="請輸入餐點名稱"
+	               th:value="${param.mealName != null ? param.mealName[0] : ''}"
+	               class="form-input w-full border border-[#E2D7C1] rounded px-3 py-2" />
+	      </div>
+	
+	      <div>
+	        <label class="block text-sm font-medium mb-1"><i class="fas fa-tags mr-1"></i> 餐點種類</label>
+	        <select name="mealTypeId" class="form-input w-full border border-[#E2D7C1] rounded px-3 py-2">
+	          <option value="">-- 全部 --</option>
+	          <option th:each="type : ${mealTypeListData}"
+	                  th:value="${type.mealTypeId}"
+	                  th:text="${type.mealName}"
+	                  th:selected="${selectedMealTypeId != null and type.mealTypeId == selectedMealTypeId}">
+	          </option>
+	        </select>
+	      </div>
+	
+	      <div>
+	        <label class="block text-sm font-medium mb-1"><i class="fas fa-toggle-on mr-1"></i> 餐點狀態</label>
+	        <select name="status" class="form-input w-full border border-[#E2D7C1] rounded px-3 py-2">
+	          <option value="">-- 全部 --</option>
+	          <option th:value="${T(com.eatfast.common.enums.MealStatus).AVAILABLE.name()}"
+	                  th:selected="${selectedStatus != null and selectedStatus.name() == T(com.eatfast.common.enums.MealStatus).AVAILABLE.name()}">
+	            上架
+	          </option>
+	          <option th:value="${T(com.eatfast.common.enums.MealStatus).UNAVAILABLE.name()}"
+	                  th:selected="${selectedStatus != null and selectedStatus.name() == T(com.eatfast.common.enums.MealStatus).UNAVAILABLE.name()}">
+	            下架
+	          </option>
+	        </select>
+	      </div>
+	
+	      <div class="flex gap-2 items-end">
+	        <div class="flex-1">
+	          <label class="block text-sm font-medium mb-1"><i class="fas fa-dollar-sign mr-1"></i> 價格區間</label>
+	          <input type="number" name="startPrice" min="0" placeholder="最低"
+	                 th:value="${param.startPrice != null ? param.startPrice[0] : ''}"
+	                 class="form-input w-full border border-[#E2D7C1] rounded px-3 py-2" />
+	        </div>
+	        <span class="text-gray-500 pb-2">~</span>
+	        <div class="flex-1">
+	          <input type="number" name="endPrice" min="0" placeholder="最高"
+	                 th:value="${param.endPrice != null ? param.endPrice[0] : ''}"
+	                 class="form-input w-full border border-[#E2D7C1] rounded px-3 py-2" />
+	        </div>
+	      </div>
+	
+	      <div class="md:col-span-2 flex justify-end gap-2 pt-2">
+	        <button type="button" id="reset-btn" class="btn-custom-outline text-sm">
+				<i class="fas fa-eraser mr-1"></i> 清除
+			</button>
+	        <button type="submit" class="btn-custom-primary text-sm">
+	        	<i class="fas fa-search mr-1"></i> 查詢
+	        </button>
+	      </div>
+	    </form>
+	  </div>
+	</div>
+	    
+	<!-- ✅ 單一條件查詢區塊 -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="lg:col-span-1 card-custom max-w-sm">
+            <div class="card-header-custom">
+                <i class="fas fa-search mr-2"></i> 單一餐點查詢
+            </div>
+            <div class="p-6">
+                <form method="post" th:action="@{/meal/getOne_For_Display}" class="space-y-4">
+                    <div class="form-group">
+                        <label for="mealIdSelect" class="block text-sm font-medium text-[#4A403A] mb-1">依餐點編號查詢:</label>
+                        <select name="mealId" id="mealIdSelect" class="block w-full px-3 py-2 border border-[#E2D7C1] rounded-md shadow-sm focus:outline-none focus:ring-[#9D7C64] focus:border-[#9D7C64] sm:text-sm">
+                            <option value="">請選擇餐點編號</option> 
+                            <option th:each="mealItem : ${mealListData}"
+							        th:value="${mealItem.mealId}"
+							        th:text="${mealItem.mealId + ' - ' + mealItem.mealName}"
+							        th:selected="${mealItem.mealId != null and mealItem.mealId == #numbers.formatInteger(param.mealId, 0)}">
+							</option>
+                        </select>
+                    </div>
+                    
+<!--                     <div class="form-group"> -->
+<!--                     <label for="mealIdInput" class="block text-sm font-medium text-[#4A403A] mb-1">輸入餐點編號查詢:</label> -->
+<!-- 	                    <input type="text" id="mealId" name="mealId" -->
+<!-- 	                           class="block w-full px-3 py-2 border border-[#E2D7C1] rounded-md shadow-sm focus:outline-none focus:ring-[#9D7C64] focus:border-[#9D7C64] sm:text-sm" -->
+<!-- 	                           placeholder="請輸入餐點編號(如 101)" -->
+<!-- 	                           th:value="${param.mealId}">  -->
+<!--                     </div> -->
+                    
+                    <button type="submit" class="w-full btn-custom-primary">
+                        <i class="fas fa-search mr-2"></i> 查詢
+                    </button>
+                </form>
 
-    <div class="overflow-x-auto shadow rounded-lg bg-white border border-[#E2D7C1]">
-      <table class="min-w-full divide-y divide-[#E2D7C1] text-sm text-center">
-        <thead class="bg-[#D8CFC4] text-[#4A403A] text-center">
-          <tr>
-            <th class="px-4 py-3">餐點編號</th>
-            <th class="px-4 py-3">餐點名稱</th>
-            <th class="px-4 py-3">餐點種類</th>
-            <th class="px-4 py-3">價格</th>
-            <th class="px-4 py-3">評價總星數</th>
-            <th class="px-4 py-3">狀態</th>
-            <th class="px-4 py-3">圖片</th>
-            <th class="px-4 py-3">修改</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-[#E2D7C1]">
-          <tr th:each="meal : ${mealListData}" class="hover:bg-[#f0e8dd]">
-            <td th:text="${meal.mealId}" class="px-4 py-2"></td>
-            <td th:text="${meal.mealName}" class="px-4 py-2"></td>
-            <td th:text="${meal.mealType?.mealName}" class="px-4 py-2"></td>
-            <td th:text="${meal.mealPrice}" class="px-4 py-2"></td>
-            <td class="px-4 py-2">
-              <span th:with="stars=${meal.reviewTotalStars}">
-                <th:block th:each="i : ${#numbers.sequence(1, 5)}">
-                  <i th:class="${i <= stars} ? 'fas fa-star text-yellow-400' : 'far fa-star text-[#DED0B6]'"></i>
-                </th:block>
-              </span>
-            </td>
-            <td class="px-4 py-2">
-			  <span th:switch="${meal.status.name()}" class="px-2 py-1 rounded-full text-xs font-medium"
-			        th:classappend="${meal.status.name() == 'AVAILABLE'} ? 'bg-[#c7d3c2] text-[#355E3B]' : 'bg-[#e4caca] text-[#7B4B4B]'">
-			    <span th:case="'AVAILABLE'">上架</span>
-			    <span th:case="'UNAVAILABLE'">下架</span>
-			    <span th:case="*">未知狀態</span>
-			  </span>
-			</td>
+                <hr class="my-6 border-[#E2D7C1]">
 
-            <td class="px-4 py-2">
-              <img th:if="${meal.mealPic != null}" 
-                   th:src="@{'/meal/mealPhoto?mealId=' + ${meal.mealId}}"
-                   class="meal-img mx-auto">
-              <img th:unless="${meal.mealPic != null}"
-                   th:src="@{/images/nopic.png}" 
-                   class="meal-img mx-auto" alt="無圖片">
-            </td>
-            <td class="px-4 py-2">
-              <form th:action="@{/meal/getOne_For_Update}" method="post">
-                <input type="hidden" name="mealId" th:value="${meal.mealId}">
-                <button type="submit" class="bg-[#A0B6C3] hover:bg-[#8fa5b2] text-white px-3 py-1 rounded text-sm">
-                  修改
-                </button>
-              </form>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div th:if="${#lists.isEmpty(mealListData)}" class="p-4 text-center text-[#aaa]">目前沒有餐點資料。</div>
+                <div th:if="${meal}">
+                    <h5 class="text-lg font-semibold text-[#9D7C64] mb-3">查詢結果:</h5>
+                    <table class="w-full text-left text-sm table-compact">
+                        <tbody>
+                            <tr class="border-b border-[#E2D7C1]">
+                                <th class="py-2 pr-2 font-medium">編號:</th>
+                                <td th:text="${meal.mealId}" class="py-2"></td>
+                            </tr>
+                            <tr class="border-b border-[#E2D7C1]">
+                                <th class="py-2 pr-2 font-medium">名稱:</th>
+                                <td th:text="${meal.mealName}" class="py-2"></td>
+                            </tr>
+                            <tr class="border-b border-[#E2D7C1]">
+                                <th class="py-2 pr-2 font-medium">種類:</th>
+                                <td th:text="${meal.mealType?.mealName}" class="py-2"></td>
+                            </tr>
+                            <tr class="border-b border-[#E2D7C1]">
+                                <th class="py-2 pr-2 font-medium">價格:</th>
+                                <td th:text="${meal.mealPrice}" class="py-2"></td>
+                            </tr>
+                            <tr class="border-b border-[#E2D7C1]">
+                                <th class="py-2 pr-2 font-medium">狀態:</th>
+                                <td class="py-2">
+                                  <span th:switch="${meal.status.name()}" class="px-2 py-1 rounded-full text-xs font-medium"
+                                        th:classappend="${meal.status.name() == 'AVAILABLE'} ? 'bg-[#c7d3c2] text-[#355E3B]' : 'bg-[#e4caca] text-[#7B4B4B]'">
+                                    <span th:case="'AVAILABLE'">上架</span>
+                                    <span th:case="'UNAVAILABLE'">下架</span>
+                                    <span th:case="*">未知狀態</span>
+                                  </span>
+                                </td>
+                            </tr>
+                            <tr class="border-b border-[#E2D7C1]">
+                                <th class="py-2 pr-2 font-medium">圖片:</th>
+                                <td class="py-2">
+                                  <img th:if="${meal.mealPic != null}"
+                                       th:src="@{'/meal/mealPhoto?mealId=' + ${meal.mealId}}"
+                                       class="meal-img">
+                                  <img th:unless="${meal.mealPic != null}"
+                                       th:src="@{/images/nopic.png}"
+                                       class="meal-img" alt="無圖片">
+                                </td>
+                            </tr>
+                            </tbody>
+                    </table>
+                </div>
+                <div th:unless="${meal}" class="p-4 text-center text-gray-500 text-sm single-query-result-placeholder">
+                    點擊「查詢」後，結果會顯示在此處
+                </div>
+            </div>
+        </div>
+        
+		<!-- ✅ 所有餐點列表區塊 -->
+        <div class="lg:col-span-2 card-custom overflow-hidden">
+            <div class="card-header-custom">
+                <i class="fas fa-table mr-2"></i> 所有餐點列表
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-[#E2D7C1] text-sm text-center">
+                    <thead class="bg-[#D8CFC4] text-[#4A403A]">
+                        <tr>
+                            <th class="px-4 py-3">餐點編號</th>
+                            <th class="px-4 py-3">餐點名稱</th>
+                            <th class="px-4 py-3">餐點種類</th>
+                            <th class="px-4 py-3">價格</th>
+                            <th class="px-4 py-3">評價總星數</th>
+                            <th class="px-4 py-3">狀態</th>
+                            <th class="px-4 py-3">圖片</th>
+                            <th class="px-4 py-3">修改</th>
+                            <th class="px-4 py-3">刪除</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#E2D7C1]">
+                        <tr th:each="mealItem : ${mealListData}" class="hover:bg-[#f0e8dd]">
+                            <td th:text="${mealItem.mealId}" class="px-4 py-2"></td>
+                            <td th:text="${mealItem.mealName}" class="px-4 py-2"></td>
+                            <td th:text="${mealItem.mealType?.mealName}" class="px-4 py-2"></td>
+                            <td th:text="${mealItem.mealPrice}" class="px-4 py-2"></td>
+                            <td class="px-4 py-2">
+                              <span th:with="stars=${mealItem.reviewTotalStars}">
+                                <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                                  <i th:class="${i <= stars} ? 'fas fa-star text-yellow-400' : 'far fa-star text-[#DED0B6]'"></i>
+                                </th:block>
+                              </span>
+                            </td>
+                            <td class="px-4 py-2">
+                              <span th:switch="${mealItem.status.name()}" class="px-2 py-1 rounded-full text-xs font-medium"
+                                    th:classappend="${mealItem.status.name() == 'AVAILABLE'} ? 'bg-[#c7d3c2] text-[#355E3B]' : 'bg-[#e4caca] text-[#7B4B4B]'">
+                                <span th:case="'AVAILABLE'">上架</span>
+                                <span th:case="'UNAVAILABLE'">下架</span>
+                                <span th:case="*">未知狀態</span>
+                              </span>
+                            </td>
+                            <td class="px-4 py-2">
+                              <img th:if="${mealItem.mealPic != null}"
+                                   th:src="@{'/meal/mealPhoto?mealId=' + ${mealItem.mealId}}"
+                                   class="meal-img mx-auto">
+                              <img th:unless="${mealItem.mealPic != null}"
+                                   th:src="@{/images/nopic.png}"
+                                   class="meal-img mx-auto" alt="無圖片">
+                            </td>
+                            <td class="px-4 py-2">
+                                <form th:action="@{/meal/getOne_For_Update}" method="post">
+                                    <input type="hidden" name="mealId" th:value="${mealItem.mealId}">
+                                    <button type="submit" class="bg-[#A0B6C3] hover:bg-[#8fa5b2] text-white btn-in-table rounded">
+                                        修改
+                                    </button>
+                                </form>
+                            </td>
+                            <td class="px-4 py-2">
+                                <form th:action="@{/meal/delete}" method="post" style="display:inline;" onsubmit="return confirm('確定要刪除這筆資料嗎？');">
+                                    <input type="hidden" name="mealId" th:value="${mealItem.mealId}" />
+                                    <button type="submit" class="bg-[#E9967A] hover:bg-[#d88267] text-white btn-in-table rounded">
+                                        刪除
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div th:if="${#lists.isEmpty(mealListData)}" class="p-4 text-center text-gray-500">目前沒有餐點資料。</div>
+            </div>
+        </div>
     </div>
   </main>
+  
+  <!-- 清除查詢條件 JS -->
+ <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const resetBtn = document.getElementById('reset-btn');
+    const form = document.getElementById('searchForm');
+
+    resetBtn.addEventListener('click', () => {
+      form.querySelectorAll('input, select').forEach(el => el.value = '');
+      form.submit(); // 重送表單
+    });
+  });
+</script>
+
+
 </body>
 </html>

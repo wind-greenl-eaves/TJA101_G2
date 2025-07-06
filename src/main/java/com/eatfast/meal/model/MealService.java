@@ -59,4 +59,11 @@ public class MealService {
 	public List<MealEntity> getAll() {
 		return repository.findAll();
 	}
+	
+	// 刪除餐點
+	@Transactional
+	public void deleteMeal(Long mealId) {
+		repository.deleteById(mealId);
+	}
+	
 }

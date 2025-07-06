@@ -3,18 +3,18 @@ package com.eatfast.meal.model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import com.eatfast.common.enums.MealStatus;
 import com.eatfast.mealtype.model.MealTypeEntity;
 
-import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+
 
 public class HibernateUtil_CompositeQuery_Meal {
 	public static Predicate get_aPredicate_For_AnyDB(CriteriaBuilder builder, Root<MealEntity> root, String columnName, String value) {
@@ -38,47 +38,65 @@ public class HibernateUtil_CompositeQuery_Meal {
 
 	@SuppressWarnings("unchecked")
 	public static List<MealEntity> getAllC(Map<String, String[]> map, Session session) {
+	    Transaction tx = session.beginTransaction();
+	    List<MealEntity> list = null;
 
-//		Session session = HibernateUtil.getSessionFactory().openSession(); // 缺點是要寫一隻HibernateUtil，所以直接aotowired就好
-		Transaction tx = session.beginTransaction(); // 交易可以不用(此範例只是複製貼上而已)
-		List<MealEntity> list = null;
-		try {
-			// 【●創建 CriteriaBuilder】 讓我們建立條件用的
-			CriteriaBuilder builder = session.getCriteriaBuilder();
-			// 【●創建 CriteriaQuery】 把永續類別的東西丟進來
-			CriteriaQuery<MealEntity> criteriaQuery = builder.createQuery(MealEntity.class);
-			// 【●創建 Root】 讓我們下條件用的
-			Root<MealEntity> root = criteriaQuery.from(MealEntity.class);
+	    try {
+	        CriteriaBuilder builder = session.getCriteriaBuilder();
+	        CriteriaQuery<MealEntity> criteriaQuery = builder.createQuery(MealEntity.class);
+	        Root<MealEntity> root = criteriaQuery.from(MealEntity.class);
 
-			List<Predicate> predicateList = new ArrayList<Predicate>();
-			
-			Set<String> keys = map.keySet();
-			int count = 0;
-			for (String key : keys) {
-				String value = map.get(key)[0];
-				if (value != null && value.trim().length() != 0 && !"action".equals(key)) {
-					count++;
-					predicateList.add(get_aPredicate_For_AnyDB(builder, root, key, value.trim()));
-					System.out.println("有送出查詢資料的欄位數count = " + count);
-				}
-			}
-			System.out.println("predicateList.size()="+predicateList.size());
-			criteriaQuery.where(predicateList.toArray(new Predicate[predicateList.size()]));
-			criteriaQuery.orderBy(builder.asc(root.get("mealId")));
-			// 【●最後完成創建 javax.persistence.Query●】
-			Query query = session.createQuery(criteriaQuery); //javax.persistence.Query; //Hibernate 5 開始 取代原 org.hibernate.Query 介面
-			list = query.getResultList();
+	        List<Predicate> predicateList = new ArrayList<>();
 
-			tx.commit();
-		} catch (RuntimeException ex) {
-			if (tx != null)
-				tx.rollback();
-			throw ex; // System.out.println(ex.getMessage());
-		} finally {
-			session.close();
-			// HibernateUtil.getSessionFactory().close();
-		}
+	        // 餐點名稱 (模糊查詢)
+	        String mealName = getParam(map, "mealName");
+	        if (mealName != null && !mealName.isBlank()) {
+	            predicateList.add(builder.like(root.get("mealName"), "%" + mealName.trim() + "%"));
+	        }
 
-		return list;
+	        // 餐點種類 (多對一關聯)
+	        String mealTypeIdStr = getParam(map, "mealTypeId");
+	        if (mealTypeIdStr != null && !mealTypeIdStr.isBlank()) {
+	            predicateList.add(builder.equal(root.get("mealType").get("mealTypeId"), Long.valueOf(mealTypeIdStr.trim())));
+	        }
+
+	        // 餐點狀態 (Enum name 字串)
+	        String statusStr = getParam(map, "status");
+	        if (statusStr != null && !statusStr.isBlank()) {
+	            predicateList.add(builder.equal(root.get("status"), MealStatus.valueOf(statusStr.trim())));
+	        }
+
+	        // 價格區間：startPrice (>=)
+	        String startPriceStr = getParam(map, "startPrice");
+	        if (startPriceStr != null && !startPriceStr.isBlank()) {
+	            predicateList.add(builder.ge(root.get("mealPrice"), Long.valueOf(startPriceStr.trim())));
+	        }
+
+	        // 價格區間：endPrice (<=)
+	        String endPriceStr = getParam(map, "endPrice");
+	        if (endPriceStr != null && !endPriceStr.isBlank()) {
+	            predicateList.add(builder.le(root.get("mealPrice"), Long.valueOf(endPriceStr.trim())));
+	        }
+
+	        criteriaQuery.where(predicateList.toArray(new Predicate[0]));
+	        criteriaQuery.orderBy(builder.asc(root.get("mealId")));
+
+	        list = session.createQuery(criteriaQuery).getResultList();
+	        tx.commit();
+
+	    } catch (RuntimeException ex) {
+	        if (tx != null) tx.rollback();
+	        throw ex;
+	    } finally {
+	        session.close();
+	    }
+
+	    return list;
 	}
+
+	// 取參數用的小工具方法
+	private static String getParam(Map<String, String[]> map, String key) {
+	    return map.containsKey(key) ? map.get(key)[0] : null;
+	}
+
 }
