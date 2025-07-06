@@ -245,9 +245,26 @@
                 <i class="fas fa-user-plus"></i>
                 <span>新增員工</span>
             </a>
-            <a th:href="@{/employee/listAll}" class="nav-item">
+            <!-- 修改員工列表權限：總部管理員和門市經理都可以訪問 -->
+            <a th:href="@{/employee/listAll}" class="nav-item" 
+               th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN' or session.loggedInEmployee?.role?.name() == 'MANAGER'}">
                 <i class="fas fa-list"></i>
                 <span>員工列表</span>
+            </a>
+            <!-- 一般員工顯示禁用狀態 -->
+            <div class="nav-item bg-gray-100 cursor-not-allowed opacity-60" 
+                 th:if="${session.loggedInEmployee?.role?.name() == 'STAFF'}">
+                <i class="fas fa-list text-gray-400"></i>
+                <span class="text-gray-500">員工列表 (權限不足)</span>
+            </div>
+        </div>
+        
+        <!-- 訂單管理區塊 -->
+        <div class="mb-6">
+            <div class="nav-section-title">訂單管理</div>
+            <a th:href="@{/orderlist/select_page_OrderList}" class="nav-item">
+                <i class="fas fa-clipboard-list"></i>
+                <span>訂單資料管理</span>
             </a>
         </div>
         
@@ -281,7 +298,7 @@
     <!-- 主要內容區域 -->
     <div class="main-content">
         <!-- Header 區塊 -->
-        <header class="flex items-center p-4 bg-[var(--container-bg)] border border-[var(--border-color)] rounded-xl shadow-sm mb-6">
+        <header class="flex items-center justify-between p-4 bg-[var(--container-bg)] border border-[var(--border-color)] rounded-xl shadow-sm mb-6">
             <div class="flex items-center">
                 <img src="/images/123.png" alt="Logo" class="w-12 h-12 rounded-full mr-2">
                 <div class="ml-4">
@@ -289,8 +306,23 @@
                     <p class="text-sm text-gray-500">Thymeleaf 現代化版本</p>
                 </div>
             </div>
-            <div class="ml-auto">
-                <button id="logoutBtn" class="submit-btn">登出系統</button>
+            <div class="flex items-center gap-4">
+                <!-- 登入員工資訊顯示 -->
+                <div class="flex items-center bg-opacity-50 px-4 py-2 rounded-lg border border-[var(--border-color)] shadow-sm" th:if="${session.loggedInEmployee}">
+                    <i class="fas fa-user-circle text-2xl text-[var(--primary-color)] mr-3"></i>
+                    <div class="text-right">
+                        <p class="text-sm font-semibold text-[var(--text-color)]" th:text="${session.employeeName}">員工姓名</p>
+                        <p class="text-xs text-gray-500">
+                            <span th:text="${session.loggedInEmployee.role?.displayName}">職位</span>
+                            <span class="mx-1">|</span>
+                            <span th:text="'ID: ' + ${session.employeeId}">ID: 001</span>
+                        </p>
+                    </div>
+                </div>
+                <!-- 登出按鈕 -->
+                <button id="logoutBtn" class="submit-btn">
+                    <i class="fas fa-sign-out-alt mr-2"></i>登出系統
+                </button>
             </div>
         </header>
         
@@ -304,72 +336,58 @@
 
         <!-- 資料查詢區塊 -->
         <section class="mb-10">
-            <!-- 【核心修改】: 標題與切換按鈕整合 -->
+            <!-- 簡化標題區域，移除複合查詢按鈕 -->
             <div class="section-title-container">
                 <h2 class="section-title">資料查詢</h2>
-                <button id="toggle-composite-query-btn" class="toggle-btn">複合查詢功能</button>
             </div>
             
-            <!-- 單一查詢區塊 (維持不變) -->
+            <!-- 單一查詢區塊 -->
             <div id="single-query-section" class="space-y-6">
-                <a th:href="@{/employee/listAll}" class="form-container hover:shadow-md transition-shadow cursor-pointer">
-                    <span class="font-semibold text-lg">查詢所有員工資料</span>
+                <!-- 查詢所有員工資料 - 根據權限顯示 -->
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}" 
+                     class="form-container hover:shadow-md transition-shadow cursor-pointer" 
+                     onclick="window.location.href='/employee/listAll'">
+                    <span class="font-semibold text-lg">查詢所有員工資料 (總部管理員專用)</span>
                     <span class="text-lg text-[var(--primary-color)]">➔</span>
-                </a>
-                <form id="query-by-id-input-form" class="form-container">
-                    <label for="employee-id-input" class="form-label text-lg">輸入員工編號：</label>
-                    <input type="text" id="employee-id-input" name="employeeId" placeholder="例如: 1" class="form-input text-lg">
-                    <button type="submit" class="submit-btn text-lg">送出查詢</button>
-                </form>
-                <form id="query-by-id-select-form" class="form-container">
-                    <label for="employee-id-select" class="form-label text-lg">選擇員工編號：</label>
-                    <select id="employee-id-select" name="employeeId" class="form-input text-lg">
-                        <option value="">-- 載入中... --</option>
-                    </select>
-                    <button type="submit" class="submit-btn text-lg">送出查詢</button>
-                </form>
-                <form id="query-by-name-select-form" class="form-container">
-                    <label for="employee-name-select" class="form-label text-lg">選擇員工姓名：</label>
-                    <select id="employee-name-select" name="employeeId" class="form-input text-lg">
-                        <option value="">-- 載入中... --</option>
-                    </select>
-                    <button type="submit" class="submit-btn text-lg">送出查詢</button>
-                </form>
-            </div>
-            
-            <!-- 【全新】複合查詢區塊 (預設隱藏) -->
-            <div id="composite-query-section" class="hidden mt-6">
-                 <form id="composite-query-form" class="bg-white p-6 rounded-lg border border-[var(--border-color)] shadow-md grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    <div>
-                        <label for="username" class="form-label">員工姓名</label>
-                        <input type="text" name="username" id="username" placeholder="輸入姓名關鍵字" class="form-input">
-                    </div>
-                    <div>
-                        <label for="role" class="form-label">員工角色</label>
-                        <select name="role" id="role" class="form-input">
-                            <option value="">-- 所有角色 --</option>
-                            <option th:each="roleOpt : ${roles}" th:value="${roleOpt}" th:text="${roleOpt.displayName}"></option>
+                </div>
+                
+                <!-- 門市經理的查詢功能 -->
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'MANAGER'}" 
+                     class="form-container hover:shadow-md transition-shadow cursor-pointer" 
+                     onclick="window.location.href='/employee/listAll'">
+                    <span class="font-semibold text-lg">查詢本門市員工資料 (門市經理專用)</span>
+                    <span class="text-lg text-[var(--primary-color)]">➔</span>
+                </div>
+                
+                <!-- 一般員工的提示訊息 -->
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'STAFF'}" 
+                     class="form-container bg-gray-100 cursor-not-allowed opacity-60">
+                    <span class="font-semibold text-lg text-gray-500">員工資料查詢 (權限不足)</span>
+                    <span class="text-lg text-gray-400">✗</span>
+                </div>
+                
+                <!-- 原有的查詢功能 - 根據權限控制 -->
+                <div th:if="${session.loggedInEmployee?.role?.name() != 'STAFF'}">
+                    <form id="query-by-id-input-form" class="form-container">
+                        <label for="employee-id-input" class="form-label text-lg">輸入員工編號：</label>
+                        <input type="text" id="employee-id-input" name="employeeId" placeholder="例如: 1" class="form-input text-lg">
+                        <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                    </form>
+                    <form id="query-by-id-select-form" class="form-container">
+                        <label for="employee-id-select" class="form-label text-lg">選擇員工編號：</label>
+                        <select id="employee-id-select" name="employeeId" class="form-input text-lg">
+                            <option value="">-- 載入中... --</option>
                         </select>
-                    </div>
-                    <div>
-                        <label for="status" class="form-label">帳號狀態</label>
-                        <select name="status" id="status" class="form-input">
-                            <option value="">-- 所有狀態 --</option>
-                            <option th:each="statusOpt : ${statuses}" th:value="${statusOpt}" th:text="${statusOpt.displayName}"></option>
+                        <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                    </form>
+                    <form id="query-by-name-select-form" class="form-container">
+                        <label for="employee-name-select" class="form-label text-lg">選擇員工姓名：</label>
+                        <select id="employee-name-select" name="employeeId" class="form-input text-lg">
+                            <option value="">-- 載入中... --</option>
                         </select>
-                    </div>
-                    <div>
-                        <label for="storeId" class="form-label">所屬門市</label>
-                        <select name="storeId" id="storeId" class="form-input">
-                            <option value="">-- 所有門市 --</option>
-                            <option th:each="store : ${stores}" th:value="${store.storeId}" th:text="${store.storeName}"></option>
-                        </select>
-                    </div>
-                    <div class="md:col-span-2 flex justify-end items-center gap-4 pt-4">
-                         <button type="button" id="reset-btn" class="bg-gray-200 text-[var(--text-color)] font-semibold py-2 px-5 rounded-lg hover:bg-gray-300 transition-colors">清除條件</button>
-                         <button type="submit" class="submit-btn">執行查詢</button>
-                    </div>
-                </form>
+                        <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                    </form>
+                </div>
             </div>
         </section>
         
@@ -440,6 +458,25 @@
     </div>
 </div>
 
+<!-- 歡迎彈窗 Modal -->
+<div id="welcomeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-2xl text-center max-w-md mx-auto border-4 border-[var(--primary-color)]">
+        <div class="mb-4">
+            <i class="fas fa-user-check text-6xl text-[var(--primary-color)] mb-2"></i>
+        </div>
+        <h3 class="text-2xl font-bold mb-4 text-[var(--primary-color)]">登入成功！</h3>
+        <p class="text-lg mb-2" id="welcomeMessage">歡迎回來！</p>
+        <div class="mb-6" id="employeeInfo">
+            <!-- 員工資訊將由 JavaScript 動態填入 -->
+        </div>
+        <div class="flex justify-center">
+            <button id="closeWelcomeBtn" class="px-8 py-3 bg-[var(--primary-color)] hover:bg-[var(--primary-hover)] text-white rounded-lg transition-colors font-semibold">
+                <i class="fas fa-hand-sparkles mr-2"></i>開始工作
+            </button>
+        </div>
+    </div>
+</div>
+
 
 <script th:inline="javascript">
 document.addEventListener('DOMContentLoaded', function() {
@@ -455,10 +492,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorMessagesDiv = document.getElementById('error-messages');
     const employeeIdSelect = document.getElementById('employee-id-select');
     const employeeNameSelect = document.getElementById('employee-name-select');
-    const toggleBtn = document.getElementById('toggle-composite-query-btn');
-    const compositeSection = document.getElementById('composite-query-section');
-    const compositeForm = document.getElementById('composite-query-form');
-    const resetBtn = document.getElementById('reset-btn');
 
     // 錯誤訊息顯示函數
     function showError(messages) {
@@ -475,6 +508,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- 動態填充下拉選單 (單一查詢) ---
     async function populateEmployeeSelects() {
+        // 檢查元素是否存在再進行操作
+        if (!employeeIdSelect || !employeeNameSelect) {
+            // 一般員工看不到這些表單，直接返回
+            return;
+        }
+        
         try {
             const response = await fetch(API_BASE_URL);
             if (!response.ok) throw new Error(`無法載入員工列表 (狀態碼: ${response.status})`);
@@ -494,84 +533,115 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             const errorMessage = error.message || '載入員工資料時發生未知錯誤';
             showError(errorMessage);
-            employeeIdSelect.innerHTML = `<option value="">-- 載入失敗 --</option>`;
-            employeeNameSelect.innerHTML = `<option value="">-- 載入失敗 --</option>`;
-            employeeIdSelect.disabled = true;
-            employeeNameSelect.disabled = true;
+            if (employeeIdSelect) {
+                employeeIdSelect.innerHTML = `<option value="">-- 載入失敗 --</option>`;
+                employeeIdSelect.disabled = true;
+            }
+            if (employeeNameSelect) {
+                employeeNameSelect.innerHTML = `<option value="">-- 載入失敗 --</option>`;
+                employeeNameSelect.disabled = true;
+            }
         }
     }
 
     // --- 表單提交邏輯 ---
     const singleQueryEndpoint = /*[[@{/employee/listOne}]]*/ '/employee/listOne';
 
-    // 處理「單一查詢」所有表單
-    document.getElementById('query-by-id-input-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const employeeId = document.getElementById('employee-id-input').value;
-        if (employeeId) {
-            handleSingleEmployeeQuery(employeeId);
-        }
-    });
+    // 處理「單一查詢」所有表單 - 增加安全檢查
+    const queryByIdInputForm = document.getElementById('query-by-id-input-form');
+    const queryByIdSelectForm = document.getElementById('query-by-id-select-form');
+    const queryByNameSelectForm = document.getElementById('query-by-name-select-form');
 
-    document.getElementById('query-by-id-select-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const employeeId = document.getElementById('employee-id-select').value;
-        if (employeeId) {
-            handleSingleEmployeeQuery(employeeId);
-        }
-    });
+    if (queryByIdInputForm) {
+        queryByIdInputForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const employeeId = document.getElementById('employee-id-input').value;
+            if (employeeId) {
+                handleSingleEmployeeQuery(employeeId);
+            }
+        });
+    }
 
-    document.getElementById('query-by-name-select-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const employeeId = document.getElementById('employee-name-select').value;
-        if (employeeId) {
-            handleSingleEmployeeQuery(employeeId);
-        }
-    });
+    if (queryByIdSelectForm) {
+        queryByIdSelectForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const employeeId = document.getElementById('employee-id-select').value;
+            if (employeeId) {
+                handleSingleEmployeeQuery(employeeId);
+            }
+        });
+    }
 
-    // 【全新】複合查詢互動邏輯
-    toggleBtn.addEventListener('click', () => {
-        const isHidden = compositeSection.classList.toggle('hidden');
-        toggleBtn.textContent = isHidden ? '複合查詢功能' : '隱藏複合查詢';
-    });
-    
-    compositeForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const formData = new FormData(compositeForm);
-        const params = new URLSearchParams();
-        
-        for (const [key, value] of formData.entries()) {
-            if (value) {
-                params.append(key, value);
+    if (queryByNameSelectForm) {
+        queryByNameSelectForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const employeeId = document.getElementById('employee-name-select').value;
+            if (employeeId) {
+                handleSingleEmployeeQuery(employeeId);
             }
-        }
-        
-        try {
-            clearError();
-            const response = await fetch(`${API_BASE_URL}?${params.toString()}`);
-            if (!response.ok) {
-                throw new Error(`查詢失敗 (狀態碼: ${response.status})`);
-            }
-            const employees = await response.json();
-            if (employees.length === 0) {
-                showError('未找到符合條件的員工');
-                return;
-            }
-            // 如果是複合查詢且只有一個結果，直接顯示詳細資訊
-            if (employees.length === 1) {
-                displayEmployeeDetail(employees[0]);
-            } else {
-                // TODO: 如果有多筆結果，可以實作一個列表視圖
-                showError(`找到 ${employees.length} 名員工，請縮小搜尋範圍`);
-            }
-        } catch (error) {
-            showError(error.message);
-        }
-    });
+        });
+    }
 
-    resetBtn.addEventListener('click', function() {
-        compositeForm.reset();
-    });
+    // --- 歡迎彈窗邏輯 ---
+    const welcomeModal = document.getElementById('welcomeModal');
+    const closeWelcomeBtn = document.getElementById('closeWelcomeBtn');
+    const welcomeMessage = document.getElementById('welcomeMessage');
+    const employeeInfo = document.getElementById('employeeInfo');
+
+    // 檢查 URL 參數是否包含 welcome=true
+    const urlParams = new URLSearchParams(window.location.search);
+    const showWelcome = urlParams.get('welcome') === 'true';
+
+    // 如果 URL 包含 welcome=true 參數，顯示歡迎彈窗
+    if (showWelcome && welcomeModal) {
+        // 從 session 資料或其他方式獲取員工資訊
+        const loggedInEmployee = /*[[${session.loggedInEmployee}]]*/ null;
+        const employeeName = /*[[${session.employeeName}]]*/ null;
+        const employeeId = /*[[${session.employeeId}]]*/ null;
+
+        // 設置歡迎訊息
+        if (employeeName) {
+            welcomeMessage.textContent = `歡迎回來，${employeeName}！`;
+        }
+
+        // 設置員工資訊
+        if (loggedInEmployee) {
+            employeeInfo.innerHTML = `
+                <p class="text-sm text-gray-600">員工編號：<span class="font-semibold">${employeeId}</span></p>
+                <p class="text-sm text-gray-600">職位：<span class="font-semibold">${loggedInEmployee.role?.displayName || loggedInEmployee.role}</span></p>
+                <p class="text-sm text-gray-600">所屬門市：<span class="font-semibold">${loggedInEmployee.storeName}</span></p>
+            `;
+        }
+
+        // 延遲顯示彈窗
+        setTimeout(() => {
+            welcomeModal.classList.remove('hidden');
+            welcomeModal.classList.add('flex');
+        }, 500);
+
+        // 清除 URL 參數，防止重新整理時再次顯示
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.delete('welcome');
+        window.history.replaceState({}, '', newUrl);
+    }
+
+    // 關閉歡迎彈窗
+    if (closeWelcomeBtn) {
+        closeWelcomeBtn.addEventListener('click', function() {
+            welcomeModal.classList.add('hidden');
+            welcomeModal.classList.remove('flex');
+        });
+    }
+
+    // 點擊背景關閉歡迎彈窗
+    if (welcomeModal) {
+        welcomeModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                welcomeModal.classList.add('hidden');
+                welcomeModal.classList.remove('flex');
+            }
+        });
+    }
 
     // --- 登出 Modal 邏輯 ---
     const logoutBtn = document.getElementById('logoutBtn');
@@ -708,6 +778,96 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             showError(error.message);
         }
+    }
+
+    // --- 門市經理專用查詢功能 ---
+    window.handleManagerEmployeeQuery = async function() {
+        try {
+            clearError();
+            // 門市經理查詢本門市所有員工
+            const response = await fetch(API_BASE_URL);
+            if (!response.ok) {
+                if (response.status === 403) {
+                    showError('權限不足：您沒有權限查看員工資料');
+                } else if (response.status === 401) {
+                    showError('請重新登入');
+                    setTimeout(() => {
+                        window.location.href = '/employee/login';
+                    }, 2000);
+                } else {
+                    throw new Error(`查詢失敗 (狀態碼: ${response.status})`);
+                }
+                return;
+            }
+            
+            const employees = await response.json();
+            if (employees.length === 0) {
+                showError('您的門市目前沒有其他員工');
+                return;
+            }
+            
+            // 顯示門市員工列表
+            displayManagerEmployeesList(employees);
+            
+        } catch (error) {
+            showError(error.message || '查詢員工資料時發生錯誤');
+        }
+    };
+
+    // --- 顯示門市員工列表 ---
+    function displayManagerEmployeesList(employees) {
+        // 創建一個臨時的列表顯示區域
+        let listContainer = document.getElementById('manager-employees-list');
+        if (!listContainer) {
+            listContainer = document.createElement('div');
+            listContainer.id = 'manager-employees-list';
+            listContainer.className = 'bg-white p-4 rounded-lg border border-[var(--border-color)] shadow-sm mt-4';
+            
+            // 插入到單一查詢區塊後面
+            const singleQuerySection = document.getElementById('single-query-section');
+            singleQuerySection.parentNode.insertBefore(listContainer, singleQuerySection.nextSibling);
+        }
+        
+        let html = `
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-[var(--primary-color)]">本門市員工列表 (${employees.length} 人)</h3>
+                <button onclick="document.getElementById('manager-employees-list').remove()" 
+                        class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="grid gap-3">
+        `;
+        
+        employees.forEach(emp => {
+            const roleIcon = {
+                'STAFF': 'fas fa-user',
+                'MANAGER': 'fas fa-user-tie',
+                'HEADQUARTERS_ADMIN': 'fas fa-user-shield'
+            }[emp.role] || 'fas fa-user';
+            
+            const statusColor = emp.status === 'ACTIVE' ? 'text-green-600' : 'text-red-600';
+            
+            html += `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                     onclick="handleSingleEmployeeQuery(${emp.employeeId})">
+                    <div class="flex items-center">
+                        <i class="${roleIcon} text-[var(--primary-color)] mr-3"></i>
+                        <div>
+                            <p class="font-semibold">${emp.username}</p>
+                            <p class="text-sm text-gray-600">ID: ${emp.employeeId} | ${emp.role?.displayName || emp.role}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm ${statusColor}">${emp.status === 'ACTIVE' ? '啟用' : '停用'}</p>
+                        <p class="text-xs text-gray-500">${emp.email}</p>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        listContainer.innerHTML = html;
     }
 
     // --- 頁面初始化 ---

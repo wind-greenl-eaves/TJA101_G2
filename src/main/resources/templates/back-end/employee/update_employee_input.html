@@ -1,6 +1,6 @@
 <!-- =======================================================================================
      檔案: update_employee_input.html (已復原)
-     說明: 已移除所有照片上傳相關的 HTML 元素與 form 的 enctype 屬性。
+     
      ======================================================================================= -->
 <!DOCTYPE html>
 <html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
@@ -121,7 +121,7 @@
                 <label class="form-label">員工照片</label>
                 <div class="flex items-start space-x-4">
                     <!-- 照片預覽區域 -->
-                    <div class="w-32 h-32 relative rounded-lg overflow-hidden bg-gray-100 border-2 border-dashed border-gray-300">
+                    <div class="w-32 h-32 relative rounded-lg overflow-hidden bg-gray-100 border-2 border-dashed border-gray-300 hover:border-gray-400 transition-all duration-200 cursor-pointer group">
                         <img th:if="${employee.photoUrl != null}"
                              th:src="${employee.photoUrl}"
                              id="photo-preview"
@@ -129,8 +129,16 @@
                              alt="員工照片">
                         <div th:if="${employee.photoUrl == null}"
                              id="photo-placeholder"
-                             class="w-full h-full flex items-center justify-center text-gray-400">
-                            <i class="fas fa-user text-3xl"></i>
+                             class="w-full h-full flex flex-col items-center justify-center text-gray-400 group-hover:text-gray-500 transition-colors">
+                            <i class="fas fa-user text-3xl mb-2"></i>
+                            <span class="text-xs text-center px-2">點擊或拖放<br>上傳照片</span>
+                        </div>
+                        <!-- 拖放覆蓋層 -->
+                        <div class="absolute inset-0 bg-blue-50 bg-opacity-90 border-2 border-blue-400 rounded-lg hidden items-center justify-center" id="drop-overlay">
+                            <div class="text-center text-blue-600">
+                                <i class="fas fa-cloud-upload-alt text-2xl mb-2"></i>
+                                <p class="text-sm font-medium">放開以上傳照片</p>
+                            </div>
                         </div>
                     </div>
                     
@@ -151,7 +159,8 @@
                         </div>
                         <p class="text-sm text-gray-500">
                             支援的格式：JPG、PNG<br>
-                            檔案大小上限：5MB
+                            檔案大小上限：5MB<br>
+                            <span class="text-blue-600">💡 可直接拖放檔案到左側預覽區域</span>
                         </p>
                         <div id="error-photo" class="error-message"></div>
                     </div>

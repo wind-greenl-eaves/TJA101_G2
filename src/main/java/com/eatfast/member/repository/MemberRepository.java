@@ -42,6 +42,9 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long>, Jpa
 	// 【R - 讀取】Spring Data JPA 會自動實現 "依 email 查詢"
 	Optional<MemberEntity> findByEmail(String email);
 
+	// 【R - 讀取】Spring Data JPA 會自動實現 "依 phone 查詢" - 支援即時驗證功能
+	Optional<MemberEntity> findByPhone(String phone);
+
 	// 【R - 檢查存在】Spring Data JPA 會自動實現 "依 account 或 email 檢查是否存在"
 	// 框架會自動生成高效的 EXISTS 查詢
 	boolean existsByAccountOrEmail(String account, String email);

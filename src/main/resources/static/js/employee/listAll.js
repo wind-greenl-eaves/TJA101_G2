@@ -23,6 +23,270 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // ================================================================
+    //                     批量上傳照片功能
+    // ================================================================
+    
+    // 批量上傳相關元素
+    const batchUploadBtn = document.getElementById('batch-upload-btn');
+    const batchUploadModal = document.getElementById('batch-upload-modal');
+    const closeBatchUpload = document.getElementById('close-batch-upload');
+    const batchPhotoInput = document.getElementById('batch-photo-input');
+    const batchDropZone = document.getElementById('batch-drop-zone');
+    const batchPreviewContainer = document.getElementById('batch-preview-container');
+    const batchPreviewGrid = document.getElementById('batch-preview-grid');
+    const batchProgressContainer = document.getElementById('batch-progress-container');
+    const batchProgressBar = document.getElementById('batch-progress-bar');
+    const batchProgressText = document.getElementById('batch-progress-text');
+    const batchCancelBtn = document.getElementById('batch-cancel-btn');
+    const batchStartUpload = document.getElementById('batch-start-upload');
+    
+    let selectedFiles = [];
+    const targetEmployeeIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    
+    // 批量上傳按鈕點擊事件
+    if (batchUploadBtn) {
+        batchUploadBtn.addEventListener('click', function() {
+            openBatchUploadModal();
+        });
+    }
+    
+    // 開啟批量上傳Modal
+    function openBatchUploadModal() {
+        batchUploadModal.classList.remove('hidden');
+        resetBatchUploadForm();
+    }
+    
+    // 關閉批量上傳Modal
+    function closeBatchUploadModal() {
+        batchUploadModal.classList.add('hidden');
+        resetBatchUploadForm();
+    }
+    
+    // 重置批量上傳表單
+    function resetBatchUploadForm() {
+        selectedFiles = [];
+        batchPhotoInput.value = '';
+        batchPreviewContainer.classList.add('hidden');
+        batchProgressContainer.classList.add('hidden');
+        batchPreviewGrid.innerHTML = '';
+        batchProgressBar.style.width = '0%';
+        batchProgressText.textContent = '0/12';
+        batchStartUpload.disabled = true;
+    }
+    
+    // Modal關閉事件
+    if (closeBatchUpload) {
+        closeBatchUpload.addEventListener('click', closeBatchUploadModal);
+    }
+    
+    if (batchCancelBtn) {
+        batchCancelBtn.addEventListener('click', closeBatchUploadModal);
+    }
+    
+    // 拖放上傳功能
+    if (batchDropZone) {
+        batchDropZone.addEventListener('click', function() {
+            batchPhotoInput.click();
+        });
+        
+        // 拖放事件
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            batchDropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            batchDropZone.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            batchDropZone.addEventListener(eventName, unhighlight, false);
+        });
+        
+        batchDropZone.addEventListener('drop', handleBatchDrop, false);
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        function highlight(e) {
+            batchDropZone.classList.add('border-purple-400', 'bg-purple-50');
+        }
+        
+        function unhighlight(e) {
+            batchDropZone.classList.remove('border-purple-400', 'bg-purple-50');
+        }
+        
+        function handleBatchDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleBatchFileSelection(Array.from(files));
+        }
+    }
+    
+    // 檔案選擇事件
+    if (batchPhotoInput) {
+        batchPhotoInput.addEventListener('change', function(e) {
+            handleBatchFileSelection(Array.from(e.target.files));
+        });
+    }
+    
+    // 處理批量檔案選擇
+    function handleBatchFileSelection(files) {
+        // 驗證檔案數量
+        if (files.length !== 12) {
+            showToast(`請選擇剛好 12 張照片，您選擇了 ${files.length} 張`, true);
+            return;
+        }
+        
+        // 驗證檔案格式和大小
+        const validFiles = [];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        
+        for (let file of files) {
+            if (!['image/jpeg', 'image/png'].includes(file.type)) {
+                showToast(`檔案 "${file.name}" 格式不支援，請選擇 JPG 或 PNG 格式`, true);
+                return;
+            }
+            
+            if (file.size > maxSize) {
+                showToast(`檔案 "${file.name}" 大小超過 5MB 限制`, true);
+                return;
+            }
+            
+            validFiles.push(file);
+        }
+        
+        selectedFiles = validFiles;
+        generateBatchPreview();
+        batchStartUpload.disabled = false;
+    }
+    
+    // 生成批量預覽
+    function generateBatchPreview() {
+        batchPreviewGrid.innerHTML = '';
+        batchPreviewContainer.classList.remove('hidden');
+        
+        selectedFiles.forEach((file, index) => {
+            const previewItem = document.createElement('div');
+            previewItem.className = 'relative bg-gray-100 border-2 border-gray-300 rounded-lg overflow-hidden cursor-move';
+            previewItem.draggable = true;
+            previewItem.dataset.index = index;
+            
+            const img = document.createElement('img');
+            img.className = 'w-full h-20 object-cover';
+            img.alt = `預覽 ${index + 1}`;
+            
+            const label = document.createElement('div');
+            label.className = 'absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs text-center py-1';
+            label.textContent = `員工 ${targetEmployeeIds[index]}`;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            
+            previewItem.appendChild(img);
+            previewItem.appendChild(label);
+            batchPreviewGrid.appendChild(previewItem);
+            
+            // 拖拽排序功能
+            previewItem.addEventListener('dragstart', handleDragStart);
+            previewItem.addEventListener('dragover', handleDragOver);
+            previewItem.addEventListener('drop', handleDragDrop);
+        });
+    }
+    
+    let draggedIndex = null;
+    
+    function handleDragStart(e) {
+        draggedIndex = parseInt(e.target.dataset.index);
+    }
+    
+    function handleDragOver(e) {
+        e.preventDefault();
+    }
+    
+    function handleDragDrop(e) {
+        e.preventDefault();
+        const targetIndex = parseInt(e.target.closest('[data-index]').dataset.index);
+        
+        if (draggedIndex !== null && draggedIndex !== targetIndex) {
+            // 交換檔案位置
+            [selectedFiles[draggedIndex], selectedFiles[targetIndex]] = [selectedFiles[targetIndex], selectedFiles[draggedIndex]];
+            generateBatchPreview();
+        }
+        
+        draggedIndex = null;
+    }
+    
+    // 開始批量上傳
+    if (batchStartUpload) {
+        batchStartUpload.addEventListener('click', async function() {
+            await startBatchUpload();
+        });
+    }
+    
+    async function startBatchUpload() {
+        batchProgressContainer.classList.remove('hidden');
+        batchStartUpload.disabled = true;
+        batchCancelBtn.disabled = true;
+        
+        let successCount = 0;
+        let failureCount = 0;
+        
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            const employeeId = targetEmployeeIds[i];
+            
+            try {
+                await uploadSinglePhoto(employeeId, file);
+                successCount++;
+                showToast(`員工 ${employeeId} 照片上傳成功`);
+            } catch (error) {
+                failureCount++;
+                showToast(`員工 ${employeeId} 照片上傳失敗: ${error.message}`, true);
+            }
+            
+            // 更新進度
+            const progress = ((i + 1) / selectedFiles.length) * 100;
+            batchProgressBar.style.width = `${progress}%`;
+            batchProgressText.textContent = `${i + 1}/12`;
+            
+            // 稍微延遲以避免服務器過載
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        // 完成後的處理
+        setTimeout(() => {
+            showToast(`批量上傳完成！成功: ${successCount} 張，失敗: ${failureCount} 張`);
+            closeBatchUploadModal();
+            
+            // 重新載入員工列表以顯示新照片
+            loadEmployees();
+        }, 1000);
+    }
+    
+    // 上傳單張照片
+    async function uploadSinglePhoto(employeeId, file) {
+        const formData = new FormData();
+        formData.append('photo', file);
+        
+        const response = await fetch(`${API_BASE_URL}/${employeeId}/photo`, {
+            method: 'PUT',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || '上傳失敗');
+        }
+        
+        return await response.json();
+    }
+
+    // ================================================================
     //                     輔助函式 (Helper Functions)
     // ================================================================
 
@@ -219,8 +483,68 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /** 處理刪除員工的請求 */
     async function handleDelete(employeeId, employeeName) {
-        if (!confirm(`您確定要刪除員工 "${employeeName}" (ID: ${employeeId}) 嗎？此操作無法復原。`)) return;
+        // 顯示視覺化的刪除確認Modal而不是簡單的confirm
+        showDeleteConfirmModal(employeeId, employeeName);
+    }
 
+    /** 顯示視覺化的刪除確認Modal */
+    function showDeleteConfirmModal(employeeId, employeeName) {
+        // 獲取要刪除的員工資料
+        const employee = originalEmployees.find(emp => emp.employeeId === employeeId);
+        if (!employee) return;
+
+        const modal = document.getElementById('delete-employee-modal');
+        const confirmInput = document.getElementById('delete-confirmation-input');
+        const confirmBtn = document.getElementById('confirm-delete-btn');
+        
+        // 設置員工資訊
+        document.getElementById('delete-employee-name').textContent = employee.username;
+        document.getElementById('delete-employee-id').textContent = `ID: ${employee.employeeId}`;
+        document.getElementById('delete-employee-email').textContent = employee.email;
+        
+        // 設置角色顯示
+        const roleMap = {
+            'STAFF': '一般員工',
+            'MANAGER': '門市經理', 
+            'HEADQUARTERS_ADMIN': '總部管理員'
+        };
+        document.getElementById('delete-employee-role').textContent = roleMap[employee.role] || employee.role;
+        
+        // 設置員工照片
+        const photo = document.getElementById('delete-employee-photo');
+        photo.src = employee.photoUrl || '/images/no_image.png';
+        
+        // 清空確認輸入框
+        confirmInput.value = '';
+        confirmBtn.disabled = true;
+        
+        // 顯示Modal
+        modal.classList.add('show');
+        
+        // 監聽確認輸入
+        const inputHandler = function() {
+            confirmBtn.disabled = confirmInput.value.trim().toUpperCase() !== 'DELETE';
+        };
+        
+        // 移除舊的事件監聽器（如果存在）
+        confirmInput.removeEventListener('input', inputHandler);
+        confirmInput.addEventListener('input', inputHandler);
+        
+        // 設置確認刪除按鈕的點擊事件
+        const confirmHandler = async function() {
+            if (confirmInput.value.trim().toUpperCase() === 'DELETE') {
+                modal.classList.remove('show');
+                await performDelete(employeeId, employeeName);
+            }
+        };
+        
+        // 移除舊的事件監聽器（如果存在）
+        confirmBtn.removeEventListener('click', confirmHandler);
+        confirmBtn.addEventListener('click', confirmHandler);
+    }
+
+    /** 執行實際的刪除操作 */
+    async function performDelete(employeeId, employeeName) {
         try {
             const response = await fetch(`${API_BASE_URL}/${employeeId}`, { method: 'DELETE' });
             if (response.ok) {
@@ -351,6 +675,17 @@ document.addEventListener('DOMContentLoaded', function() {
             closeButton.addEventListener('click', () => modal.classList.remove('show'));
         }
     });
+
+    // 刪除確認Modal的取消按鈕事件
+    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', function() {
+            const modal = document.getElementById('delete-employee-modal');
+            modal.classList.remove('show');
+            // 清空確認輸入框
+            document.getElementById('delete-confirmation-input').value = '';
+        });
+    }
     
     document.getElementById('rows-per-page').addEventListener('change', function(e) {
         rowsPerPage = parseInt(e.target.value);

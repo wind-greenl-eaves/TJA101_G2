@@ -62,9 +62,14 @@ public class MemberCreateRequest {
 
 	/**
 	 * 連絡電話。
+	 * 支援台灣常見的手機和市話格式：
+	 * - 手機：0912345678, 0912-345-678, 0912-342-136, 0987-123-4567
+	 * - 市話：(02)12345678, 02-12345678, 04-23456789
 	 */
 	@NotBlank(message = "連絡電話：請勿空白", groups = CreateValidation.class)
-	@Pattern(regexp = "^09\\d{2}-?\\d{3}-?\\d{3}$", message = "連絡電話：請填寫有效的台灣手機號碼格式 (例如 0912-345-678)", groups = CreateValidation.class)
+	@Pattern(regexp = "^(09\\d{2}[\\s-]?\\d{3}[\\s-]?\\d{3,4}|\\(0\\d{1,2}\\)\\d{7,8}|0\\d{1,2}[\\s-]?\\d{7,8})$", 
+	         message = "連絡電話：請填寫有效的電話號碼格式（如：0912-345-678、0912-342-136、02-12345678）", 
+	         groups = CreateValidation.class)
 	private String phone;
 
 	/**

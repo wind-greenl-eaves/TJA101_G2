@@ -263,17 +263,9 @@ public class LoginDiagnosticController {
                         // 將明文密碼加密
                         String encryptedPassword = passwordEncoder.encode(currentPassword);
                         
-                        // 直接更新密碼欄位
+                        // 【修正】直接更新 Entity 的密碼欄位，而不使用 DTO
                         member.setPassword(encryptedPassword);
-                        memberService.updateMemberDetails(new MemberUpdateRequest() {{
-                            setMemberId(member.getMemberId());
-                            setUsername(member.getUsername());
-                            setEmail(member.getEmail());
-                            setPhone(member.getPhone());
-                            setBirthday(member.getBirthday());
-                            setGender(member.getGender());
-                            setIsEnabled(member.isEnabled());
-                        }});
+                        memberService.updateMember(member); // 使用 updateMember 方法直接更新 Entity
                         
                         upgradedCount++;
                         upgradedAccounts.add(member.getAccount());

@@ -581,4 +581,55 @@ public class EmployeeServiceImpl implements EmployeeService {
             return localPart.charAt(0) + "***" + localPart.charAt(localPart.length() - 1) + "@" + domain;
         }
     }
+
+    /**
+     * 【新增方法實作】- 更新員工照片
+     * 處理員工照片的上傳和更新
+     */
+    @Override
+    @Transactional
+    public EmployeeDTO updateEmployeePhoto(Long employeeId, MultipartFile photo) throws IOException {
+        // 查找員工
+        EmployeeEntity employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + employeeId + " 的員工"));
+        
+        // 驗證照片檔案
+        if (photo == null || photo.isEmpty()) {
+            throw new IllegalArgumentException("照片檔案不能為空");
+        }
+        
+        // 檢查檔案格式
+        String contentType = photo.getContentType();
+        if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
+            throw new IllegalArgumentException("只支援 JPG 或 PNG 格式的圖片");
+        }
+        
+        // 檢查檔案大小 (5MB)
+        if (photo.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException("圖片大小不能超過 5MB");
+        }
+        
+        try {
+            // 刪除舊照片（如果存在）
+            if (employee.getPhotoUrl() != null) {
+                String oldFileName = employee.getPhotoUrl().substring(employee.getPhotoUrl().lastIndexOf("/") + 1);
+                fileService.deleteEmployeePhoto(oldFileName);
+            }
+            
+            // 上傳新照片
+            String fileName = fileService.saveEmployeePhoto(photo);
+            String photoUrl = "/employee-photos/" + fileName;
+            
+            // 更新員工照片URL
+            employee.setPhotoUrl(photoUrl);
+            EmployeeEntity updatedEmployee = employeeRepository.save(employee);
+            
+            log.info("員工照片更新成功 - 員工ID: {}, 檔案名稱: {}", employeeId, fileName);
+            return employeeMapper.toDto(updatedEmployee);
+            
+        } catch (IOException e) {
+            log.error("員工照片上傳失敗 - 員工ID: {}", employeeId, e);
+            throw new IOException("照片上傳失敗: " + e.getMessage(), e);
+        }
+    }
 }

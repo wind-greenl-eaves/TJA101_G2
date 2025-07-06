@@ -57,10 +57,13 @@ public class MemberUpdateRequest {
 
     /**
      * 連絡電話。
-     * - @Pattern: 使用正規表示式驗證格式。
+     * - @Pattern: 使用正規表示式驗證格式，支援台灣常見的手機和市話格式。
+     * 修正版支援格式：0912345678, 0912-345-678, 09-12345678, (02)12345678, 02-12345678
      */
     @NotBlank(message = "連絡電話：請勿空白", groups = UpdateValidation.class)
-    @Pattern(regexp = "^09\\d{2}-?\\d{3}-?\\d{3}$", message = "連絡電話：請填寫有效的台灣手機號碼格式 (例如 0912-345-678)", groups = UpdateValidation.class)
+    @Pattern(regexp = "^(09\\d{8}|09\\d{2}[\\s-]\\d{3}[\\s-]\\d{3}|09[\\s-]\\d{8}|0[2-8][\\s-]?\\d{7,8}|\\(0[2-8]\\)\\d{7,8})$", 
+             message = "連絡電話：請填寫有效的電話號碼格式（如：0912345678、0912-345-678、02-12345678）", 
+             groups = UpdateValidation.class)
     private String phone;
     
     /**
@@ -78,12 +81,6 @@ public class MemberUpdateRequest {
     @NotNull(message = "性別：請勿空白", groups = UpdateValidation.class)
     private Gender gender;
     
-    /**
-     * 帳號啟用狀態。
-     */
-    @NotNull(message = "帳號啟用狀態不可為空")
-    private Boolean isEnabled;
-
     //================================================================
     // Getters and Setters
     //================================================================
@@ -101,6 +98,4 @@ public class MemberUpdateRequest {
     public void setBirthday(LocalDate birthday) { this.birthday = birthday; }
     public Gender getGender() { return gender; }
     public void setGender(Gender gender) { this.gender = gender; }
-    public Boolean getIsEnabled() { return isEnabled; }
-    public void setIsEnabled(Boolean isEnabled) { this.isEnabled = isEnabled; }
 }

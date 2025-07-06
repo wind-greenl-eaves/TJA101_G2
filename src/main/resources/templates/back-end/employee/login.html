@@ -471,6 +471,24 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // 表單提交時對輸入值進行 trim 處理
+        const loginForm = document.querySelector('form[th\\:action*="/employee/login"]');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                // 獲取帳號和密碼輸入框
+                const accountInput = document.getElementById('account');
+                const passwordInput = document.getElementById('password');
+                
+                // 去除前後空白
+                if (accountInput) {
+                    accountInput.value = accountInput.value.trim();
+                }
+                if (passwordInput) {
+                    passwordInput.value = passwordInput.value.trim();
+                }
+            });
+        }
+
         // 成功訊息自動消失功能
         const successMessage = document.querySelector('.success-msg');
         if (successMessage) {

@@ -51,6 +51,7 @@ public class AuthController {
     /**
      * 【依賴注入】會員服務和密碼加密器
      * - 使用 private final 確保服務在建構後不可變，符合最佳實踐
+     * PasswordEncoder: 用於加密和驗證密碼
      */
     private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;
@@ -230,19 +231,11 @@ public class AuthController {
                     // 【自動升級密碼】登入成功時自動將明文密碼升級為BCrypt
                     try {
                         String encryptedPassword = passwordEncoder.encode(password);
+                        
+                        // 【修正】直接更新Entity而非使用DTO，避免setIsEnabled編譯錯誤
                         member.setPassword(encryptedPassword);
+                        memberService.updateMember(member); // 直接更新Entity
                         
-                        // 【修正】正確創建 MemberUpdateRequest 對象
-                        MemberUpdateRequest updateRequest = new MemberUpdateRequest();
-                        updateRequest.setMemberId(member.getMemberId());
-                        updateRequest.setUsername(member.getUsername());
-                        updateRequest.setEmail(member.getEmail());
-                        updateRequest.setPhone(member.getPhone());
-                        updateRequest.setBirthday(member.getBirthday());
-                        updateRequest.setGender(member.getGender());
-                        updateRequest.setIsEnabled(member.isEnabled());
-                        
-                        memberService.updateMemberDetails(updateRequest);
                         System.out.println("✅ 密碼已自動升級為BCrypt格式");
                     } catch (Exception e) {
                         System.err.println("⚠️ 密碼升級失敗，但不影響登入：" + e.getMessage());
@@ -459,5 +452,34 @@ public class AuthController {
             model.addAttribute("token", request.getToken());
             return "front-end/member/reset-password";
         }
+    }
+
+    /**
+     * 處理會員登出請求 (GET 方式)
+     * 
+     * 路徑說明：
+     * - URL: GET /logout
+     * - 完整 URL: http://localhost:8080/logout
+     * 
+     * 功能說明：
+     * 1. 接收會員頁面的登出請求
+     * 2. 清除用戶的 Session
+     * 3. 重定向到會員登入頁面
+     * 
+     * @param request HTTP 請求對象，用於獲取 Session
+     * @return String 重定向到會員登入頁面
+     */
+    @GetMapping("/logout")
+    public String logoutAndRedirect(HttpServletRequest request) {
+        // 獲取當前 Session（如果存在）
+        HttpSession session = request.getSession(false);
+        
+        // 如果 Session 存在，則使其失效（清除所有 Session 數據）
+        if (session != null) {
+            session.invalidate();
+        }
+        
+        // 重定向到會員登入頁面，並附上登出成功訊息
+        return "redirect:/api/v1/auth/member-login?message=logout_success";
     }
 }

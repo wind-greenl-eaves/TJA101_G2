@@ -47,6 +47,8 @@ public class SecurityConfig {
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                 // 允許對測試控制器、會員相關功能、首頁的公開存取
                 .requestMatchers("/", "/testMember1", "/testEmployee", "/member/**").permitAll()
+                // 【新增】允許登出路徑的公開存取
+                .requestMatchers("/logout", "/api/v1/auth/**").permitAll()
                 // 【開發階段設定】暫時允許所有其他未明確指定的請求。
                 // 【警告】在正式上線前，應將此行改為 .anyRequest().authenticated()，強制所有其他請求都需登入驗證。
                 .anyRequest().permitAll()
@@ -54,12 +56,21 @@ public class SecurityConfig {
             // 步驟 2: 設定表單登入 (若需要)
             // .formLogin(form -> form.loginPage("/login").permitAll())
             
-            // 步驟 3: 關閉 CSRF (跨站請求偽造) 保護。
+            // 【新增】步驟 3: 設定登出處理
+            .logout(logout -> logout
+                .logoutUrl("/logout")  // 設定登出 URL
+                .logoutSuccessUrl("/api/v1/auth/member-login?message=logout_success")  // 登出成功後重定向
+                .invalidateHttpSession(true)  // 清除 Session
+                .deleteCookies("JSESSIONID")  // 刪除 Session Cookie
+                .permitAll()  // 允許所有人存取登出功能
+            )
+            
+            // 步驟 4: 關閉 CSRF (跨站請求偽造) 保護。
             // 說明: 由於我們是開發無狀態的 RESTful API，或是在開發初期為了方便測試表單，
             // 會先將其關閉。若未來有狀態的網頁表單，則應開啟並正確配置。
             .csrf(csrf -> csrf.disable());
 
-        // 步驟 4: 建構並返回設定好的過濾鏈
+        // 步驟 5: 建構並返回設定好的過濾鏈
         return http.build();
     }
 }

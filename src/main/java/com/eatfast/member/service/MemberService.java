@@ -301,8 +301,9 @@ public class MemberService {
         dbMember.setPhone(updateRequest.getPhone());
         dbMember.setBirthday(updateRequest.getBirthday());
         dbMember.setGender(updateRequest.getGender());
-        dbMember.setEnabled(updateRequest.getIsEnabled());
-        // **注意**：此處【刻意不】處理密碼，保持了更新操作的安全性。
+        // 【安全修正】移除 setEnabled 調用，禁止透過此方法修改帳號狀態
+        // 帳號狀態只能透過專門的管理功能或直接操作 Entity 來修改
+        // **注意**：此處【刻意不】處理密碼和帳號狀態，保持了更新操作的安全性。
         
         return memberRepository.save(dbMember); // 儲存更新
     }
@@ -668,6 +669,76 @@ public class MemberService {
         } catch (Exception e) {
             // 如果發生任何錯誤，返回false以確保安全性
             return false;
+        }
+    }
+    
+    /**
+     * 【即時驗證】檢查電子郵件是否被其他會員使用
+     * 
+     * @param email 要檢查的電子郵件
+     * @param excludeMemberId 排除的會員ID（通常是當前正在編輯的會員）
+     * @return true 如果電子郵件已被其他會員使用，false 如果可以使用
+     */
+    @Transactional(readOnly = true)
+    public boolean isEmailExistsForOtherMember(String email, Long excludeMemberId) {
+        try {
+            // 查找使用此電子郵件的會員（排除指定的會員ID）
+            Optional<MemberEntity> memberOpt = memberRepository.findByEmail(email);
+            
+            if (memberOpt.isEmpty()) {
+                // 沒有人使用這個電子郵件，可以使用
+                return false;
+            }
+            
+            MemberEntity member = memberOpt.get();
+            
+            // 如果找到的會員就是當前會員本人，則可以使用
+            if (member.getMemberId().equals(excludeMemberId)) {
+                return false;
+            }
+            
+            // 如果是其他會員在使用，則不能使用
+            return true;
+            
+        } catch (Exception e) {
+            log.error("檢查電子郵件重複時發生錯誤: {}", e.getMessage());
+            // 發生錯誤時，為了安全起見，假設電子郵件已被使用
+            return true;
+        }
+    }
+    
+    /**
+     * 【即時驗證】檢查電話號碼是否被其他會員使用
+     * 
+     * @param phone 要檢查的電話號碼
+     * @param excludeMemberId 排除的會員ID（通常是當前正在編輯的會員）
+     * @return true 如果電話號碼已被其他會員使用，false 如果可以使用
+     */
+    @Transactional(readOnly = true)
+    public boolean isPhoneExistsForOtherMember(String phone, Long excludeMemberId) {
+        try {
+            // 使用 Repository 的查詢方法查找使用此電話號碼的會員
+            Optional<MemberEntity> memberOpt = memberRepository.findByPhone(phone);
+            
+            if (memberOpt.isEmpty()) {
+                // 沒有人使用這個電話號碼，可以使用
+                return false;
+            }
+            
+            MemberEntity member = memberOpt.get();
+            
+            // 如果找到的會員就是當前會員本人，則可以使用
+            if (member.getMemberId().equals(excludeMemberId)) {
+                return false;
+            }
+            
+            // 如果是其他會員在使用，則不能使用
+            return true;
+            
+        } catch (Exception e) {
+            log.error("檢查電話號碼重複時發生錯誤: {}", e.getMessage());
+            // 發生錯誤時，為了安全起見，假設電話號碼已被使用
+            return true;
         }
     }
 }

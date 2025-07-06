@@ -119,12 +119,13 @@
         
         .gender-options {
             display: flex;
-            gap: 20px;
-            margin-top: 8px;
+            gap: 2px;   
+/*             // 調整性別選項間距 */
+            margin-top: 10px; 
         }
         
         .gender-option {
-            display: flex;
+            display: flex; 
             align-items: center;
             gap: 8px;
         }
@@ -151,6 +152,13 @@
             background-color: var(--primary-hover);
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(166, 123, 91, 0.3);
+        }
+        
+        .register-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .quick-fill-btn {
@@ -283,6 +291,67 @@
             color: var(--error-color);
             font-size: 12px;
             margin-top: 5px;
+        }
+        
+        /* 會員條款同意區塊樣式 */
+        .terms-agreement {
+            margin: 25px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        
+        .terms-checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .terms-checkbox {
+            margin-top: 3px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+        
+        .terms-label {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+        
+        .terms-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .terms-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 5px 10px;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .terms-link:hover {
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .terms-error {
+            color: var(--error-color);
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
         }
         
         .form-row {
@@ -425,8 +494,8 @@
                            id="phone" 
                            th:field="*{phone}"
                            class="form-control" 
-                           placeholder="請輸入手機號碼（09XX-XXX-XXX）"
-                           pattern="^09\d{2}-?\d{3}-?\d{3}$"
+                           placeholder="請輸入手機號碼（例：0912-345-678 或 0912-712-816）"
+                           pattern="^09\d{2}-?\d{3}-?\d{3,4}$"
                            value="0912-345-678"
                            required>
                     <button type="button" class="clear-btn" id="clearPhone">
@@ -468,6 +537,22 @@
                 </div>
             </div>
             
+            <!-- 會員條款與隱私權政策 -->
+            <div class="terms-agreement">
+                <div class="form-group">
+                    <div class="terms-checkbox-group">
+                        <input type="checkbox" id="termsCheckbox" class="terms-checkbox" required>
+                        <label for="termsCheckbox" class="terms-label">
+                            我已閱讀並同意
+                            <a href="#" class="terms-link" target="_blank">會員條款</a> 
+                            與
+                            <a href="#" class="terms-link" target="_blank">隱私權政策</a>
+                        </label>
+                    </div>
+                    <div class="terms-error" id="termsError">您必須同意會員條款與隱私權政策才能註冊</div>
+                </div>
+            </div>
+            
             <button type="submit" class="register-btn" id="registerButton">
                 <i class="fas fa-user-plus"></i> 立即註冊
             </button>
@@ -485,6 +570,8 @@
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const confirmPasswordError = document.getElementById('confirmPasswordError');
+            const termsCheckbox = document.getElementById('termsCheckbox');
+            const termsError = document.getElementById('termsError');
             
             // 檢查密碼是否一致
             if (password !== confirmPassword) {
@@ -495,6 +582,15 @@
             } else {
                 confirmPasswordError.style.display = 'none';
                 document.getElementById('confirmPassword').classList.remove('is-invalid');
+            }
+            
+            // 檢查是否同意會員條款與隱私權政策
+            if (!termsCheckbox.checked) {
+                e.preventDefault();
+                termsError.style.display = 'block';
+                return false;
+            } else {
+                termsError.style.display = 'none';
             }
             
             // 顯示載入狀態

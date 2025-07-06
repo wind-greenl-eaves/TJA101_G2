@@ -24,10 +24,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+// 【新增】時間處理和檔案下載相關的 import
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+// 【新增】驗證相關的 import
+import jakarta.validation.Validator;
+import jakarta.validation.Validation;
+import jakarta.validation.ConstraintViolation;
+// 【新增】枚舉 import
+import com.eatfast.common.enums.Gender;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -122,7 +136,6 @@ public class MemberController {
                 updateRequest.setPhone(memberEntity.getPhone());
                 updateRequest.setBirthday(memberEntity.getBirthday());
                 updateRequest.setGender(memberEntity.getGender());
-                updateRequest.setIsEnabled(memberEntity.isEnabled());
                 
                 // 【資料流路徑】: 提供「更新資料」的 DTO 給第一個表單。
                 model.addAttribute("memberUpdateRequest", updateRequest);
@@ -349,7 +362,7 @@ public class MemberController {
             updateRequest.setPhone(member.getPhone());
             updateRequest.setBirthday(member.getBirthday());
             updateRequest.setGender(member.getGender());
-            updateRequest.setIsEnabled(member.isEnabled());
+            // 【安全修正】移除 setIsEnabled，禁止會員修改帳號狀態
             
             // 【傳遞資料到視圖】
             model.addAttribute("memberUpdateRequest", updateRequest);
@@ -753,7 +766,6 @@ public class MemberController {
             updateRequest.setPhone(member.getPhone());
             updateRequest.setBirthday(member.getBirthday());
             updateRequest.setGender(member.getGender());
-            updateRequest.setIsEnabled(member.isEnabled());
             model.addAttribute("memberUpdateRequest", updateRequest);
         });
     }
@@ -897,6 +909,170 @@ public class MemberController {
     // ================================================================
     // 					即時驗證功能 (Real-time Validation)
     // ================================================================
+    
+    /**
+     * 【新增】前端個人資料即時驗證端點
+     * 
+     * @param field 要驗證的欄位名稱
+     * @param value 欄位值
+     * @param memberId 會員ID
+     * @param session HTTP Session
+     * @return JSON 回應包含驗證結果
+     */
+    @PostMapping("/profile/validate")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> validateProfileField(
+            @RequestParam("field") String field,
+            @RequestParam("value") String value,
+            @RequestParam("memberId") Long memberId,
+            HttpSession session) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 【Session驗證】檢查用戶是否已登入且操作自己的資料
+            Long sessionMemberId = (Long) session.getAttribute("loggedInMemberId");
+            if (sessionMemberId == null || !sessionMemberId.equals(memberId)) {
+                response.put("valid", false);
+                response.put("message", "請重新登入");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 【欄位驗證】根據不同欄位進行相應驗證
+            boolean isValid = false;
+            String message = "";
+            
+            switch (field) {
+                case "username":
+                    if (value.trim().length() < 2) {
+                        message = "姓名至少需要2個字元";
+                    } else if (value.trim().length() > 50) {
+                        message = "姓名不能超過50個字元";
+                    } else {
+                        isValid = true;
+                        message = "姓名格式正確";
+                    }
+                    break;
+                    
+                case "email":
+                    // 【修正】更嚴格的電子郵件格式驗證
+                    // 支援常見格式如：user@domain.com, user.name@domain.co.uk, user+tag@domain.org
+                    // 但拒絕無效格式如：user@domain.co (無效的頂級域名)
+                    boolean isValidEmail = false;
+                    String emailMessage = "";
+                    
+                    // 基本格式檢查：用戶名@域名.頂級域名
+                    if (!value.matches("^[A-Za-z0-9+_.'-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                        emailMessage = "請輸入有效的電子郵件格式";
+                    } else {
+                        // 進一步檢查頂級域名是否合理
+                        String[] parts = value.split("@");
+                        if (parts.length == 2) {
+                            String domain = parts[1];
+                            String[] domainParts = domain.split("\\.");
+                            
+                            if (domainParts.length >= 2) {
+                                String topLevelDomain = domainParts[domainParts.length - 1];
+                                
+                                // 【修正邏輯】更嚴格的頂級域名檢查
+                                if (topLevelDomain.length() >= 3) {
+                                    // 3個字母以上的頂級域名都接受 (.com, .org, .net, .edu 等)
+                                    isValidEmail = true;
+                                } else if (topLevelDomain.length() == 2 && isCommonTLD(topLevelDomain)) {
+                                    // 2個字母的必須是常見的國家代碼
+                                    isValidEmail = true;
+                                } else {
+                                    // 其他情況都拒絕
+                                    emailMessage = "請輸入有效的電子郵件格式（如：example@gmail.com）";
+                                }
+                            } else {
+                                emailMessage = "請輸入有效的電子郵件格式";
+                            }
+                        } else {
+                            emailMessage = "請輸入有效的電子郵件格式";
+                        }
+                    }
+                    
+                    if (!isValidEmail) {
+                        message = emailMessage;
+                    } else {
+                        // 檢查email是否被其他會員使用
+                        boolean emailExists = memberService.isEmailExistsForOtherMember(value, memberId);
+                        if (emailExists) {
+                            message = "此電子郵件已被其他會員使用";
+                        } else {
+                            isValid = true;
+                            message = "電子郵件可以使用";
+                        }
+                    }
+                    break;
+                    
+                case "phone":
+                    // 【修正】統一電話號碼驗證邏輯，與 DTO 驗證保持一致
+                    // 支援格式：0912345678, 0912-345-678, 09-12345678, (02)12345678, 02-12345678
+                    String phonePattern = "^(09\\d{8}|09\\d{2}[\\s-]\\d{3}[\\s-]\\d{3}|09[\\s-]\\d{8}|0[2-8][\\s-]?\\d{7,8}|\\(0[2-8]\\)\\d{7,8})$";
+                    
+                    if (!value.matches(phonePattern)) {
+                        message = "請輸入有效的電話號碼格式（如：0912345678、0912-345-678、02-12345678）";
+                    } else {
+                        // 檢查電話是否被其他會員使用
+                        boolean phoneExists = memberService.isPhoneExistsForOtherMember(value, memberId);
+                        if (phoneExists) {
+                            message = "此電話號碼已被其他會員使用";
+                        } else {
+                            isValid = true;
+                            message = "電話號碼可以使用";
+                        }
+                    }
+                    break;
+                    
+                case "birthday":
+                    try {
+                        LocalDate birthday = LocalDate.parse(value);
+                        LocalDate now = LocalDate.now();
+                        LocalDate minDate = now.minusYears(120); // 最大120歲
+                        LocalDate maxDate = now.minusYears(10);  // 最小10歲
+                        
+                        if (birthday.isBefore(minDate)) {
+                            message = "出生日期不能超過120年前";
+                        } else if (birthday.isAfter(maxDate)) {
+                            message = "年齡需滿10歲才能註冊";
+                        } else if (birthday.isAfter(now)) {
+                            message = "出生日期不能是未來日期";
+                        } else {
+                            isValid = true;
+                            message = "出生日期正確";
+                        }
+                    } catch (Exception e) {
+                        message = "請選擇有效的出生日期";
+                    }
+                    break;
+                    
+                case "gender":
+                    if ("M".equals(value) || "F".equals(value)) {
+                        isValid = true;
+                        message = "性別選擇正確";
+                    } else {
+                        message = "請選擇有效的性別";
+                    }
+                    break;
+                    
+                default:
+                    message = "未知的驗證欄位";
+                    break;
+            }
+            
+            response.put("valid", isValid);
+            response.put("message", message);
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("個人資料欄位驗證時發生錯誤: {}", e.getMessage());
+            response.put("valid", false);
+            response.put("message", "驗證過程發生錯誤");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
     
     /**
      * 【即時驗證】檢查舊密碼是否正確
@@ -1084,107 +1260,164 @@ public class MemberController {
             // Session驗證
             Long memberId = (Long) session.getAttribute("loggedInMemberId");
             if (memberId == null) {
+                log.warn("未登入用戶嘗試下載個人資料");
                 return ResponseEntity.status(401).build();
             }
             
-            // TODO: 實現個人資料導出邏輯
-            // byte[] data = memberService.exportPersonalData(memberId);
+            // 獲取會員詳細資料
+            MemberEntity member = memberService.getMemberById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
             
             log.info("會員 {} 請求下載個人資料", memberId);
             
-            // 暫時返回空文件
-            String content = "個人資料導出功能開發中...";
-            byte[] data = content.getBytes("UTF-8");
+            // 建構個人資料內容
+            StringBuilder content = new StringBuilder();
+            content.append("============================================================\n");
+            content.append("                  EatFast 早餐店會員系統\n");
+            content.append("                      個人資料匯出\n");
+            content.append("============================================================\n\n");
             
+            // 基本資料
+            content.append("【基本資料】\n");
+            content.append("----------------------------------------\n");
+            content.append("會員編號：").append(member.getMemberId()).append("\n");
+            content.append("帳號：").append(member.getAccount()).append("\n");
+            content.append("密碼(以BCrypt加密)：").append(member.getPassword()).append("\n");
+            content.append("姓名：").append(member.getUsername()).append("\n");
+            content.append("電子郵件：").append(member.getEmail()).append("\n");
+            content.append("電話號碼：").append(member.getPhone() != null ? member.getPhone() : "未設定").append("\n");
+            content.append("生日：").append(member.getBirthday() != null ? member.getBirthday().toString() : "未設定").append("\n");
+            content.append("性別：").append(getGenderText(member.getGender())).append("\n");
+            content.append("帳號狀態：").append(member.isEnabled() ? "正常使用" : "已停用").append("\n\n");
+            
+            // 帳號資訊
+            content.append("【帳號資訊】\n");
+            content.append("----------------------------------------\n");
+            
+            // 安全處理時間格式
+            if (member.getCreatedAt() != null) {
+                try {
+                    content.append("註冊時間：").append(
+                        member.getCreatedAt().format(
+                            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        )
+                    ).append("\n");
+                } catch (Exception e) {
+                    content.append("註冊時間：").append(member.getCreatedAt().toString()).append("\n");
+                }
+            } else {
+                content.append("註冊時間：不詳\n");
+            }
+            
+            if (member.getLastUpdatedAt() != null) {
+                try {
+                    content.append("最後更新：").append(
+                        member.getLastUpdatedAt().format(
+                            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        )
+                    ).append("\n");
+                } catch (Exception e) {
+                    content.append("最後更新：").append(member.getLastUpdatedAt().toString()).append("\n");
+                }
+            } else {
+                content.append("最後更新：不詳\n");
+            }
+            content.append("\n");
+            
+            // 系統資訊
+            content.append("【系統資訊】\n");
+            content.append("----------------------------------------\n");
+            content.append("資料匯出時間：").append(
+                java.time.LocalDateTime.now().format(
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                )
+            ).append("\n");
+            content.append("匯出格式：UTF-8 文字檔案\n\n");
+            
+            // 隱私聲明
+            content.append("【隱私聲明】\n");
+            content.append("----------------------------------------\n");
+            content.append("• 此檔案包含您的個人資料，請妥善保管\n");
+            content.append("• 請勿將此檔案分享給他人\n");
+            content.append("• 如有疑問，請聯繫 EatFast 客服\n");
+            content.append("• 客服信箱：support@eatfast.com\n\n");
+            
+            content.append("============================================================\n");
+            content.append("                 感謝您使用 EatFast 早餐店\n");
+            content.append("============================================================\n");
+            
+            // 轉換為位元組陣列
+            byte[] data = content.toString().getBytes("UTF-8");
+            
+            // 產生檔案名稱（包含時間戳記）
+            String timestamp = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String filename = String.format("EatFast_個人資料_%s_%s.txt", 
+                member.getAccount(), timestamp);
+            
+            // 設定回應標頭 - 使用安全的方式
             return ResponseEntity.ok()
-                    .header("Content-Disposition", "attachment; filename=personal-data.txt")
-                    .header("Content-Type", "application/octet-stream")
+                    .header("Content-Disposition", 
+                        "attachment; filename*=UTF-8''" + 
+                        java.net.URLEncoder.encode(filename, "UTF-8"))
+                    .header("Content-Type", "text/plain; charset=UTF-8")
+                    .header("Content-Length", String.valueOf(data.length))
                     .body(data);
             
+        } catch (EntityNotFoundException e) {
+            log.error("下載個人資料失敗 - 會員不存在: {}", e.getMessage());
+            return ResponseEntity.status(404).build();
+        } catch (java.io.UnsupportedEncodingException e) {
+            log.error("下載個人資料失敗 - 編碼錯誤: {}", e.getMessage());
+            return ResponseEntity.status(500).build();
         } catch (Exception e) {
-            log.error("下載個人資料失敗: {}", e.getMessage());
+            log.error("下載個人資料失敗 - 未預期錯誤: {}", e.getMessage(), e);
             return ResponseEntity.status(500).build();
         }
     }
     
     /**
-     * 【功能】: 清除瀏覽記錄
-     * 【請求路徑】: 處理 POST /member/settings/clear-history 請求
+     * 【輔助方法】將性別枚舉轉換為中文說明
      */
-    @PostMapping("/settings/clear-history")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> clearBrowsingHistory(HttpSession session) {
-        Map<String, Object> response = new HashMap<>();
+    private String getGenderText(com.eatfast.common.enums.Gender gender) {
+        if (gender == null) {
+            return "未設定";
+        }
         
-        try {
-            // Session驗證
-            Long memberId = (Long) session.getAttribute("loggedInMemberId");
-            if (memberId == null) {
-                response.put("success", false);
-                response.put("message", "請重新登入");
-                return ResponseEntity.status(401).body(response);
-            }
-            
-            // TODO: 實現清除瀏覽記錄的邏輯
-            // memberService.clearBrowsingHistory(memberId);
-            
-            log.info("會員 {} 清除瀏覽記錄", memberId);
-            
-            response.put("success", true);
-            response.put("message", "瀏覽記錄已清除");
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            log.error("清除瀏覽記錄失敗: {}", e.getMessage());
-            response.put("success", false);
-            response.put("message", "清除失敗");
-            return ResponseEntity.status(500).body(response);
+        switch (gender) {
+            case F:
+                return "女性";
+            case M:
+                return "男性";
+            case O:
+                return "其他";
+            default:
+                return "未知 (" + gender + ")";
         }
     }
     
     /**
-     * 【功能】: 刪除帳號 (永久刪除)
-     * 【請求路徑】: 處理 DELETE /member/settings/delete-account 請求
+     * 【輔助方法】檢查是否為常見的2字母頂級域名（國家代碼）
+     * 
+     * @param tld 頂級域名
+     * @return true 如果是常見的2字母國家代碼
      */
-    @DeleteMapping("/settings/delete-account")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> deleteAccount(HttpSession session) {
-        Map<String, Object> response = new HashMap<>();
+    private boolean isCommonTLD(String tld) {
+        // 常見的2字母國家代碼頂級域名
+        String[] commonTLDs = {
+            "tw", "cn", "jp", "kr", "us", "uk", "ca", "au", "de", "fr", 
+            "it", "es", "nl", "se", "no", "dk", "fi", "be", "ch", "at",
+            "ie", "pt", "pl", "cz", "hu", "ro", "bg", "hr", "si", "sk",
+            "ee", "lv", "lt", "mt", "cy", "lu", "is", "li", "mc", "sm",
+            "va", "ad", "gi", "je", "gg", "im", "fo", "gl", "aw", "an",
+            "ai", "ag", "bb", "bz", "bs", "dm", "do", "gd", "gt", "ht",
+            "hn", "jm", "kn", "lc", "ms", "ni", "pa", "sv", "tt", "vc",
+            "vg", "vi", "pr", "mx", "cu", "cr", "bo", "br", "cl", "co",
+            "ec", "gy", "pe", "py", "sr", "uy", "ve", "ar", "fk", "gf",
+            "pf", "tf", "nc", "wf", "vu", "to", "tv", "tk", "nu", "nf",
+            "cx", "cc", "hm", "au", "nz", "fj", "pg", "sb", "vu", "nc"
+        };
         
-        try {
-            // Session驗證
-            Long memberId = (Long) session.getAttribute("loggedInMemberId");
-            if (memberId == null) {
-                response.put("success", false);
-                response.put("message", "請重新登入");
-                return ResponseEntity.status(401).body(response);
-            }
-            
-            // 獲取會員資料用於記錄
-            MemberEntity member = memberService.getMemberById(memberId)
-                    .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
-            
-            // TODO: 實現完整的帳號刪除邏輯
-            // 1. 備份重要資料
-            // 2. 刪除相關訂單記錄
-            // 3. 刪除收藏記錄
-            // 4. 刪除會員資料
-            // memberService.permanentlyDeleteAccount(memberId);
-            
-            log.info("會員帳號永久刪除 - ID: {}, Account: {}", memberId, member.getAccount());
-            
-            // 清除Session
-            session.invalidate();
-            
-            response.put("success", true);
-            response.put("message", "帳號已永久刪除");
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            log.error("刪除帳號失敗: {}", e.getMessage());
-            response.put("success", false);
-            response.put("message", "刪除失敗");
-            return ResponseEntity.status(500).body(response);
-        }
+        return java.util.Arrays.asList(commonTLDs).contains(tld.toLowerCase());
     }
 }

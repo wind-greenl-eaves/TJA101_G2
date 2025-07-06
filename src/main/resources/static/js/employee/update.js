@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const photoUploadBtn = document.getElementById('photo-upload-btn');
     const photoPreview = document.getElementById('photo-preview');
     const photoPlaceholder = document.getElementById('photo-placeholder');
+    const photoContainer = photoPreview ? photoPreview.parentElement : document.querySelector('.w-32.h-32');
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     // 照片上傳按鈕點擊事件
@@ -47,43 +48,108 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // 拖放上傳支援
+    if (photoContainer) {
+        // 防止默認的拖放行為
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            photoContainer.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        // 拖放視覺效果
+        ['dragenter', 'dragover'].forEach(eventName => {
+            photoContainer.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            photoContainer.addEventListener(eventName, unhighlight, false);
+        });
+
+        // 處理檔案拖放
+        photoContainer.addEventListener('drop', handleDrop, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            photoContainer.classList.add('border-blue-400', 'bg-blue-50');
+        }
+
+        function unhighlight(e) {
+            photoContainer.classList.remove('border-blue-400', 'bg-blue-50');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                photoInput.files = files;
+                handlePhotoSelection(files[0]);
+            }
+        }
+    }
+
+    // 統一的照片處理函數
+    function handlePhotoSelection(file) {
+        const errorDiv = document.getElementById('error-photo');
+        
+        // 清除之前的錯誤訊息
+        errorDiv.textContent = '';
+        
+        if (!file) return;
+
+        // 檢查文件類型
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+            errorDiv.textContent = '只支援 JPG 或 PNG 格式的圖片';
+            photoInput.value = '';
+            return;
+        }
+        
+        // 檢查文件大小
+        if (file.size > MAX_FILE_SIZE) {
+            errorDiv.textContent = '圖片大小不能超過 5MB';
+            photoInput.value = '';
+            return;
+        }
+
+        // 預覽圖片
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // 如果沒有預覽元素，創建一個
+            let preview = photoPreview;
+            if (!preview) {
+                preview = document.createElement('img');
+                preview.id = 'photo-preview';
+                preview.className = 'w-full h-full object-cover';
+                preview.alt = '員工照片預覽';
+                
+                // 清空容器並添加預覽圖片
+                if (photoContainer) {
+                    photoContainer.innerHTML = '';
+                    photoContainer.appendChild(preview);
+                }
+            }
+            
+            // 設置預覽圖片
+            preview.src = e.target.result;
+            preview.classList.remove('hidden');
+            
+            // 隱藏佔位符
+            if (photoPlaceholder) {
+                photoPlaceholder.classList.add('hidden');
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
     // 照片選擇處理
     if (photoInput) {
         photoInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
-            const errorDiv = document.getElementById('error-photo');
-            
-            // 清除之前的錯誤訊息
-            errorDiv.textContent = '';
-            
-            if (file) {
-                // 檢查文件類型
-                if (!['image/jpeg', 'image/png'].includes(file.type)) {
-                    errorDiv.textContent = '只支援 JPG 或 PNG 格式的圖片';
-                    this.value = '';
-                    return;
-                }
-                
-                // 檢查文件大小
-                if (file.size > MAX_FILE_SIZE) {
-                    errorDiv.textContent = '圖片大小不能超過 5MB';
-                    this.value = '';
-                    return;
-                }
-
-                // 預覽圖片
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    if (photoPreview) {
-                        photoPreview.src = e.target.result;
-                        photoPreview.classList.remove('hidden');
-                    }
-                    if (photoPlaceholder) {
-                        photoPlaceholder.classList.add('hidden');
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
+            handlePhotoSelection(file);
         });
     }
 

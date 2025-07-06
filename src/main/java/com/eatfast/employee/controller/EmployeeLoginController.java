@@ -128,7 +128,7 @@ public class EmployeeLoginController {
             redirectAttributes.addFlashAttribute("successMessage", 
                 "歡迎，" + authenticatedEmployee.getUsername() + "！登入成功。");
             
-            return "redirect:/employee/select_page";
+            return "redirect:/employee/select_page?welcome=true";
 
         } catch (ResourceNotFoundException e) {
             // 帳號不存在或密碼錯誤
