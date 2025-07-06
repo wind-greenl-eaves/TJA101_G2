@@ -197,7 +197,7 @@
     </div>
 </div>
 
-<!-- 【新增】角色權限 Modal -->
+<!-- 權限顯示 Modal -->
 <div id="permission-modal" class="modal-backdrop">
     <div class="modal-content p-6">
         <div class="flex justify-between items-center mb-6">
@@ -209,6 +209,74 @@
         <ul id="permission-list" class="space-y-3">
             <!-- JS 動態生成權限列表 -->
         </ul>
+    </div>
+</div>
+
+<!-- 刪除員工確認 Modal -->
+<div id="delete-employee-modal" class="modal-backdrop">
+    <div class="modal-content p-8 max-w-md mx-auto">
+        <div class="text-center mb-6">
+            <!-- 警告圖示 -->
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+            </div>
+            <!-- 標題 -->
+            <h3 class="text-xl font-bold text-gray-900 mb-2">確認刪除員工</h3>
+            <!-- 警告訊息 -->
+            <p class="text-gray-600 text-sm mb-4">此操作將永久刪除員工資料，無法復原！</p>
+        </div>
+        
+        <!-- 員工資訊卡片 -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
+            <div class="flex items-center space-x-4">
+                <!-- 員工照片 -->
+                <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-300 flex-shrink-0">
+                    <img id="delete-employee-photo" src="/images/no_image.png" alt="員工照片" class="w-full h-full object-cover">
+                </div>
+                <!-- 員工資訊 -->
+                <div class="flex-1 min-w-0">
+                    <p class="text-lg font-semibold text-gray-900" id="delete-employee-name">員工姓名</p>
+                    <p class="text-sm text-gray-600">
+                        <span class="inline-flex items-center">
+                            <i class="fas fa-id-badge mr-1"></i>
+                            <span id="delete-employee-id">ID: --</span>
+                        </span>
+                        <span class="mx-2">•</span>
+                        <span class="inline-flex items-center">
+                            <i class="fas fa-user-tag mr-1"></i>
+                            <span id="delete-employee-role">角色</span>
+                        </span>
+                    </p>
+                    <p class="text-sm text-gray-500 mt-1">
+                        <i class="fas fa-envelope mr-1"></i>
+                        <span id="delete-employee-email">email@example.com</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 確認輸入區域 -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                請輸入 "<span id="delete-confirm-text" class="font-semibold text-red-600">DELETE</span>" 來確認刪除：
+            </label>
+            <input type="text" id="delete-confirmation-input" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                   placeholder="輸入 DELETE 確認刪除">
+        </div>
+        
+        <!-- 按鈕區域 -->
+        <div class="flex space-x-3">
+            <button id="cancel-delete-btn" 
+                    class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                <i class="fas fa-times mr-2"></i>取消
+            </button>
+            <button id="confirm-delete-btn" 
+                    class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    disabled>
+                <i class="fas fa-trash mr-2"></i>確認刪除
+            </button>
+        </div>
     </div>
 </div>
 

@@ -219,8 +219,68 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /** 處理刪除員工的請求 */
     async function handleDelete(employeeId, employeeName) {
-        if (!confirm(`您確定要刪除員工 "${employeeName}" (ID: ${employeeId}) 嗎？此操作無法復原。`)) return;
+        // 顯示視覺化的刪除確認Modal而不是簡單的confirm
+        showDeleteConfirmModal(employeeId, employeeName);
+    }
 
+    /** 顯示視覺化的刪除確認Modal */
+    function showDeleteConfirmModal(employeeId, employeeName) {
+        // 獲取要刪除的員工資料
+        const employee = originalEmployees.find(emp => emp.employeeId === employeeId);
+        if (!employee) return;
+
+        const modal = document.getElementById('delete-employee-modal');
+        const confirmInput = document.getElementById('delete-confirmation-input');
+        const confirmBtn = document.getElementById('confirm-delete-btn');
+        
+        // 設置員工資訊
+        document.getElementById('delete-employee-name').textContent = employee.username;
+        document.getElementById('delete-employee-id').textContent = `ID: ${employee.employeeId}`;
+        document.getElementById('delete-employee-email').textContent = employee.email;
+        
+        // 設置角色顯示
+        const roleMap = {
+            'STAFF': '一般員工',
+            'MANAGER': '門市經理', 
+            'HEADQUARTERS_ADMIN': '總部管理員'
+        };
+        document.getElementById('delete-employee-role').textContent = roleMap[employee.role] || employee.role;
+        
+        // 設置員工照片
+        const photo = document.getElementById('delete-employee-photo');
+        photo.src = employee.photoUrl || '/images/no_image.png';
+        
+        // 清空確認輸入框
+        confirmInput.value = '';
+        confirmBtn.disabled = true;
+        
+        // 顯示Modal
+        modal.classList.add('show');
+        
+        // 監聽確認輸入
+        const inputHandler = function() {
+            confirmBtn.disabled = confirmInput.value.trim().toUpperCase() !== 'DELETE';
+        };
+        
+        // 移除舊的事件監聽器（如果存在）
+        confirmInput.removeEventListener('input', inputHandler);
+        confirmInput.addEventListener('input', inputHandler);
+        
+        // 設置確認刪除按鈕的點擊事件
+        const confirmHandler = async function() {
+            if (confirmInput.value.trim().toUpperCase() === 'DELETE') {
+                modal.classList.remove('show');
+                await performDelete(employeeId, employeeName);
+            }
+        };
+        
+        // 移除舊的事件監聽器（如果存在）
+        confirmBtn.removeEventListener('click', confirmHandler);
+        confirmBtn.addEventListener('click', confirmHandler);
+    }
+
+    /** 執行實際的刪除操作 */
+    async function performDelete(employeeId, employeeName) {
         try {
             const response = await fetch(`${API_BASE_URL}/${employeeId}`, { method: 'DELETE' });
             if (response.ok) {
@@ -351,6 +411,17 @@ document.addEventListener('DOMContentLoaded', function() {
             closeButton.addEventListener('click', () => modal.classList.remove('show'));
         }
     });
+
+    // 刪除確認Modal的取消按鈕事件
+    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', function() {
+            const modal = document.getElementById('delete-employee-modal');
+            modal.classList.remove('show');
+            // 清空確認輸入框
+            document.getElementById('delete-confirmation-input').value = '';
+        });
+    }
     
     document.getElementById('rows-per-page').addEventListener('change', function(e) {
         rowsPerPage = parseInt(e.target.value);
