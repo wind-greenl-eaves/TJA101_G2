@@ -205,18 +205,18 @@ CREATE TABLE employee (
  * -----------------------------------------------------
  */
 INSERT INTO employee (store_id, username, account, created_by, password, email, phone, role, status, gender, national_id) VALUES
-(3, '林一郎', 'manager-gui', NULL, 'manager-gui', 'manager-gui@gmail.com', '0911-000-111', 'HEADQUARTERS_ADMIN', 'ACTIVE', 'M', 'A121976751'),
-(1, '王大明', 'david.wang', 1, '$2y$10$empHashPass002', 'david.wang@gmail.com', '0910-111-222', 'MANAGER', 'ACTIVE', 'M', 'B120267183'),
-(1, '陳美麗', 'mary.chen', 2, '$2y$10$empHashPass003', 'mary.chen@gmail.com', '0920-222-333', 'STAFF', 'ACTIVE', 'F', 'A220464692'),
-(2, '林建良', 'ken.lin', 1, '$2y$10$empHashPass004', 'ken.lin@gmail.com', '0930-333-444', 'MANAGER', 'ACTIVE', 'M', 'J166864809'),
-(1, '張雅婷', 'tina.chang', 2, '$2y$10$empHashPass005', 'tina.chang@gmail.com', '0940-444-555', 'STAFF', 'ACTIVE', 'F', 'J259707846'),
-(2, '黃啟宏', 'chihung.huang', 1, '$2y$10$empHashPass006', 'chihung.huang@gmail.com', '0950-555-666', 'STAFF', 'ACTIVE', 'M', 'A172965971'),
-(3, '吳淑芬', 'sylvia.wu', NULL, '$2y$10$empHashPass007', 'sylvia.wu@gmail.com', '0960-666-777', 'HEADQUARTERS_ADMIN', 'ACTIVE', 'F', 'A237730085'),
-(1, '劉俊傑', 'jason.liu', 2, '$2y$10$empHashPass008', 'jason.liu@gmail.com', '0970-777-888', 'STAFF', 'INACTIVE', 'M', 'A161978784'),
-(2, '蔡怡靜', 'joyce.tsai', 1, '$2y$10$empHashPass009', 'joyce.tsai@gmail.com', '0980-888-999', 'STAFF', 'ACTIVE', 'F', 'C213892240'),
-(1, '許明翰', 'minghan.hsu', 2, '$2y$10$empHashPass010', 'minghan.hsu@gmail.com', '0911-123-456', 'STAFF', 'ACTIVE', 'M', 'E196350396'),
-(1, '鄭心儀', 'cindy.cheng', 1, '$2y$10$empHashPass011', 'cindy.cheng@gmail.com', '0922-234-567', 'STAFF', 'ACTIVE', 'F', 'E283693295'),
-(2, '方美琪', 'maggie.fang', 2, '$2y$10$empHashPass012', 'maggie.fang@gmail.com', '0955-567-890', 'STAFF', 'ACTIVE', 'F', 'E263360866');
+(3, '金泰亨V.', 'manager-gui', NULL, 'manager-gui', 'manager-gui@gmail.com', '0911-000-111', 'HEADQUARTERS_ADMIN', 'ACTIVE', 'M', 'A121976751'),
+(1, '李準基', 'david.wang', 1, 'david.wang', 'david.wang@gmail.com', '0910-111-222', 'MANAGER', 'ACTIVE', 'M', 'B120267183'),
+(1, '蔡秀彬', 'mary.chen', 2, 'mary.chen', 'mary.chen@gmail.com', '0920-222-333', 'STAFF', 'ACTIVE', 'F', 'A220464692'),
+(2, '玄彬', 'ken.lin', 1, 'ken.lin', 'ken.lin@gmail.com', '0930-333-444', 'MANAGER', 'ACTIVE', 'M', 'J166864809'),
+(1, '朴寶英', 'tina.chang', 2, 'tina.chang', 'tina.chang@gmail.com', '0940-444-555', 'STAFF', 'ACTIVE', 'F', 'J259707846'),
+(2, '杉野遙亮', 'chihung.huang', 1, 'chihung.huang', 'chihung.huang@gmail.com', '0950-555-666', 'STAFF', 'ACTIVE', 'M', 'A172965971'),
+(3, '新垣結衣', 'sylvia.wu', NULL, 'sylvia.wu', 'sylvia.wu@gmail.com', '0960-666-777', 'HEADQUARTERS_ADMIN', 'ACTIVE', 'F', 'A237730085'),
+(1, '赤楚衛二', 'jason.liu', 2, 'jason.liu', 'jason.liu@gmail.com', '0970-777-888', 'STAFF', 'ACTIVE', 'M', 'A161978784'),
+(2, '今田美櫻', 'joyce.tsai', 1, 'joyce.tsai', 'joyce.tsai@gmail.com', '0980-888-999', 'STAFF', 'ACTIVE', 'F', 'C213892240'),
+(1, '高橋文哉', 'minghan.hsu', 2, 'minghan.hsu', 'minghan.hsu@gmail.com', '0911-123-456', 'STAFF', 'ACTIVE', 'M', 'E196350396'),
+(1, '張婷婷', 'cindy.cheng', 1, 'cindy.cheng', 'cindy.cheng@gmail.com', '0922-234-567', 'STAFF', 'ACTIVE', 'F', 'E283693295'),
+(2, '鄧佳華', 'maggie.fang', 2, 'maggie.fang', 'maggie.fang@gmail.com', '0955-567-890', 'STAFF', 'INACTIVE', 'O', 'E263360866');
 
 
 -- =======================================================================================
@@ -404,6 +404,9 @@ CREATE TABLE meal(
     FOREIGN KEY (meal_type_id) REFERENCES meal_type(meal_type_id) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='所有餐點的詳細資料表。';
 
+-- 確保圖片欄位強制為 LONGBLOB
+ALTER TABLE meal MODIFY COLUMN meal_pic LONGBLOB COMMENT '餐點圖片';
+
 ALTER TABLE meal AUTO_INCREMENT = 101;
 
 /*
@@ -421,7 +424,7 @@ INSERT INTO meal (meal_type_id, meal_name, meal_pic, meal_price, review_total_st
 (1, '花生厚片吐司', NULL, 30, 4, 1),   -- 種類:吐司, 名稱:花生厚片吐司, 價格:30, 評價:4星, 狀態:上架
 (2, '雞腿漢堡', NULL, 65, 5, 1),      -- 種類:漢堡, 名稱:雞腿漢堡, 價格:65, 評價:5星, 狀態:上架
 (3, '起司蛋餅', NULL, 40, 5, 1),      -- 種類:蛋餅, 名稱:起司蛋餅, 價格:40, 評價:5星, 狀態:上架
-(4, '培根鐵板麵', NULL, 60, 4, 1),    -- 種類:鐵板麵, 名稱:培根鐵板麵, 價格:60, 評價:4星, 狀態:下架
+(4, '培根鐵板麵', NULL, 60, 4, 0),    -- 種類:鐵板麵, 名稱:培根鐵板麵, 價格:60, 評價:4星, 狀態:下架
 (5, '冰美式咖啡', NULL, 35, 5, 1);      -- 種類:飲品, 名稱:冰美式咖啡, 價格:35, 評價:5星, 狀態:上架
 -- =======================================================================================
 -- 資料表: store_meal_status (門市餐點狀態表) - [已修改為代理主鍵版本]
@@ -825,4 +828,3 @@ BEGIN
 END$$
 -- 將結束符改回預設的分號(;)
 DELIMITER ;
-

@@ -48,7 +48,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;  // 防止 JSON 循環引用
  *    - 刪除：POST /member/delete
  */
 
-@Entity  // 標記這是一個實體類別，會對應到資料庫的表
+@Entity  // 標記這是一個實體类別，會對應到資料庫的表
 @Table(name = "member")  // 指定對應的資料表名稱
 @SQLDelete(sql = "UPDATE member SET is_enabled = false WHERE member_id = ?")  // 軟刪除的SQL語句
 @SQLRestriction("is_enabled = true")  // 查詢時只顯示未刪除的記錄
@@ -102,7 +102,9 @@ public class MemberEntity {
     private String email;
 
     @NotBlank(message = "連絡電話：請勿空白", groups = {CreateValidation.class, UpdateValidation.class})
-    @Pattern(regexp = "^09\\d{2}-?\\d{3}-?\\d{3}$", message = "連絡電話：請填寫有效的台灣手機號碼格式", groups = {CreateValidation.class, UpdateValidation.class})
+    @Pattern(regexp = "^(09\\d{8}|09\\d{2}[\\s-]\\d{3}[\\s-]\\d{3}|09[\\s-]\\d{8}|0[2-8][\\s-]?\\d{7,8}|\\(0[2-8]\\)\\d{7,8})$", 
+             message = "連絡電話：請填寫有效的電話號碼格式（如：0912345678、0912-345-678、02-12345678）", 
+             groups = {CreateValidation.class, UpdateValidation.class})
     @Column(name = "phone", nullable = false, length = 20)
     private String phone;
     
@@ -112,7 +114,7 @@ public class MemberEntity {
     private LocalDate birthday;
     
     @NotNull(message = "性別：請勿空白", groups = {CreateValidation.class, UpdateValidation.class})
-    @Enumerated(EnumType.STRING) // 建議使用 STRING 儲存，以增加可讀性與安全性
+    @Enumerated(EnumType.STRING) // 修正：使用 STRING 儲存，符合資料庫 CHAR(1) 和 SQL 插入的 'M','F','O' 設計
     @Column(name = "gender", nullable = false, length = 1)
     private Gender gender;
     
