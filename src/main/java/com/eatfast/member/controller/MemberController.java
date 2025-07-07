@@ -132,10 +132,13 @@ public class MemberController {
                 MemberUpdateRequest updateRequest = new MemberUpdateRequest();
                 updateRequest.setMemberId(memberEntity.getMemberId());
                 updateRequest.setUsername(memberEntity.getUsername());
+                updateRequest.setAccount(memberEntity.getAccount()); // 添加帳號欄位
                 updateRequest.setEmail(memberEntity.getEmail());
                 updateRequest.setPhone(memberEntity.getPhone());
                 updateRequest.setBirthday(memberEntity.getBirthday());
                 updateRequest.setGender(memberEntity.getGender());
+                updateRequest.setIsEnabled(memberEntity.isEnabled()); // 修正：使用 isEnabled() 而不是 getIsEnabled()
+                updateRequest.setCreatedAt(memberEntity.getCreatedAt()); // 添加註冊時間
                 
                 // 【資料流路徑】: 提供「更新資料」的 DTO 給第一個表單。
                 model.addAttribute("memberUpdateRequest", updateRequest);

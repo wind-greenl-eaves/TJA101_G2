@@ -369,7 +369,6 @@
                     <input type="text" 
                            id="account" 
                            th:field="*{account}" 
-                           required 
                            autocomplete="username"
                            th:class="${#fields.hasErrors('account')} ? 'error' : ''">
                     <div th:if="${#fields.hasErrors('account')}" class="error-msg">
@@ -383,7 +382,6 @@
                         <input type="password" 
                                id="password" 
                                th:field="*{password}" 
-                               required 
                                autocomplete="current-password"
                                th:class="${#fields.hasErrors('password')} ? 'error' : ''">
                         <i class="fas fa-eye password-toggle-icon" id="password-toggle"></i>
@@ -426,7 +424,7 @@
                         </p>
                         <p>
                             <span class="label">員工密碼:</span> 
-                            <span th:text="${emp.password}" style="font-family: monospace; color: #666;"></span>
+                            <span style="color: #D9534F; font-family: monospace;"><i class="fas fa-lock"></i> ********</span>
                         </p>
                     </div>
                 </li>
@@ -457,7 +455,7 @@
                         </p>
                         <p>
                             <span class="label">員工密碼:</span> 
-                            <span th:text="${emp.password}" style="font-family: monospace; color: #666;"></span>
+                            <span style="color: #D9534F; font-family: monospace;"><i class="fas fa-lock"></i> ********</span>
                         </p>
                         <p style="font-size: 12px; color: #999; margin-top: 10px;">
                             <i class="fas fa-exclamation-triangle"></i> 

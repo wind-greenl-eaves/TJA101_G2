@@ -62,7 +62,7 @@
                         </div>
                         <div class="form-group col-md-6">
                             <label for="account">登入帳號：</label>
-                            <input type="text" id="account" class="form-control" th:value="${memberUpdateRequest.memberId}"
+                            <input type="text" id="account" class="form-control" th:value="${memberUpdateRequest.account}"
                                    readonly style="background-color: #e9ecef" placeholder="帳號不可修改"/>
                             <small class="form-text text-muted">登入帳號建立後不可修改</small>
                         </div>
@@ -138,7 +138,7 @@
                         <div class="col-md-6">
                             <small class="text-muted">
                                 <i class="fas fa-calendar-plus"></i> 
-                                註冊時間：<span th:text="${memberUpdateRequest.memberId}">N/A</span>
+                                註冊時間：<span th:text="${memberUpdateRequest.createdAt != null ? #temporals.format(memberUpdateRequest.createdAt, 'yyyy-MM-dd HH:mm:ss') : 'N/A'}">N/A</span>
                             </small>
                         </div>
                         <div class="col-md-6">
@@ -213,7 +213,7 @@
                             <div class="form-group">
                                 <label for="confirmPassword">確認新密碼：<span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="password" id="confirmPassword" class="form-control" 
+                                    <input type="password" id="confirmPassword" class="form-control" th:field="*{confirmPassword}"
                                            placeholder="請再次輸入新密碼" required />
                                     <div class="input-group-append">
                                         <span class="input-group-text toggle-password" data-target="confirmPassword">
