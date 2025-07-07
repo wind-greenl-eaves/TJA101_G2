@@ -15,6 +15,7 @@ import com.eatfast.member.model.MemberEntity;
 import com.eatfast.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -26,7 +27,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 /*
  * ================================================================
@@ -68,31 +68,21 @@ public class MemberService {
         this.inMemoryVerificationCodeService = inMemoryVerificationCodeService;
     }
     
+    // ================================================================
+    // 					密碼管理功能 (Password Management)
+    // ================================================================
+    
     /**
      * 【新增】變更會員密碼。
-     * - @Transactional: (不可變的 Spring 關鍵字)
-     * 此處沒有 readOnly=true，覆蓋了類別層級的設定，
-     * 明確表示這是一個「寫入」操作，必須在一個完整的交易中執行。
-     * 若任一步驟失敗，所有資料庫變更都會被回滾 (Rollback)。
-     * - @param request: 可自定義的參數名稱，代表從 Controller 傳來的密碼更新 DTO。
-     * - @throws EntityNotFoundException 如果找不到對應ID的會員。
-     * - @throws IllegalArgumentException 如果舊密碼驗證失敗。
      */
     @Transactional
     public void changePassword(PasswordUpdateRequest request) {
         // 1. 【資料庫讀取路徑】根據 ID 從 Repository 取得最新的會員實體。
-        // orElseThrow 是處理 Optional 的標準做法，若找不到則直接拋出例外，終止後續流程。
         MemberEntity member = memberRepository.findById(request.getMemberId())
                 .orElseThrow(() -> new EntityNotFoundException("找不到ID為 " + request.getMemberId() + " 的會員"));
 
         // 2. 【核心安全驗證】
-        // - passwordEncoder.matches() 是 Spring Security 提供的標準驗證方法。
-        // - 它的內部機制是：將使用者輸入的「舊密碼明文」(request.getOldPassword())
-        //   使用與資料庫中儲存的密碼相同的演算法和鹽值 (salt) 進行一次加密，
-        //   然後比對加密後的結果是否與資料庫中的雜湊值 (member.getPassword()) 完全一致。
-        // - 絕對不可使用 `request.getOldPassword().equals(member.getPassword())` 這種方式比對！
         if (!passwordEncoder.matches(request.getOldPassword(), member.getPassword())) {
-            // 如果驗證失敗，拋出明確的業務例外，由 Controller 層捕獲並提示使用者。
             throw new IllegalArgumentException("舊密碼不正確");
         }
         
@@ -101,11 +91,29 @@ public class MemberService {
         member.setPassword(encodedNewPassword);
         
         // 4. 【資料庫寫入路徑】呼叫 save 方法。
-        // - JPA 的持久性上下文 (Persistence Context) 會偵測到 member 物件的 password 欄位已變更。
-        // - 若 MemberEntity 上有 @DynamicUpdate，此處會產生一條只更新 password 欄位的 UPDATE SQL。
         memberRepository.save(member);
         log.info("會員 ID {} 的密碼已成功更新。", member.getMemberId());
     }
+    
+    /**
+     * 【即時驗證】驗證會員的舊密碼是否正確
+     */
+    @Transactional(readOnly = true)
+    public boolean validateOldPassword(Long memberId, String oldPassword) {
+        try {
+            MemberEntity member = memberRepository.findById(memberId).orElse(null);
+            if (member == null) {
+                return false;
+            }
+            return passwordEncoder.matches(oldPassword, member.getPassword());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    // ================================================================
+    // 					會員註冊與驗證功能 (Registration & Verification)
+    // ================================================================
     
     /**
      * 【核心邏輯 - 郵件驗證版】註冊新會員並發送驗證郵件。
@@ -151,16 +159,10 @@ public class MemberService {
      */
     private void sendVerificationEmail(MemberEntity member) {
         try {
-            // 使用統一的驗證碼服務接口
             VerificationCodeServiceInterface service = getCurrentVerificationService();
-            
-            // 生成6位數驗證碼
             String verificationCode = service.generateVerificationCode();
-            
-            // 存儲驗證碼
             service.storeVerificationCode(member.getEmail(), verificationCode);
             
-            // 發送郵件到指定信箱 young19960127@gmail.com
             String targetEmail = "young19960127@gmail.com";
             String subject = "【早餐店會員系統】會員註冊驗證碼";
             String content = buildVerificationEmailContent(member, verificationCode);
@@ -203,12 +205,10 @@ public class MemberService {
     @Transactional
     public boolean verifyMemberRegistration(MemberVerificationRequest request) {
         try {
-            // 使用統一的驗證碼服務接口
             VerificationCodeServiceInterface service = getCurrentVerificationService();
             
             log.info("開始驗證會員註冊 - Email: {}, 驗證碼: {}", request.getEmail(), request.getVerificationCode());
             
-            // 【優先驗證驗證碼】先檢查驗證碼是否正確
             if (!service.verifyCode(request.getEmail(), request.getVerificationCode())) {
                 log.warn("驗證碼錯誤或已過期 - Email: {}", request.getEmail());
                 return false;
@@ -216,13 +216,11 @@ public class MemberService {
             
             log.info("驗證碼驗證成功 - Email: {}", request.getEmail());
             
-            // 【然後查找會員】查找會員並啟用帳號
             Optional<MemberEntity> memberOpt = memberRepository.findByEmailIncludeDisabled(request.getEmail());
             if (memberOpt.isEmpty()) {
                 log.warn("找不到對應的會員 - Email: {}，但驗證碼已驗證成功", request.getEmail());
-                // 驗證碼正確但找不到會員，可能是測試情況，我們創建一個臨時會員記錄
                 log.info("為測試目的創建臨時會員記錄 - Email: {}", request.getEmail());
-                return true; // 暫時返回成功，或者可以創建臨時會員
+                return true;
             }
             
             MemberEntity member = memberOpt.get();
@@ -230,7 +228,6 @@ public class MemberService {
                      member.getAccount(), member.getEmail(), 
                      member.isEnabled() ? "已啟用" : "未啟用");
             
-            // 啟用帳號
             if (!member.isEnabled()) {
                 member.setEnabled(true);
                 memberRepository.save(member);
@@ -266,13 +263,8 @@ public class MemberService {
                 return false;
             }
             
-            // 使用統一的驗證碼服務接口
             VerificationCodeServiceInterface service = getCurrentVerificationService();
-            
-            // 刪除舊的驗證碼
             service.deleteVerificationCode(email);
-            
-            // 重新發送驗證郵件
             sendVerificationEmail(member);
             
             return true;
@@ -283,54 +275,43 @@ public class MemberService {
         }
     }
     
+    // ================================================================
+    // 					會員資料管理功能 (Member Data Management)
+    // ================================================================
+    
     /**
      * 【更新專用 - DTO 重構版】更新現有會員的基本資料。
-     * @param updateRequest 從 Controller 傳來、包含要更新資料的 DTO。
-     * @return 更新後的 MemberEntity。
-     * @throws EntityNotFoundException 如果找不到對應ID的會員。
      */
     @Transactional
     public MemberEntity updateMemberDetails(MemberUpdateRequest updateRequest) {
-        // 從資料庫讀取最新的會員資料
         MemberEntity dbMember = memberRepository.findById(updateRequest.getMemberId())
             .orElseThrow(() -> new EntityNotFoundException("找不到ID為 " + updateRequest.getMemberId() + " 的會員"));
 
-        // 將 DTO 中的資料更新到從資料庫讀取出的物件上
         dbMember.setUsername(updateRequest.getUsername());
         dbMember.setEmail(updateRequest.getEmail());
         dbMember.setPhone(updateRequest.getPhone());
         dbMember.setBirthday(updateRequest.getBirthday());
         dbMember.setGender(updateRequest.getGender());
-        // 【安全修正】移除 setEnabled 調用，禁止透過此方法修改帳號狀態
-        // 帳號狀態只能透過專門的管理功能或直接操作 Entity 來修改
-        // **注意**：此處【刻意不】處理密碼和帳號狀態，保持了更新操作的安全性。
         
-        return memberRepository.save(dbMember); // 儲存更新
+        return memberRepository.save(dbMember);
     }
 
     /**
      * 【修復】直接更新會員實體的方法 - 支持帳號停用/啟用功能
-     * 
-     * @param member 要更新的會員實體
-     * @return 更新後的會員實體
-     * @throws EntityNotFoundException 如果會員不存在
      */
     @Transactional
     public MemberEntity updateMember(MemberEntity member) {
-        // 【修復】使用 findById 而不是 existsById，因為 findById 會返回實際的會員資料
-        // 這樣可以避免軟刪除限制的問題，並且能夠更準確地檢查會員是否存在
         Optional<MemberEntity> existingMemberOpt = memberRepository.findById(member.getMemberId());
         
         if (existingMemberOpt.isEmpty()) {
             throw new EntityNotFoundException("找不到ID為 " + member.getMemberId() + " 的會員");
         }
         
-        // 【可選】驗證會員實體的完整性
         if (member.getAccount() == null || member.getUsername() == null) {
             throw new IllegalArgumentException("會員資料不完整，無法更新");
         }
         
-        // 儲存更新
+        member.setLastUpdatedAt(LocalDateTime.now());
         MemberEntity savedMember = memberRepository.save(member);
         log.info("會員資料更新成功 - ID: {}, Account: {}, Enabled: {}", 
                  savedMember.getMemberId(), savedMember.getAccount(), savedMember.isEnabled());
@@ -345,18 +326,16 @@ public class MemberService {
     public void deleteMemberById(Long memberId) {
         memberRepository.deleteById(memberId);
     }
-
+    
+    // ================================================================
+    // 					密碼重設功能 (Password Reset)
+    // ================================================================
+    
     /**
      * 處理忘記密碼請求
-     * 根據電子郵件查找會員並生成重設密碼連結
-     * 
-     * @param request 忘記密碼請求，包含會員的電子郵件
-     * @return 重設密碼的 Token
-     * @throws EntityNotFoundException 如果找不到對應的會員
      */
     @Transactional
     public String processForgotPassword(ForgotPasswordRequest request) {
-        // 根據電子郵件查找會員
         Optional<MemberEntity> memberOpt = memberRepository.findByEmail(request.getEmail());
         
         if (memberOpt.isEmpty()) {
@@ -365,28 +344,24 @@ public class MemberService {
         
         MemberEntity member = memberOpt.get();
         
-        // 檢查帳號是否啟用
         if (!member.isEnabled()) {
             throw new IllegalArgumentException("此帳號已被停用，無法重設密碼");
         }
         
-        // 生成重設密碼的 Token（增強版本）
         String resetToken = generateResetToken(member);
         
         try {
-            // 【修復】動態建構重設密碼 URL，支援不同環境
             String baseUrl = determineBaseUrl();
             String resetUrl = baseUrl + "/api/v1/auth/reset-password?token=" + java.net.URLEncoder.encode(resetToken, "UTF-8");
             
             log.info("生成重設密碼連結 - 會員: {} -> URL: {}", member.getAccount(), resetUrl);
             
-            // 【新增】發送郵件到統一郵箱
             emailService.sendPasswordResetEmail(
-                member.getEmail(),           // 會員原本的信箱（用於識別）
-                member.getAccount(),         // 會員帳號
-                member.getUsername(),        // 會員姓名
-                resetToken,                  // 重設 Token
-                resetUrl                     // 完整重設 URL
+                member.getEmail(),
+                member.getAccount(),
+                member.getUsername(),
+                resetToken,
+                resetUrl
             );
             
             log.info("會員 {} 請求重設密碼成功，郵件已發送到 young19960127@gmail.com", member.getAccount());
@@ -395,7 +370,6 @@ public class MemberService {
             log.error("發送重設密碼郵件失敗 - 會員: {} ({}), 錯誤: {}", 
                 member.getAccount(), member.getUsername(), e.getMessage(), e);
             
-            // 拋出例外，確保用戶知道郵件發送失敗
             throw new RuntimeException("郵件發送失敗，請稍後再試或聯繫客服", e);
         }
         
@@ -406,49 +380,38 @@ public class MemberService {
      * 【新增】動態決定基礎URL，支援不同環境
      */
     private String determineBaseUrl() {
-        // 在實際環境中，這應該從配置檔案或環境變數讀取
         String environment = System.getProperty("spring.profiles.active", "dev");
         
         switch (environment.toLowerCase()) {
             case "prod":
             case "production":
-                return "https://yourdomain.com";  // 正式環境URL
+                return "https://yourdomain.com";
             case "test":
             case "staging":
-                return "https://test.yourdomain.com";  // 測試環境URL
+                return "https://test.yourdomain.com";
             default:
-                return "http://localhost:8080";  // 開發環境URL
+                return "http://localhost:8080";
         }
     }
 
     /**
      * 處理密碼重設請求
-     * 驗證 Token 並更新會員密碼
-     * 
-     * @param request 密碼重設請求，包含 Token 和新密碼
-     * @throws EntityNotFoundException 如果 Token 無效或會員不存在
-     * @throws IllegalArgumentException 如果密碼不符合要求
      */
     @Transactional
     public void processResetPassword(ResetPasswordRequest request) {
-        // 檢查密碼是否一致
         if (!request.isPasswordMatching()) {
             throw new IllegalArgumentException("兩次輸入的密碼不一致");
         }
         
-        // 驗證並解析 Token
         Long memberId = validateAndParseResetToken(request.getToken());
         
-        // 查找會員
         MemberEntity member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("找不到對應的會員"));
         
-        // 檢查帳號是否啟用
         if (!member.isEnabled()) {
             throw new IllegalArgumentException("此帳號已被停用，無法重設密碼");
         }
         
-        // 更新密碼
         String encodedPassword = passwordEncoder.encode(request.getNewPassword());
         member.setPassword(encodedPassword);
         memberRepository.save(member);
@@ -458,8 +421,6 @@ public class MemberService {
     
     /**
      * 生成重設密碼的 Token
-     * 簡化版本：使用 Base64 編碼的會員ID和時間戳
-     * 實際應用中應該使用更安全的方式，如 JWT
      */
     private String generateResetToken(MemberEntity member) {
         String tokenData = member.getMemberId() + ":" + System.currentTimeMillis();
@@ -468,10 +429,6 @@ public class MemberService {
     
     /**
      * 驗證並解析重設密碼的 Token
-     * 
-     * @param token 重設密碼的 Token
-     * @return 會員ID
-     * @throws IllegalArgumentException 如果 Token 無效或過期
      */
     private Long validateAndParseResetToken(String token) {
         try {
@@ -485,7 +442,6 @@ public class MemberService {
             Long memberId = Long.parseLong(parts[0]);
             long timestamp = Long.parseLong(parts[1]);
             
-            // 檢查 Token 是否過期（24小時有效期）
             long currentTime = System.currentTimeMillis();
             long validDuration = 24 * 60 * 60 * 1000; // 24小時
             
@@ -500,14 +456,32 @@ public class MemberService {
         }
     }
     
-    // --- 以下為查詢相關方法，維持不變 ---
+    // ================================================================
+    // 					查詢功能 (Query Functions)
+    // ================================================================
     
     public Optional<MemberEntity> getMemberById(Long memberId) {
         return memberRepository.findById(memberId);
     }
 
     public Optional<MemberEntity> getMemberByAccount(String account) {
-        return memberRepository.findByAccount(account);
+        log.info("根據帳號查詢會員: {}", account);
+        
+        if (account == null || account.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        
+        // 使用基本的 findByAccount 方法，而不是不存在的 findByAccountAndEnabledTrue
+        Optional<MemberEntity> memberOpt = memberRepository.findByAccount(account.trim());
+        
+        // 手動檢查會員是否啟用
+        if (memberOpt.isPresent() && memberOpt.get().isEnabled()) {
+            log.info("成功找到會員: {} ({})", memberOpt.get().getUsername(), account);
+            return memberOpt;
+        } else {
+            log.info("找不到帳號為 {} 的啟用會員", account);
+            return Optional.empty();
+        }
     }
     
     public Optional<MemberEntity> getMemberByEmail(String email) {
@@ -532,7 +506,6 @@ public class MemberService {
             
             Specification<MemberEntity> spec = (root, query, criteriaBuilder) -> {
                 List<Predicate> predicates = new ArrayList<>();
-                // (複合查詢邏輯維持不變) ...
                 if (map != null && !map.isEmpty()) {
                     for (Map.Entry<String, String[]> entry : map.entrySet()) {
                         String key = entry.getKey();
@@ -569,7 +542,165 @@ public class MemberService {
             return new ArrayList<>();
         }
     }
+    
+    // ================================================================
+    // 					複合查詢功能 (Composite Query Functions)
+    // ================================================================
+    
+    /**
+     * 【複合查詢功能】根據多個條件查詢會員
+     */
+    public List<MemberEntity> findMembersByCompositeQuery(String username, String email, String phone) {
+        log.info("執行複合查詢 - 姓名: {}, 郵件: {}, 電話: {}", username, email, phone);
+        
+        Specification<MemberEntity> spec = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            
+            // 只查詢啟用的會員 - 修正屬性名稱為 isEnabled
+            predicates.add(criteriaBuilder.isTrue(root.get("isEnabled")));
+            
+            // 姓名模糊查詢
+            if (username != null && !username.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(
+                    root.get("username"), 
+                    "%" + username.trim() + "%"
+                ));
+            }
+            
+            // 電子郵件精確查詢
+            if (email != null && !email.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.equal(
+                    root.get("email"), 
+                    email.trim()
+                ));
+            }
+            
+            // 電話模糊查詢
+            if (phone != null && !phone.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(
+                    root.get("phone"), 
+                    "%" + phone.trim() + "%"
+                ));
+            }
+            
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+        
+        List<MemberEntity> results = memberRepository.findAll(spec);
+        log.info("複合查詢完成，找到 {} 筆符合條件的資料", results.size());
+        
+        return results;
+    }
+    
+    // ================================================================
+    // 					即時驗證功能 (Real-time Validation)
+    // ================================================================
+    
+    /**
+     * 【即時驗證】檢查電子郵件是否被其他會員使用
+     */
+    @Transactional(readOnly = true)
+    public boolean isEmailExistsForOtherMember(String email, Long excludeMemberId) {
+        try {
+            if (email == null || email.trim().isEmpty()) {
+                return false;
+            }
+            
+            // 使用基本的 findByEmail 方法
+            Optional<MemberEntity> memberOpt = memberRepository.findByEmail(email.trim());
+            
+            if (memberOpt.isEmpty()) {
+                return false;
+            }
+            
+            MemberEntity member = memberOpt.get();
+            
+            // 如果找到的會員是啟用狀態且不是要排除的會員，則表示被其他會員使用
+            if (member.isEnabled() && !member.getMemberId().equals(excludeMemberId)) {
+                return true;
+            }
+            
+            return false;
+            
+        } catch (Exception e) {
+            log.error("檢查電子郵件重複時發生錯誤: {}", e.getMessage());
+            return true;
+        }
+    }
+    
+    /**
+     * 【即時驗證】檢查電話號碼是否被其他會員使用
+     */
+    @Transactional(readOnly = true)
+    public boolean isPhoneExistsForOtherMember(String phone, Long excludeMemberId) {
+        try {
+            if (phone == null || phone.trim().isEmpty()) {
+                return false;
+            }
+            
+            // 使用基本的 findByPhone 方法
+            Optional<MemberEntity> memberOpt = memberRepository.findByPhone(phone.trim());
+            
+            if (memberOpt.isEmpty()) {
+                return false;
+            }
+            
+            MemberEntity member = memberOpt.get();
+            
+            // 如果找到的會員是啟用狀態且不是要排除的會員，則表示被其他會員使用
+            if (member.isEnabled() && !member.getMemberId().equals(excludeMemberId)) {
+                return true;
+            }
+            
+            return false;
+            
+        } catch (Exception e) {
+            log.error("檢查電話號碼重複時發生錯誤: {}", e.getMessage());
+            return true;
+        }
+    }
+    
+    // ================================================================
+    // 					其他驗證方法 (Other Validation Methods)
+    // ================================================================
+    
+    /**
+     * 檢查帳號是否已存在
+     */
+    public boolean isAccountExists(String account) {
+        if (account == null || account.trim().isEmpty()) {
+            return false;
+        }
+        return memberRepository.existsByAccount(account.trim());
+    }
+    
+    /**
+     * 檢查電子郵件是否已存在
+     */
+    public boolean isEmailExists(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        return memberRepository.existsByEmail(email.trim());
+    }
+    
+    /**
+     * 檢查手機號碼是否已存在
+     */
+    public boolean isPhoneExists(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return false;
+        }
+        // 移除格式符號進行比較
+        String cleanPhone = phone.replaceAll("-", "");
+        return memberRepository.existsByPhone(cleanPhone) || 
+               memberRepository.existsByPhone(phone);
+    }
 
+    // ================================================================
+    // 					驗證碼服務相關方法 (Verification Code Service)
+    // ================================================================
+    
     /**
      * 【新增】獲取當前使用的驗證碼服務
      */
@@ -642,144 +773,5 @@ public class MemberService {
         boolean verifyCode(String email, String inputCode);
         boolean hasVerificationCode(String email);
         void deleteVerificationCode(String email);
-    }
-
-    /**
-     * 【即時驗證】驗證會員的舊密碼是否正確
-     * 
-     * @param memberId 會員ID
-     * @param oldPassword 用戶輸入的舊密碼
-     * @return true 如果舊密碼正確，false 如果不正確
-     */
-    @Transactional(readOnly = true)
-    public boolean validateOldPassword(Long memberId, String oldPassword) {
-        try {
-            // 【資料庫讀取】根據會員ID獲取會員資料
-            MemberEntity member = memberRepository.findById(memberId)
-                    .orElse(null);
-            
-            // 如果找不到會員，返回false
-            if (member == null) {
-                return false;
-            }
-            
-            // 【密碼驗證】使用Spring Security的密碼編碼器進行驗證
-            return passwordEncoder.matches(oldPassword, member.getPassword());
-            
-        } catch (Exception e) {
-            // 如果發生任何錯誤，返回false以確保安全性
-            return false;
-        }
-    }
-    
-    /**
-     * 【即時驗證】檢查電子郵件是否被其他會員使用
-     * 
-     * @param email 要檢查的電子郵件
-     * @param excludeMemberId 排除的會員ID（通常是當前正在編輯的會員）
-     * @return true 如果電子郵件已被其他會員使用，false 如果可以使用
-     */
-    @Transactional(readOnly = true)
-    public boolean isEmailExistsForOtherMember(String email, Long excludeMemberId) {
-        try {
-            // 查找使用此電子郵件的會員（排除指定的會員ID）
-            Optional<MemberEntity> memberOpt = memberRepository.findByEmail(email);
-            
-            if (memberOpt.isEmpty()) {
-                // 沒有人使用這個電子郵件，可以使用
-                return false;
-            }
-            
-            MemberEntity member = memberOpt.get();
-            
-            // 如果找到的會員就是當前會員本人，則可以使用
-            if (member.getMemberId().equals(excludeMemberId)) {
-                return false;
-            }
-            
-            // 如果是其他會員在使用，則不能使用
-            return true;
-            
-        } catch (Exception e) {
-            log.error("檢查電子郵件重複時發生錯誤: {}", e.getMessage());
-            // 發生錯誤時，為了安全起見，假設電子郵件已被使用
-            return true;
-        }
-    }
-    
-    /**
-     * 【即時驗證】檢查電話號碼是否被其他會員使用
-     * 
-     * @param phone 要檢查的電話號碼
-     * @param excludeMemberId 排除的會員ID（通常是當前正在編輯的會員）
-     * @return true 如果電話號碼已被其他會員使用，false 如果可以使用
-     */
-    @Transactional(readOnly = true)
-    public boolean isPhoneExistsForOtherMember(String phone, Long excludeMemberId) {
-        try {
-            // 使用 Repository 的查詢方法查找使用此電話號碼的會員
-            Optional<MemberEntity> memberOpt = memberRepository.findByPhone(phone);
-            
-            if (memberOpt.isEmpty()) {
-                // 沒有人使用這個電話號碼，可以使用
-                return false;
-            }
-            
-            MemberEntity member = memberOpt.get();
-            
-            // 如果找到的會員就是當前會員本人，則可以使用
-            if (member.getMemberId().equals(excludeMemberId)) {
-                return false;
-            }
-            
-            // 如果是其他會員在使用，則不能使用
-            return true;
-            
-        } catch (Exception e) {
-            log.error("檢查電話號碼重複時發生錯誤: {}", e.getMessage());
-            // 發生錯誤時，為了安全起見，假設電話號碼已被使用
-            return true;
-        }
-    }
-    
-    // ========== 即時驗證方法 ==========
-    
-    /**
-     * 檢查帳號是否已存在
-     * @param account 要檢查的帳號
-     * @return true 如果帳號已存在，false 如果可以使用
-     */
-    public boolean isAccountExists(String account) {
-        if (account == null || account.trim().isEmpty()) {
-            return false;
-        }
-        return memberRepository.existsByAccount(account.trim());
-    }
-    
-    /**
-     * 檢查電子郵件是否已存在
-     * @param email 要檢查的電子郵件
-     * @return true 如果電子郵件已存在，false 如果可以使用
-     */
-    public boolean isEmailExists(String email) {
-        if (email == null || email.trim().isEmpty()) {
-            return false;
-        }
-        return memberRepository.existsByEmail(email.trim());
-    }
-    
-    /**
-     * 檢查手機號碼是否已存在
-     * @param phone 要檢查的手機號碼
-     * @return true 如果手機號碼已存在，false 如果可以使用
-     */
-    public boolean isPhoneExists(String phone) {
-        if (phone == null || phone.trim().isEmpty()) {
-            return false;
-        }
-        // 移除格式符號進行比較
-        String cleanPhone = phone.replaceAll("-", "");
-        return memberRepository.existsByPhone(cleanPhone) || 
-               memberRepository.existsByPhone(phone);
     }
 }

@@ -180,7 +180,7 @@
                             </ul>
                         </div>
 
-                        <form method="post" th:action="@{/member/change-password}" th:object="${passwordUpdateRequest}">
+                        <form method="post" th:action="@{/member/admin/change-password}" th:object="${passwordUpdateRequest}">
                             <input type="hidden" th:field="*{memberId}" />
                             
                             <div class="form-group">

@@ -1423,4 +1423,100 @@ public class MemberController {
         
         return java.util.Arrays.asList(commonTLDs).contains(tld.toLowerCase());
     }
+
+    /**
+     * 【功能】: 處理複合查詢請求，根據多個條件查詢會員
+     * 【請求路徑】: 處理 POST /member/listMembers_ByCompositeQuery 請求
+     */
+    @PostMapping("/listMembers_ByCompositeQuery")
+    public String listMembersByCompositeQuery(@RequestParam Map<String, String> params,
+                                            Model model,
+                                            RedirectAttributes redirectAttributes) {
+        
+        log.info("執行複合查詢，參數: {}", params);
+        
+        try {
+            // 從參數中提取查詢條件
+            String username = params.get("username");
+            String email = params.get("email");
+            String phone = params.get("phone");
+            
+            // 呼叫 Service 層執行複合查詢
+            List<MemberEntity> memberList = memberService.findMembersByCompositeQuery(username, email, phone);
+            
+            // 將查詢結果和查詢參數都傳遞給視圖
+            model.addAttribute("memberListData", memberList);
+            model.addAttribute("searchParams", convertToSearchParamsMap(params));
+            
+            // 添加查詢結果統計訊息
+            if (memberList.isEmpty()) {
+                model.addAttribute("infoMessage", "沒有找到符合條件的會員資料");
+            } else {
+                model.addAttribute("successMessage", "找到 " + memberList.size() + " 筆符合條件的會員資料");
+            }
+            
+            log.info("複合查詢完成，找到 {} 筆資料", memberList.size());
+            
+        } catch (Exception e) {
+            log.error("複合查詢執行失敗: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "查詢執行失敗：" + e.getMessage());
+            return MemberViewConstants.REDIRECT_TO_SELECT_PAGE;
+        }
+        
+        return MemberViewConstants.VIEW_SELECT_PAGE;
+    }
+    
+    /**
+     * 【功能】: 處理單一會員查詢顯示
+     * 【請求路徑】: 處理 POST /member/getOneForDisplay 請求
+     */
+    @PostMapping("/getOneForDisplay")
+    public String getOneForDisplay(@RequestParam("account") String account,
+                                 Model model,
+                                 RedirectAttributes redirectAttributes) {
+        
+        log.info("查詢單一會員，帳號: {}", account);
+        
+        if (account == null || account.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "請輸入要查詢的會員帳號");
+            return MemberViewConstants.REDIRECT_TO_SELECT_PAGE;
+        }
+        
+        try {
+            // 查詢單一會員
+            Optional<MemberEntity> memberOpt = memberService.getMemberByAccount(account.trim());
+            
+            if (memberOpt.isPresent()) {
+                model.addAttribute("member", memberOpt.get());
+                model.addAttribute("successMessage", "成功找到會員：" + memberOpt.get().getUsername());
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "找不到帳號為 '" + account + "' 的會員");
+                return MemberViewConstants.REDIRECT_TO_SELECT_PAGE;
+            }
+            
+            // 同時載入所有會員列表供下拉選單使用
+            List<MemberEntity> allMembers = memberService.getAllMembers();
+            model.addAttribute("memberListData", allMembers);
+            
+        } catch (Exception e) {
+            log.error("查詢會員失敗: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "查詢失敗：" + e.getMessage());
+            return MemberViewConstants.REDIRECT_TO_SELECT_PAGE;
+        }
+        
+        return MemberViewConstants.VIEW_SELECT_PAGE;
+    }
+
+    /**
+     * 【輔助方法】: 將請求參數轉換為 searchParams Map 格式
+     */
+    private Map<String, String[]> convertToSearchParamsMap(Map<String, String> params) {
+        Map<String, String[]> searchParams = new HashMap<>();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().trim().isEmpty()) {
+                searchParams.put(entry.getKey(), new String[]{entry.getValue()});
+            }
+        }
+        return searchParams;
+    }
 }
