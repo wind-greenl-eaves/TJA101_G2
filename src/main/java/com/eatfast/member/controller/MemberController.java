@@ -752,6 +752,81 @@ public class MemberController {
         return ResponseEntity.ok(debugInfo);
     }
 
+    /**
+     * 【調試功能】檢查已刪除會員查詢邏輯 - 臨時診斷用
+     * 【請求路徑】: 處理 GET /member/debug/deleted-members 請求
+     */
+    @GetMapping("/debug/deleted-members")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> debugDeletedMembers() {
+        Map<String, Object> debugInfo = new HashMap<>();
+        
+        try {
+            log.info("=== 開始調試已刪除會員查詢 ===");
+            
+            // 1. 查詢所有會員
+            List<MemberEntity> allMembers = memberService.getAllMembers();
+            debugInfo.put("totalMembers", allMembers.size());
+            
+            // 2. 統計啟用和停用的會員數量
+            long enabledCount = allMembers.stream().filter(MemberEntity::isEnabled).count();
+            long disabledCount = allMembers.stream().filter(m -> !m.isEnabled()).count();
+            
+            debugInfo.put("enabledMembers", enabledCount);
+            debugInfo.put("disabledMembers", disabledCount);
+            
+            // 3. 使用 Service 方法查詢已刪除會員
+            List<MemberEntity> deletedMembers = memberService.getDeletedMembers();
+            debugInfo.put("deletedMembersFromService", deletedMembers.size());
+            
+            // 4. 列出所有停用會員的詳細資訊
+            List<Map<String, Object>> disabledMemberDetails = allMembers.stream()
+                .filter(m -> !m.isEnabled())
+                .map(m -> {
+                    Map<String, Object> memberInfo = new HashMap<>();
+                    memberInfo.put("memberId", m.getMemberId());
+                    memberInfo.put("account", m.getAccount());
+                    memberInfo.put("username", m.getUsername());
+                    memberInfo.put("enabled", m.isEnabled());
+                    memberInfo.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().toString() : "null");
+                    memberInfo.put("lastUpdatedAt", m.getLastUpdatedAt() != null ? m.getLastUpdatedAt().toString() : "null");
+                    return memberInfo;
+                })
+                .collect(java.util.stream.Collectors.toList());
+            
+            debugInfo.put("disabledMemberDetails", disabledMemberDetails);
+            
+            // 5. 檢查 Repository 是否正常工作
+            boolean repositoryWorking = true;
+            String repositoryError = "";
+            try {
+                // 嘗試直接使用原始查詢
+                memberService.getAllMembers();
+            } catch (Exception e) {
+                repositoryWorking = false;
+                repositoryError = e.getMessage();
+            }
+            
+            debugInfo.put("repositoryWorking", repositoryWorking);
+            debugInfo.put("repositoryError", repositoryError);
+            
+            debugInfo.put("status", "success");
+            debugInfo.put("timestamp", java.time.LocalDateTime.now().toString());
+            
+            log.info("調試結果 - 總會員: {}, 啟用: {}, 停用: {}, Service查詢已刪除: {}", 
+                     allMembers.size(), enabledCount, disabledCount, deletedMembers.size());
+            
+            return ResponseEntity.ok(debugInfo);
+            
+        } catch (Exception e) {
+            log.error("調試已刪除會員查詢時發生錯誤: {}", e.getMessage(), e);
+            debugInfo.put("status", "error");
+            debugInfo.put("error", e.getMessage());
+            debugInfo.put("stackTrace", java.util.Arrays.toString(e.getStackTrace()));
+            return ResponseEntity.status(500).body(debugInfo);
+        }
+    }
+
     // ================================================================
     // 					輔助方法 (Helper Methods)
     // ================================================================
@@ -771,6 +846,68 @@ public class MemberController {
             updateRequest.setGender(member.getGender());
             model.addAttribute("memberUpdateRequest", updateRequest);
         });
+    }
+    
+    /**
+     * 【輔助方法】: 將查詢參數 Map 轉換為適合前端顯示的格式
+     * - 作用: 處理查詢參數，確保前端能正確顯示搜尋條件
+     * 
+     * @param params 原始查詢參數 Map
+     * @return 處理後的查詢參數 Map
+     */
+    private Map<String, String> convertToSearchParamsMap(Map<String, String> params) {
+        Map<String, String> searchParams = new HashMap<>();
+        
+        if (params != null) {
+            // 處理姓名查詢參數
+            String username = params.get("username");
+            if (username != null && !username.trim().isEmpty()) {
+                searchParams.put("username", username.trim());
+            }
+            
+            // 處理電子郵件查詢參數
+            String email = params.get("email");
+            if (email != null && !email.trim().isEmpty()) {
+                searchParams.put("email", email.trim());
+            }
+            
+            // 處理電話查詢參數
+            String phone = params.get("phone");
+            if (phone != null && !phone.trim().isEmpty()) {
+                searchParams.put("phone", phone.trim());
+            }
+            
+            // 處理帳號查詢參數
+            String account = params.get("account");
+            if (account != null && !account.trim().isEmpty()) {
+                searchParams.put("account", account.trim());
+            }
+            
+            // 處理帳號狀態查詢參數
+            String enabled = params.get("enabled");
+            if (enabled != null && !enabled.trim().isEmpty()) {
+                searchParams.put("enabled", enabled.trim());
+            }
+            
+            // 處理性別查詢參數
+            String gender = params.get("gender");
+            if (gender != null && !gender.trim().isEmpty()) {
+                searchParams.put("gender", gender.trim());
+            }
+            
+            // 處理日期範圍查詢參數
+            String startDate = params.get("startDate");
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                searchParams.put("startDate", startDate.trim());
+            }
+            
+            String endDate = params.get("endDate");
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                searchParams.put("endDate", endDate.trim());
+            }
+        }
+        
+        return searchParams;
     }
     
     // ================================================================
@@ -1508,15 +1645,132 @@ public class MemberController {
     }
 
     /**
-     * 【輔助方法】: 將請求參數轉換為 searchParams Map 格式
+     * 【功能】: 顯示已刪除會員列表頁面
+     * 【請求路徑】: 處理 GET /member/deleted 請求
      */
-    private Map<String, String[]> convertToSearchParamsMap(Map<String, String> params) {
-        Map<String, String[]> searchParams = new HashMap<>();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            if (entry.getValue() != null && !entry.getValue().trim().isEmpty()) {
-                searchParams.put(entry.getKey(), new String[]{entry.getValue()});
+    @GetMapping("/deleted")
+    public String showDeletedMembers(Model model) {
+        log.info("載入已刪除會員列表頁面");
+        
+        try {
+            // 獲取所有已刪除（停用）的會員
+            List<MemberEntity> deletedMembers = memberService.getDeletedMembers();
+            model.addAttribute("deletedMemberList", deletedMembers);
+            
+            log.info("已載入 {} 筆已刪除會員資料", deletedMembers.size());
+            
+            // 【調試信息】列出已刪除會員的詳細資訊
+            if (!deletedMembers.isEmpty()) {
+                log.info("已刪除會員列表:");
+                for (MemberEntity member : deletedMembers) {
+                    log.info("- ID: {}, 帳號: {}, 姓名: {}, 啟用狀態: {}", 
+                             member.getMemberId(), 
+                             member.getAccount(), 
+                             member.getUsername(), 
+                             member.isEnabled());
+                }
+            } else {
+                log.warn("⚠️ 沒有找到任何已刪除的會員記錄");
+                
+                // 額外檢查：查詢所有會員（包括已停用的）
+                List<MemberEntity> allMembers = memberService.getAllMembers();
+                log.info("資料庫中總共有 {} 筆會員記錄", allMembers.size());
+                
+                long disabledCount = allMembers.stream()
+                        .filter(m -> !m.isEnabled())
+                        .count();
+                log.info("其中有 {} 筆記錄的 enabled 狀態為 false", disabledCount);
+                
+                if (disabledCount > 0) {
+                    log.warn("發現已停用會員但查詢不到，可能是查詢邏輯問題");
+                    allMembers.stream()
+                            .filter(m -> !m.isEnabled())
+                            .forEach(m -> log.info("已停用會員: ID={}, 帳號={}, 姓名={}, enabled={}", 
+                                     m.getMemberId(), m.getAccount(), m.getUsername(), m.isEnabled()));
+                }
             }
+            
+        } catch (Exception e) {
+            log.error("載入已刪除會員列表時發生錯誤: {}", e.getMessage(), e);
+            model.addAttribute("errorMessage", "載入已刪除會員列表失敗：" + e.getMessage());
         }
-        return searchParams;
+        
+        return MemberViewConstants.VIEW_DELETED_MEMBERS;
+    }
+    
+    /**
+     * 【功能】: 復原已刪除的會員
+     * 【請求路徑】: 處理 POST /member/restore 請求
+     */
+    @PostMapping("/restore")
+    public String restoreMember(@RequestParam("memberId") Long memberId, 
+                               RedirectAttributes redirectAttributes) {
+        
+        log.info("嘗試復原會員，ID: {}", memberId);
+        
+        try {
+            // 呼叫 Service 執行復原操作
+            MemberEntity restoredMember = memberService.restoreMember(memberId);
+            
+            log.info("會員復原成功 - ID: {}, 帳號: {}, 姓名: {}", 
+                     restoredMember.getMemberId(), 
+                     restoredMember.getAccount(), 
+                     restoredMember.getUsername());
+            
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "會員「" + restoredMember.getUsername() + "」復原成功！帳號已重新啟用。");
+            
+        } catch (EntityNotFoundException e) {
+            log.warn("復原會員失敗 - 找不到會員: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                "復原失敗：找不到會員 ID " + memberId);
+        } catch (IllegalStateException e) {
+            log.warn("復原會員失敗 - 狀態錯誤: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                "復原失敗：" + e.getMessage());
+        } catch (Exception e) {
+            log.error("復原會員時發生未預期錯誤: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                "復原失敗：系統錯誤，請稍後再試");
+        }
+        
+        return "redirect:/member/deleted";
+    }
+    
+    /**
+     * 【功能】: 永久刪除會員（真正的刪除，不可復原）
+     * 【請求路徑】: 處理 POST /member/permanently-delete 請求
+     */
+    @PostMapping("/permanently-delete")
+    public String permanentlyDeleteMember(@RequestParam("memberId") Long memberId,
+                                         RedirectAttributes redirectAttributes) {
+        
+        log.info("嘗試永久刪除會員，ID: {}", memberId);
+        
+        try {
+            // 先獲取會員資訊用於日誌記錄
+            Optional<MemberEntity> memberOpt = memberService.getMemberByIdIncludeDeleted(memberId);
+            String memberInfo = memberOpt.map(m -> m.getUsername() + " (" + m.getAccount() + ")")
+                                         .orElse("ID:" + memberId);
+            
+            // 執行永久刪除
+            memberService.permanentlyDeleteMember(memberId);
+            
+            log.warn("會員已永久刪除 - {}", memberInfo);
+            
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "會員「" + memberInfo + "」已永久刪除，此操作無法復原！");
+            
+        } catch (EntityNotFoundException e) {
+            log.warn("永久刪除會員失敗 - 找不到會員: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                "刪除失敗：找不到會員 ID " + memberId);
+        } catch (Exception e) {
+            log.error("永久刪除會員時發生錯誤: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                "刪除失敗：系統錯誤，請稍後再試");
+        }
+        
+        return "redirect:/member/deleted";
     }
 }

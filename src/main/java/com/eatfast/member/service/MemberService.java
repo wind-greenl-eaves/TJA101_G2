@@ -324,7 +324,38 @@ public class MemberService {
      */
     @Transactional
     public void deleteMemberById(Long memberId) {
-        memberRepository.deleteById(memberId);
+        log.info("開始軟刪除會員，ID: {}", memberId);
+        
+        try {
+            // 查找會員
+            MemberEntity member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員 ID: " + memberId));
+            
+            // 檢查會員是否已經被停用
+            if (!member.isEnabled()) {
+                log.warn("會員 ID {} 已經處於停用狀態", memberId);
+                throw new IllegalStateException("會員已經處於停用狀態");
+            }
+            
+            // 執行軟刪除：將 enabled 設為 false
+            member.setEnabled(false);
+            member.setLastUpdatedAt(LocalDateTime.now());
+            
+            // 保存更新
+            MemberEntity savedMember = memberRepository.save(member);
+            
+            log.info("會員軟刪除成功 - ID: {}, 帳號: {}, 姓名: {}", 
+                     savedMember.getMemberId(), 
+                     savedMember.getAccount(), 
+                     savedMember.getUsername());
+            
+        } catch (EntityNotFoundException e) {
+            log.error("軟刪除會員失敗 - 會員不存在: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("軟刪除會員時發生未預期錯誤: {}", e.getMessage(), e);
+            throw new RuntimeException("軟刪除會員失敗：" + e.getMessage(), e);
+        }
     }
     
     // ================================================================
@@ -773,5 +804,126 @@ public class MemberService {
         boolean verifyCode(String email, String inputCode);
         boolean hasVerificationCode(String email);
         void deleteVerificationCode(String email);
+    }
+    
+    // ================================================================
+    // 					已刪除會員處理功能 (Deleted Member Handling)
+    // ================================================================
+    
+    /**
+     * 【功能】獲取所有已刪除（停用）的會員
+     * 
+     * @return 已刪除會員列表
+     */
+    public List<MemberEntity> getDeletedMembers() {
+        log.info("查詢所有已刪除的會員");
+        
+        try {
+            // 【修正】使用原生 SQL 查詢來繞過 @SQLRestriction 的限制
+            // 直接查詢 is_enabled = false 的記錄
+            List<MemberEntity> deletedMembers = memberRepository.findDisabledMembers();
+            log.info("找到 {} 筆已刪除會員資料", deletedMembers.size());
+            
+            return deletedMembers;
+            
+        } catch (Exception e) {
+            log.error("查詢已刪除會員時發生錯誤: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * 【功能】復原已刪除的會員
+     * 
+     * @param memberId 要復原的會員ID
+     * @return 復原後的會員實體
+     * @throws EntityNotFoundException 如果找不到會員
+     * @throws IllegalStateException 如果會員狀態不正確
+     */
+    @Transactional
+    public MemberEntity restoreMember(Long memberId) {
+        log.info("嘗試復原會員，ID: {}", memberId);
+        
+        // 查詢會員（包括已停用的）
+        Optional<MemberEntity> memberOpt = getMemberByIdIncludeDeleted(memberId);
+        
+        if (memberOpt.isEmpty()) {
+            throw new EntityNotFoundException("找不到會員 ID: " + memberId);
+        }
+        
+        MemberEntity member = memberOpt.get();
+        
+        // 檢查會員狀態
+        if (member.isEnabled()) {
+            throw new IllegalStateException("會員「" + member.getUsername() + "」目前狀態為啟用，無需復原");
+        }
+        
+        // 復原會員（重新啟用）
+        member.setEnabled(true);
+        member.setLastUpdatedAt(LocalDateTime.now());
+        
+        MemberEntity restoredMember = memberRepository.save(member);
+        
+        log.info("會員復原成功 - ID: {}, 帳號: {}, 姓名: {}", 
+                 restoredMember.getMemberId(), 
+                 restoredMember.getAccount(), 
+                 restoredMember.getUsername());
+        
+        return restoredMember;
+    }
+    
+    /**
+     * 【功能】獲取會員資料（包括已刪除的）
+     * 
+     * @param memberId 會員ID
+     * @return 會員資料的 Optional
+     */
+    public Optional<MemberEntity> getMemberByIdIncludeDeleted(Long memberId) {
+        log.debug("查詢會員（包括已刪除），ID: {}", memberId);
+        
+        try {
+            // 使用 JPA Specification 查詢，不受 @SQLRestriction 限制
+            Specification<MemberEntity> spec = (root, query, criteriaBuilder) -> {
+                return criteriaBuilder.equal(root.get("memberId"), memberId);
+            };
+            
+            return memberRepository.findOne(spec);
+            
+        } catch (Exception e) {
+            log.error("查詢會員時發生錯誤: {}", e.getMessage());
+            return Optional.empty();
+        }
+    }
+    
+    /**
+     * 【功能】永久刪除會員（真正的刪除，不可復原）
+     * 
+     * @param memberId 要永久刪除的會員ID
+     * @throws EntityNotFoundException 如果找不到會員
+     */
+    @Transactional
+    public void permanentlyDeleteMember(Long memberId) {
+        log.warn("⚠️ 執行永久刪除操作 - 會員ID: {}", memberId);
+        
+        // 先檢查會員是否存在
+        Optional<MemberEntity> memberOpt = getMemberByIdIncludeDeleted(memberId);
+        
+        if (memberOpt.isEmpty()) {
+            throw new EntityNotFoundException("找不到會員 ID: " + memberId);
+        }
+        
+        MemberEntity member = memberOpt.get();
+        String memberInfo = member.getUsername() + " (" + member.getAccount() + ")";
+        
+        try {
+            // 執行真正的刪除（繞過軟刪除）
+            memberRepository.deleteById(memberId);
+            
+            log.warn("⚠️ 會員已永久刪除 - {}", memberInfo);
+            
+        } catch (Exception e) {
+            log.error("永久刪除會員失敗 - {}: {}", memberInfo, e.getMessage(), e);
+            throw new RuntimeException("永久刪除會員失敗: " + e.getMessage(), e);
+        }
     }
 }
