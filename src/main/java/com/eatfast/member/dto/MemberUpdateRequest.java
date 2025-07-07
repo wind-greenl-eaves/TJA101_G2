@@ -68,9 +68,9 @@ public class MemberUpdateRequest {
     
     /**
      * 會員生日。
-     * - @Past: 驗證必須是過去的日期。
+     * - @Past: 當有值時，驗證必須是過去的日期。
+     * - 允許為 null，表示不修改生日欄位。
      */
-    @NotNull(message = "會員生日：請勿空白", groups = UpdateValidation.class)
     @Past(message = "會員生日：必須為過去的日期", groups = UpdateValidation.class)
     private LocalDate birthday;
     
@@ -120,8 +120,19 @@ public class MemberUpdateRequest {
     // 新增的 getter/setter 方法
     public String getAccount() { return account; }
     public void setAccount(String account) { this.account = account; }
+    
+    /**
+     * 【修正】統一方法名稱 - 使用 isEnabled 而非 getIsEnabled
+     * 這樣與 MemberEntity 的方法名稱保持一致
+     */
+    public Boolean isEnabled() { return isEnabled; }
+    public void setEnabled(Boolean isEnabled) { this.isEnabled = isEnabled; }
+    
+    // 【棄用舊方法】為了向後兼容保留，但建議使用 isEnabled()
+    @Deprecated
     public Boolean getIsEnabled() { return isEnabled; }
     public void setIsEnabled(Boolean isEnabled) { this.isEnabled = isEnabled; }
+    
     public java.time.LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

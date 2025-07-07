@@ -25,13 +25,29 @@
                 <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-3">
                 <span style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 修改會員資料</span>
             </a>
-            <a class="btn btn-outline-light" th:href="@{/}">
-                <i class="fas fa-home"></i> 回首頁
+            <a class="btn btn-outline-light" th:href="@{/member/select_page}">
+                <i class="fas fa-users"></i> 返回會員資料管理
             </a>
         </div>
     </nav>
 
     <div class="container mt-4">
+        
+        <!-- 【新增】成功訊息和錯誤訊息顯示區 -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        
         <div class="card mx-auto" style="max-width: 800px;">
             <div class="card-header">
                 <i class="fas fa-user-edit"></i> 修改會員資料
@@ -89,9 +105,10 @@
                             </div>
                         </div>
                         <div class="form-group col-md-6">
-                            <label for="birthday">生日：<span class="text-danger">*</span></label>
+                            <label for="birthday">生日：</label>
                             <input type="date" id="birthday" class="form-control" th:field="*{birthday}"
                                    th:class="${#fields.hasErrors('birthday')} ? 'form-control is-invalid' : 'form-control'"/>
+                            <small class="form-text text-muted">如不修改可保持空白</small>
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('birthday')}" th:errors="*{birthday}">
                                 生日錯誤訊息
                             </div>
@@ -121,13 +138,13 @@
 
                     <div class="form-group">
                         <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input" id="enabled" th:field="*{isEnabled}">
-                            <label class="custom-control-label" for="enabled">
-                                <span th:text="*{isEnabled} ? '帳號已啟用' : '帳號已停用'"
-                                      th:class="*{isEnabled} ? 'text-success' : 'text-danger'">
-                                    帳號狀態
-                                </span>
-                            </label>
+<!--                             <input type="checkbox" class="custom-control-input" id="enabled" th:field="*{isEnabled}"> -->
+<!--                             <label class="custom-control-label" for="enabled"> -->
+<!--                                 <span th:text="*{isEnabled} ? '帳號已啟用' : '帳號已停用'" -->
+<!--                                       th:class="*{isEnabled} ? 'text-success' : 'text-danger'"> -->
+<!--                                     帳號狀態 -->
+<!--                                 </span> -->
+<!--                             </label> -->
                         </div>
                     </div>
 
@@ -183,11 +200,24 @@
                         <form method="post" th:action="@{/member/admin/change-password}" th:object="${passwordUpdateRequest}">
                             <input type="hidden" th:field="*{memberId}" />
                             
+                            <!-- 為了符合可訪問性標準，添加隱藏的用戶名欄位 -->
+                            <input type="text" 
+                                   th:value="${memberUpdateRequest.account}" 
+                                   name="username" 
+                                   autocomplete="username" 
+                                   style="display: none;" 
+                                   readonly />
+                            
                             <div class="form-group">
                                 <label for="oldPassword">目前密碼：<span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="password" id="oldPassword" class="form-control" th:field="*{oldPassword}" 
-                                           placeholder="請輸入目前使用的密碼" required />
+                                    <input type="password" 
+                                           id="oldPassword" 
+                                           class="form-control" 
+                                           th:field="*{oldPassword}" 
+                                           placeholder="請輸入目前使用的密碼" 
+                                           autocomplete="current-password"
+                                           required />
                                     <div class="input-group-append">
                                         <span class="input-group-text toggle-password" data-target="oldPassword">
                                             <i class="fas fa-eye"></i>
@@ -199,8 +229,14 @@
                             <div class="form-group">
                                 <label for="newPassword">新密碼：<span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="password" id="newPassword" class="form-control" th:field="*{newPassword}" 
-                                           placeholder="請輸入新密碼（至少8位數）" required minlength="8" />
+                                    <input type="password" 
+                                           id="newPassword" 
+                                           class="form-control" 
+                                           th:field="*{newPassword}" 
+                                           placeholder="請輸入新密碼（至少8位數）" 
+                                           autocomplete="new-password"
+                                           required 
+                                           minlength="8" />
                                     <div class="input-group-append">
                                         <span class="input-group-text toggle-password" data-target="newPassword">
                                             <i class="fas fa-eye"></i>
@@ -213,8 +249,13 @@
                             <div class="form-group">
                                 <label for="confirmPassword">確認新密碼：<span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="password" id="confirmPassword" class="form-control" th:field="*{confirmPassword}"
-                                           placeholder="請再次輸入新密碼" required />
+                                    <input type="password" 
+                                           id="confirmPassword" 
+                                           class="form-control" 
+                                           th:field="*{confirmPassword}"
+                                           placeholder="請再次輸入新密碼" 
+                                           autocomplete="new-password"
+                                           required />
                                     <div class="input-group-append">
                                         <span class="input-group-text toggle-password" data-target="confirmPassword">
                                             <i class="fas fa-eye"></i>

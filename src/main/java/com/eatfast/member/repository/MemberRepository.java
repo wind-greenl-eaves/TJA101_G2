@@ -77,6 +77,14 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long>, Jpa
      */
     boolean existsByPhone(String phone);
 
+    /**
+     * 【新增】查詢手機號碼（包括已停用會員）- 支援即時驗證功能
+     * @param phone 手機號碼
+     * @return 會員資料的 Optional
+     */
+    @Query(value = "SELECT * FROM member WHERE phone = :phone LIMIT 1", nativeQuery = true)
+    Optional<MemberEntity> findByPhoneIncludeDisabled(@Param("phone") String phone);
+
     //================================================================
     // 				   自定義 JPQL 與原生 SQL 查詢
     //================================================================
@@ -142,4 +150,30 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long>, Jpa
      */
     @EntityGraph(attributePaths = {"orders", "favorites"}) // 可以同時抓取多個關聯
     Optional<MemberEntity> findOneWithDetailsByAccount(String account);
+
+    /**
+     * 【新增】查詢會員資料（包括已停用的）- 使用原生 SQL 繞過 @SQLRestriction
+     * @param memberId 會員ID
+     * @return 會員資料的 Optional
+     */
+    @Query(value = "SELECT * FROM member WHERE member_id = :memberId LIMIT 1", nativeQuery = true)
+    Optional<MemberEntity> findByIdIncludeDisabled(@Param("memberId") Long memberId);
+
+    /**
+     * 檢查電子郵件是否被其他會員使用（排除特定會員ID）- 用於即時驗證
+     * @param email 要檢查的電子郵件
+     * @param excludeMemberId 要排除的會員ID
+     * @return true 如果電子郵件被其他會員使用
+     */
+    @Query("SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END FROM MemberEntity m WHERE m.email = :email AND m.memberId != :excludeMemberId AND m.isEnabled = true")
+    boolean existsByEmailAndMemberIdNotAndIsEnabledTrue(@Param("email") String email, @Param("excludeMemberId") Long excludeMemberId);
+
+    /**
+     * 檢查電話號碼是否被其他會員使用（排除特定會員ID）- 用於即時驗證
+     * @param phone 要檢查的電話號碼
+     * @param excludeMemberId 要排除的會員ID
+     * @return true 如果電話號碼被其他會員使用
+     */
+    @Query("SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END FROM MemberEntity m WHERE m.phone = :phone AND m.memberId != :excludeMemberId AND m.isEnabled = true")
+    boolean existsByPhoneAndMemberIdNotAndIsEnabledTrue(@Param("phone") String phone, @Param("excludeMemberId") Long excludeMemberId);
 }

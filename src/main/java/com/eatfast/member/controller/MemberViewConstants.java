@@ -8,10 +8,9 @@ package com.eatfast.member.controller;
  * <li>將所有視圖路徑集中管理，避免「魔法字串」(Magic String) 散落在 Controller 各處。</li>
  * <li>當未來需要調整視圖檔案的資料夾結構或檔名時，只需修改此檔案一處即可。</li>
  * <li>提升程式碼的可讀性與可維護性。</li>
- * 「魔法字串」// 是指在程式碼中直接使用字串常數，這樣做會降低程式碼的可讀性和可維護性。
  * </ul>
  */
-public final class MemberViewConstants { // 使用 final 關鍵字，表示這個類別不應該被繼承
+public final class MemberViewConstants {
 
     /**
      * 私有建構子，防止外部透過 new 的方式實例化這個工具類別。
@@ -22,8 +21,6 @@ public final class MemberViewConstants { // 使用 final 關鍵字，表示這�
     
     /**
      * Thymeleaf 模板的基礎路徑 - 後台管理。
-     * <b>不可變:</b> private, static, final 是 Java 關鍵字。
-     * <b>可自定義:</b> 變數名稱 BASE_PATH 和路徑字串 "back-end/member/" 可依專案結構修改。
      */
     private static final String BACKEND_BASE_PATH = "back-end/member/";
 
@@ -110,7 +107,6 @@ public final class MemberViewConstants { // 使用 final 關鍵字，表示這�
 
     /**
      * 重定向 (Redirect) 到會員列表頁面的 URL。
-     * 此路徑會被 Spring MVC 解讀，觸發瀏覽器向 `/member/select_page` 發送一個新的 GET 請求。
      */
     public static final String REDIRECT_TO_SELECT_PAGE = "redirect:/member/select_page";
 

@@ -137,7 +137,7 @@ public class MemberController {
                 updateRequest.setPhone(memberEntity.getPhone());
                 updateRequest.setBirthday(memberEntity.getBirthday());
                 updateRequest.setGender(memberEntity.getGender());
-                updateRequest.setIsEnabled(memberEntity.isEnabled()); // 修正：使用 isEnabled() 而不是 getIsEnabled()
+                updateRequest.setEnabled(memberEntity.isEnabled()); // 【修正】使用一致的方法名稱
                 updateRequest.setCreatedAt(memberEntity.getCreatedAt()); // 添加註冊時間
                 
                 // 【資料流路徑】: 提供「更新資料」的 DTO 給第一個表單。
@@ -216,7 +216,7 @@ public class MemberController {
         try {
             // 【業務邏輯路徑】: 呼叫專門的 Service 方法執行密碼變更。
             memberService.changePassword(request);
-            redirectAttributes.addFlashAttribute("successMessage", "密碼更新成功！");
+            redirectAttributes.addFlashAttribute("successMessage", "密碼更新成功！(密碼已使用 BCrypt 加密安全存儲)");
         
         } catch (EntityNotFoundException | IllegalArgumentException e) {
             // 【業務例外路徑】: 捕獲 Service 拋出的錯誤 (找不到使用者或舊密碼錯誤)。
@@ -274,8 +274,42 @@ public class MemberController {
      * 由於 POST 不能直接重定向到另一個 POST，我們建立一個 GET 端點來顯示更新頁面。
      */
     @GetMapping("/getOne_For_Update_view")
-    public String showUpdateFormAfterRedirect(@RequestParam("memberId") Long memberId, Model model, RedirectAttributes redirectAttributes) {
-        return showUpdateForm(memberId, model, redirectAttributes);
+    public String showUpdateFormAfterRedirect(@RequestParam("memberId") Long memberId, 
+                                             Model model, 
+                                             RedirectAttributes redirectAttributes) {
+        
+        // 【業務邏輯路徑】: 呼叫 Service 獲取 Optional<MemberEntity>。
+        return memberService.getMemberById(memberId)
+            .map(memberEntity -> { // 【成功路徑】如果 Optional 中有值...
+                // 將 Entity 轉換為 Update DTO，確保只有需要的欄位被傳遞。
+                MemberUpdateRequest updateRequest = new MemberUpdateRequest();
+                updateRequest.setMemberId(memberEntity.getMemberId());
+                updateRequest.setUsername(memberEntity.getUsername());
+                updateRequest.setAccount(memberEntity.getAccount()); // 添加帳號欄位
+                updateRequest.setEmail(memberEntity.getEmail());
+                updateRequest.setPhone(memberEntity.getPhone());
+                updateRequest.setBirthday(memberEntity.getBirthday());
+                updateRequest.setGender(memberEntity.getGender());
+                updateRequest.setEnabled(memberEntity.isEnabled()); // 【修正】使用一致的方法名稱
+                updateRequest.setCreatedAt(memberEntity.getCreatedAt()); // 添加註冊時間
+                
+                // 【資料流路徑】: 提供「更新資料」的 DTO 給第一個表單。
+                model.addAttribute("memberUpdateRequest", updateRequest);
+                
+                // 【資料流路徑】: 同時提供一個空的「密碼更新」DTO 給第二個表單使用。
+                PasswordUpdateRequest passwordRequest = new PasswordUpdateRequest();
+                passwordRequest.setMemberId(memberId);
+                model.addAttribute("passwordUpdateRequest", passwordRequest);
+                
+                // 【視圖路徑】: 導向更新頁面。
+                return MemberViewConstants.VIEW_UPDATE_MEMBER;
+            })
+            .orElseGet(() -> { // 【失敗路徑】如果 Optional 為空 (找不到會員)...
+                // 【失敗訊息路徑】: 將錯誤訊息放入 RedirectAttributes。
+                redirectAttributes.addFlashAttribute("errorMessage", "找不到會員 ID: " + memberId);
+                // 【失敗重定項路徑】: 重定向回列表頁。
+                return MemberViewConstants.REDIRECT_TO_SELECT_PAGE;
+            });
     }
     
     // ================================================================
@@ -1136,7 +1170,7 @@ public class MemberController {
                     if (!isValidEmail) {
                         message = emailMessage;
                     } else {
-                        // 檢查email是否被其他會員使用
+                        // 檢查email是否被其他會員使用 - 【修正】確保與Service層邏輯一致
                         boolean emailExists = memberService.isEmailExistsForOtherMember(value, memberId);
                         if (emailExists) {
                             message = "此電子郵件已被其他會員使用";
@@ -1155,7 +1189,7 @@ public class MemberController {
                     if (!value.matches(phonePattern)) {
                         message = "請輸入有效的電話號碼格式（如：0912345678、0912-345-678、02-12345678）";
                     } else {
-                        // 檢查電話是否被其他會員使用
+                        // 檢查電話是否被其他會員使用 - 【修正】確保與Service層邏輯一致
                         boolean phoneExists = memberService.isPhoneExistsForOtherMember(value, memberId);
                         if (phoneExists) {
                             message = "此電話號碼已被其他會員使用";

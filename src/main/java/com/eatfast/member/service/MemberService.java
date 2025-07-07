@@ -73,21 +73,140 @@ public class MemberService {
     // ================================================================
     
     /**
-     * 【新增】變更會員密碼。
+     * 【修正】變更會員密碼 - 支援明文密碼和BCrypt密碼的混合驗證
      */
     @Transactional
     public void changePassword(PasswordUpdateRequest request) {
+        log.info("開始變更密碼 - 會員ID: {}", request.getMemberId());
+        
         // 1. 【資料庫讀取路徑】根據 ID 從 Repository 取得最新的會員實體。
         MemberEntity member = memberRepository.findById(request.getMemberId())
                 .orElseThrow(() -> new EntityNotFoundException("找不到ID為 " + request.getMemberId() + " 的會員"));
 
-        // 2. 【核心安全驗證】
-        if (!passwordEncoder.matches(request.getOldPassword(), member.getPassword())) {
-            throw new IllegalArgumentException("舊密碼不正確");
+        log.info("找到會員 - 帳號: {}, 姓名: {}", member.getAccount(), member.getUsername());
+        
+        // 2. 【核心安全驗證】- 支援明文密碼和BCrypt密碼的混合驗證
+        String inputOldPassword = request.getOldPassword();
+        String storedPassword = member.getPassword();
+        
+        log.debug("密碼驗證 - 輸入密碼長度: {}, 存儲密碼長度: {}", 
+                 inputOldPassword != null ? inputOldPassword.length() : 0, 
+                 storedPassword != null ? storedPassword.length() : 0);
+        
+        // 檢查輸入是否為空
+        if (inputOldPassword == null || inputOldPassword.trim().isEmpty()) {
+            log.warn("舊密碼輸入為空 - 會員ID: {}", request.getMemberId());
+            throw new IllegalArgumentException("請輸入目前密碼");
+        }
+        
+        // 檢查存儲的密碼是否為空
+        if (storedPassword == null || storedPassword.trim().isEmpty()) {
+            log.error("資料庫中的密碼為空 - 會員ID: {}, 帳號: {}", request.getMemberId(), member.getAccount());
+            throw new IllegalStateException("會員密碼資料異常，請聯繫系統管理員");
+        }
+        
+        // 【修正】執行混合密碼比對：先嘗試BCrypt，如果失敗則嘗試明文比對
+        boolean passwordMatches = false;
+        
+        // 檢查存儲的密碼是否為BCrypt格式（BCrypt密碼通常以$2a$、$2b$、$2y$開頭）
+        if (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$")) {
+            // 如果是BCrypt格式，使用BCrypt驗證
+            passwordMatches = passwordEncoder.matches(inputOldPassword.trim(), storedPassword);
+            log.info("使用BCrypt驗證 - 會員ID: {}, 驗證結果: {}", request.getMemberId(), passwordMatches);
+        } else {
+            // 如果不是BCrypt格式，假設為明文密碼，直接比對
+            passwordMatches = inputOldPassword.trim().equals(storedPassword.trim());
+            log.info("使用明文驗證 - 會員ID: {}, 驗證結果: {}", request.getMemberId(), passwordMatches);
+            
+            // 如果明文驗證成功，同時將密碼升級為BCrypt加密
+            if (passwordMatches) {
+                log.info("檢測到明文密碼，將自動升級為BCrypt加密 - 會員ID: {}", request.getMemberId());
+            }
+        }
+        
+        if (!passwordMatches) {
+            log.warn("舊密碼驗證失敗 - 會員ID: {}, 帳號: {}", request.getMemberId(), member.getAccount());
+            throw new IllegalArgumentException("目前密碼不正確，請重新輸入");
+        }
+        
+        // 檢查新密碼是否與舊密碼相同（需要同時檢查明文和BCrypt）
+        boolean newPasswordSameAsOld = false;
+        if (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$")) {
+            // 存儲的是BCrypt密碼
+            newPasswordSameAsOld = passwordEncoder.matches(request.getNewPassword(), storedPassword);
+        } else {
+            // 存儲的是明文密碼
+            newPasswordSameAsOld = request.getNewPassword().equals(storedPassword);
+        }
+        
+        if (newPasswordSameAsOld) {
+            log.warn("新密碼與舊密碼相同 - 會員ID: {}", request.getMemberId());
+            throw new IllegalArgumentException("新密碼不能與目前密碼相同");
+        }
+        
+        // 3. 【加密與更新】將新密碼加密並更新
+        String encodedNewPassword = passwordEncoder.encode(request.getNewPassword());
+        log.info("新密碼已加密 - 會員ID: {}, 加密後長度: {}", request.getMemberId(), encodedNewPassword.length());
+        
+        member.setPassword(encodedNewPassword);
+        
+        // 4. 【資料庫寫入路徑】呼叫 save 方法。
+        memberRepository.save(member);
+        log.info("會員 ID {} 的密碼已成功更新為BCrypt加密格式", member.getMemberId());
+    }
+    
+    /**
+     * 【修正】變更會員密碼。
+     */
+    @Transactional
+    public void changePasswordOld(PasswordUpdateRequest request) {
+        log.info("開始變更密碼 - 會員ID: {}", request.getMemberId());
+        
+        // 1. 【資料庫讀取路徑】根據 ID 從 Repository 取得最新的會員實體。
+        MemberEntity member = memberRepository.findById(request.getMemberId())
+                .orElseThrow(() -> new EntityNotFoundException("找不到ID為 " + request.getMemberId() + " 的會員"));
+
+        log.info("找到會員 - 帳號: {}, 姓名: {}", member.getAccount(), member.getUsername());
+        
+        // 2. 【核心安全驗證】- 增加詳細日誌
+        String inputOldPassword = request.getOldPassword();
+        String storedPassword = member.getPassword();
+        
+        log.debug("密碼驗證 - 輸入密碼長度: {}, 存儲密碼長度: {}", 
+                 inputOldPassword != null ? inputOldPassword.length() : 0, 
+                 storedPassword != null ? storedPassword.length() : 0);
+        
+        // 檢查輸入是否為空
+        if (inputOldPassword == null || inputOldPassword.trim().isEmpty()) {
+            log.warn("舊密碼輸入為空 - 會員ID: {}", request.getMemberId());
+            throw new IllegalArgumentException("請輸入目前密碼");
+        }
+        
+        // 檢查存儲的密碼是否為空
+        if (storedPassword == null || storedPassword.trim().isEmpty()) {
+            log.error("資料庫中的密碼為空 - 會員ID: {}, 帳號: {}", request.getMemberId(), member.getAccount());
+            throw new IllegalStateException("會員密碼資料異常，請聯繫系統管理員");
+        }
+        
+        // 執行密碼比對
+        boolean passwordMatches = passwordEncoder.matches(inputOldPassword.trim(), storedPassword);
+        log.info("密碼驗證結果 - 會員ID: {}, 驗證成功: {}", request.getMemberId(), passwordMatches);
+        
+        if (!passwordMatches) {
+            log.warn("舊密碼驗證失敗 - 會員ID: {}, 帳號: {}", request.getMemberId(), member.getAccount());
+            throw new IllegalArgumentException("目前密碼不正確，請重新輸入");
+        }
+        
+        // 檢查新密碼是否與舊密碼相同
+        if (passwordEncoder.matches(request.getNewPassword(), storedPassword)) {
+            log.warn("新密碼與舊密碼相同 - 會員ID: {}", request.getMemberId());
+            throw new IllegalArgumentException("新密碼不能與目前密碼相同");
         }
         
         // 3. 【加密與更新】驗證通過後，將使用者提供的「新密碼明文」加密。
         String encodedNewPassword = passwordEncoder.encode(request.getNewPassword());
+        log.info("新密碼已加密 - 會員ID: {}, 加密後長度: {}", request.getMemberId(), encodedNewPassword.length());
+        
         member.setPassword(encodedNewPassword);
         
         // 4. 【資料庫寫入路徑】呼叫 save 方法。
@@ -102,11 +221,25 @@ public class MemberService {
     public boolean validateOldPassword(Long memberId, String oldPassword) {
         try {
             MemberEntity member = memberRepository.findById(memberId).orElse(null);
-            if (member == null) {
+            if (member == null || oldPassword == null || oldPassword.trim().isEmpty()) {
                 return false;
             }
-            return passwordEncoder.matches(oldPassword, member.getPassword());
+            
+            String storedPassword = member.getPassword();
+            if (storedPassword == null || storedPassword.trim().isEmpty()) {
+                return false;
+            }
+            
+            // 【修正】支援混合密碼驗證
+            if (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$")) {
+                // BCrypt密碼驗證
+                return passwordEncoder.matches(oldPassword.trim(), storedPassword);
+            } else {
+                // 明文密碼驗證
+                return oldPassword.trim().equals(storedPassword.trim());
+            }
         } catch (Exception e) {
+            log.error("驗證舊密碼時發生錯誤: {}", e.getMessage());
             return false;
         }
     }
@@ -290,7 +423,12 @@ public class MemberService {
         dbMember.setUsername(updateRequest.getUsername());
         dbMember.setEmail(updateRequest.getEmail());
         dbMember.setPhone(updateRequest.getPhone());
-        dbMember.setBirthday(updateRequest.getBirthday());
+        
+        // 【修改】只有當生日不為空時才更新生日欄位
+        if (updateRequest.getBirthday() != null) {
+            dbMember.setBirthday(updateRequest.getBirthday());
+        }
+        
         dbMember.setGender(updateRequest.getGender());
         
         return memberRepository.save(dbMember);
@@ -637,25 +775,12 @@ public class MemberService {
                 return false;
             }
             
-            // 使用基本的 findByEmail 方法
-            Optional<MemberEntity> memberOpt = memberRepository.findByEmail(email.trim());
-            
-            if (memberOpt.isEmpty()) {
-                return false;
-            }
-            
-            MemberEntity member = memberOpt.get();
-            
-            // 如果找到的會員是啟用狀態且不是要排除的會員，則表示被其他會員使用
-            if (member.isEnabled() && !member.getMemberId().equals(excludeMemberId)) {
-                return true;
-            }
-            
-            return false;
+            // 【修正】使用 Repository 中的新查詢方法，確保邏輯一致性
+            return memberRepository.existsByEmailAndMemberIdNotAndIsEnabledTrue(email.trim(), excludeMemberId);
             
         } catch (Exception e) {
             log.error("檢查電子郵件重複時發生錯誤: {}", e.getMessage());
-            return true;
+            return true; // 發生錯誤時回傳 true，避免重複資料
         }
     }
     
@@ -669,25 +794,12 @@ public class MemberService {
                 return false;
             }
             
-            // 使用基本的 findByPhone 方法
-            Optional<MemberEntity> memberOpt = memberRepository.findByPhone(phone.trim());
-            
-            if (memberOpt.isEmpty()) {
-                return false;
-            }
-            
-            MemberEntity member = memberOpt.get();
-            
-            // 如果找到的會員是啟用狀態且不是要排除的會員，則表示被其他會員使用
-            if (member.isEnabled() && !member.getMemberId().equals(excludeMemberId)) {
-                return true;
-            }
-            
-            return false;
+            // 【修正】使用 Repository 中的新查詢方法，確保邏輯一致性
+            return memberRepository.existsByPhoneAndMemberIdNotAndIsEnabledTrue(phone.trim(), excludeMemberId);
             
         } catch (Exception e) {
             log.error("檢查電話號碼重複時發生錯誤: {}", e.getMessage());
-            return true;
+            return true; // 發生錯誤時回傳 true，避免重複資料
         }
     }
     
@@ -882,12 +994,8 @@ public class MemberService {
         log.debug("查詢會員（包括已刪除），ID: {}", memberId);
         
         try {
-            // 使用 JPA Specification 查詢，不受 @SQLRestriction 限制
-            Specification<MemberEntity> spec = (root, query, criteriaBuilder) -> {
-                return criteriaBuilder.equal(root.get("memberId"), memberId);
-            };
-            
-            return memberRepository.findOne(spec);
+            // 【修正】直接使用 Repository 中的原生 SQL 查詢方法，繞過 @SQLRestriction 限制
+            return memberRepository.findByIdIncludeDisabled(memberId);
             
         } catch (Exception e) {
             log.error("查詢會員時發生錯誤: {}", e.getMessage());
