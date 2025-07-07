@@ -1,4 +1,3 @@
-
 <!--
 <!DOCTYPE html>
 <html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
@@ -116,145 +115,148 @@
 <!DOCTYPE html>
 <html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8">
-<title>新增 / 編輯公告 - 溫馨奶茶風</title>
+    <meta charset="UTF-8">
+    <title>新增 / 編輯公告 - 溫馨奶茶風</title>
 
-<!-- 奶茶風樣式與字體 -->
-<link rel="stylesheet"
-	th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
-<link rel="stylesheet"
-	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<link
-	href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap"
-	rel="stylesheet">
-<style>
-body {
-	background-color: #f9f3e9;
-	font-family: 'Noto Sans TC', sans-serif;
-}
+    <!-- 奶茶風樣式與字體 -->
+    <link rel="stylesheet"
+          th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}"/>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link
+            href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap"
+            rel="stylesheet">
+    <style>
+        body {
+            background-color: #f9f3e9;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
 
-.container {
-	background-color: #fffaf2;
-	padding: 2rem;
-	border-radius: 12px;
-	box-shadow: 0 0 12px rgba(180, 140, 90, 0.15);
-}
+        .container {
+            background-color: #fffaf2;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(180, 140, 90, 0.15);
+        }
 
-h2 {
-	color: #6f4e37;
-}
+        h2 {
+            color: #6f4e37;
+        }
 
-label {
-	color: #5c4433;
-	font-weight: 500;
-}
+        label {
+            color: #5c4433;
+            font-weight: 500;
+        }
 
-.btn-primary, .btn-danger, .btn-secondary {
-	border-radius: 6px;
-}
+        .btn-primary, .btn-danger, .btn-secondary {
+            border-radius: 6px;
+        }
 
-.form-control {
-	border-radius: 6px;
-}
-</style>
+        .form-control {
+            border-radius: 6px;
+        }
+    </style>
 </head>
 <body>
-	<div class="container mt-5">
-		<h2 class="mb-4 text-center">📝 公告編輯</h2>
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">📝 公告編輯</h2>
 
-		<!-- 表單提交到 /announcement/save -->
-		<form th:action="@{/announcement/save}" th:object="${announcement}"
-			method="post">
-			<div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}">
-				<ul>
-					<li th:each="err : ${#fields.globalErrors()}" th:text="${err}"></li>
-				</ul>
-			</div>
+    <!-- 表單提交到 /announcement/save -->
+    <form th:action="@{/announcement/save}" th:object="${announcement}"
+          method="post">
+        <div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}">
+            <ul>
+                <li th:each="err : ${#fields.globalErrors()}" th:text="${err}"></li>
+            </ul>
+        </div>
 
-			<!-- 公告標題欄位 -->
-			<div class="form-group">
-				<label for="title">公告標題</label> <input type="text"
-					th:field="*{title}" class="form-control" id="title"
-					placeholder="請輸入公告標題">
-				<div class="text-danger" th:if="${#fields.hasErrors('title')}"
-					th:errors="*{title}"></div>
-			</div>
+        <!-- 公告標題欄位 -->
+        <div class="form-group">
+            <label for="title">公告標題</label> <input type="text"
+                                                       th:field="*{title}" class="form-control" id="title"
+                                                       placeholder="請輸入公告標題">
+            <div class="text-danger" th:if="${#fields.hasErrors('title')}"
+                 th:errors="*{title}"></div>
+        </div>
 
-			<!-- 公告內容 -->
-			<div class="form-group">
-				<label for="content">公告內容</label>
-				<textarea th:field="*{content}" class="form-control" id="content"
-					rows="5" placeholder="請輸入公告內容"></textarea>
-				<div class="text-danger" th:if="${#fields.hasErrors('content')}"
-					th:errors="*{content}"></div>
-			</div>
+        <!-- 公告內容 -->
+        <div class="form-group">
+            <label for="content">公告內容</label>
+            <textarea th:field="*{content}" class="form-control" id="content"
+                      rows="5" placeholder="請輸入公告內容"></textarea>
+            <div class="text-danger" th:if="${#fields.hasErrors('content')}"
+                 th:errors="*{content}"></div>
+        </div>
 
-			<!-- 上架時間 -->
-			<div class="form-group">
-				<label for="startTime">上架時間</label> <input type="datetime-local"
-					th:field="*{startTime}" class="form-control" id="startTime">
-				<div class="text-danger" th:if="${#fields.hasErrors('startTime')}"
-					th:errors="*{startTime}"></div>
-			</div>
+        <!-- 上架時間 -->
+        <div class="form-group">
+            <label for="startTime">上架時間</label> <input type="datetime-local"
+                                                           th:field="*{startTime}" class="form-control" id="startTime">
+            <div class="text-danger" th:if="${#fields.hasErrors('startTime')}"
+                 th:errors="*{startTime}"></div>
+        </div>
 
-			<!-- 下架時間 -->
-			<div class="form-group">
-				<label for="endTime">下架時間</label> <input type="datetime-local"
-					th:field="*{endTime}" class="form-control" id="endTime">
-				<div class="text-danger" th:if="${#fields.hasErrors('endTime')}"
-					th:errors="*{endTime}"></div>
-			</div>
+        <!-- 下架時間 -->
+        <div class="form-group">
+            <label for="endTime">下架時間</label> <input type="datetime-local"
+                                                         th:field="*{endTime}" class="form-control" id="endTime">
+            <div class="text-danger" th:if="${#fields.hasErrors('endTime')}"
+                 th:errors="*{endTime}"></div>
+        </div>
 
-			<!-- 狀態選單 -->
-			<div class="form-group">
-				<label for="status">狀態</label> <select th:field="*{status}"
-					class="form-control" id="status">
-					<option th:each="opt : ${statusOptions}" th:value="${opt}"
-						th:text="${opt.name() == 'ACTIVE' ? '上架' :
-                                 opt.name() == 'INACTIVE' ? '草稿' :
-                                 opt.name() == 'VISIBLE' ? '前台可見' :
-                                 opt.name() == 'HIDDEN' ? '已隱藏' : '未知狀態'}">
-					</option>
-				</select>
-				<div class="text-danger" th:if="${#fields.hasErrors('status')}"
-					th:errors="*{status}"></div>
-			</div>
+        <!-- 狀態選單 -->
+        <div class="form-group">
+            <label for="status">狀態</label> <select th:field="*{status}"
+                                                     class="form-control" id="status">
+            <option th:each="opt : ${statusOptions}" th:value="${opt}">
+    <span th:switch="${opt.name()}">
+        <span th:case="'ACTIVE'">上架</span>
+        <span th:case="'INACTIVE'">草稿</span>
+        <span th:case="'VISIBLE'">前台可見</span>
+        <span th:case="'HIDDEN'">已隱藏</span>
+        <span th:case="*">未知狀態</span>
+    </span>
+            </option>
+        </select>
+            <div class="text-danger" th:if="${#fields.hasErrors('status')}"
+                 th:errors="*{status}"></div>
+        </div>
 
-			<!-- 按鈕操作列 -->
-			<div class="text-right mt-4">
-				<a th:href="@{/announcement/select_page_announcement}"
-					class="btn btn-secondary"> <i class="fas fa-arrow-left"></i>
-					返回清單
-				</a>
+        <!-- 按鈕操作列 -->
+        <div class="text-right mt-4">
+            <a th:href="@{/announcement/select_page_announcement}"
+               class="btn btn-secondary"> <i class="fas fa-arrow-left"></i>
+                返回清單
+            </a>
 
-				<!-- 儲存草稿 -->
-				<button type="submit" name="action" value="save"
-					class="btn btn-danger" id="saveBtn">
-					<i class="fas fa-save"></i> 儲存公告
-				</button>
+            <!-- 儲存草稿 -->
+            <button type="submit" name="action" value="save"
+                    class="btn btn-danger" id="saveBtn">
+                <i class="fas fa-save"></i> 儲存公告
+            </button>
 
-				<!-- 發佈公告 -->
-				<button type="submit" name="action" value="publish"
-					class="btn btn-primary" id="publishBtn">
-					<i class="fas fa-bullhorn"></i> 發佈公告
-				</button>
-			</div>
-		</form>
-	</div>
+            <!-- 發佈公告 -->
+            <button type="submit" name="action" value="publish"
+                    class="btn btn-primary" id="publishBtn">
+                <i class="fas fa-bullhorn"></i> 發佈公告
+            </button>
+        </div>
+    </form>
+</div>
 
-	<!-- JS 檢查區 -->
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			document.getElementById("saveBtn").addEventListener("click",
-					function() {
-						console.log("📝 儲存公告按下");
-					});
+<!-- JS 檢查區 -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("saveBtn").addEventListener("click",
+            function () {
+                console.log("📝 儲存公告按下");
+            });
 
-			document.getElementById("publishBtn").addEventListener("click",
-					function() {
-						console.log("📢 發佈公告按下，action=publish 將會送出");
-					});
-		});
-	</script>
+        document.getElementById("publishBtn").addEventListener("click",
+            function () {
+                console.log("📢 發佈公告按下，action=publish 將會送出");
+            });
+    });
+</script>
 </body>
 </html>
