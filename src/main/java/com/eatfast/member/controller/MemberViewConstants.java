@@ -45,6 +45,12 @@ public final class MemberViewConstants { // 使用 final 關鍵字，表示這�
      */
     public static final String VIEW_UPDATE_MEMBER = BACKEND_BASE_PATH + "update_member";
 
+    /**
+     * 已刪除會員管理頁面。
+     * 對應實體檔案路徑: `resources/templates/back-end/member/deleted_members.html`
+     */
+    public static final String VIEW_DELETED_MEMBERS = BACKEND_BASE_PATH + "deleted_members";
+
     // ============================= 前端會員專區模板路徑 =============================
     
     /**

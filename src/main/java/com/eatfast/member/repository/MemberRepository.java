@@ -26,7 +26,7 @@ import org.springframework.stereotype.Repository;
 // 負責與資料庫進行交互，提供 CRUD 操作和自定義查詢方法。
 // 使用 Spring Data JPA 的 JpaRepository 和 JpaSpecificationExecutor 來簡化資料存取操作。
 // JpaRepository 提供基本的 CRUD 操作，而 JpaSpecificationExecutor 則允許使用動態查詢。
-//●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●
+//●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●
  
 
 @Repository
@@ -48,14 +48,19 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long>, Jpa
 	// 【R - 檢查存在】Spring Data JPA 會自動實現 "依 account 或 email 檢查是否存在"
 	// 框架會自動生成高效的 EXISTS 查詢
 	boolean existsByAccountOrEmail(String account, String email);
-    
-    // ========== 即時驗證專用方法 ========= =
-    
-    /**
-     * 檢查帳號是否已存在 - 用於即時驗證
-     * @param account 要檢查的帳號
-     * @return true 如果帳號已存在
-     */
+
+	/**
+	 * 【新增】查詢已停用的會員 - 使用原生 SQL 繞過 @SQLRestriction 限制
+	 * 這個方法專門用於查詢 is_enabled = false 的會員記錄
+	 */
+	@Query(value = "SELECT * FROM member WHERE is_enabled = false ORDER BY last_updated_at DESC", nativeQuery = true)
+	List<MemberEntity> findDisabledMembers();
+
+	/**
+	 * 檢查帳號是否已存在 - 用於即時驗證
+	 * @param account 要檢查的帳號
+	 * @return true 如果帳號已存在
+	 */
     boolean existsByAccount(String account);
     
     /**

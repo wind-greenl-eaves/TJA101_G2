@@ -236,8 +236,11 @@
                         <i class="fas fa-user-plus"></i> 會員管理
                     </div>
                     <div class="card-body">
-                        <a th:href="@{/member/addMember}" class="btn btn-warning btn-block font-weight-bold">
+                        <a th:href="@{/member/addMember}" class="btn btn-warning btn-block font-weight-bold mb-2">
                            <i class="fas fa-plus-circle"></i> 新增會員資料
+                        </a>
+                        <a th:href="@{/member/deleted}" class="btn btn-secondary btn-block font-weight-bold">
+                           <i class="fas fa-trash-restore"></i> 查看已刪除會員
                         </a>
                     </div>
                 </div>
