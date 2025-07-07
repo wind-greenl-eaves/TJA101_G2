@@ -83,6 +83,43 @@
             opacity: 0;
             transform: translateY(-10px);
         }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .delete-modal-content {
+            animation: fadeInDown 0.3s ease-out;
+        }
+        
+        .delete-row-highlight {
+            background-color: #fff3cd !important;
+            transition: background-color 0.3s ease;
+        }
+        
+        .delete-button-loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
     </style>
 
 </head>
@@ -320,12 +357,15 @@
                                                     <i class="fas fa-edit"></i> 修改
                                                 </button>
                                             </form>
-                                            <form method="post" th:action="@{/member/delete}" style="display: inline;" onsubmit="return confirm('您確定要刪除這位會員嗎？此操作將會是軟刪除。');">
-                                                <input type="hidden" name="memberId" th:value="${member.memberId}" />
-                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                    <i class="fas fa-trash-alt"></i> 刪除
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    onclick="showDeleteConfirmModal(this)"
+                                                    th:data-member-id="${member.memberId}"
+                                                    th:data-member-name="${member.username}"
+                                                    th:data-member-account="${member.account}"
+                                                    th:data-member-email="${member.email}"
+                                                    th:data-member-phone="${member.phone}">
+                                                <i class="fas fa-trash-alt"></i> 刪除
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -415,6 +455,129 @@
         </div>
     </div>
 
+    <!-- 強化版刪除確認 Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <!-- 危險警告標題 -->
+                <div class="modal-header" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; border: none;">
+                    <h5 class="modal-title" id="deleteConfirmModalLabel">
+                        <i class="fas fa-exclamation-triangle mr-2 text-warning"></i>
+                        <strong>⚠️ 危險操作：刪除會員</strong>
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true" style="opacity: 0.8;">&times;</span>
+                    </button>
+                </div>
+                
+                <!-- 內容區域 -->
+                <div class="modal-body p-4">
+                    <!-- 警告提示 -->
+                    <div class="alert alert-danger border-0 mb-4" style="background-color: #f8d7da;">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-skull-crossbones fa-2x text-danger mr-3"></i>
+                            <div>
+                                <h6 class="alert-heading mb-1"><strong>注意：此操作具有風險！</strong></h6>
+                                <p class="mb-0">您即將執行會員刪除操作，此動作會將會員標記為「已刪除」狀態。</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 會員資訊卡片 -->
+                    <div class="card border-danger mb-4">
+                        <div class="card-header bg-danger text-white">
+                            <h6 class="mb-0"><i class="fas fa-user-times mr-2"></i>即將刪除的會員資訊</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-2">
+                                        <i class="fas fa-id-badge text-primary mr-2"></i>
+                                        <strong>會員編號：</strong> 
+                                        <span id="deleteMemberId_display" class="badge badge-primary"></span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <i class="fas fa-user text-success mr-2"></i>
+                                        <strong>姓名：</strong> 
+                                        <span id="deleteMemberName" class="text-dark font-weight-bold"></span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <i class="fas fa-at text-info mr-2"></i>
+                                        <strong>登入帳號：</strong> 
+                                        <span id="deleteMemberAccount" class="text-dark"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-2">
+                                        <i class="fas fa-envelope text-warning mr-2"></i>
+                                        <strong>電子郵件：</strong> 
+                                        <span id="deleteMemberEmail" class="text-dark"></span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <i class="fas fa-phone text-secondary mr-2"></i>
+                                        <strong>連絡電話：</strong> 
+                                        <span id="deleteMemberPhone" class="text-dark"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 安全確認區域 -->
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <h6 class="mb-0"><i class="fas fa-shield-alt mr-2"></i>安全確認</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-danger mb-3">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                為了防止誤操作，請在下方輸入框中輸入 <code class="bg-danger text-white px-2 py-1 rounded">DELETE</code> 來確認此操作：
+                            </p>
+                            
+                            <div class="form-group">
+                                <label for="deleteConfirmText" class="font-weight-bold">
+                                    <i class="fas fa-keyboard mr-2"></i>請輸入 "DELETE" (大寫)：
+                                </label>
+                                <input type="text" 
+                                       id="deleteConfirmText" 
+                                       class="form-control form-control-lg" 
+                                       placeholder="請輸入 DELETE 來確認刪除"
+                                       autocomplete="off"
+                                       style="border: 2px solid #dc3545; font-size: 1.1rem; text-align: center;">
+                                <div id="deleteTextFeedback" class="mt-2"></div>
+                            </div>
+                            
+                            <!-- 確認狀態指示器 -->
+                            <div id="deleteStatusIndicator" class="text-center mt-3">
+                                <div class="alert alert-secondary" role="alert">
+                                    <i class="fas fa-lock mr-2"></i>
+                                    <strong>刪除功能已鎖定</strong> - 請完成安全確認
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 按鈕區域 -->
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-secondary btn-lg" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i>取消
+                    </button>
+                    <form id="deleteMemberForm" method="post" th:action="@{/member/delete}" style="display: inline;">
+                        <input type="hidden" name="memberId" id="deleteMemberId" />
+                        <button type="submit" 
+                                id="confirmDeleteBtn" 
+                                class="btn btn-danger btn-lg" 
+                                disabled>
+                            <i class="fas fa-trash-alt mr-2"></i>
+                            <span id="deleteButtonText">刪除會員 (已鎖定)</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 引入必要的 JavaScript -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
@@ -459,6 +622,7 @@
                 $.ajax({
                     url: apiDetailBaseUrl + memberId,
                     method: 'GET',
+                    timeout: 10000, // 設定 10 秒超時
                     success: function(member) {
                         $('#modal-memberId').text(member.memberId);
                         $('#modal-username').text(member.username);
@@ -490,9 +654,57 @@
                         console.error('取得會員詳細資料時發生錯誤:', error);
                         spinner.hide();
                         table.addClass('d-none');
-                        modal.find('.modal-body').append('<div class="alert alert-danger temp-error">無法取得會員詳細資料，請關閉後再試。</div>');
-                        modal.on('hidden.bs.modal', function () {
-                            $('.temp-error').remove();
+                        
+                        // 改善的錯誤處理與用戶提示
+                        let errorMessage = '';
+                        let errorIcon = 'fas fa-exclamation-triangle';
+                        
+                        if (xhr.status === 404) {
+                            errorMessage = '找不到該會員資料，可能已被刪除或不存在';
+                            errorIcon = 'fas fa-user-slash';
+                        } else if (xhr.status === 403) {
+                            errorMessage = '您沒有權限查看此會員資料';
+                            errorIcon = 'fas fa-lock';
+                        } else if (xhr.status === 500) {
+                            errorMessage = '伺服器內部錯誤，請稍後再試或聯繫系統管理員';
+                            errorIcon = 'fas fa-server';
+                        } else if (status === 'timeout') {
+                            errorMessage = '請求超時，請檢查網路連線後重試';
+                            errorIcon = 'fas fa-clock';
+                        } else if (status === 'parsererror') {
+                            errorMessage = '資料格式錯誤，請聯繫系統管理員';
+                            errorIcon = 'fas fa-file-alt';
+                        } else {
+                            errorMessage = '載入失敗，請稍後再試';
+                            errorIcon = 'fas fa-wifi';
+                        }
+                        
+                        const errorHtml = `
+                            <div class="alert alert-danger" role="alert">
+                                <h6><i class="${errorIcon}"></i> 載入失敗</h6>
+                                <p class="mb-2">${errorMessage}</p>
+                                <small class="text-muted">錯誤代碼: ${xhr.status || 'N/A'} | 狀態: ${status}</small>
+                                <hr class="my-2">
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="location.reload()">
+                                    <i class="fas fa-redo"></i> 重新載入頁面
+                                </button>
+                            </div>
+                        `;
+                        
+                        modal.find('.modal-body').html(errorHtml);
+                        
+                        // 清理事件監聽器以避免重複綁定
+                        modal.off('hidden.bs.modal.errorCleanup').on('hidden.bs.modal.errorCleanup', function () {
+                            modal.find('.modal-body').html(`
+                                <div id="modal-spinner" class="text-center my-5">
+                                    <div class="spinner-border" role="status">
+                                        <span class="sr-only">載入中...</span>
+                                    </div>
+                                </div>
+                                <table class="table table-bordered d-none" id="modal-table">
+                                    <!-- 原有的表格內容 -->
+                                </table>
+                            `);
                         });
                     }
                 });
@@ -609,6 +821,401 @@
 
             }, false);
         })();
+    </script>
+
+    <!-- 強化版刪除確認功能的 JavaScript -->
+    <script>
+        // === 全域變數 ===
+        let currentDeleteMemberId = null;
+        let currentDeleteMemberData = null;
+        let deleteConfirmationValid = false;
+
+        // === 主要功能函數 ===
+        
+        /**
+         * 顯示刪除確認 Modal
+         * @param {HTMLElement} buttonElement - 點擊的刪除按鈕元素
+         */
+        function showDeleteConfirmModal(buttonElement) {
+            // 取得會員資料
+            const memberId = buttonElement.getAttribute('data-member-id');
+            const memberName = buttonElement.getAttribute('data-member-name');
+            const memberAccount = buttonElement.getAttribute('data-member-account');
+            const memberEmail = buttonElement.getAttribute('data-member-email');
+            const memberPhone = buttonElement.getAttribute('data-member-phone');
+
+            // 儲存當前要刪除的會員資料
+            currentDeleteMemberId = memberId;
+            currentDeleteMemberData = {
+                id: memberId,
+                name: memberName,
+                account: memberAccount,
+                email: memberEmail,
+                phone: memberPhone
+            };
+
+            // 填入會員資訊到 Modal 中
+            populateMemberInfoInModal(currentDeleteMemberData);
+
+            // 重置 Modal 狀態
+            resetDeleteConfirmationState();
+
+            // 顯示 Modal
+            $('#deleteConfirmModal').modal('show');
+
+            // 自動聚焦到輸入框
+            setTimeout(() => {
+                document.getElementById('deleteConfirmText').focus();
+            }, 500);
+        }
+
+        /**
+         * 填入會員資訊到刪除確認 Modal
+         * @param {Object} memberData - 會員資料物件
+         */
+        function populateMemberInfoInModal(memberData) {
+            document.getElementById('deleteMemberId_display').textContent = memberData.id;
+            document.getElementById('deleteMemberName').textContent = memberData.name || 'N/A';
+            document.getElementById('deleteMemberAccount').textContent = memberData.account || 'N/A';
+            document.getElementById('deleteMemberEmail').textContent = memberData.email || 'N/A';
+            document.getElementById('deleteMemberPhone').textContent = memberData.phone || 'N/A';
+            
+            // 設定隱藏的表單欄位
+            document.getElementById('deleteMemberId').value = memberData.id;
+        }
+
+        /**
+         * 重置刪除確認狀態
+         */
+        function resetDeleteConfirmationState() {
+            const confirmText = document.getElementById('deleteConfirmText');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const buttonText = document.getElementById('deleteButtonText');
+            const feedback = document.getElementById('deleteTextFeedback');
+            const statusIndicator = document.getElementById('deleteStatusIndicator');
+
+            // 清空輸入框
+            confirmText.value = '';
+            confirmText.className = 'form-control form-control-lg';
+            confirmText.style.borderColor = '#dc3545';
+
+            // 重置按鈕狀態
+            confirmBtn.disabled = true;
+            confirmBtn.className = 'btn btn-danger btn-lg';
+            buttonText.textContent = '刪除會員 (已鎖定)';
+
+            // 清空反饋訊息
+            feedback.innerHTML = '';
+
+            // 重置狀態指示器
+            statusIndicator.innerHTML = `
+                <div class="alert alert-secondary" role="alert">
+                    <i class="fas fa-lock mr-2"></i>
+                    <strong>刪除功能已鎖定</strong> - 請完成安全確認
+                </div>
+            `;
+
+            // 重置全域變數
+            deleteConfirmationValid = false;
+        }
+
+        /**
+         * 驗證刪除確認輸入
+         * @param {string} inputValue - 使用者輸入的文字
+         */
+        function validateDeleteConfirmation(inputValue) {
+            const confirmText = document.getElementById('deleteConfirmText');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const buttonText = document.getElementById('deleteButtonText');
+            const feedback = document.getElementById('deleteTextFeedback');
+            const statusIndicator = document.getElementById('deleteStatusIndicator');
+
+            // 移除前後空白
+            const trimmedValue = inputValue.trim();
+
+            if (trimmedValue === '') {
+                // 輸入為空
+                setValidationState('empty', confirmText, confirmBtn, buttonText, feedback, statusIndicator);
+            } else if (trimmedValue === 'DELETE') {
+                // 輸入正確
+                setValidationState('valid', confirmText, confirmBtn, buttonText, feedback, statusIndicator);
+                deleteConfirmationValid = true;
+            } else {
+                // 輸入錯誤
+                setValidationState('invalid', confirmText, confirmBtn, buttonText, feedback, statusIndicator);
+            }
+        }
+
+        /**
+         * 設定驗證狀態的視覺回饋
+         * @param {string} state - 驗證狀態：'empty', 'valid', 'invalid'
+         * @param {HTMLElement} input - 輸入框元素
+         * @param {HTMLElement} button - 按鈕元素
+         * @param {HTMLElement} buttonText - 按鈕文字元素
+         * @param {HTMLElement} feedback - 反饋區域元素
+         * @param {HTMLElement} statusIndicator - 狀態指示器元素
+         */
+        function setValidationState(state, input, button, buttonText, feedback, statusIndicator) {
+            switch (state) {
+                case 'empty':
+                    input.className = 'form-control form-control-lg';
+                    input.style.borderColor = '#dc3545';
+                    button.disabled = true;
+                    button.className = 'btn btn-danger btn-lg';
+                    buttonText.textContent = '刪除會員 (已鎖定)';
+                    feedback.innerHTML = '';
+                    statusIndicator.innerHTML = `
+                        <div class="alert alert-secondary" role="alert">
+                            <i class="fas fa-lock mr-2"></i>
+                            <strong>刪除功能已鎖定</strong> - 請完成安全確認
+                        </div>
+                    `;
+                    deleteConfirmationValid = false;
+                    break;
+
+                case 'valid':
+                    input.className = 'form-control form-control-lg is-valid';
+                    input.style.borderColor = '#28a745';
+                    button.disabled = false;
+                    button.className = 'btn btn-danger btn-lg';
+                    buttonText.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>確認刪除會員';
+                    feedback.innerHTML = `
+                        <div class="alert alert-success border-0 mb-0" role="alert">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <strong>驗證成功！</strong> 現在可以執行刪除操作
+                        </div>
+                    `;
+                    statusIndicator.innerHTML = `
+                        <div class="alert alert-success" role="alert">
+                            <i class="fas fa-unlock mr-2"></i>
+                            <strong>安全確認完成</strong> - 刪除功能已解鎖
+                        </div>
+                    `;
+                    deleteConfirmationValid = true;
+                    
+                    // 成功驗證時的動畫效果
+                    input.style.animation = 'pulse 0.5s';
+                    setTimeout(() => {
+                        input.style.animation = '';
+                    }, 500);
+                    break;
+
+                case 'invalid':
+                    input.className = 'form-control form-control-lg is-invalid';
+                    input.style.borderColor = '#dc3545';
+                    button.disabled = true;
+                    button.className = 'btn btn-danger btn-lg';
+                    buttonText.textContent = '刪除會員 (已鎖定)';
+                    feedback.innerHTML = `
+                        <div class="alert alert-danger border-0 mb-0" role="alert">
+                            <i class="fas fa-times-circle mr-2"></i>
+                            <strong>輸入錯誤！</strong> 請輸入大寫的 "DELETE"
+                        </div>
+                    `;
+                    statusIndicator.innerHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-lock mr-2"></i>
+                            <strong>驗證失敗</strong> - 請輸入正確的確認文字
+                        </div>
+                    `;
+                    deleteConfirmationValid = false;
+                    
+                    // 錯誤時的震動效果
+                    input.style.animation = 'shake 0.5s';
+                    setTimeout(() => {
+                        input.style.animation = '';
+                    }, 500);
+                    break;
+            }
+        }
+
+        /**
+         * 處理刪除表單提交
+         * @param {Event} event - 表單提交事件
+         */
+        function handleDeleteFormSubmit(event) {
+            if (!deleteConfirmationValid) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // 顯示錯誤提示
+                const feedback = document.getElementById('deleteTextFeedback');
+                feedback.innerHTML = `
+                    <div class="alert alert-warning border-0 mb-0" role="alert">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <strong>操作被阻止！</strong> 請先完成安全確認
+                    </div>
+                `;
+                
+                return false;
+            }
+
+            // 顯示最終確認動畫
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const buttonText = document.getElementById('deleteButtonText');
+            
+            confirmBtn.disabled = true;
+            buttonText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>執行刪除中...';
+            
+            // 讓表單正常提交
+            return true;
+        }
+
+        /**
+         * 添加成功刪除後的動畫效果（如果需要的話）
+         * @param {number} memberId - 被刪除的會員ID
+         */
+        function animateRowRemoval(memberId) {
+            const row = document.querySelector(`tr[data-member-id="${memberId}"]`);
+            if (row) {
+                row.style.transition = 'all 0.5s ease-out';
+                row.style.backgroundColor = '#f8d7da';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-100%)';
+                
+                setTimeout(() => {
+                    row.remove();
+                }, 500);
+            }
+        }
+
+        // === 事件監聽器設定 ===
+        
+        // 當頁面載入完成後設定事件監聽器
+        document.addEventListener('DOMContentLoaded', function() {
+            // 監聽刪除確認輸入框的變化
+            const deleteConfirmInput = document.getElementById('deleteConfirmText');
+            if (deleteConfirmInput) {
+                // 即時驗證輸入
+                deleteConfirmInput.addEventListener('input', function(e) {
+                    validateDeleteConfirmation(e.target.value);
+                });
+
+                // 處理 Enter 鍵
+                deleteConfirmInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (deleteConfirmationValid) {
+                            document.getElementById('confirmDeleteBtn').click();
+                        }
+                    }
+                });
+
+                // 處理貼上事件
+                deleteConfirmInput.addEventListener('paste', function(e) {
+                    setTimeout(() => {
+                        validateDeleteConfirmation(e.target.value);
+                    }, 10);
+                });
+            }
+
+            // 監聽刪除表單提交
+            const deleteForm = document.getElementById('deleteMemberForm');
+            if (deleteForm) {
+                deleteForm.addEventListener('submit', handleDeleteFormSubmit);
+            }
+
+            // 監聽 Modal 關閉事件，清理狀態
+            $('#deleteConfirmModal').on('hidden.bs.modal', function() {
+                currentDeleteMemberId = null;
+                currentDeleteMemberData = null;
+                deleteConfirmationValid = false;
+            });
+
+            // 監聽 Modal 顯示事件，設定焦點
+            $('#deleteConfirmModal').on('shown.bs.modal', function() {
+                const input = document.getElementById('deleteConfirmText');
+                if (input) {
+                    input.focus();
+                }
+            });
+        });
+
+        // === CSS 動畫樣式 ===
+        
+        // 動態添加 CSS 動畫樣式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.02); }
+                100% { transform: scale(1); }
+            }
+            
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+            
+            @keyframes fadeInDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .delete-modal-content {
+                animation: fadeInDown 0.3s ease-out;
+            }
+            
+            .delete-row-highlight {
+                background-color: #fff3cd !important;
+                transition: background-color 0.3s ease;
+            }
+            
+            .delete-button-loading {
+                pointer-events: none;
+                opacity: 0.7;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // === 輔助功能 ===
+        
+        /**
+         * 高亮顯示即將被刪除的表格行
+         * @param {number} memberId - 會員ID
+         */
+        function highlightDeleteRow(memberId) {
+            // 移除所有現有的高亮
+            document.querySelectorAll('.delete-row-highlight').forEach(row => {
+                row.classList.remove('delete-row-highlight');
+            });
+            
+            // 高亮當前選中的行
+            const row = document.querySelector(`tr[data-member-id="${memberId}"]`);
+            if (row) {
+                row.classList.add('delete-row-highlight');
+            }
+        }
+
+        /**
+         * 清除表格行高亮
+         */
+        function clearDeleteRowHighlight() {
+            document.querySelectorAll('.delete-row-highlight').forEach(row => {
+                row.classList.remove('delete-row-highlight');
+            });
+        }
+
+        // 修改原有的 showDeleteConfirmModal 函數以包含行高亮
+        const originalShowDeleteConfirmModal = showDeleteConfirmModal;
+        showDeleteConfirmModal = function(buttonElement) {
+            originalShowDeleteConfirmModal(buttonElement);
+            highlightDeleteRow(currentDeleteMemberId);
+        };
+
+        // 當 Modal 關閉時清除高亮
+        $(document).ready(function() {
+            $('#deleteConfirmModal').on('hidden.bs.modal', function() {
+                clearDeleteRowHighlight();
+            });
+        });
     </script>
 </body>
 </html>

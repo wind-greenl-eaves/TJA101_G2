@@ -81,6 +81,24 @@ public class MemberUpdateRequest {
     @NotNull(message = "性別：請勿空白", groups = UpdateValidation.class)
     private Gender gender;
     
+    /**
+     * 登入帳號（唯讀顯示用）。
+     * 此欄位僅用於顯示，不參與更新驗證。
+     */
+    private String account;
+    
+    /**
+     * 帳號啟用狀態。
+     * 管理員可以啟用或停用會員帳號。
+     */
+    private Boolean isEnabled;
+    
+    /**
+     * 會員註冊時間（唯讀顯示用）。
+     * 此欄位僅用於顯示，不參與更新驗證。
+     */
+    private java.time.LocalDateTime createdAt;
+    
     //================================================================
     // Getters and Setters
     //================================================================
@@ -98,4 +116,12 @@ public class MemberUpdateRequest {
     public void setBirthday(LocalDate birthday) { this.birthday = birthday; }
     public Gender getGender() { return gender; }
     public void setGender(Gender gender) { this.gender = gender; }
+    
+    // 新增的 getter/setter 方法
+    public String getAccount() { return account; }
+    public void setAccount(String account) { this.account = account; }
+    public Boolean getIsEnabled() { return isEnabled; }
+    public void setIsEnabled(Boolean isEnabled) { this.isEnabled = isEnabled; }
+    public java.time.LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
