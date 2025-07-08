@@ -270,9 +270,6 @@
             <div class="sort-options">
                 <label for="sortBy">排序：</label>
                 <select id="sortBy" onchange="sortFavorites(this.value)">
-                    <option value="newest">最新收藏</option>
-                    <option value="oldest">最早收藏</option>
-                    <option value="name">商品名稱</option>
                     <option value="price-high">價格高到低</option>
                     <option value="price-low">價格低到高</option>
                 </select>
@@ -283,63 +280,50 @@
         <div class="category-filter">
             <span style="font-weight: bold; margin-right: 10px;">分類篩選：</span>
             <button class="filter-btn active" onclick="filterByCategory('all')">全部</button>
-            <button class="filter-btn" onclick="filterByCategory('breakfast')">早餐主食</button>
+            <button class="filter-btn" onclick="filterByCategory('meal')">餐點</button>
             <button class="filter-btn" onclick="filterByCategory('drink')">飲品</button>
-            <button class="filter-btn" onclick="filterByCategory('side')">小食配菜</button>
-            <button class="filter-btn" onclick="filterByCategory('combo')">套餐組合</button>
         </div>
         
         <!-- 收藏商品網格 -->
         <div class="favorites-grid" th:if="${!#lists.isEmpty(favorites)}">
-            <div th:each="favorite : ${favorites}" class="favorite-card" th:data-category="${favorite.product?.category}">
-                <div class="card-container">
-                    <div class="favorite-badge">❤️</div>
-                    <div class="product-image">
-                        <img th:if="${favorite.product?.imageUrl}" 
-                             th:src="${favorite.product.imageUrl}" 
-                             th:alt="${favorite.product.productName}">
-                        <span th:unless="${favorite.product?.imageUrl}">🍳</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="product-name" th:text="${favorite.product?.productName}">商品名稱</div>
-                        <div class="product-description" th:text="${favorite.product?.description}">商品描述</div>
-                        <div class="product-price" th:text="'$' + ${favorite.product?.price}">$0</div>
-                        <div class="product-meta">
-                            <span th:text="'收藏於 ' + ${#temporals.format(favorite.createdAt, 'MM/dd')}">收藏日期</span>
-                            <span th:if="${favorite.product?.isAvailable}" style="color: #28a745;">✅ 有庫存</span>
-                            <span th:unless="${favorite.product?.isAvailable}" style="color: #dc3545;">❌ 暫無庫存</span>
-                        </div>
-                        <div class="card-actions">
-                            <button class="btn btn-primary" 
-                                    th:if="${favorite.product?.isAvailable}"
-                                    onclick="addToCart(this)" 
-                                    th:data-product-id="${favorite.product?.productId}">
-                                🛒 加入購物車
-                            </button>
-                            <button class="btn btn-outline" 
-                                    th:unless="${favorite.product?.isAvailable}"
-                                    disabled>
-                                暫無庫存
-                            </button>
-                            <button class="btn btn-danger" 
-                                    onclick="removeFavorite(this)" 
-                                    th:data-favorite-id="${favorite.favId}">
-                                💔 取消收藏
-                            </button>
-                        </div>
-                    </div>
+		    <div th:each="favorite : ${favorites}" class="favorite-card"
+		    	 th:attr="data-category=${favorite.mealTypeId == 5 ? 'drink' : 'meal'}">
+	        <div class="card-container">
+            <div class="favorite-badge">❤️</div>
+            <div class="product-image">
+                <img th:if="${favorite.mealPicUrl}" th:src="${favorite.mealPicUrl}" th:alt="${favorite.mealName}" onerror="this.src='/images/nopic.png'">
+                <span th:unless="${favorite.mealPicUrl}">🍳</span>
+            </div>
+            <div class="card-body">
+		        <div class="product-name" th:text="${favorite.mealName}">餐點名稱</div>
+		        <div class="product-price" th:text="'$' + ${favorite.mealPrice}"></div>
+		        <div class="card-actions">
+		          <!-- RESTful按鈕：AJAX移除 -->
+		          <button type="button" class="btn btn-danger w-full"
+		                  th:attr="data-fav-id=${favorite.favMealId}"
+		                  onclick="removeFavorite(this)">
+		              💔 取消收藏
+		          </button>
+		          <!-- 表單fallback（支援 noscript） -->
+		          <form th:action="@{/member/removeFav}" method="post" style="display:none;">
+		            <input type="hidden" name="favMealId" th:value="${favorite.favMealId}" />
+		            <input type="hidden" name="redirectUrl" value="/member/favorites" />
+		            <button type="submit">取消收藏</button>
+		          </form>
                 </div>
             </div>
         </div>
-        
-        <!-- 空狀態 -->
-        <div th:if="${#lists.isEmpty(favorites)}" class="empty-state">
-            <div class="icon">💔</div>
-            <h3>還沒有收藏任何商品</h3>
-            <p>趕快去瀏覽菜單，將喜愛的早餐加入收藏吧！<br>收藏的商品會顯示在這裡，方便您下次快速找到。</p>
-            <a href="/menu" class="btn btn-primary">🍳 瀏覽菜單</a>
-        </div>
     </div>
+</div>
+
+<!-- 空狀態 -->
+<div th:if="${#lists.isEmpty(favorites)}" class="empty-state">
+    <div class="icon">💔</div>
+    <h3>還沒有收藏任何餐點</h3>
+    <p>趕快去瀏覽菜單，將喜愛的早餐加入收藏吧！<br>收藏的餐點會顯示在這裡，方便您下次快速找到。</p>
+    <a href="/menu" class="btn btn-primary">🍳 瀏覽菜單</a>
+</div>
+
     
     <script>
         // 加入購物車
@@ -380,37 +364,39 @@
         
         // 取消收藏
         function removeFavorite(button) {
-            const favoriteId = button.getAttribute('data-favorite-id');
-            
-            if (confirm('確定要取消收藏此商品嗎？')) {
-                fetch(`/member/favorites/${favoriteId}/remove`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        // 移除卡片動畫
-                        const card = button.closest('.favorite-card');
-                        card.style.transform = 'scale(0)';
-                        card.style.opacity = '0';
-                        setTimeout(() => {
-                            card.remove();
-                            updateFavoritesCount();
-                        }, 300);
-                        
-                        showToast('已取消收藏', 'success');
-                    } else {
-                        showToast('取消收藏失敗，請稍後再試', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showToast('取消收藏失敗，請稍後再試', 'error');
-                });
-            }
-        }
+	    const favId = button.getAttribute('data-fav-id');
+	    if (confirm('確定要取消收藏此商品嗎？')) {
+	        fetch(`/member/favorites/${favId}/remove`, {
+	            method: 'DELETE',
+	            headers: { 'Content-Type': 'application/json' }
+	        })
+	        .then(response => {
+	            if (response.ok) {
+	                // 動畫後移除
+	                const card = button.closest('.favorite-card');
+	                card.style.transform = 'scale(0)';
+	                card.style.opacity = '0';
+	                setTimeout(() => {
+	                    card.remove();
+	                    updateFavoritesCount();
+	                }, 300);
+	                showToast('已取消收藏', 'success');
+	            } else {
+	                // fallback: 提交隱藏表單
+	                const fallbackForm = button.parentNode.querySelector('form');
+	                if (fallbackForm) fallbackForm.submit();
+	                else showToast('取消收藏失敗，請稍後再試', 'error');
+	            }
+	        })
+	        .catch(error => {
+	            // fallback: 提交隱藏表單
+	            const fallbackForm = button.parentNode.querySelector('form');
+	            if (fallbackForm) fallbackForm.submit();
+	            else showToast('取消收藏失敗，請稍後再試', 'error');
+	        });
+	    }
+	}
+
         
         // 分類篩選
         function filterByCategory(category) {
@@ -427,7 +413,7 @@
                 if (category === 'all' || cardCategory === category) {
                     card.style.display = 'block';
                 } else {
-                    card.style.display = 'none';
+                    card.style.display = cardCategory === category ? 'block' : 'none';
                 }
             });
         }
@@ -439,18 +425,18 @@
             
             cards.sort((a, b) => {
                 switch(sortBy) {
-                    case 'newest':
-                        // 根據收藏日期排序 (較新的在前)
-                        return new Date(b.querySelector('.product-meta span').textContent) - 
-                               new Date(a.querySelector('.product-meta span').textContent);
-                    case 'oldest':
-                        // 根據收藏日期排序 (較舊的在前)
-                        return new Date(a.querySelector('.product-meta span').textContent) - 
-                               new Date(b.querySelector('.product-meta span').textContent);
-                    case 'name':
-                        // 根據商品名稱排序
-                        return a.querySelector('.product-name').textContent.localeCompare(
-                               b.querySelector('.product-name').textContent);
+//                     case 'newest':
+//                         // 根據收藏日期排序 (較新的在前)
+//                         return new Date(b.querySelector('.product-meta span').textContent) - 
+//                                new Date(a.querySelector('.product-meta span').textContent);
+//                     case 'oldest':
+//                         // 根據收藏日期排序 (較舊的在前)
+//                         return new Date(a.querySelector('.product-meta span').textContent) - 
+//                                new Date(b.querySelector('.product-meta span').textContent);
+//                     case 'name':
+//                         // 根據商品名稱排序
+//                         return a.querySelector('.product-name').textContent.localeCompare(
+//                                b.querySelector('.product-name').textContent);
                     case 'price-high':
                         // 根據價格排序 (高到低)
                         return parseFloat(b.querySelector('.product-price').textContent.replace('$', '')) - 

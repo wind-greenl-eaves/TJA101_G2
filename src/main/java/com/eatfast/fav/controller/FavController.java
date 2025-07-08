@@ -2,12 +2,16 @@ package com.eatfast.fav.controller;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.eatfast.fav.dto.FavMealDTO;
 import com.eatfast.fav.model.FavService;
@@ -24,27 +28,51 @@ public class FavController {
     public FavController(FavService favService) {
         this.favService = favService;
     }
+    
+    // 新增收藏餐點
+    @PostMapping("/addFav")
+    public String addFav(HttpSession session, @RequestParam("mealId") Long mealId, 
+    		@RequestParam(value = "redirectUrl", required = false, defaultValue = "/menu") String redirectUrl) {
+		Long memberId = (Long) session.getAttribute("loggedInMemberId");
+		System.out.println("Session memberId = " + memberId);
 
-    @GetMapping("/favorites")
-    public String showFav(HttpSession session, Model model) {
-        Long memberId = (Long) session.getAttribute("memberId");
+		if (memberId == null) {
+			// 如果會員ID為空，導向到登入頁面
+			return "redirect:/api/v1/auth/member-login"; 
+		}
+		// 如果會員ID不為空，則調用服務層新增收藏
+		favService.addFav(memberId, mealId);
+		
+		 return "redirect:" + redirectUrl;
+		}
 
-        List<FavMealDTO> favorites = favService.getFavMeals(memberId);
-        model.addAttribute("favorites", favorites);
-        return MemberViewConstants.VIEW_MEMBER_FAVORITES;
-        // 返回會員收藏頁面，顯示該會員的收藏餐點列表
-    }
-
+    // 根據主鍵移除收藏 (表單版)
     @PostMapping("/removeFav")
-    public String removeFav(HttpSession session, @RequestParam("mealId") Long mealId) {
-        Long memberId = (Long) session.getAttribute("memberId");
-        if (memberId == null) {
-            // 如果會員ID為空，導向到登入頁面
-            return "redirect:/api/v1/auth/member-login"; 
-        }
-        // 如果會員ID不為空，則調用服務層移除收藏
-        favService.removeFav(memberId, mealId);
-
-        return "redirect:/member/favorites"; // 移除成功後，重定向回收藏列表頁面
+    public String removeFav(@RequestParam("favMealId") Long favMealId,
+                            @RequestParam(value = "redirectUrl", required = false, defaultValue = "/member/favorites") String redirectUrl) {
+        favService.removeFavById(favMealId);
+        return "redirect:" + redirectUrl;
     }
+
+    // RESTful 移除（for AJAX）
+    @DeleteMapping("/favorites/{favMealId}/remove")
+    @ResponseBody
+    public ResponseEntity<?> removeFavById(@PathVariable Long favMealId) {
+        favService.removeFavById(favMealId);
+        return ResponseEntity.ok().build();
+    }
+
+
+	// 顯示會員收藏頁面
+	@GetMapping("/favorites")
+	public String showFav(HttpSession session, Model model) {
+	    Long memberId = (Long) session.getAttribute("loggedInMemberId");
+	
+	    List<FavMealDTO> favorites = favService.getFavMeals(memberId);
+	    model.addAttribute("favorites", favorites);
+	    return MemberViewConstants.VIEW_MEMBER_FAVORITES;
+	    // 返回會員收藏頁面，顯示該會員的收藏餐點列表
+	}
+    
+    
 }
