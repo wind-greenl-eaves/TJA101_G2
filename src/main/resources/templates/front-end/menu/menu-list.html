@@ -11,7 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     
     <style>
         .bg-milktea { background-color: #F7F2ED; }
@@ -121,10 +120,11 @@
         <nav class="flex gap-8">
             <a href="/welcome" class="text-[#7a6451] hover:text-milktea-dark font-semibold">回到首頁</a>
             <a href="/about" class="text-[#7a6451] hover:text-milktea-dark font-semibold">關於我們</a>
-            <a href="#" class="text-[#7a6451] hover:text-milktea-dark font-semibold">門市據點</a>
-            <a href="#" class="text-[#7a6451] hover:text-milktea-dark font-semibold">我要訂餐</a>
+            <a href="/store/storelist" class="text-[#7a6451] hover:text-milktea-dark font-semibold">門市據點</a>
+            <a href="/member/dashboard" class="text-[#7a6451] hover:text-milktea-dark font-semibold">會員專區</a>
             <a href="/cart" class="text-[#7a6451] hover:text-milktea-dark font-semibold">購物車</a>
         </nav>
+        
         <!-- 登入狀態區塊 -->
         <div class="flex items-center gap-2">
             <!-- 已登入 -->
@@ -162,11 +162,12 @@
             </li>
             <li th:each="type : ${mealTypeListData}">
                 <a th:href="@{'/menu?type=' + ${type.mealTypeId}}"
-				   th:classappend="${param.type != null and T(java.lang.Long).valueOf(param.type[0]).equals(type.mealTypeId) ? 'active-category' : ''}"
+				   th:classappend="${param.type != null and !#strings.isEmpty(param.type[0]) and T(java.lang.Long).valueOf(param.type[0]).equals(type.mealTypeId) ? 'active-category' : ''}"
 				   th:text="${type.mealName}"
 				   class="block rounded px-4 py-2 hover:bg-[#f4ede6] transition">
-				    餐點種類名稱
+				   餐點種類名稱
 				</a>
+
 
             </li>
         </ul>
@@ -189,7 +190,7 @@
             <div th:each="meal : ${mealListData}"
                  class="bg-card rounded-2xl shadow-xl border border-milktea flex flex-col items-center p-6 hover:shadow-2xl transition-shadow duration-200 relative">
                 <a th:href="@{'/menu/detail'(mealId=${meal.mealId})}">
-                    <img th:src="@{/meal/mealPhoto(mealId=${meal.mealId})}"
+                    <img th:src="${meal.mealPicUrl}"
                          class="w-40 h-40 object-cover rounded-xl border border-[#F3E5D6] bg-gray-100 mb-4"
                          alt="餐點圖片"
                          onerror="this.onerror=null;this.src='/images/nopic.png';" />
@@ -198,26 +199,46 @@
                     <h2 class="text-xl font-bold text-milktea-dark mb-1 text-center" th:text="${meal.mealName}"></h2>
                     <div class="text-[#C7A083] text-lg font-semibold mb-2" th:text="'NT$ ' + ${meal.mealPrice}"></div>
                     <span class="text-xs bg-[#FCF2E2] text-[#A67B5B] px-3 py-1 rounded mb-2"
-                          th:text="${meal.mealType.mealName}">餐點種類</span>
+                          th:text="${meal.mealName}">餐點種類</span>
                 </div>
                 <div class="flex items-center justify-center gap-2 mb-3">
                     <span class="text-yellow-400 text-lg">★</span>
                     <span class="text-[#A67B5B] text-sm" th:text="${meal.reviewTotalStars} + ' / 5'">5 / 5</span>
                 </div>
+                
                 <div class="flex gap-2 w-full mt-auto">
-                <form th:action="@{/favorite}" method="post" class="flex-1">
-			        <input type="hidden" name="mealId" th:value="${meal.mealId}" />
-			        <button type="submit" class="w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all">
-			            加入收藏
-			        </button>
-			    </form>
-                <form th:action="@{/cart}" method="post" class="flex-1">
-			        <input type="hidden" name="mealId" th:value="${meal.mealId}" />
-			        <button type="submit" class="w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all">
-			            加入購物車
-			        </button>
-			    </form>
-                </div>
+				    <!-- 移除愛心按鈕 -->
+				    <form th:if="${meal.favored}" th:action="@{/member/removeFav}" method="post" class="flex-1">
+				        <input type="hidden" name="favMealId" th:value="${meal.favMealId}" />
+				        <input type="hidden" name="redirectUrl" th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
+				        <button type="submit"
+				                class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1 btn-outline group"
+				                title="移除收藏">
+				            <i class="fas fa-heart" style="color:#d45a6b;"></i>
+				            <span class="ml-1 text-[#d45a6b] group-hover:text-[#b63a53]">已收藏</span>
+				        </button>
+				    </form>
+				    <!-- 收藏愛心按鈕 -->
+				    <form th:unless="${meal.favored}" th:action="@{/member/addFav}" method="post" class="flex-1">
+				        <input type="hidden" name="mealId" th:value="${meal.mealId}" />
+				        <input type="hidden" name="redirectUrl" th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
+				        <button type="submit"
+				                class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1 btn-outline group"
+				                title="加入收藏">
+				            <i class="far fa-heart group-hover:text-[#d45a6b]" style="color:#ccc;"></i>
+				            <span class="ml-1 text-[#A67B5B] group-hover:text-[#d45a6b]">加入收藏</span>
+				        </button>
+				    </form>
+				    <!-- 加入購物車 -->
+				    <form th:action="@{/cart}" method="post" class="flex-1">
+				        <input type="hidden" name="mealId" th:value="${meal.mealId}" />
+				        <button type="submit" class="w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1">
+				            <i class="fas fa-shopping-cart"></i> 加入購物車
+				        </button>
+				    </form>
+				</div>
+
+
             </div>
             <div th:if="${#lists.isEmpty(mealListData)}" class="col-span-full text-center text-milktea-dark py-10">
                 查無符合的餐點！
