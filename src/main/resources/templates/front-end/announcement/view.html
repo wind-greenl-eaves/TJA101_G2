@@ -2,23 +2,87 @@
 <html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>公告內容 - EatFast</title>
+    <title th:text="${announcement.title} + ' - 最新消息'"></title>
+
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f6f0e8;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        .container {
+            background-color: #fffefb;
+            padding: 2.5rem;
+            margin-top: 50px;
+            margin-bottom: 50px; /* 增加底部空間 */
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(175, 140, 100, 0.2);
+            max-width: 800px; /* 為內文頁設定一個最大寬度，在電腦上更易讀 */
+        }
+
+        .announcement-title {
+            color: #6f4e37;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .announcement-meta {
+            font-size: 0.9rem;
+            color: #a87c5f;
+            margin-bottom: 1.5rem;
+        }
+
+        .announcement-content {
+            font-size: 1.1rem;
+            line-height: 1.8; /* 增加行高，更好閱讀 */
+            color: #5c4433;
+            white-space: pre-wrap; /* 保留您在後台輸入的換行和空格 */
+        }
+
+        .btn-return {
+            background-color: #cfc1b2;
+            border-color: #cfc1b2;
+            color: #fff;
+        }
+        .btn-return:hover {
+            background-color: #b9a899;
+            border-color: #b9a899;
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h3 class="mb-3" th:text="${announcement.title}">公告標題</h3>
-    <p class="text-muted">
-        發布時間：
-        <span th:text="${#temporals.format(announcement.startTime, 'yyyy-MM-dd HH:mm')}">時間</span>
-    </p>
-    <hr>
-    <p th:text="${announcement.content}" style="white-space: pre-wrap;">公告內容</p>
 
-    <div class="mt-4 text-right">
-        <a th:href="@{/announcements}" class="btn btn-secondary">返回公告清單</a>
+<div class="container">
+    <span>公告標題：</span>
+    <h1 class="announcement-title" th:text="${announcement.title}">公告標題</h1>
+
+    <p class="announcement-meta">
+        <span>發布於：</span>
+        <span th:text="${#temporals.format(announcement.createTime, 'yyyy-MM-dd HH:mm')}">發布時間</span>
+        <th:block th:if="${announcement.store != null}">
+            <span> | </span>
+            <span>發布門市：</span>
+            <span th:text="${announcement.store.storeName}">一號店</span>
+        </th:block>
+    </p>
+
+    <hr class="mb-4">
+    <span>門市系統公告：</span>
+    <div class="announcement-content" th:text="${announcement.content}">
+        這裡是公告的詳細內容...
     </div>
+
+    <div class="text-right mt-5">
+        <a th:href="@{/announcements}" class="btn btn-return">
+            <i class="fas fa-arrow-left"></i> 返回清單
+        </a>
+    </div>
+
 </div>
+
 </body>
 </html>

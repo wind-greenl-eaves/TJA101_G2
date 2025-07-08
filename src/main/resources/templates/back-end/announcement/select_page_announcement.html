@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <title>公告查詢頁面</title>
 
-    <!-- Bootstrap + 字體 -->
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-    <!-- 奶茶風樣式 -->
+
     <style>
         body {
             background-color: #f6f0e8;
@@ -32,7 +31,7 @@
             font-weight: 500;
         }
 
-        .btn-success, .btn-primary, .btn-warning {
+        .btn-success, .btn-primary, .btn-warning, .btn-info, .btn-secondary {
             border-radius: 6px;
         }
 
@@ -84,56 +83,61 @@
 <div class="container mt-5">
     <h3 class="mb-4 text-center">📋 公告查詢頁面</h3>
 
-    <form th:action="@{/announcement/select_page_announcement}" method="post" class="mb-4">
-        <div class="d-flex justify-content-between mb-3">
-            <div>
-                <a class="btn btn-success" th:href="@{/announcement/new}">
-                    <i class="fas fa-plus"></i> 新增公告
-                </a>
-                <a class="btn btn-warning" th:href="@{/announcement/drafts}">
-                    <i class="fas fa-folder"></i> 草稿列表
-                </a>
-                <a class="btn btn-outline-secondary" th:href="@{/announcement/listAll}">
-                    <i class="fas fa-list"></i> 顯示目前上架公告
-                </a>
-            </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a class="btn btn-success" th:href="@{/announcement/new}">
+                <i class="fas fa-plus"></i> 新增公告
+            </a>
+            <a class="btn btn-warning" th:href="@{/announcement/drafts}">
+                <i class="fas fa-folder"></i> 草稿列表
+            </a>
+            <a class="btn btn-outline-secondary" th:href="@{/announcement/listAll}">
+                <i class="fas fa-list"></i> 顯示目前上架公告
+            </a>
         </div>
-
-        <div class="form-row">
-            <div class="col-md-3">
-                <label>標題關鍵字</label>
-                <input type="text" name="title" class="form-control" placeholder="輸入公告標題">
-            </div>
-            <div class="col-md-2">
-                <label>狀態</label>
-                <select name="status" class="form-control">
-                    <option value="">-- 全部 --</option>
-                    <option th:each="opt : ${statusOptions}" th:value="${opt}">
-                        <th:block th:switch="${opt}">
-                            <th:block th:case="'ACTIVE'">上架中</th:block>
-                            <th:block th:case="'INACTIVE'">草稿</th:block>
-                            <th:block th:case="'VISIBLE'">前台可見</th:block>
-                            <th:block th:case="'HIDDEN'">已隱藏</th:block>
-                            <th:block th:case="*">未知狀態</th:block>
-                        </th:block>
-                    </option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label>起始時間</label>
-                <input type="datetime-local" name="startTime" class="form-control">
-            </div>
-            <div class="col-md-3">
-                <label>結束時間</label>
-                <input type="datetime-local" name="endTime" class="form-control">
-            </div>
-            <div class="col-md-1 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary btn-block">查詢</button>
-            </div>
+        <div>
+            <a th:href="@{/}" class="btn btn-secondary">
+                <i class="fas fa-home"></i> 返回首頁
+            </a>
         </div>
-    </form>
+    </div>
 
-    <table class="table table-bordered text-center" th:if="${announcements != null}">
+    <hr> <form th:action="@{/announcement/select_page_announcement}" method="post" class="mb-4">
+    <div class="form-row">
+        <div class="col-md-3">
+            <label for="title">標題關鍵字</label>
+            <input type="text" id="title" name="title" class="form-control" placeholder="輸入公告標題">
+        </div>
+        <div class="col-md-2">
+            <label for="status">狀態</label>
+            <select id="status" name="status" class="form-control">
+                <option value="">-- 全部 --</option>
+                <option th:each="opt : ${statusOptions}" th:value="${opt}">
+                    <th:block th:switch="${opt.name()}">
+                        <span th:case="'ACTIVE'">上架中</span>
+                        <span th:case="'INACTIVE'">草稿</span>
+                        <span th:case="'VISIBLE'">前台可見</span>
+                        <span th:case="'HIDDEN'">已隱藏</span>
+                        <span th:case="*">未知狀態</span>
+                    </th:block>
+                </option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="startTime">起始時間</label>
+            <input type="datetime-local" id="startTime" name="startTime" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <label for="endTime">結束時間</label>
+            <input type="datetime-local" id="endTime" name="endTime" class="form-control">
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary btn-block">查詢</button>
+        </div>
+    </div>
+</form>
+
+    <table class="table table-bordered text-center" th:if="${announcements != null and not #lists.isEmpty(announcements)}">
         <thead class="thead-light">
         <tr>
             <th>標題</th>
@@ -146,7 +150,7 @@
         <tr th:each="a : ${announcements}">
             <td th:text="${a.title}">標題</td>
             <td>
-                <span th:switch="${a.status}">
+                <span th:switch="${a.status.name()}">
                     <span th:case="'ACTIVE'">上架中</span>
                     <span th:case="'INACTIVE'">草稿</span>
                     <span th:case="'VISIBLE'">前台可見</span>
@@ -159,6 +163,11 @@
         </tr>
         </tbody>
     </table>
+
+    <div class="alert alert-info text-center" th:if="${announcements != null and #lists.isEmpty(announcements)}">
+        查無符合條件的公告。
+    </div>
+
 </div>
 </body>
 </html>

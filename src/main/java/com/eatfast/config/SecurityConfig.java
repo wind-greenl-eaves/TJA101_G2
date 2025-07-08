@@ -55,7 +55,7 @@ public class SecurityConfig {
             )
             // 步驟 2: 設定表單登入 (若需要)
             // .formLogin(form -> form.loginPage("/login").permitAll())
-            
+
             // 【新增】步驟 3: 設定登出處理
             .logout(logout -> logout
                 .logoutUrl("/logout")  // 設定登出 URL
@@ -64,7 +64,7 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")  // 刪除 Session Cookie
                 .permitAll()  // 允許所有人存取登出功能
             )
-            
+
             // 步驟 4: 關閉 CSRF (跨站請求偽造) 保護。
             // 說明: 由於我們是開發無狀態的 RESTful API，或是在開發初期為了方便測試表單，
             // 會先將其關閉。若未來有狀態的網頁表單，則應開啟並正確配置。

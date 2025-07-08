@@ -92,18 +92,18 @@ public class FeedbackTestController {
         model.addAttribute("feedback", new FeedbackEntity());
         return "front-end/feedback/form";
     }
-    @PostMapping("/submit")
-    public String submitFeedback(@ModelAttribute FeedbackEntity feedback,
-                                 RedirectAttributes redirectAttributes) {
-        try {
-            AdminAnnouncementController feedbackService = null;
-            feedbackService.save(feedback); // ✅ 儲存到資料庫
-            redirectAttributes.addFlashAttribute("successMessage", "感謝您的意見！");
-            return "redirect:/feedback/thanks"; // ✅ 成功後導向感謝頁
-        } catch (EntityNotFoundException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "提交失敗：「" + e.getMessage() + "」");
-            return "redirect:/feedback/form";
-        }
-    }
+//    @PostMapping("/submit")
+//    public String submitFeedback(@ModelAttribute FeedbackEntity feedback,
+//                                 RedirectAttributes redirectAttributes) {
+//        try {
+//            AdminAnnouncementController feedbackService = null;
+//            feedbackService.save(feedback); // ✅ 儲存到資料庫
+//            redirectAttributes.addFlashAttribute("successMessage", "感謝您的意見！");
+//            return "redirect:/feedback/thanks"; // ✅ 成功後導向感謝頁
+//        } catch (EntityNotFoundException e) {
+//            redirectAttributes.addFlashAttribute("errorMessage", "提交失敗：「" + e.getMessage() + "」");
+//            return "redirect:/feedback/form";
+//        }
+//    }
 
 }

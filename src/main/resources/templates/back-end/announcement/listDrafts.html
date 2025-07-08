@@ -114,23 +114,36 @@
 <!-- Modal 控制 -->
 <script>
     function showPublishedModal(event) {
+
+        // 探員1號: 檢查函式是否被呼叫
+        alert("探員1號：函式已執行！");
+
         event.preventDefault();
         const url = event.currentTarget.getAttribute("href");
 
-        // 使用 AJAX 發佈
-        fetch(url) 
+        // 探員2號: 檢查我們準備發出的 URL 是否正確
+        alert("探員2號：準備發送到這個網址：" + url);
+
+        fetch(url)
             .then(response => {
+                // 探員3號: 檢查後端的回應狀態
+                alert("探員3號：後端已回應，狀態碼：" + response.status + "，回應OK嗎？" + response.ok);
+
                 if (response.ok) {
+                    // 如果一切正常，就會執行這裡
                     $('#publishedModal').modal('show');
-                    // 延遲跳轉到上架清單
                     setTimeout(() => {
                         window.location.href = "/announcement/listAll";
                     }, 2000);
                 } else {
-                    alert("發佈失敗，請稍後再試");
+                    // 如果後端有回應，但狀態不是 200 OK，就會執行這裡
+                    alert("發佈失敗，請稍後再試 (這是 response.ok = false 的結果)");
                 }
             })
-            .catch(() => alert("發佈時發生錯誤"));
+            .catch(error => {
+                // 探員4號: 如果連網路請求都發不出去，就會執行這裡
+                alert("探員4號：Fetch 請求失敗！錯誤：" + error);
+            });
     }
 </script>
 </body>
