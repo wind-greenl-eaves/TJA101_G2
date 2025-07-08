@@ -66,4 +66,11 @@ public class MealService {
 		repository.deleteById(mealId);
 	}
 	
+	// 查詢所有上架餐點(前台用)
+	public List<MealEntity> getAllAVAILABLE() {
+	    return repository.findByStatus(MealStatus.AVAILABLE); // 只找上架餐點
+	}
+
+
+	
 }

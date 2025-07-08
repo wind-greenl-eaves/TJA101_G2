@@ -544,15 +544,15 @@ public class MemberController {
     }
     
     /**
-     * 【前端會員專區路由】我的收藏頁面
+     * 【前端會員專區路由】我的收藏頁面(移至 FavController.java)
      */
-    @GetMapping("/favorites")
-    public String showMemberFavorites(Model model, HttpSession session) {
-        // 獲取當前會員的收藏列表
-        // List<FavEntity> favorites = favService.getMemberFavorites(memberId);
-        // model.addAttribute("favorites", favorites);
-        return MemberViewConstants.VIEW_MEMBER_FAVORITES;
-    }
+//    @GetMapping("/favorites")
+//    public String showMemberFavorites(Model model, HttpSession session) {
+//        // 獲取當前會員的收藏列表
+//        // List<FavEntity> favorites = favService.getMemberFavorites(memberId);
+//        // model.addAttribute("favorites", favorites);
+//        return MemberViewConstants.VIEW_MEMBER_FAVORITES;
+//    }
     
     /**
      * 【前端會員專區路由】帳號設定頁面
