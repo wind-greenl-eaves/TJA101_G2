@@ -247,7 +247,7 @@
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased" th:data-has-employee-session="${session.loggedInEmployee != null}">
 
 <div class="page-container">
     <!-- 左側導航區塊 -->
@@ -905,6 +905,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 </script>
+
+<!-- 引入Session警告系統 -->
+<script th:src="@{/js/common/sessionWarning.js}"></script>
 
 </body>
 </html>

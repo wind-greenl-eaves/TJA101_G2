@@ -41,9 +41,30 @@ public class EmployeeLoginController {
     @GetMapping("/login")
     public String showLoginPage(@RequestParam(value = "logout", required = false) String logout, 
                                @RequestParam(value = "shown", required = false) String shown,
+                               @RequestParam(value = "timeout", required = false) String timeout,
+                               @RequestParam(value = "message", required = false) String message,
                                Model model, RedirectAttributes redirectAttributes) {
         // 準備登入表單物件
         model.addAttribute("loginRequest", new EmployeeLoginRequest());
+        
+        // 處理Session超時訊息 - 修正邏輯
+        if ("true".equals(timeout)) {
+            String timeoutMessage = "系統已自動登出，請重新操作"; // 預設訊息
+            
+            // 如果有自定義訊息，嘗試解碼
+            if (message != null && !message.trim().isEmpty()) {
+                try {
+                    timeoutMessage = java.net.URLDecoder.decode(message, "UTF-8");
+                    log.info("顯示Session超時訊息: {}", timeoutMessage);
+                } catch (Exception e) {
+                    log.warn("URL解碼失敗，使用預設訊息: {}", e.getMessage());
+                }
+            } else {
+                log.info("檢測到timeout=true但無message參數，顯示預設超時訊息");
+            }
+            
+            model.addAttribute("errorMessage", timeoutMessage);
+        }
         
         // 處理登出成功訊息 - 只在第一次顯示，避免重新整理時重複顯示
         if ("success".equals(logout) && !"true".equals(shown)) {
