@@ -3,6 +3,7 @@ package com.eatfast.meal.model;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +11,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.eatfast.common.enums.MealStatus;
+import com.eatfast.fav.model.FavRepository;
+import com.eatfast.meal.dto.MealDTO;
 
 @Service("mealService")
 public class MealService {
 
 	@Autowired
 	MealRepository repository;
+	
+	@Autowired
+    private FavRepository favRepository;  // 用於判斷有無收藏
 	
 	@Autowired
     private SessionFactory sessionFactory;
@@ -72,5 +78,42 @@ public class MealService {
 	}
 
 
+	// === 前台：取得所有上架餐點，並標註會員是否已收藏 ===
+    public List<MealDTO> getAllAvailableWithFavored(Long memberId) {
+        List<MealEntity> meals = repository.findByStatus(MealStatus.AVAILABLE);
+        return meals.stream()
+                .map(meal -> toDTOWithFavored(meal, memberId))
+                .collect(Collectors.toList());
+    }
+
+    // === 前台：依分類查詢，並標註會員是否已收藏 ===
+    public List<MealDTO> getMealsByTypeWithFavored(Long mealTypeId, Long memberId) {
+        List<MealEntity> meals = repository.findByMealTypeMealTypeId(mealTypeId);
+        return meals.stream()
+                .map(meal -> toDTOWithFavored(meal, memberId))
+                .collect(Collectors.toList());
+    }
+
+    // === Entity to DTO（關鍵轉換）===
+    private MealDTO toDTOWithFavored(MealEntity meal, Long memberId) {
+        boolean favored = false;
+        if (memberId != null) {
+            // 判斷該會員是否收藏過這道餐點
+            favored = favRepository.existsByMemberMemberIdAndMealMealId(memberId, meal.getMealId());
+        }
+        String picUrl = "/meal/mealPhoto?mealId=" + meal.getMealId(); 
+        String mealTypeName = meal.getMealType() != null ? meal.getMealType().getMealName() : "";
+
+        // 建立 MealDTO 並填充資料
+        MealDTO dto = new MealDTO();
+        dto.setMealId(meal.getMealId());
+        dto.setMealName(meal.getMealName());
+        dto.setMealPrice(meal.getMealPrice());
+        dto.setMealTypeName(mealTypeName);
+        dto.setMealPicUrl(picUrl);
+        dto.setReviewTotalStars(meal.getReviewTotalStars());
+        dto.setFavored(favored);
+        return dto;
+    }
 	
 }
