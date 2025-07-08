@@ -22,7 +22,7 @@ public class UpdateEmployeeRequest {
 
     /**
      * 新密碼 (可選)
-     * 【專業修正】: 將 @Size(min=8) 修改為 @Pattern。
+     *  將 @Size(min=8) 修改為 @Pattern。
      * 說明:
      * - 原本的 @Size(min=8) 會錯誤地將「空字串」視為驗證失敗 (因為長度為 0)。
      * - 新的 @Pattern 使用了與前端 HTML 完全相同的正規表示式，其含義是：

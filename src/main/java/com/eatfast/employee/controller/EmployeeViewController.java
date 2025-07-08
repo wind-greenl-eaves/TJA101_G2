@@ -115,9 +115,39 @@ public class EmployeeViewController {
     }
 
     @GetMapping("/add")
-    public String showAddEmployeePage(Model model) {
-        List<StoreDto> storeList = storeService.findAllStores();
-        model.addAttribute("storeList", storeList);
+    public String showAddEmployeePage(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
+        // 權限檢查：獲取當前登入員工資訊
+        EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+        if (currentEmployee == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "請重新登入");
+            return "redirect:/employee/login";
+        }
+
+        // 根據員工角色進行權限控制
+        EmployeeRole currentRole = currentEmployee.getRole();
+        
+        switch (currentRole) {
+            case HEADQUARTERS_ADMIN:
+                // 總部管理員：可以新增員工，需要傳遞所有門市列表
+                List<StoreDto> storeList = storeService.findAllStores();
+                model.addAttribute("storeList", storeList);
+                break;
+                
+            case MANAGER:
+                // 門市經理：可以新增員工，但只能新增到自己的門市
+                // 不需要傳遞門市列表，前端會自動帶入經理的門市
+                break;
+                
+            case STAFF:
+                // 一般員工：無權限新增員工
+                redirectAttributes.addFlashAttribute("errorMessage", "權限不足：您無法新增員工");
+                return "redirect:/employee/select_page";
+                
+            default:
+                redirectAttributes.addFlashAttribute("errorMessage", "未知的員工角色");
+                return "redirect:/employee/select_page";
+        }
+        
         return "back-end/employee/addEmployee";
     }
 

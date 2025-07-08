@@ -1,5 +1,6 @@
 package com.eatfast.employee.model;
 
+// 匯入專案中會用到的類別與註解
 import com.eatfast.common.enums.AccountStatus;
 import com.eatfast.common.enums.EmployeeRole;
 import com.eatfast.common.enums.Gender;
@@ -27,80 +28,115 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * [可自定義的類別名稱]: EmployeeEntity
- * 員工資料庫實體 (Entity)，對應到 'employee' 資料表。
- * - @Entity: (不可變更) JPA 關鍵字，標記此類別為資料庫實體。
- * - @Table: (不可變更) JPA 關鍵字，指定對應的資料表名稱。
- * - @DynamicUpdate: (不可變更) Hibernate 關鍵字，最佳化更新操作，只更新有變動的欄位。
+ * EmployeeEntity
+ *
+ * 這個類別代表「員工」的資料，對應到資料庫中的 employee 資料表。
+ * 在 Spring Boot 專案中，這類檔案通常放在 model 或 entity 資料夾下。
+ *
+ * 主要用途：
+ * - 存放員工的基本資料（如姓名、帳號、密碼、信箱等）
+ * - 讓程式可以方便地存取、修改、儲存員工資料
+ * - 這個類別會被 JPA/Hibernate 用來自動對應到資料庫的 employee 資料表
+ *
+ * 註解說明：
+ * - @Entity：代表這是一個資料庫實體類別，會對應到一張資料表
+ * - @Table(name = "employee")：指定對應的資料表名稱
+ * - @DynamicUpdate：只會更新有變動的欄位，提升效能
  */
-@Entity
+@Entity // 這個類別會對應到資料庫的 employee 資料表
 @Table(name = "employee")
 @DynamicUpdate
 public class EmployeeEntity {
 
-    // ================================================================
-    //                       主要欄位 (Primary Fields)
-    // ================================================================
+    // ======================== 主要欄位 (Primary Fields) ========================
 
-    /** 員工系統 ID (主鍵) */
+    /**
+     * 員工系統 ID（主鍵）
+     * 這是每個員工在資料庫中的唯一編號，系統自動產生。
+     * 對應到 employee 資料表的 employee_id 欄位。
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "employee_id")
     private Long employeeId;
 
-    /** 員工真實姓名 */
+    /**
+     * 員工真實姓名
+     * 這是員工的本名，不能為空，最多 20 個字。
+     * 對應到 employee 資料表的 username 欄位。
+     */
     @NotBlank(message = "員工姓名不可為空")
     @Size(max = 20, message = "員工姓名長度不可超過 20 個字元")
     @Column(name = "username", nullable = false, length = 20)
     private String username;
 
-    /** 員工登入帳號 (業務唯一鍵) */
-    @NaturalId // 標記為業務上的自然主鍵，有助於 Hibernate 效能優化。
+    /**
+     * 員工登入帳號（業務唯一鍵）
+     * 這是員工用來登入系統的帳號，不能重複。
+     * 對應到 employee 資料表的 account 欄位。
+     */
+    @NaturalId // 幫助 Hibernate 優化查詢，這個欄位在業務上是唯一的
     @NotBlank(message = "登入帳號不可為空")
     @Column(name = "account", nullable = false, updatable = false, length = 50, unique = true)
     private String account;
 
-    /** 登入密碼 (應儲存加密後的值) */
+    /**
+     * 登入密碼（建議儲存加密後的值）
+     * 這是員工登入系統時要輸入的密碼，不能為空。
+     * 對應到 employee 資料表的 password 欄位。
+     */
     @NotBlank(message = "登入密碼不可為空")
     @Column(name = "password", nullable = false, length = 255)
     private String password;
 
-    /** 員工聯絡電子郵件 (業務唯一鍵) */
+    /**
+     * 員工聯絡電子郵件（唯一）
+     * 這是員工的 email，不能重複，必須符合 email 格式。
+     * 對應到 employee 資料表的 email 欄位。
+     */
     @NotBlank(message = "電子郵件不可為空")
     @Email(message = "請輸入有效的電子郵件格式")
     @Column(name = "email", nullable = false, length = 100, unique = true)
     private String email;
 
-    /** 員工聯絡電話 */
+    /**
+     * 員工聯絡電話
+     * 這是員工的手機號碼，必須符合台灣手機格式。
+     * 對應到 employee 資料表的 phone 欄位。
+     */
     @NotBlank(message = "連絡電話不可為空")
     @Pattern(regexp = "^09\\d{2}-?\\d{3}-?\\d{3}$", message = "請輸入有效的台灣手機號碼格式 (例如 0912-345-678)")
     @Column(name = "phone", nullable = false, length = 20)
     private String phone;
 
-    /** 員工身分證字號 (業務唯一鍵) */
+    /**
+     * 員工身分證字號（唯一）
+     * 這是員工的身分證號碼，必須符合台灣格式，不能重複。
+     * 對應到 employee 資料表的 national_id 欄位。
+     */
     @NotBlank(message = "身分證字號不可為空")
     @Pattern(regexp = "^[A-Z][1-2]\\d{8}$", message = "請輸入有效的台灣身分證字號格式")
     @Column(name = "national_id", nullable = false, length = 10, unique = true)
     private String nationalId;
     
-    // 【已移除】: byte[] photo 欄位。
-    // 說明: 根據架構審查建議，不再將圖片的二進位資料直接存入資料庫，
-    // 改為只儲存圖片的相對路徑或 URL，以大幅提升效能並降低資料庫負擔。
+    // 【說明】
+    // 以前會把照片的二進位資料直接存進資料庫，現在改成只存照片的網址，這樣效能更好。
 
-    /** 員工照片 URL */
+    /**
+     * 員工照片的網址
+     * 這裡只存放圖片的路徑或 URL，不存二進位檔案。
+     * 對應到 employee 資料表的 photo_url 欄位。
+     */
     @Column(name = "photo_url")
     private String photoUrl;
 
-    // ================================================================
-    //                       列舉類型欄位 (Enum Fields)
-    // ================================================================
+    // ======================== 列舉類型欄位 (Enum Fields) ========================
 
     /**
      * 員工角色
-     * @Enumerated(EnumType.STRING): (不可變更的關鍵實踐) 
-     * 說明: 此設定會將 Enum 的「名稱字串」(例如 "MANAGER", "STAFF") 存入資料庫，
-     * 而非其預設的「順序數字」(0, 1)。這能完全避免未來因調整 Enum 檔案中常數的順序，
-     * 而導致舊有資料意義錯亂的重大風險，是企業級開發中的最佳實踐。
+     * 例如：MANAGER（管理者）、STAFF（一般員工）
+     * 存進資料庫時會用文字（如 "MANAGER"），不是數字。
+     * 對應到 employee 資料表的 role 欄位。
      */
     @NotNull(message = "員工角色不可為空")
     @Enumerated(EnumType.STRING)
@@ -109,75 +145,114 @@ public class EmployeeEntity {
 
     /**
      * 帳號狀態
-     * @Enumerated(EnumType.STRING): (不可變更的關鍵實踐)
-     * 說明: 同樣改為 STRING 策略，以名稱 (例如 "ACTIVE", "INACTIVE") 儲存，確保資料的健壯性。
+     * 例如：ACTIVE（啟用）、INACTIVE（停用）
+     * 存進資料庫時會用文字（如 "ACTIVE"）。
+     * 對應到 employee 資料表的 status 欄位。
      */
     @NotNull(message = "帳號狀態不可為空")
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private AccountStatus status = AccountStatus.ACTIVE; // 設定預設值為啟用狀態
+    private AccountStatus status = AccountStatus.ACTIVE; // 預設為啟用
 
-    /** 員工性別 */
+    /**
+     * 員工性別
+     * 例如：MALE（男）、FEMALE（女）
+     * 對應到 employee 資料表的 gender 欄位。
+     */
     @NotNull(message = "性別不可為空")
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false, length = 1)
     private Gender gender;
 
-    // ================================================================
-    //                       時間戳記 (Timestamps)
-    // ================================================================
+    // ======================== 時間戳記 (Timestamps) ========================
 
-    /** 帳號建立時間 (由 Hibernate 自動生成) */
+    /**
+     * 帳號建立時間
+     * 這個欄位會自動記錄員工帳號建立的時間。
+     * 對應到 employee 資料表的 create_time 欄位。
+     */
     @CreationTimestamp
     @Column(name = "create_time", nullable = false, updatable = false)
     private LocalDateTime createTime;
 
-    /** 資料最後更新時間 (由 Hibernate 自動生成) */
+    /**
+     * 資料最後更新時間
+     * 這個欄位會自動記錄員工資料最後一次被修改的時間。
+     * 對應到 employee 資料表的 last_updated_at 欄位。
+     */
     @UpdateTimestamp
     @Column(name = "last_updated_at", nullable = false)
     private LocalDateTime lastUpdatedAt;
 
-    // ================================================================
-    //                     關聯欄位 (Associations)
-    // ================================================================
+    // ======================== 關聯欄位 (Associations) ========================
 
-    /** 所屬門市 (多對一) */
+    /**
+     * 所屬門市（多對一關聯）
+     * 每個員工都屬於一間門市。
+     * 對應到 employee 資料表的 store_id 欄位。
+     *
+     * 資料流說明：
+     * - 當你查詢員工時，可以透過這個欄位取得他所屬的門市資訊。
+     */
     @NotNull(message = "所屬門市不可為空")
-    @ManyToOne(fetch = FetchType.LAZY) // 使用懶加載以提升效能
+    @ManyToOne(fetch = FetchType.LAZY) // 只有用到時才會查詢門市資料，節省效能
     @JoinColumn(name = "store_id", nullable = false)
     private StoreEntity store;
 
-    /** 帳號建立者 (多對一，自關聯) */
+    /**
+     * 帳號建立者（多對一，自關聯）
+     * 這個欄位記錄是哪位員工建立了這個帳號。
+     * 對應到 employee 資料表的 created_by 欄位。
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private EmployeeEntity createdBy;
 
-    /** 由此員工建立的其他員工帳號 (一對多，自關聯) */
-    @BatchSize(size = 10) // 優化 N+1 問題
+    /**
+     * 由此員工建立的其他員工帳號（一對多，自關聯）
+     * 這個欄位可以查出這位員工曾經幫哪些人建立過帳號。
+     */
+    @BatchSize(size = 10) // 查詢時會分批載入，避免效能問題
     @OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
     private Set<EmployeeEntity> createdEmployees = new HashSet<>();
 
-    /** 發布的最新消息 (一對多) */
+    /**
+     * 發布的最新消息（一對多）
+     * 這位員工曾經發布過的所有最新消息。
+     * 對應到 news 資料表。
+     */
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<NewsEntity> publishedNews = new HashSet<>();
 
-    /** 發布的門市公告 (一對多) */
+    /**
+     * 發布的門市公告（一對多）
+     * 這位員工曾經發布過的所有門市公告。
+     * 對應到 announcement 資料表。
+     */
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<AnnouncementEntity> publishedAnnouncements = new HashSet<>();
     
-    /** 擁有的權限 (一對多，透過中間表 EmployeePermissionEntity 建立關聯) */
+    /**
+     * 擁有的權限（一對多，透過中間表 EmployeePermissionEntity）
+     * 這個欄位記錄員工擁有哪些權限。
+     * 對應到 employee_permission 資料表。
+     */
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<EmployeePermissionEntity> employeePermissions = new HashSet<>();
 
-    // ================================================================
-    //             建構子, Getters, Setters (Boilerplate Code)
-    // ================================================================
+    // ======================== 建構子、Getter、Setter ========================
+
+    /**
+     * 無參數建構子
+     * JPA 需要這個建構子來建立物件。
+     */
     public EmployeeEntity() {}
 
-    // Getters and Setters...
+    // 下面這些是屬性的 getter 和 setter 方法，讓其他程式可以安全地存取和修改欄位值。
+    // 例如：getUsername() 會回傳員工姓名，setUsername() 可以設定員工姓名。
     public Long getEmployeeId() { return employeeId; }
     public void setEmployeeId(Long employeeId) { this.employeeId = employeeId; }
     public String getUsername() { return username; }
@@ -196,7 +271,6 @@ public class EmployeeEntity {
     public void setStatus(AccountStatus status) { this.status = status; }
     public Gender getGender() { return gender; }
     public void setGender(Gender gender) { this.gender = gender; }
-    // 【已移除】: getPhoto() 和 setPhoto() 方法。
     public String getNationalId() { return nationalId; }
     public void setNationalId(String nationalId) { this.nationalId = nationalId; }
     public StoreEntity getStore() { return store; }
@@ -218,28 +292,33 @@ public class EmployeeEntity {
     public String getPhotoUrl() { return photoUrl; }
     public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
 
-    // ================================================================
-    //          物件核心方法 (equals, hashCode, toString)
-    // ================================================================
+    // ======================== equals、hashCode、toString 方法 ========================
+
+    /**
+     * toString 方法
+     * 方便在除錯時快速看到員工的主要資訊。
+     */
     @Override
     public String toString() {
         return "EmployeeEntity{" + "employeeId=" + employeeId + ", username='" + username + '\'' + ", account='" + account + '\'' + ", role=" + role + ", status=" + status + ", storeId=" + (store != null ? store.getStoreId() : "null") + '}';
     }
 
     /**
-     * 基於業務唯一鍵 'account' 實作 equals 方法，
-     * 確保即使物件為未寫入資料庫的暫時狀態 (transient)，也能正確比較。
+     * equals 方法
+     * 用來判斷兩個員工物件是否代表同一個人。
+     * 這裡主要用 account（帳號）來比對，因為帳號是唯一的。
+     * 如果帳號為 null，則用 employeeId 來比對。
      */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         EmployeeEntity that = (EmployeeEntity) o;
-        // 優先使用業務唯一鍵比較
+        // 先比對帳號（account）
         if (this.account != null && that.account != null) {
             return Objects.equals(this.account, that.account);
         }
-        // 若 account 為 null (理論上不該發生)，則退回比較 ID
+        // 如果帳號為 null（理論上不會發生），就比對 ID
         if (this.employeeId == null || that.employeeId == null) {
             return false;
         }
@@ -247,17 +326,15 @@ public class EmployeeEntity {
     }
 
     /**
-     * 對應 equals 方法，優先使用業務唯一鍵 'account' 來產生 hashCode。
+     * hashCode 方法
+     * 產生物件的雜湊碼，通常會搭配 equals 一起使用。
+     * 這裡優先用帳號（account）來產生 hashCode，確保唯一性。
      */
     @Override
     public int hashCode() {
-        // (不可變更的關鍵字): Objects.hash()
-        // 說明: 這是 Java 提供的標準方法，用來安全地產生一個或多個物件的雜湊碼。
-        // 這裡的邏輯是，如果業務唯一鍵 account 存在，就用它來產生獨一無二的 hashCode。
         if (account != null) {
             return Objects.hash(account);
         }
-        // 如果物件還沒有 account (例如，剛 new 出來還沒賦值)，則回傳一個預設的 hashCode。
         return getClass().hashCode();
     }
 }

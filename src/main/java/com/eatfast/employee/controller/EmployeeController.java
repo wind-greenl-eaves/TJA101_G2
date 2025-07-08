@@ -46,8 +46,38 @@ public class EmployeeController {
     // 前端會送出一個表單（multipart/form-data），包含員工資料。
     // 對應 API 路徑：POST /api/v1/employees
     @PostMapping(consumes = "multipart/form-data")
-    public ResponseEntity<?> createEmployee(@Valid @ModelAttribute CreateEmployeeRequest request) {
+    public ResponseEntity<?> createEmployee(@Valid @ModelAttribute CreateEmployeeRequest request, HttpSession session) {
         try {
+            // 取得目前登入的員工（從 session 取出）
+            EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+            if (currentEmployee == null) {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "請重新登入");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            // 根據登入員工角色進行權限控制
+            EmployeeRole currentRole = currentEmployee.getRole();
+            Map<String, String> response; // 將 response 宣告移到這裡，供 switch 語句重複使用
+            switch (currentRole) {
+                case HEADQUARTERS_ADMIN:
+                    // 總部管理員：可以新增任何門市的員工，不需修改 storeId
+                    break;
+                case MANAGER:
+                    // 門市經理：強制將新員工的 storeId 設為經理自己的門市，防止前端繞過
+                    request.setStoreId(currentEmployee.getStoreId());
+                    break;
+                case STAFF:
+                    // 一般員工：不允許新增員工
+                    response = new HashMap<>();
+                    response.put("message", "權限不足：您無法新增員工");
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+                default:
+                    response = new HashMap<>();
+                    response.put("message", "未知的員工角色");
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+
             // 呼叫服務層，新增員工
             EmployeeDTO createdEmployee = employeeService.createEmployee(request);
             // 回傳 201 Created 狀態與新員工資料

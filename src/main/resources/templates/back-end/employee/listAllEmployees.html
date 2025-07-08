@@ -33,12 +33,18 @@
             </div>
         </div>
         <div class="flex gap-3">
-            <button id="batch-upload-btn" class="bg-purple-500 text-white font-semibold py-2 px-5 rounded-lg hover:bg-purple-600 transition-colors">
+            <!-- 批量上傳照片功能：僅總部管理員可見 -->
+            <button id="batch-upload-btn" class="bg-purple-500 text-white font-semibold py-2 px-5 rounded-lg hover:bg-purple-600 transition-colors"
+                    th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
                 <i class="fas fa-images mr-2"></i>批量上傳照片
             </button>
-            <a th:href="@{/member/select_page}" class="bg-blue-500 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-600 transition-colors">
+            
+            <!-- 會員清單：僅總部管理員可見 -->
+            <a th:href="@{/member/select_page}" class="bg-blue-500 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-600 transition-colors"
+               th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
                 <i class="fas fa-users mr-2"></i>會員清單
             </a>
+            
             <a th:href="@{/employee/add}" class="bg-[var(--primary-color)] text-white font-semibold py-2 px-5 rounded-lg hover:bg-[var(--primary-hover)] transition-colors">新增員工</a>
             <a th:href="@{/employee/select_page}" class="bg-gray-200 text-[var(--text-color)] font-semibold py-2 px-5 rounded-lg hover:bg-gray-300 transition-colors">返回查詢</a>
         </div>
@@ -108,7 +114,7 @@
                     <thead class="bg-[var(--table-header-bg)] font-medium">
                         <tr>
                             <th class="p-2">員工編號</th>
-                            <th class="p-2">門市編號</th>
+                            <th class="p-2">所屬門市</th>
                             <th class="p-2">照片</th>
                             <th class="p-2">姓名</th>
                             <th class="p-2">帳號</th>

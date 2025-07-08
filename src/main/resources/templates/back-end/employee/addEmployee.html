@@ -29,8 +29,8 @@
                 <p class="text-sm text-gray-500">請填寫所有必填欄位</p>
             </div>
         </div>
-        <a th:href="@{/employee/listAll}" class="cancel-button">
-            <i class="fas fa-list-ul mr-2"></i>返回列表
+        <a th:href="@{/employee/select_page}" class="cancel-button">
+            <i class="fas fa-list-ul mr-2"></i>返回管理首頁
         </a>
     </header>
 
@@ -87,13 +87,34 @@
             <!-- 員工角色 -->
             <div>
                 <label for="role" class="form-label">員工角色</label>
-                <!-- 【修正】: 移除 required -->
-                <select id="role" name="role" class="form-input">
-                     <option value="" disabled selected>-- 請選擇角色 --</option>
-                    <option th:each="roleOpt : ${T(com.eatfast.common.enums.EmployeeRole).values()}"
-                            th:value="${roleOpt}"
-                            th:text="${roleOpt.displayName}"></option>
-                </select>
+                
+                <!-- 總部管理員：可以選擇所有角色 -->
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
+                    <select id="role" name="role" class="form-input">
+                        <option value="" disabled selected>-- 請選擇角色 --</option>
+                        <option th:each="roleOpt : ${T(com.eatfast.common.enums.EmployeeRole).values()}
+                                " th:value="${roleOpt}" th:text="${roleOpt.displayName}"></option>
+                    </select>
+                </div>
+                
+                <!-- 門市經理：不能選擇角色，預設為一般員工 -->
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'MANAGER'}">
+                    <input type="hidden" id="role" name="role" value="STAFF" />
+                    <div class="form-input bg-gray-100 cursor-not-allowed flex items-center">
+                        <i class="fas fa-user text-gray-500 mr-2"></i>
+                        <span class="text-gray-700">一般員工</span>
+                        <span class="ml-2 text-sm text-gray-500">(門市經理只能新增一般員工)</span>
+                    </div>
+                </div>
+                
+                <!-- 一般員工：不應該能進入新增頁面，但如果進入就顯示錯誤 -->
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'STAFF'}">
+                    <div class="form-input bg-red-100 text-red-600 cursor-not-allowed flex items-center">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        權限不足：您無法新增員工
+                    </div>
+                </div>
+                
                 <div id="error-role" class="error-message"></div>
             </div>
             <!-- 員工性別 -->
@@ -111,13 +132,35 @@
             <!-- 所屬門市 -->
             <div class="sm:col-span-2">
                 <label for="storeId" class="form-label">所屬門市</label>
-                <!-- 【修正】: 移除 required -->
-                <select id="storeId" name="storeId" class="form-input">
-                    <option value="" disabled selected>-- 請選擇門市 --</option>
-                    <option th:each="store : ${storeList}"
-                            th:value="${store.storeId}"
-                            th:text="${store.storeName}"></option>
-                </select>
+                
+                <!-- 總部管理員：可以選擇所有門市 -->
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
+                    <select id="storeId" name="storeId" class="form-input">
+                        <option value="" disabled selected>-- 請選擇門市 --</option>
+                        <option th:each="store : ${storeList}"
+                                th:value="${store.storeId}"
+                                th:text="${store.storeName}"></option>
+                    </select>
+                </div>
+                
+                <!-- 門市經理：只能選擇自己的門市（自動帶入且不可修改） -->
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'MANAGER'}">
+                    <input type="hidden" id="storeId" name="storeId" th:value="${session.loggedInEmployee.storeId}" />
+                    <div class="form-input bg-gray-100 cursor-not-allowed flex items-center">
+                        <i class="fas fa-store text-gray-500 mr-2"></i>
+                        <span th:text="${session.loggedInEmployee.storeName}" class="text-gray-700"></span>
+                        <span class="ml-2 text-sm text-gray-500">(已自動指定)</span>
+                    </div>
+                </div>
+                
+                <!-- 一般員工：不應該能進入新增頁面，但如果進入就顯示錯誤 -->
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'STAFF'}">
+                    <div class="form-input bg-red-100 text-red-600 cursor-not-allowed">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        權限不足：您無法新增員工
+                    </div>
+                </div>
+                
                 <div id="error-storeId" class="error-message"></div>
             </div>
         </div>

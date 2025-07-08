@@ -470,7 +470,7 @@
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         // 表單提交時對輸入值進行 trim 處理
-        const loginForm = document.querySelector('form[th\\:action*="/employee/login"]');
+        const loginForm = document.querySelector('form[method="post"]');
         if (loginForm) {
             loginForm.addEventListener('submit', function(e) {
                 // 獲取帳號和密碼輸入框
@@ -478,10 +478,10 @@
                 const passwordInput = document.getElementById('password');
                 
                 // 去除前後空白
-                if (accountInput) {
+                if (accountInput && accountInput.value) {
                     accountInput.value = accountInput.value.trim();
                 }
-                if (passwordInput) {
+                if (passwordInput && passwordInput.value) {
                     passwordInput.value = passwordInput.value.trim();
                 }
             });
