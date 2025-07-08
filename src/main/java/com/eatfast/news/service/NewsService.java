@@ -1,5 +1,6 @@
 package com.eatfast.news.service;
 
+import com.eatfast.common.enums.NewsStatus; // ❗ 注意：需要加上這個 import
 import com.eatfast.employee.model.EmployeeEntity;
 import com.eatfast.employee.repository.EmployeeRepository;
 import com.eatfast.news.model.NewsEntity;
@@ -33,18 +34,25 @@ public class NewsService {
     /**
      * 給前台專用的服務，獲取所有可見的已發布消息
      */
+    // ✅ 這裡被修正了
     public List<NewsEntity> getActivePublishedNews() {
-        return newsRepository.findActivePublishedNews(LocalDateTime.now());
-    } // <--- 在這裡補上右大括號，結束 getActivePublishedNews 方法
+        // 1. 獲取當前時間
+        LocalDateTime currentTime = LocalDateTime.now();
+
+        // 2. 呼叫 Repository 的方法，傳入枚舉 NewsStatus.PUBLISHED 和當前時間
+        List<NewsEntity> activeNews = newsRepository.findActivePublishedNews(NewsStatus.PUBLISHED, currentTime);
+
+        // 3. 回傳查詢結果
+        return activeNews;
+    }
 
     /**
      * 獲取所有消息（通常用於後台管理）
      * @return 所有消息的列表
      */
     public List<NewsEntity> getAllNews() {
-        // 讓這個方法做一些有意義的事，例如呼叫 findAll()
         return newsRepository.findAll();
-    } // <--- getAllNews 方法在這裡獨立結束
+    }
 
     // ... 你可以繼續在這裡添加其他 find, delete 方法 ...
 

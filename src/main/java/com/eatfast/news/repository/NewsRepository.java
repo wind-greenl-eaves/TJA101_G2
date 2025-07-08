@@ -1,6 +1,7 @@
 package com.eatfast.news.repository;// package...
 import com.eatfast.common.enums.NewsStatus;
 import com.eatfast.news.model.NewsEntity;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -21,6 +22,6 @@ public interface NewsRepository extends JpaRepository<NewsEntity, Long> {
      * 找出所有「已發布」且在「有效時間內」的消息
      * (當前時間 >= startTime AND (endTime is NULL OR 當前時間 < endTime))
      */
-    @Query("SELECT n FROM NewsEntity n WHERE n.status = 'PUBLISHED' AND n.startTime <= :now AND (n.endTime IS NULL OR n.endTime > :now) ORDER BY n.startTime DESC")
-    List<NewsEntity> findActivePublishedNews(LocalDateTime now);
+    @Query("SELECT n FROM NewsEntity n WHERE n.status = :status AND n.startTime <= :now AND (n.endTime IS NULL OR n.endTime > :now) ORDER BY n.startTime DESC")
+    List<NewsEntity> findActivePublishedNews(@Param("status") NewsStatus status, @Param("now") LocalDateTime now);
 }
