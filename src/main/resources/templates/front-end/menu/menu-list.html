@@ -110,11 +110,16 @@
 </head>
 <body class="bg-milktea min-h-screen">
 
+	<!-- 動態設定是否登入 -->
+	<script th:inline="javascript">
+	    var isLoggedIn = /*[[${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}]]*/ false;
+	</script>
+
 <!-- Navbar -->
 <header class="w-full shadow bg-white/70 sticky top-0 z-10">
     <div class="max-w-7xl mx-auto flex items-center justify-between py-2 px-5">
         <div class="flex items-center gap-3">
-            <img src="images/123.png"alt="EatFast Logo" class="nav-logo-icon"/>
+            <img src="images/123.png"alt="EatFast早餐店 Logo" class="nav-logo-icon"/>
             <span class="nav-logo-text"> EatFast 早餐店</span>
         </div>
         <nav class="flex gap-8">
@@ -130,11 +135,12 @@
             <!-- 已登入 -->
             <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" class="flex items-center gap-2">
                 <span class="text-milktea-dark font-semibold">歡迎, <span th:text="${session.memberName}">會員名稱</span></span>
-                <form th:action="@{/api/v1/auth/logout}" method="post" class="inline">
-                    <button type="submit" class="px-4 py-2 rounded-full btn-outline font-semibold bg-[#fff4e6] hover:bg-[#F3E5D6] transition">
-                        <i class="fas fa-sign-out-alt"></i> 登出
-                    </button>
-                </form>
+                <form id="logoutForm" th:action="@{/api/v1/auth/logout}" method="post" class="inline">
+				    <button type="button" id="logoutBtn" class="px-4 py-2 rounded-full btn-outline font-semibold bg-[#fff4e6] hover:bg-[#F3E5D6] transition">
+				        <i class="fas fa-sign-out-alt"></i> 登出
+				    </button>
+				</form>
+
             </div>
             <!-- 未登入 -->
             <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
@@ -219,7 +225,7 @@
 				        </button>
 				    </form>
 				    <!-- 收藏愛心按鈕 -->
-				    <form th:unless="${meal.favored}" th:action="@{/member/addFav}" method="post" class="flex-1">
+				    <form th:unless="${meal.favored}" th:action="@{/member/addFav}" method="post" class="flex-1" onsubmit="return checkLogin(event)">
 				        <input type="hidden" name="mealId" th:value="${meal.mealId}" />
 				        <input type="hidden" name="redirectUrl" th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
 				        <button type="submit"
@@ -230,7 +236,7 @@
 				        </button>
 				    </form>
 				    <!-- 加入購物車 -->
-				    <form th:action="@{/cart}" method="post" class="flex-1">
+				    <form th:action="@{/cart}" method="post" class="flex-1" onsubmit="return checkLogin(event)">
 				        <input type="hidden" name="mealId" th:value="${meal.mealId}" />
 				        <button type="submit" class="w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1">
 				            <i class="fas fa-shopping-cart"></i> 加入購物車
@@ -247,8 +253,129 @@
     </main>
 </div>
 
+    <!-- 自訂請先登入 Modal -->
+	<div id="loginModal" class="fixed inset-0 bg-black/30 flex items-center justify-center z-50 hidden">
+	  <div class="bg-white rounded-2xl p-8 shadow-2xl w-[320px] text-center">
+	    <div class="text-lg font-bold mb-3 text-[#A67B5B]">請先登入會員</div>
+	    <div class="text-[#554431] mb-6">您必須先登入會員才能使用此功能，是否前往登入頁？</div>
+	    <div class="flex gap-4 justify-center">
+	      <button id="loginConfirmBtn" class="bg-[#A67B5B] hover:bg-[#8B5A3C] text-white rounded-full px-5 py-2 font-semibold shadow transition">前往登入</button>
+	      <button id="loginCancelBtn" class="bg-[#F3E5D6] text-[#A67B5B] rounded-full px-5 py-2 font-semibold border border-[#E5D0B6] transition">取消</button>
+	    </div>
+	  </div>
+	</div>
+	
+	<!-- 登出確認 Modal -->
+	<div id="logoutModal" class="fixed inset-0 bg-black/30 flex items-center justify-center z-50 hidden">
+	  <div class="bg-white rounded-2xl p-8 shadow-2xl w-[320px] text-center">
+	    <div class="text-lg font-bold mb-3 text-[#A67B5B]">確定要登出嗎？</div>
+	    <div class="text-[#554431] mb-6">登出後將返回首頁。</div>
+	    <div class="flex gap-4 justify-center">
+	      <button id="logoutConfirmBtn" class="bg-[#A67B5B] hover:bg-[#8B5A3C] text-white rounded-full px-5 py-2 font-semibold shadow transition">確定</button>
+	      <button id="logoutCancelBtn" class="bg-[#F3E5D6] text-[#A67B5B] rounded-full px-5 py-2 font-semibold border border-[#E5D0B6] transition">取消</button>
+	    </div>
+	  </div>
+	</div>
+	
+	
+   <script>
+	// 顯示請先登入的彈窗
+	function checkLogin(e) {
+	    if (!isLoggedIn) {
+	        if (e) e.preventDefault();
+	        showLoginModal();
+	        return false;
+	    }
+	    return true;
+	}
+	
+	// 登入/登出 modal 控制
+	function showLoginModal() {
+	    document.getElementById('loginModal').classList.remove('hidden');
+	}
+	function hideLoginModal() {
+	    document.getElementById('loginModal').classList.add('hidden');
+	}
+	function showLogoutModal() {
+	    document.getElementById('logoutModal').classList.remove('hidden');
+	}
+	function hideLogoutModal() {
+	    document.getElementById('logoutModal').classList.add('hidden');
+	}
+	
+	// 綁定事件
+	document.addEventListener('DOMContentLoaded', function() {
+	    // 登入 modal
+	    document.getElementById('loginConfirmBtn').onclick = function() {
+	        window.location.href = '/api/v1/auth/member-login';
+	    };
+	    document.getElementById('loginCancelBtn').onclick = function() {
+	        hideLoginModal();
+	    };
+	
+	    // 登出 modal
+	    const logoutBtn = document.getElementById('logoutBtn');
+	    const logoutForm = document.getElementById('logoutForm');
+	    const logoutConfirmBtn = document.getElementById('logoutConfirmBtn');
+	    const logoutCancelBtn = document.getElementById('logoutCancelBtn');
+	
+	    if (logoutBtn) {
+	        logoutBtn.onclick = function(e) {
+	            e.preventDefault();
+	            showLogoutModal();
+	        }
+	    }
+	    if (logoutCancelBtn) {
+	        logoutCancelBtn.onclick = function() {
+	            hideLogoutModal();
+	        }
+	    }
+	    if (logoutConfirmBtn && logoutForm) {
+	        logoutConfirmBtn.onclick = function() {
+	            hideLogoutModal();
+	            fetch(logoutForm.action, {
+	                method: 'POST',
+	                credentials: 'same-origin'
+	            }).then(res => {
+	            	if (res.ok) {
+	                    // 登出成功，重新導向到首頁
+	                    window.location.href = '/welcome'; 
+	                } else {
+	                    alert('登出失敗，請稍後再試！');
+	                }
+	            }).catch(error => {
+	                console.error('登出請求發生錯誤:', error);
+	                alert('登出失敗，請檢查網路連線或稍後再試！');
+	            });
+	        }
+	    }
+	    
+		 // 新增：點擊 Modal 外部關閉功能
+	    const loginModal = document.getElementById('loginModal');
+	    const logoutModal = document.getElementById('logoutModal');
+	
+	    if (loginModal) {
+	        loginModal.addEventListener('click', function(e) {
+	            if (e.target === loginModal) { // 只有點擊到背景才關閉
+	                hideLoginModal();
+	            }
+	        });
+	    }
+	    if (logoutModal) {
+	        logoutModal.addEventListener('click', function(e) {
+	            if (e.target === logoutModal) { // 只有點擊到背景才關閉
+	                hideLogoutModal();
+	            }
+	        });
+	    }
+	});
+	</script>
+
+
 	<footer class="bg-brand-deep text-brand-container text-center p-6 mt-16">
         <p>&copy; © 2025 EatFast 早餐店 - 版權所有 | 為您提供最優質的早餐服務 </p>
     </footer>
+
+	
 </body>
 </html>
