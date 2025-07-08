@@ -954,6 +954,7 @@
             
             <div class="nav-menu">
                 <a href="/about" class="nav-link">關於我們</a>
+                <a href="/store/storelist" class="nav-link">門市據點</a>
                 <a href="/menu" class="nav-link">餐點菜單</a>
                 <!-- 根據登入狀態顯示不同內容 -->
                 <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
@@ -1228,6 +1229,7 @@
         <div class="footer-content">
             <div class="footer-links">
                 <a href="/about" class="footer-link">關於我們</a>
+                <a href="/store/storelist" class="footer-link">門市據點</a>
                 <a href="/menu" class="footer-link">餐點菜單</a>
                 <a th:href="@{/api/v1/auth/member-login}" class="footer-link">會員登入</a>
                 <a href="/contact" class="footer-link">聯繫我們</a>
