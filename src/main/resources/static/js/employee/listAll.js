@@ -46,6 +46,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 批量上傳按鈕點擊事件
     if (batchUploadBtn) {
         batchUploadBtn.addEventListener('click', function() {
+            // 前端權限檢查：確保只有總部管理員可以使用
+            // 移除權限檢查，因為按鈕本身已經通過 Thymeleaf 進行權限控制
+            // 如果按鈕可見，代表用戶已經有權限
             openBatchUploadModal();
         });
     }
@@ -260,14 +263,65 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 完成後的處理
         setTimeout(() => {
-            showToast(`批量上傳完成！成功: ${successCount} 張，失敗: ${failureCount} 張`);
+            if (successCount > 0) {
+                showBatchUploadSuccess(successCount);
+            }
+            if (failureCount > 0) {
+                showToast(`有 ${failureCount} 張照片上傳失敗，請檢查錯誤訊息`, true);
+            }
             closeBatchUploadModal();
-            
-            // 重新載入員工列表以顯示新照片
-            loadEmployees();
         }, 1000);
     }
     
+    // 新增：批量上傳成功專用提示函數
+    function showBatchUploadSuccess(count) {
+        // 清除可能的舊提示
+        messageToast.classList.add('hidden');
+        
+        // 設置專用的成功提示樣式和內容
+        messageToast.textContent = `已成功上傳${count}張照片，請重新刷新頁面`;
+        
+        // 移除 transition-opacity 類別，避免與 JavaScript 動畫衝突
+        messageToast.className = 'fixed top-5 right-5 bg-green-600 text-white py-4 px-8 rounded-lg shadow-xl z-50 opacity-100 text-lg font-semibold border-2 border-green-500';
+        
+        messageToast.classList.remove('hidden');
+        
+        // 使用更可靠的方式顯示提示 - 直接使用 setTimeout 不依賴 CSS 轉場
+        if (window.batchUploadToastTimer) {
+            clearTimeout(window.batchUploadToastTimer);
+        }
+        
+        // 設置長時間顯示
+        window.batchUploadToastTimer = setTimeout(() => {
+            // 使用 JavaScript 控制淡出效果
+            fadeOut(messageToast, 300, () => {
+                messageToast.classList.add('hidden');
+            });
+        }, 10000); // 10秒後開始淡出
+    }
+    
+    // 添加淡出動畫助手函數
+    function fadeOut(element, duration, callback) {
+        let opacity = 1;
+        const interval = 10;
+        const delta = interval / duration;
+        
+        const reduceOpacity = () => {
+            opacity -= delta;
+            element.style.opacity = opacity;
+            
+            if (opacity <= 0) {
+                element.style.opacity = ''; // 清除內聯樣式
+                if (callback) callback();
+                return;
+            }
+            
+            setTimeout(reduceOpacity, interval);
+        };
+        
+        reduceOpacity();
+    }
+
     // 上傳單張照片
     async function uploadSinglePhoto(employeeId, file) {
         const formData = new FormData();
