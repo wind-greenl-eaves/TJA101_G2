@@ -43,6 +43,7 @@ public class EmployeeLoginController {
                                @RequestParam(value = "shown", required = false) String shown,
                                @RequestParam(value = "timeout", required = false) String timeout,
                                @RequestParam(value = "message", required = false) String message,
+                               @RequestParam(value = "returnUrl", required = false) String returnUrl,
                                Model model, RedirectAttributes redirectAttributes) {
         // 準備登入表單物件
         model.addAttribute("loginRequest", new EmployeeLoginRequest());
@@ -64,6 +65,17 @@ public class EmployeeLoginController {
             }
             
             model.addAttribute("errorMessage", timeoutMessage);
+        }
+        
+        // 保存原始請求路徑到 Session，用於登入成功後重定向
+        if (returnUrl != null && !returnUrl.trim().isEmpty()) {
+            try {
+                String decodedReturnUrl = java.net.URLDecoder.decode(returnUrl, "UTF-8");
+                model.addAttribute("returnUrl", decodedReturnUrl);
+                log.info("保存登入後重定向路徑: {}", decodedReturnUrl);
+            } catch (Exception e) {
+                log.warn("解碼返回URL失敗: {}", e.getMessage());
+            }
         }
         
         // 處理登出成功訊息 - 只在第一次顯示，避免重新整理時重複顯示
@@ -102,6 +114,7 @@ public class EmployeeLoginController {
     @PostMapping("/login")
     public String processLogin(@Valid @ModelAttribute("loginRequest") EmployeeLoginRequest loginRequest,
                               BindingResult bindingResult,
+                              @RequestParam(value = "returnUrl", required = false) String returnUrl,
                               HttpSession session,
                               Model model,
                               RedirectAttributes redirectAttributes) {
@@ -122,6 +135,11 @@ public class EmployeeLoginController {
                 model.addAttribute("inactiveEmployeeList", inactiveEmployees);
             } catch (Exception e) {
                 log.warn("無法獲取已停權員工列表: {}", e.getMessage());
+            }
+            
+            // 保持 returnUrl 參數
+            if (returnUrl != null) {
+                model.addAttribute("returnUrl", returnUrl);
             }
             
             return "back-end/employee/login";
@@ -145,11 +163,32 @@ public class EmployeeLoginController {
                 authenticatedEmployee.getAccount(),
                 authenticatedEmployee.getUsername());
 
-            // 登入成功後重定向到員工管理主頁
+            // 決定重定向路徑
+            String redirectPath;
+            if (returnUrl != null && !returnUrl.trim().isEmpty()) {
+                try {
+                    // 解碼並驗證返回路徑
+                    String decodedReturnUrl = java.net.URLDecoder.decode(returnUrl, "UTF-8");
+                    if (isValidReturnUrl(decodedReturnUrl)) {
+                        redirectPath = "redirect:" + decodedReturnUrl;
+                        log.info("登入成功後重定向到原始請求路徑: {}", decodedReturnUrl);
+                    } else {
+                        redirectPath = "redirect:/employee/select_page?welcome=true";
+                        log.warn("無效的返回路徑，重定向到預設頁面: {}", decodedReturnUrl);
+                    }
+                } catch (Exception e) {
+                    redirectPath = "redirect:/employee/select_page?welcome=true";
+                    log.warn("解碼返回URL失敗，重定向到預設頁面: {}", e.getMessage());
+                }
+            } else {
+                redirectPath = "redirect:/employee/select_page?welcome=true";
+            }
+
+            // 登入成功後重定向
             redirectAttributes.addFlashAttribute("successMessage", 
                 "歡迎，" + authenticatedEmployee.getUsername() + "！登入成功。");
             
-            return "redirect:/employee/select_page?welcome=true";
+            return redirectPath;
 
         } catch (ResourceNotFoundException e) {
             // 帳號不存在或密碼錯誤
@@ -167,7 +206,7 @@ public class EmployeeLoginController {
             log.error("登入過程中發生未預期錯誤 - 帳號: {}", loginRequest.getAccount(), e);
         }
 
-        // 登入失敗，重新顯示登入頁面並保留輸入的帳號
+        // 登入失敗，重新顯示登入頁面並保留輸入的帳號和返回路徑
         try {
             List<EmployeeDTO> activeEmployees = employeeService.findAllActiveEmployees();
             model.addAttribute("employeeList", activeEmployees);
@@ -183,7 +222,31 @@ public class EmployeeLoginController {
             log.warn("無法獲取已停權員工列表: {}", e.getMessage());
         }
         
+        // 保持 returnUrl 參數
+        if (returnUrl != null) {
+            model.addAttribute("returnUrl", returnUrl);
+        }
+        
         return "back-end/employee/login";
+    }
+
+    /**
+     * 驗證返回URL是否安全有效
+     * 防止開放重定向漏洞
+     */
+    private boolean isValidReturnUrl(String returnUrl) {
+        if (returnUrl == null || returnUrl.trim().isEmpty()) {
+            return false;
+        }
+        
+        // 只允許相對路徑，且必須以 /employee 開頭
+        if (returnUrl.startsWith("http://") || returnUrl.startsWith("https://") || 
+            returnUrl.startsWith("//") || returnUrl.contains("..")) {
+            return false;
+        }
+        
+        // 確保是員工模組的路徑
+        return returnUrl.startsWith("/employee/") && !returnUrl.equals("/employee/login");
     }
 
     /**
@@ -195,24 +258,20 @@ public class EmployeeLoginController {
         // 獲取當前登入的員工資訊（用於日誌記錄）
         EmployeeDTO loggedInEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
         
-        // 清除 Session 中的員工資訊
-        session.removeAttribute("loggedInEmployee");
-        session.removeAttribute("employeeId");
-        session.removeAttribute("employeeName");
-        session.removeAttribute("employeeRole");
-        
-        // 也可以選擇完全銷毀 Session
-        // session.invalidate();
+        // 完全銷毀 Session - 這是最安全的做法
+        session.invalidate();
         
         if (loggedInEmployee != null) {
             log.info("員工登出 - ID: {}, 帳號: {}, 姓名: {}", 
                 loggedInEmployee.getEmployeeId(),
                 loggedInEmployee.getAccount(),
                 loggedInEmployee.getUsername());
+        } else {
+            log.info("登出請求 - 無有效的員工 Session");
         }
 
         redirectAttributes.addFlashAttribute("successMessage", "您已成功登出");
-        return "redirect:/employee/login";
+        return "redirect:/employee/login?logout=success";
     }
 
     /**

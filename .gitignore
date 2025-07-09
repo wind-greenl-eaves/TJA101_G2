@@ -41,3 +41,15 @@ target/
 *.idea
 *.iml
 .DS_Store
+
+# 日誌檔案
+logs/*.log
+logs/*.log.*
+logs/application-*.log
+logs/employee-*.log
+logs/security-*.log
+logs/sql-*.log
+logs/error-*.log
+
+# 保留 logs 目錄結構但忽略日誌內容
+!logs/.gitkeep

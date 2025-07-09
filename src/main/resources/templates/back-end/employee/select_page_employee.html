@@ -694,10 +694,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // 確認登出
     confirmLogoutBtn.addEventListener('click', async function() {
         try {
-            // 直接重定向到登入頁面並傳遞登出成功訊息
-            window.location.href = '/employee/login?logout=success';
+            // 調用後端登出端點清除 Session
+            const response = await fetch('/employee/logout', {
+                method: 'GET',
+                credentials: 'same-origin'
+            });
+            
+            if (response.ok) {
+                // 登出成功，重定向到登入頁面
+                window.location.href = '/employee/login?logout=success';
+            } else {
+                throw new Error('登出請求失敗');
+            }
         } catch (error) {
-            showError('登出時發生錯誤，請稍後再試');
+            console.error('登出錯誤:', error);
+            // 即使出錯也嘗試重定向到登入頁面
+            window.location.href = '/employee/login?logout=success';
         } finally {
             logoutModal.classList.add('hidden');
             logoutModal.classList.remove('flex');
