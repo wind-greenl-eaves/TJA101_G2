@@ -1,4 +1,4 @@
- <!-- =======================================================================================
+<!-- =======================================================================================
      檔案: update_employee_input.html (已復原)
      
      ======================================================================================= -->
@@ -17,7 +17,7 @@
     
     <link rel="stylesheet" th:href="@{/css/employee/form-styles.css}">
 </head>
-<body class="antialiased">
+<body class="antialiased" th:data-has-employee-session="${session.loggedInEmployee != null}">
 
 <div class="form-wrapper">
     <header class="form-header">
@@ -220,6 +220,8 @@
     </div>
 </div>
 
+<!-- 引入Session警告系統 -->
+<script th:src="@{/js/common/sessionWarning.js}"></script>
 <script th:src="@{/js/employee/update.js}"></script>
 
 </body>
