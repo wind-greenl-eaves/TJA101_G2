@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -30,7 +31,6 @@ public class AdminNewsController {
     @GetMapping("/create")
     public String showCreateForm(Model model) {
         model.addAttribute("news", new NewsEntity());
-        // 假設你的新增頁面檔名是 news_add_form.html
         return "back-end/news/news_add_form";
     }
 
@@ -42,31 +42,37 @@ public class AdminNewsController {
             RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
-            // 如果驗證失敗，停留在原頁面顯示錯誤訊息
-            return "news/news_add_form";
+            // ✅ 【順手修正】這裡的路徑也要跟 create 表單頁一致
+            // 如果驗證失敗，要回到原本的表單頁面，所以路徑必須一樣。
+            return "back-end/news/news_add_form";
         }
 
-        Long currentEmployeeId = 1L;
+        Long currentEmployeeId = 1L; // 這裡先假設員工 ID 是 1
         newsService.saveNews(news, currentEmployeeId);
 
         redirectAttributes.addFlashAttribute("successMessage", "消息新增成功！");
         return "redirect:/admin/news/list";
     }
 
-    /**
-     * 顯示後台消息列表頁的方法
-     * 當使用者訪問 /admin/news/list 時，這個方法會被觸發
-     */
+    // 顯示後台消息列表頁的方法
     @GetMapping("/list")
     public String showNewsList(Model model) {
-        // 1. 從 Service 獲取所有消息
         List<NewsEntity> allNews = newsService.getAllNews();
-
-        // 2. 將消息列表物件 (allNews) 加入到 Model 中，
-        //    並命名為 "newsList"，這樣 HTML 才能用 ${newsList} 來取用
         model.addAttribute("newsList", allNews);
-
-        // 3. ✅【已修正】回傳指向 `templates/back-end/news/news_list_all` 的視圖名稱
         return "back-end/news/news_list_all";
     }
-}
+
+    /**
+     * ✅ 這就是我們新增的、處理查看單一最新消息詳情的請求
+     * @param newsId 從 URL 路徑中獲取的 ID
+     * @param model 用來傳遞資料給 View
+     * @return 詳情頁面的路徑
+     */
+    @GetMapping("/{id}")
+    public String showNewsDetail(@PathVariable("id") Long newsId, Model model) {
+        NewsEntity news = newsService.findById(newsId);
+        model.addAttribute("newsDetail", news);
+        return "back-end/news/news_view_detail";
+    }
+
+} // <--- 這裡是 AdminNewsController class 的結束大括號，只能有一個
