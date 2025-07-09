@@ -78,9 +78,8 @@ public class MealEntity {
     private String mealName; // 餐點名稱
 
     
-    @Lob // 標示為大型物件欄位，適用於儲存圖片等二進位資料
     @Column(name = "meal_pic")
-    private byte[] mealPic; // 餐點圖片，以位元組陣列儲存
+    private String mealPic; // 餐點圖片存檔名，例如 "milktea.jpg"
 
     @NotNull(message = "餐點單價不可為空")
     @Min(value = 1, message = "餐點價格不可小於{value}")
@@ -100,6 +99,7 @@ public class MealEntity {
     
     @Transient
     private MultipartFile mealPicFile;
+    
 
     // ================================================================
     //                          主要關聯 (擁有方)
@@ -176,11 +176,11 @@ public class MealEntity {
     }
 
     // Meal Picture 的 Getter 和 Setter
-    public byte[] getMealPic() {
+    public String getMealPic() {
         return mealPic;
     }
 
-    public void setMealPic(byte[] mealPic) {
+    public void setMealPic(String mealPic) {
         this.mealPic = mealPic;
     }
     
@@ -264,7 +264,7 @@ public class MealEntity {
     public void setFavorites(Set<FavEntity> favorites) {
         this.favorites = favorites;
     }
-
+    
     // ================================================================
     //                       物件核心方法 (equals, hashCode)
     // ================================================================
