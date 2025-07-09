@@ -44,7 +44,12 @@ import java.util.Set;
  * - @DynamicUpdate：只會更新有變動的欄位，提升效能
  */
 @Entity // 這個類別會對應到資料庫的 employee 資料表
-@Table(name = "employee")
+@Table(name = "employee", indexes = {
+    @Index(name = "idx_employee_account", columnList = "account"),
+    @Index(name = "idx_employee_email", columnList = "email"),
+    @Index(name = "idx_employee_status", columnList = "status"),
+    @Index(name = "idx_employee_store", columnList = "store_id")
+})
 @DynamicUpdate
 public class EmployeeEntity {
 
@@ -184,6 +189,17 @@ public class EmployeeEntity {
     @Column(name = "last_updated_at", nullable = false)
     private LocalDateTime lastUpdatedAt;
 
+    /**
+     * 版本號（樂觀鎖定）
+     * 用於處理併發更新，防止資料被意外覆蓋。
+     * 每次更新資料時，JPA 會自動檢查版本號是否一致，
+     * 如果不一致則拋出 OptimisticLockException。
+     * 對應到 employee 資料表的 version 欄位。
+     */
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version = 0L;
+
     // ======================== 關聯欄位 (Associations) ========================
 
     /**
@@ -291,6 +307,8 @@ public class EmployeeEntity {
     public void setEmployeePermissions(Set<EmployeePermissionEntity> employeePermissions) { this.employeePermissions = employeePermissions; }
     public String getPhotoUrl() { return photoUrl; }
     public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
 
     // ======================== equals、hashCode、toString 方法 ========================
 

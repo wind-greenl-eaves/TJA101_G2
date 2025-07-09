@@ -22,7 +22,7 @@ import java.util.List;
  * 處理員工登入相關的頁面顯示和表單提交
  */
 @Controller
-@RequestMapping("/employee")
+@RequestMapping("/employee") // 統一路徑前綴
 public class EmployeeLoginController {
 
     private static final Logger log = LoggerFactory.getLogger(EmployeeLoginController.class);
