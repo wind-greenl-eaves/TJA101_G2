@@ -137,4 +137,7 @@ public class NewsEntity {
     public int hashCode() {
         return getClass().hashCode();
     }
+
+    public void setImageUrl(String imageUrl) {
+    }
 }
