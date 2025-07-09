@@ -139,5 +139,6 @@ public class NewsEntity {
     }
 
     public void setImageUrl(String imageUrl) {
+
     }
 }
