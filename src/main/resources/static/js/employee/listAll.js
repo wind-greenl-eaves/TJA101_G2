@@ -673,9 +673,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('modal-phone').innerHTML = `<i class="fas fa-phone mr-2"></i>${employee.phone}`;
         document.getElementById('modal-account').innerHTML = `<i class="fas fa-user-circle mr-2"></i>${employee.account}`;
         
-        // 修改密碼顯示方式
-        const passwordDisplay = `<i class="fas fa-key mr-2"></i><span class="text-red-600">${employee.rawPassword || employee.password}</span>`;
-        document.getElementById('modal-password').innerHTML = passwordDisplay;
+        // 【修正】密碼欄位固定顯示 "Hide Display"，不顯示實際密碼
+        document.getElementById('modal-password').innerHTML = `<i class="fas fa-key mr-2"></i><span class="text-red-600 font-semibold">Hide Display</span>`;
         
         const roleData = roleInfo[employee.role] || { icon: 'fas fa-user', text: employee.role };
         document.getElementById('modal-role').innerHTML = `<span class="role-badge"><i class="${roleData.icon} mr-1"></i>${roleData.text}</span>`;
