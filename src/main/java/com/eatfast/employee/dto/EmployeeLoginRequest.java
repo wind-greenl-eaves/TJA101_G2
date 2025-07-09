@@ -1,3 +1,15 @@
+// ================================================================
+// 檔案名稱: EmployeeLoginRequest.java
+// 功能說明: 員工登入請求資料傳輸物件
+// 架構層級: 數據傳輸層 (Data Transfer Layer)
+// 配對關係:
+//   - 控制器: EmployeeLoginController.processLogin() 方法接收
+//   - 服務層: EmployeeService.authenticateEmployee() 方法處理
+//   - 前端表單: login.html 表單數據綁定
+//   - Session: 登入成功後存儲到 HttpSession
+// 安全設計: 密碼字段在 toString() 中被遮罩保護
+// 驗證策略: 基礎的非空驗證和長度限制
+// ================================================================
 package com.eatfast.employee.dto;
 
 import jakarta.validation.constraints.NotBlank;

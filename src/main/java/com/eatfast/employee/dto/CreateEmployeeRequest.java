@@ -1,3 +1,15 @@
+// ================================================================
+// 檔案名稱: CreateEmployeeRequest.java
+// 功能說明: 新增員工請求的資料傳輸物件 (DTO)
+// 架構層級: 數據傳輸層 (Data Transfer Layer)
+// 配對關係:
+//   - 控制器: EmployeeController.createEmployee() 方法接收
+//   - 服務層: EmployeeService.createEmployee() 方法處理
+//   - 映射器: EmployeeMapper.toEntity() 轉換為實體
+//   - 驗證器: Jakarta Bean Validation 註解進行欄位驗證
+// 設計模式: DTO Pattern (資料傳輸物件模式)
+// 版本資訊: Spring Boot 3.x + Jakarta Validation
+// ================================================================
 package com.eatfast.employee.dto;
 
 import com.eatfast.common.enums.EmployeeRole;

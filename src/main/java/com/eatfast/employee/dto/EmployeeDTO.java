@@ -1,3 +1,15 @@
+// ================================================================
+// 檔案名稱: EmployeeDTO.java
+// 功能說明: 員工資料傳輸物件，用於在各層之間安全傳遞員工資訊
+// 架構層級: 數據傳輸層 (Data Transfer Layer)
+// 配對關係:
+//   - 實體層: 由 EmployeeEntity 透過 EmployeeMapper 轉換而來
+//   - 控制器: 作為 API 響應返回給前端
+//   - 服務層: 業務邏輯處理的標準輸出格式
+//   - 視圖層: Thymeleaf 模板中的數據模型
+// 安全考量: 不包含敏感資訊（如原始密碼），適合外部傳輸
+// 設計模式: DTO Pattern + Builder Pattern (可選)
+// ================================================================
 package com.eatfast.employee.dto;
 
 import com.eatfast.common.enums.AccountStatus;

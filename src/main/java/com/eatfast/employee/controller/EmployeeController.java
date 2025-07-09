@@ -1,8 +1,23 @@
 // =======================================================================================
 // 檔案: EmployeeController.java
-// 說明: 這是「員工管理」的主控制器，負責處理所有與員工有關的 API 請求。
-//      你可以把它想像成「員工櫃檯」，前端有任何員工資料的需求，都會先來這裡報到。
-//      這個類別會呼叫 EmployeeService（服務層）來處理實際的商業邏輯。
+// 功能說明: 員工管理核心控制器 - 處理所有與員工 CRUD 相關的 RESTful API 請求
+// 架構層級: 控制器層 (Controller Layer)
+// 配對關係:
+//   - 服務層: EmployeeService - 處理業務邏輯
+//   - DTO層: CreateEmployeeRequest, UpdateEmployeeRequest, EmployeeDTO - 資料傳輸
+//   - 實體層: EmployeeEntity - 透過服務層間接操作
+//   - 權限控制: 基於 Session 中的 loggedInEmployee 進行角色權限驗證
+// 設計模式: 
+//   - RESTful API Pattern
+//   - Role-Based Access Control (RBAC)
+//   - Request-Response Pattern
+// API 路徑: /api/v1/employees
+// 支援功能: 
+//   - CRUD 操作 (新增、查詢、修改、刪除)
+//   - 權限管理 (授權、收回)
+//   - 欄位驗證 (即時驗證)
+//   - 照片上傳
+// =======================================================================================
 package com.eatfast.employee.controller;
 
 import com.eatfast.common.enums.AccountStatus;
@@ -11,6 +26,7 @@ import com.eatfast.employee.dto.CreateEmployeeRequest;
 import com.eatfast.employee.dto.EmployeeDTO;
 import com.eatfast.employee.dto.UpdateEmployeeRequest;
 import com.eatfast.employee.service.EmployeeService;
+import com.eatfast.employee.service.EmployeePermissionService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,14 +45,13 @@ import java.util.Map;
 @RequestMapping("/api/v1/employees")
 public class EmployeeController {
 
-    // 這個屬性是服務層（Service），負責處理員工的商業邏輯。
-    // 你可以把 Service 想像成「資料處理部門」，Controller 只負責接收與回應，Service 負責做事。
     private final EmployeeService employeeService;
+    private final EmployeePermissionService permissionService; // 新增權限服務
 
-    // 這是建構子注入（Constructor Injection），Spring Boot 會自動幫我們把 EmployeeService 傳進來。
     @Autowired
-    public EmployeeController(EmployeeService employeeService) {
+    public EmployeeController(EmployeeService employeeService, EmployeePermissionService permissionService) {
         this.employeeService = employeeService;
+        this.permissionService = permissionService;
     }
 
     // ========================
@@ -48,7 +63,6 @@ public class EmployeeController {
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<?> createEmployee(@Valid @ModelAttribute CreateEmployeeRequest request, HttpSession session) {
         try {
-            // 取得目前登入的員工（從 session 取出）
             EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
             if (currentEmployee == null) {
                 Map<String, String> response = new HashMap<>();
@@ -56,34 +70,21 @@ public class EmployeeController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
 
-            // 根據登入員工角色進行權限控制
-            EmployeeRole currentRole = currentEmployee.getRole();
-            Map<String, String> response; // 將 response 宣告移到這裡，供 switch 語句重複使用
-            switch (currentRole) {
-                case HEADQUARTERS_ADMIN:
-                    // 總部管理員：可以新增任何門市的員工，不需修改 storeId
-                    break;
-                case MANAGER:
-                    // 門市經理：強制將新員工的 storeId 設為經理自己的門市，防止前端繞過
-                    request.setStoreId(currentEmployee.getStoreId());
-                    break;
-                case STAFF:
-                    // 一般員工：不允許新增員工
-                    response = new HashMap<>();
-                    response.put("message", "權限不足：您無法新增員工");
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-                default:
-                    response = new HashMap<>();
-                    response.put("message", "未知的員工角色");
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            // 【修正】使用統一權限服務檢查
+            if (!permissionService.canCreateEmployee(currentEmployee)) {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "權限不足：您無法新增員工");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
             }
 
-            // 呼叫服務層，新增員工
+            // 【修正】門市經理強制設定門市ID
+            if (currentEmployee.getRole() == EmployeeRole.MANAGER) {
+                request.setStoreId(currentEmployee.getStoreId());
+            }
+
             EmployeeDTO createdEmployee = employeeService.createEmployee(request);
-            // 回傳 201 Created 狀態與新員工資料
             return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
         } catch (Exception e) {
-            // 若有錯誤，回傳錯誤訊息
             Map<String, String> response = new HashMap<>();
             response.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(response);
@@ -101,35 +102,19 @@ public class EmployeeController {
     //   - 一般員工無法查詢
     @GetMapping("/{id}")
     public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id, HttpSession session) {
-        // 取得目前登入的員工（從 session 取出）
         EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
         if (currentEmployee == null) {
-            // 沒有登入就拒絕存取
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        // 查詢目標員工資料
-        EmployeeDTO employeeDto = employeeService.findEmployeeById(id);
+        EmployeeDTO targetEmployee = employeeService.findEmployeeById(id);
         
-        // 根據角色決定是否有權限
-        EmployeeRole currentRole = currentEmployee.getRole();
-        switch (currentRole) {
-            case HEADQUARTERS_ADMIN:
-                // 總部管理員：可以看全部
-                break;
-            case MANAGER:
-                // 經理只能看自己門市
-                if (!employeeDto.getStoreId().equals(currentEmployee.getStoreId())) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-                }
-                break;
-            case STAFF:
-                // 一般員工不能看
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            default:
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        // 【修正】使用統一權限服務檢查
+        if (!permissionService.canViewEmployee(currentEmployee, targetEmployee)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return ResponseEntity.ok(employeeDto);
+        
+        return ResponseEntity.ok(targetEmployee);
     }
     
     // ========================
@@ -146,36 +131,31 @@ public class EmployeeController {
             @RequestParam(required = false) Long storeId,
             HttpSession session
     ) {
-        // 取得目前登入的員工
         EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
         if (currentEmployee == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        // 根據角色決定查詢範圍
-        EmployeeRole currentRole = currentEmployee.getRole();
-        Map<String, Object> searchParams = new HashMap<>();
-        switch (currentRole) {
-            case HEADQUARTERS_ADMIN:
-                // 總部管理員：可查全部
-                if (StringUtils.hasText(username)) searchParams.put("username", username);
-                if (role != null) searchParams.put("role", role);
-                if (status != null) searchParams.put("status", status);
-                if (storeId != null) searchParams.put("storeId", storeId);
-                break;
-            case MANAGER:
-                // 經理只能查自己門市
-                if (StringUtils.hasText(username)) searchParams.put("username", username);
-                if (role != null) searchParams.put("role", role);
-                if (status != null) searchParams.put("status", status);
-                searchParams.put("storeId", currentEmployee.getStoreId());
-                break;
-            case STAFF:
-                // 一般員工不能查
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            default:
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
+        // 【修正】使用統一權限服務檢查
+        if (!permissionService.canAccessEmployeeList(currentEmployee)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        // 呼叫服務層查詢
+
+        Map<String, Object> searchParams = new HashMap<>();
+        if (StringUtils.hasText(username)) searchParams.put("username", username);
+        if (role != null) searchParams.put("role", role);
+        if (status != null) searchParams.put("status", status);
+        
+        // 【修正】根據權限限制查詢範圍
+        Long[] manageableStoreIds = permissionService.getManageableStoreIds(currentEmployee);
+        if (manageableStoreIds != null && manageableStoreIds.length > 0) {
+            // 門市經理只能查詢自己門市的員工
+            searchParams.put("storeId", manageableStoreIds[0]);
+        } else if (storeId != null && currentEmployee.getRole() == EmployeeRole.HEADQUARTERS_ADMIN) {
+            // 總部管理員可以指定門市查詢
+            searchParams.put("storeId", storeId);
+        }
+
         List<EmployeeDTO> employees = employeeService.searchEmployees(searchParams);
         return ResponseEntity.ok(employees);
     }
@@ -191,29 +171,19 @@ public class EmployeeController {
             @PathVariable Long id,
             @ModelAttribute @Valid UpdateEmployeeRequest request,
             HttpSession session) {
-        // 取得目前登入的員工
+        
         EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
         if (currentEmployee == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        // 查詢要更新的員工
+        
         EmployeeDTO targetEmployee = employeeService.findEmployeeById(id);
-        // 權限判斷
-        EmployeeRole currentRole = currentEmployee.getRole();
-        switch (currentRole) {
-            case HEADQUARTERS_ADMIN:
-                break;
-            case MANAGER:
-                if (!targetEmployee.getStoreId().equals(currentEmployee.getStoreId())) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-                }
-                break;
-            case STAFF:
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            default:
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        
+        // 【修正】使用統一權限服務檢查
+        if (!permissionService.canEditEmployee(currentEmployee, targetEmployee)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        // 呼叫服務層更新
+
         EmployeeDTO updatedEmployee = employeeService.updateEmployee(id, request);
         return ResponseEntity.ok(updatedEmployee);
     }
@@ -230,22 +200,14 @@ public class EmployeeController {
         if (currentEmployee == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        
         EmployeeDTO targetEmployee = employeeService.findEmployeeById(id);
-        EmployeeRole currentRole = currentEmployee.getRole();
-        switch (currentRole) {
-            case HEADQUARTERS_ADMIN:
-                break;
-            case MANAGER:
-                if (!targetEmployee.getStoreId().equals(currentEmployee.getStoreId())) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-                }
-                break;
-            case STAFF:
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            default:
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        
+        // 【修正】使用統一權限服務檢查
+        if (!permissionService.canDeleteEmployee(currentEmployee, targetEmployee)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        // 呼叫服務層刪除
+
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
     }
