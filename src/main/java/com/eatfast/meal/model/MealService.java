@@ -96,12 +96,11 @@ public class MealService {
     
 	 // === 圖片 URL 處理 ===
 	 public String buildMealPicUrl(String mealPic) {
-	     if (mealPic == null || mealPic.isEmpty()) {
+	     if (mealPic == null || mealPic.isBlank()) {
 	         return "/images/nopic.png"; // 如果沒有圖片，回傳預設無圖片路徑
 	     }
 	     // 判斷是否為上傳的圖片 (例如檔名以 "upload_" 開頭或包含 UUID)
 	     if (mealPic.startsWith("upload_") || mealPic.matches(".*[a-f0-9\\-]{36}.*")) {
-	         // 這個路徑應與 MealPicResourceConfig 中的 addResourceHandler 一致
 	         return "/meal-pic/" + mealPic; 
 	     }
 	     // 其他的舊圖或預設圖 (存在於 src/main/resources/static/images/meal_pic/ )
@@ -110,7 +109,7 @@ public class MealService {
 
 
     // === Entity to DTO（關鍵轉換）===
-    private MealDTO toDTOWithFavored(MealEntity meal, Long memberId) {
+    public MealDTO toDTOWithFavored(MealEntity meal, Long memberId) {
         boolean favored = false;
         if (memberId != null) {
             // 判斷該會員是否收藏過這道餐點
@@ -128,6 +127,7 @@ public class MealService {
         dto.setMealPicUrl(buildMealPicUrl(meal.getMealPic())); // 圖片 URL 處理
         dto.setReviewTotalStars(meal.getReviewTotalStars());
         dto.setFavored(favored);
+        dto.setMealPic(meal.getMealPic()); // 取得圖片檔名
         return dto;
     }
 	
