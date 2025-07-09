@@ -1,3 +1,15 @@
+// ================================================================
+// 檔案名稱: UpdateEmployeeRequest.java
+// 功能說明: 更新員工請求的資料傳輸物件 (DTO)
+// 架構層級: 數據傳輸層 (Data Transfer Layer)
+// 配對關係:
+//   - 控制器: EmployeeController.updateEmployee() 方法接收
+//   - 服務層: EmployeeService.updateEmployee() 方法處理
+//   - 實體層: 與 EmployeeEntity 對應進行部分更新
+//   - 前端表單: update_employee_input.html 表單數據綁定
+// 特殊設計: 支持部分欄位更新（密碼可選填）
+// 驗證策略: 使用 @Pattern 支持空值或符合格式的值
+// ================================================================
 package com.eatfast.employee.dto;
 
 import com.eatfast.common.enums.AccountStatus;

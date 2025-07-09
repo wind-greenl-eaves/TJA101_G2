@@ -1,3 +1,15 @@
+// ================================================================
+// 檔案名稱: ForgotPasswordRequest.java
+// 功能說明: 忘記密碼請求資料傳輸物件
+// 架構層級: 數據傳輸層 (Data Transfer Layer)
+// 配對關係:
+//   - 控制器: EmployeeLoginController.processForgotPassword() 方法接收
+//   - 服務層: EmployeeService.processForgotPassword() 方法處理
+//   - 前端表單: forgot-password.html 表單數據綁定
+//   - 郵件服務: 與 MailService 配合發送重設密碼郵件
+// 安全設計: 支持帳號或郵件兩種方式查找員工
+// 業務邏輯: 生成臨時密碼並透過郵件通知員工
+// ================================================================
 package com.eatfast.employee.dto;
 
 import jakarta.validation.constraints.NotBlank;

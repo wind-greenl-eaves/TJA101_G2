@@ -1,6 +1,22 @@
 // =======================================================================================
-// 檔案: EmployeeService.java (已修正)
-// 說明: 在員工服務介面中，新增了用於即時欄位唯一性驗證的方法。
+// 檔案: EmployeeService.java (服務層介面)
+// 功能說明: 員工服務層介面定義，規範所有員工相關的業務操作
+// 架構層級: 服務層介面 (Service Interface Layer)
+// 配對關係:
+//   - 實作類: EmployeeServiceImpl - 具體業務邏輯實現
+//   - 控制器: EmployeeController - 呼叫此介面的方法
+//   - 資料層: EmployeeRepository - 透過實作類間接使用
+//   - 映射器: EmployeeMapper - 透過實作類進行 Entity 與 DTO 轉換
+// 設計模式: 
+//   - Interface Segregation Principle (介面隔離原則)
+//   - Dependency Inversion Principle (依賴反轉原則)
+//   - Service Layer Pattern (服務層模式)
+// 業務功能覆蓋:
+//   - CRUD 操作 (創建、讀取、更新、刪除)
+//   - 認證與授權管理
+//   - 密碼重設與忘記密碼處理
+//   - 欄位唯一性驗證
+//   - 檔案上傳處理
 // =======================================================================================
 package com.eatfast.employee.service;
 

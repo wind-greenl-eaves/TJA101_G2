@@ -26,6 +26,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -65,6 +66,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder; // 新增密碼加密器
 
     @Autowired
     public EmployeeServiceImpl(EmployeeRepository employeeRepository, StoreRepository storeRepository,
@@ -120,8 +124,8 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + request.getStoreId() + " 的門市"));
         
         EmployeeEntity newEmployee = employeeMapper.toEntity(request);
-        // 【修改】直接使用明文密碼，不進行加密
-        newEmployee.setPassword(request.getPassword());
+        // 【修正】統一使用BCrypt加密密碼
+        newEmployee.setPassword(passwordEncoder.encode(request.getPassword()));
         newEmployee.setStore(store);
         
         // 處理照片上傳
@@ -268,13 +272,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
     
     /**
-     * 【新增方法實作】- 員工登入驗證
-     * 驗證員工帳號密碼（明文比對），並返回員工資訊
+     * 【修正方法實作】- 員工登入驗證 + 自動密碼升級
+     * 驗證員工帳號密碼，並自動將明文密碼升級為BCrypt加密
      */
     @Override
-    @Transactional(readOnly = true)
+    @Transactional // 【關鍵修正】移除 readOnly = true，允許寫入操作
     public EmployeeDTO authenticateEmployee(String account, String password) {
-        // 輸入參數驗證
         if (!StringUtils.hasText(account) || !StringUtils.hasText(password)) {
             throw new IllegalArgumentException("帳號和密碼不可為空");
         }
@@ -288,13 +291,81 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new IllegalArgumentException("此帳號已被停用，請聯絡管理員");
         }
         
-        // 明文密碼比對
-        if (!password.equals(employee.getPassword())) {
+        boolean passwordMatches = false;
+        boolean needsPasswordUpgrade = false;
+        
+        // 【修正】智慧密碼驗證 - 判斷是否為明文密碼
+        if (employee.getPassword().startsWith("$2a$") || 
+            employee.getPassword().startsWith("$2b$") || 
+            employee.getPassword().startsWith("$2y$")) {
+            // BCrypt格式密碼 - 使用加密比對
+            log.debug("偵測到BCrypt格式密碼，使用加密比對");
+            passwordMatches = passwordEncoder.matches(password, employee.getPassword());
+        } else {
+            // 明文密碼 - 直接比對並標記需要升級
+            log.info("偵測到明文密碼，使用直接比對並準備升級 - 帳號: {}", employee.getAccount());
+            passwordMatches = password.equals(employee.getPassword());
+            needsPasswordUpgrade = passwordMatches; // 只有密碼正確時才升級
+        }
+        
+        // 如果密碼驗證失敗，拋出異常
+        if (!passwordMatches) {
+            log.warn("密碼驗證失敗 - 帳號: {}", employee.getAccount());
             throw new IllegalArgumentException("帳號或密碼錯誤");
+        }
+        
+        // 【關鍵修正】如果需要升級密碼，在同一個事務中直接升級
+        if (needsPasswordUpgrade) {
+            try {
+                log.info("開始自動升級明文密碼為BCrypt - 帳號: {}", employee.getAccount());
+                
+                // 【修正】直接在當前事務中進行密碼升級
+                String encryptedPassword = passwordEncoder.encode(password);
+                employee.setPassword(encryptedPassword);
+                employeeRepository.save(employee);
+                
+                log.info("密碼升級成功 - 帳號: {}, 原密碼: {}, 新密碼前綴: {}", 
+                    employee.getAccount(), password, encryptedPassword.substring(0, 10));
+                    
+            } catch (Exception e) {
+                log.error("密碼升級失敗，但不影響登入 - 帳號: {}, 錯誤: {}", 
+                    employee.getAccount(), e.getMessage());
+                // 密碼升級失敗不影響登入流程，但要記錄錯誤
+                e.printStackTrace();
+            }
         }
         
         log.info("員工登入成功 - 帳號: {}, 姓名: {}", employee.getAccount(), employee.getUsername());
         return employeeMapper.toDto(employee);
+    }
+    
+    /**
+     * 【新增私有方法】在獨立事務中執行密碼升級
+     * 這個方法使用新的事務來避免只讀事務的限制
+     */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    private void upgradePasswordToBCrypt(Long employeeId, String plainPassword) {
+        try {
+            // 重新查詢員工實體以確保在新事務中操作
+            EmployeeEntity employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("員工不存在"));
+            
+            // 生成BCrypt加密密碼
+            String encryptedPassword = passwordEncoder.encode(plainPassword);
+            
+            // 更新密碼
+            employee.setPassword(encryptedPassword);
+            
+            // 保存到資料庫
+            employeeRepository.save(employee);
+            
+            log.info("密碼升級完成 - 員工ID: {}, 原密碼長度: {}, 新密碼長度: {}", 
+                employeeId, plainPassword.length(), encryptedPassword.length());
+                
+        } catch (Exception e) {
+            log.error("密碼升級過程中發生錯誤 - 員工ID: {}", employeeId, e);
+            throw e; // 重新拋出異常以便上層處理
+        }
     }
 
     /**
@@ -446,13 +517,12 @@ public class EmployeeServiceImpl implements EmployeeService {
             employeeToUpdate.setStatus(request.getStatus());
         }
 
-        // 【修改】密碼更新邏輯 - 使用明文密碼
+        // 【修正】密碼更新統一使用BCrypt加密
         if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
             if (!request.getPassword().matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")) {
                 throw new IllegalArgumentException("密碼需至少8個字元，且包含至少一個字母和一個數字");
             }
-            // 【修改】直接設置明文密碼，不進行加密
-            employeeToUpdate.setPassword(request.getPassword());
+            employeeToUpdate.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
         if (StringUtils.hasText(request.getEmail())) {
