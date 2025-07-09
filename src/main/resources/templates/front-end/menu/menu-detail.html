@@ -16,22 +16,14 @@
         <div class="flex flex-col md:flex-row items-center gap-8">
             <!-- 圖片 -->
             <div class="w-full md:w-1/2 flex justify-center">
-                <img th:src="@{/meal/mealPhoto(mealId=${meal.mealId})}"
-                     alt="餐點圖片"
-                     class="rounded-xl shadow-md object-cover w-64 h-64 bg-gray-100 border border-gray-200"
-                     onerror="this.onerror=null;this.src='/images/nopic.png';">
+               	<img th:src="${meal.mealPicUrl}" alt="餐點圖片"
+				     class="w-40 h-40 object-cover rounded-xl border"
+				     onerror="this.onerror=null;this.src='/images/nopic.png';" />
             </div>
             <!-- 餐點資訊 -->
             <div class="w-full md:w-1/2 mt-6 md:mt-0">
                 <h1 class="text-3xl font-bold text-[#A67B5B] mb-2" th:text="${meal.mealName}">餐點名稱</h1>
-                <div class="text-[#8B5A3C] text-xl mb-4 font-semibold" th:text="'NT$ ' + ${meal.price}">NT$ 99</div>
-                <div class="mb-2">
-                    <span class="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded"
-                          th:text="${meal.mealType.mealTypeName}">分類</span>
-                </div>
-                <div class="text-[#665544] mb-4" th:text="${meal.mealDescription} ?: '尚無描述'">
-                    這是一份美味的早餐，元氣滿滿的開始。
-                </div>
+                <div class="text-[#8B5A3C] text-xl mb-4 font-semibold" th:text="'NT$ ' + ${meal.mealPrice}">NT$ 99</div>
                 <div class="flex items-center gap-2 mb-4">
                     <span class="text-yellow-500 text-lg">★</span>
                     <span th:text="${meal.reviewTotalStars} + ' / 5'">5 / 5</span>

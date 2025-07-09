@@ -196,10 +196,9 @@
             <div th:each="meal : ${mealListData}"
                  class="bg-card rounded-2xl shadow-xl border border-milktea flex flex-col items-center p-6 hover:shadow-2xl transition-shadow duration-200 relative">
                 <a th:href="@{'/menu/detail'(mealId=${meal.mealId})}">
-                    <img th:src="${meal.mealPicUrl}"
-                         class="w-40 h-40 object-cover rounded-xl border border-[#F3E5D6] bg-gray-100 mb-4"
-                         alt="餐點圖片"
-                         onerror="this.onerror=null;this.src='/images/nopic.png';" />
+                    <img th:src="${meal.mealPicUrl}" alt="餐點圖片"
+					     class="w-40 h-40 object-cover rounded-xl border"
+					     onerror="this.onerror=null;this.src='/images/nopic.png';" />
                 </a>
                 <div class="w-full flex flex-col items-center">
                     <h2 class="text-xl font-bold text-milktea-dark mb-1 text-center" th:text="${meal.mealName}"></h2>

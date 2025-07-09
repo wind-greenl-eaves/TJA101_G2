@@ -1,8 +1,6 @@
 package com.eatfast.meal.controller;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,7 +9,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.eatfast.common.enums.MealStatus;
 import com.eatfast.fav.model.FavService;
 import com.eatfast.meal.dto.MealDTO;
 import com.eatfast.meal.model.MealEntity;
@@ -27,12 +24,9 @@ public class FrontMealController {
 
     private final MealService mealService;
     private final MealTypeService mealTypeService;
-    private final FavService favService;
-
     public FrontMealController(MealService mealService, MealTypeService mealTypeService, FavService favService) {
         this.mealService = mealService;
         this.mealTypeService = mealTypeService;
-        this.favService = favService;
     }
 
     // 前台-菜單列表（分類過濾）
@@ -41,48 +35,28 @@ public class FrontMealController {
         @RequestParam(value = "type", required = false) Long typeId,
         Model model, HttpSession session) {
 
-        List<MealEntity> mealList;
+        // 取得當前登入會員ID，若未登入可為 null
+        Long memberId = (Long) session.getAttribute("loggedInMemberId");
+
+        List<MealDTO> mealDTOList;
         String currentMealTypeName = null;
 
         if (typeId != null) {
-            mealList = mealService.getMealsByStatus(MealStatus.AVAILABLE)
-                .stream()
-                .filter(meal -> meal.getMealType() != null && meal.getMealType().getMealTypeId().equals(typeId))
-                .collect(Collectors.toList());
+            // 用 Service 取得該分類下所有上架餐點（已帶有 mealPicUrl 優先邏輯）
+            mealDTOList = mealService.getMealsByTypeWithFavored(typeId, memberId);
+            // 額外取得分類名稱
             MealTypeEntity mealType = mealTypeService.getOneMealType(typeId);
-            if (mealType != null) {
-                currentMealTypeName = mealType.getMealName();
-            }
+            currentMealTypeName = mealType != null ? mealType.getMealName() : null;
         } else {
-            mealList = mealService.getMealsByStatus(MealStatus.AVAILABLE);
+            // 取得所有上架餐點（已帶有 mealPicUrl 優先邏輯）
+            mealDTOList = mealService.getAllAvailableWithFavored(memberId);
         }
-        
-        Long memberId = (Long) session.getAttribute("loggedInMemberId");
-        Map<Long, Long> favMealIdMap = favService.getFavMealIdMap(memberId);
-        
-        List<MealDTO> mealDTOList = mealList.stream().map(meal -> {
-            MealDTO dto = new MealDTO();
-            dto.setMealId(meal.getMealId());
-            dto.setMealName(meal.getMealName());
-            dto.setMealPrice(meal.getMealPrice());
-            dto.setMealTypeName(meal.getMealType().getMealName());
-            dto.setMealPicUrl("/meal/mealPhoto?mealId=" + meal.getMealId());
-            dto.setReviewTotalStars(meal.getReviewTotalStars());
-            if (favMealIdMap.containsKey(meal.getMealId())) {
-                dto.setFavored(true);
-                dto.setFavMealId(favMealIdMap.get(meal.getMealId()));
-            } else {
-                dto.setFavored(false);
-                dto.setFavMealId(null);
-            }
-            return dto;
-        }).collect(Collectors.toList());
 
         model.addAttribute("mealListData", mealDTOList);
-
         model.addAttribute("currentMealTypeName", currentMealTypeName);
         return "front-end/menu/menu-list";
     }
+
 
     // 類別清單給前端模板用（分類側邊欄）
     @ModelAttribute("mealTypeListData")
@@ -92,13 +66,16 @@ public class FrontMealController {
 
     // 前台-餐點細節
     @GetMapping("/detail")
-    public String showMenuDetail(@RequestParam("mealId") Long mealId, Model model) {
+    public String showMenuDetail(@RequestParam("mealId") Long mealId, Model model, HttpSession session) {
         MealEntity meal = mealService.getOneMeal(mealId);
         if (meal == null) {
             model.addAttribute("errorMessage", "查無此餐點！");
             return "front-end/menu/menu-detail";
         }
-        model.addAttribute("meal", meal);
+        // 取得會員ID，傳給 DTO
+        Long memberId = (Long) session.getAttribute("loggedInMemberId");
+        MealDTO dto = mealService.toDTOWithFavored(meal, memberId);
+        model.addAttribute("meal", dto);
         return "front-end/menu/menu-detail";
     }
 }
