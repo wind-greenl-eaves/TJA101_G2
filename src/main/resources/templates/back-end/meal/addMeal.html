@@ -390,6 +390,7 @@
                 <div class="form-group-style">
 				    <label for="mealPic" class="block mb-1 font-medium">餐點圖片：</label>
 				    <div class="flex items-start space-x-4">
+				        <!-- 左側：上傳按鈕 -->
 				        <div class="flex-1">
 				            <input type="file" id="mealPic" name="mealPicFile"
 				                   class="form-control-file-style"
@@ -398,12 +399,13 @@
 				            <span class="text-danger-style" th:if="${#fields.hasErrors('mealPic')}"
 				                  th:text="${#fields.errors('mealPic')[0]}" id="mealPic.errors"></span>
 				        </div>
-				
+				        <!-- 右側：圖片預覽 -->
 				        <div id="mealPicPreview" class="flex-none w-32 h-24">
-						    <span class="no-pic-text">未選擇圖片</span>
-						</div>
+				            <span class="no-pic-text">未選擇圖片</span>
+				        </div>
 				    </div>
 				</div>
+
 				
 				<input type="hidden" th:field="*{reviewTotalStars}" />
 		
@@ -422,6 +424,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const mealPicInput = document.getElementById("mealPic");
     const submitButton = document.getElementById("submitButton");
     const mealPicPreview = document.getElementById("mealPicPreview");
+    const preview = document.getElementById('mealPicPreview');
+    const oldImg = preview.querySelector('img');
+    // 如果有舊圖片，設定 data-original-img-src 屬性
+    if (oldImg) preview.setAttribute('data-original-img-src', oldImg.src);
+
     
     // 獲取上下文路徑 (Thymeleaf 會替換掉這行)
     const contextPath = /*[[@{/}]]*/ '/';
@@ -448,38 +455,31 @@ document.addEventListener('DOMContentLoaded', function() {
         'image/gif': true
     };
         
-    // 處理圖片預覽的函式
+ // 圖片預覽，支援重設、格式判斷
     function previewFile() {
-        const files = mealPicInput.files;
+        const preview = document.getElementById('mealPicPreview');
+        const fileInput = document.getElementById('mealPic');
+        const submitButton = document.getElementById('submitButton');
+        preview.innerHTML = '';
+        submitButton && (submitButton.disabled = false);
 
-        // 清除現有的預覽圖片，避免重複顯示舊圖片和新預覽
-        mealPicPreview.innerHTML = '';
-        submitButton.disabled = false; // 預設啟用送出按鈕
-
-        if (files.length === 0) {
-            // 如果沒有選擇新檔案，顯示「未選擇圖片」提示
-            mealPicPreview.innerHTML = '<span class="no-pic-text">未選擇圖片</span>';
+        if (!fileInput.files || !fileInput.files.length) {
+            // 如果有舊圖片，回復原圖（for 編輯頁）
+            if (preview.getAttribute('data-original-img-src')) {
+                const img = document.createElement('img');
+                img.src = preview.getAttribute('data-original-img-src');
+                img.className = "max-w-[150px] max-h-[100px] rounded border border-gray-300 object-contain shadow-sm";
+                preview.appendChild(img);
+            } else {
+                preview.innerHTML = '<span class="no-pic-text">未選擇圖片</span>';
+            }
             return;
         }
 
-        const file = files[0]; // 只處理第一個檔案
-
-        if (filereader_support && acceptedTypes[file.type]) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const image = new Image();
-                image.src = event.target.result;
-                // 使用 CSS 變數和 classList 更好地整合 Tailwind
-                image.classList.add('max-w-[150px]', 'max-h-[100px]', 'rounded', 'shadow-sm');
-                image.style.border = '1px solid var(--new-border-color)';
-                image.style.objectFit = 'contain';
-                image.style.marginTop = '0.75rem'; /* 保持與原 meal-pic-preview 的 margin-top 一致 */
-                mealPicPreview.appendChild(image);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            // 如果檔案類型不符，顯示錯誤訊息並禁用送出按鈕
-            mealPicPreview.innerHTML = `
+        const file = fileInput.files[0];
+        // 檢查檔案型態
+        if (!/^image\/(png|jpeg|gif)$/.test(file.type)) {
+            preview.innerHTML = `
                 <div class="text-danger-style" style="text-align: left;">
                     ● 檔名: ${file.name}<br>
                     ● 檔案類型: ${file.type}<br>
@@ -487,8 +487,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     ● 僅接受圖片類型: <b>PNG, JPEG, GIF</b>
                 </div>
             `;
-            submitButton.disabled = true; // 禁用送出按鈕
+            submitButton && (submitButton.disabled = true);
+            return;
         }
+
+        // 預覽新上傳的圖片
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = "max-w-[150px] max-h-[100px] rounded border border-gray-300 object-contain shadow-sm";
+            preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
     }
 
     // 將 hideErrorMessage 函式暴露到全域 (因為 onchange 屬性會直接呼叫)

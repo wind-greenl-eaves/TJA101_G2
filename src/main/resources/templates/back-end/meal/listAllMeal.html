@@ -270,15 +270,19 @@
                             <tr class="border-b border-[#E2D7C1]">
                                 <th class="py-2 pr-2 font-medium">圖片:</th>
                                 <td class="py-2">
-                                  <img th:if="${meal.mealPic != null}"
-                                       th:src="@{'/meal/mealPhoto?mealId=' + ${meal.mealId}}"
-                                       class="meal-img">
-                                  <img th:unless="${meal.mealPic != null}"
-                                       th:src="@{/images/nopic.png}"
-                                       class="meal-img" alt="無圖片">
-                                </td>
+                                	<th:block th:if="${meal.mealPic != null and !#strings.isEmpty(meal.mealPic)}">
+                                        <img th:if="${meal.mealPic.startsWith('upload_') or meal.mealPic.matches('.*[a-f0-9\\-]{36}.*')}"
+                                             th:src="@{'/meal-pic/' + ${meal.mealPic}}"
+                                             class="meal-img mx-auto" th:alt="${meal.mealName}">
+                                        <img th:unless="${meal.mealPic.startsWith('upload_') or meal.mealPic.matches('.*[a-f0-9\\-]{36}.*')}"
+                                             th:src="@{'/images/meal_pic/' + ${meal.mealPic}}"
+                                             class="meal-img mx-auto" th:alt="${meal.mealName}">
+                                    </th:block>
+									<img th:if="${meal.mealPic == null or #strings.isEmpty(meal.mealPic)}"
+									     th:src="@{/images/nopic.png}" class="meal-img mx-auto" alt="無圖片">
+								</td>
                             </tr>
-                            </tbody>
+                     	</tbody>
                     </table>
                 </div>
                 <div th:unless="${meal}" class="p-4 text-center text-gray-500 text-sm single-query-result-placeholder">
@@ -329,13 +333,19 @@
                               </span>
                             </td>
                             <td class="px-4 py-2">
-                              <img th:if="${mealItem.mealPic != null}"
-                                   th:src="@{'/meal/mealPhoto?mealId=' + ${mealItem.mealId}}"
-                                   class="meal-img mx-auto">
-                              <img th:unless="${mealItem.mealPic != null}"
-                                   th:src="@{/images/nopic.png}"
-                                   class="meal-img mx-auto" alt="無圖片">
-                            </td>
+							    <th:block th:if="${mealItem.mealPic != null and !#strings.isEmpty(mealItem.mealPic)}">
+							        <img th:if="${mealItem.mealPic.startsWith('upload_') or mealItem.mealPic.matches('.*[a-f0-9\\-]{36}.*')}"
+							             th:src="@{'/meal-pic/' + ${mealItem.mealPic}}"
+							             class="meal-img mx-auto" alt="上傳圖">
+							        <img th:unless="${mealItem.mealPic.startsWith('upload_') or mealItem.mealPic.matches('.*[a-f0-9\\-]{36}.*')}"
+							             th:src="@{'/images/meal_pic/' + ${mealItem.mealPic}}"
+							             class="meal-img mx-auto" alt="預設圖">
+							    </th:block>
+							    <img th:if="${mealItem.mealPic == null or #strings.isEmpty(mealItem.mealPic)}"
+							         th:src="@{/images/nopic.png}" 
+							         class="meal-img mx-auto" alt="無圖片">
+							</td>
+
                             <td class="px-4 py-2">
                                 <form th:action="@{/meal/getOne_For_Update}" method="post">
                                     <input type="hidden" name="mealId" th:value="${mealItem.mealId}">

@@ -340,11 +340,16 @@
                 </div>
                 <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
                     <div class="flex-shrink-0 text-center">
-                        <img class="meal-img mx-auto"
-                             th:src="@{'/meal/mealPhoto?mealId=' + ${meal.mealId}}"
-                             th:alt="${meal.mealName}"
-                             th:onerror="'this.onerror=null;this.src=\'' + @{/images/nopic.png} + '\';" /> <p th:unless="${meal.mealPic != null and meal.mealPic.length > 0}" class="text-sm text-gray-500 mt-2">無圖片</p>
-                    </div>
+                        <img th:if="${meal.mealPic != null and #strings.isNotEmpty(meal.mealPic)}"
+					         class="meal-img mx-auto"
+					         th:src="@{'/images/meal_pic/' + ${meal.mealPic}}"
+					         th:alt="${meal.mealName}">
+					    <img th:if="${meal.mealPic == null or #strings.isEmpty(meal.mealPic)}"
+					         class="meal-img mx-auto"
+					         th:src="@{/images/nopic.png}"
+					         alt="無圖片">
+					    <p th:if="${meal.mealPic == null or #strings.isEmpty(meal.mealPic)}" class="text-sm text-gray-500 mt-2">無圖片</p>
+					</div>
                     <div class="flex-grow space-y-3 text-base">
                         <p><strong>餐點編號：</strong> <span th:text="${meal.mealId}"></span></p>
                         <p><strong>餐點名稱：：</strong> <span th:text="${meal.mealName}"></span></p>

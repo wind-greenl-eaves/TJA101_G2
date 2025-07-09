@@ -390,33 +390,28 @@
 				    <span class="text-danger-style" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></span>
 				</div>
                 
-                <div class="form-group">
+                <div class="form-group-style">
 				    <label for="mealPic" class="block mb-1 font-medium">餐點圖片：</label>
 				    <div class="flex items-start space-x-4">
-				        <!-- 左邊：上傳按鈕 -->
+				        <!-- 左側：檔案選擇 -->
 				        <div class="flex-1">
 				            <input type="file" id="mealPic" name="mealPicFile"
-				                   class="block w-full text-sm border border-gray-400 rounded-md p-1 bg-white focus:outline-none"
+				                   class="form-control-file-style"
 				                   accept="image/png, image/jpeg, image/gif"
 				                   onchange="hideErrorMessage('mealPic.errors'); previewFile();" />
-				            <span class="text-danger" th:if="${#fields.hasErrors('mealPic')}"
+				            <span class="text-danger-style" th:if="${#fields.hasErrors('mealPic')}"
 				                  th:text="${#fields.errors('mealPic')[0]}" id="mealPic.errors"></span>
 				        </div>
-				
-				        <!-- 右邊：圖片預覽 -->
-						<div id="mealPicPreview" class="flex-none w-32 h-24"
-						     th:attr="data-original-img-src=${mealEntity.mealPic != null} ? '/meal/mealPhoto?mealId=' + ${mealEntity.mealId} : null">
-						
-						    <img th:if="${mealEntity.mealPic != null}" 
-						         th:src="@{'/meal/mealPhoto'(mealId=${mealEntity.mealId})}" 
-						         class="max-w-[150px] max-h-[100px] rounded border border-gray-300 object-contain shadow-sm" />
-						
-						    <span th:if="${mealEntity.mealPic == null}" class="no-pic-text">目前無圖片</span>
-						</div>
-
+				        <!-- 右側：圖片預覽 -->
+				        <div id="mealPicPreview" class="meal-pic-preview flex-none w-32 h-24">
+			                <img th:if="${mealEntity.mealPic != null and !#strings.isEmpty(mealEntity.mealPic)}"
+							     th:src="${mealEntity.mealPic.startsWith('upload_') or mealEntity.mealPic.matches('.*[a-f0-9\\-]{36}.*') ? '/meal-pic/' + mealEntity.mealPic : '/images/meal_pic/' + mealEntity.mealPic}"
+							     class="max-w-[150px] max-h-[100px] rounded border border-gray-300 object-contain shadow-sm" />
+				            <span th:if="${mealEntity.mealPic == null or #strings.isEmpty(mealEntity.mealPic)}" class="no-pic-text">目前無圖片</span>
+				        </div>
 				    </div>
 				</div>
-				
+
 				<input type="hidden" th:field="*{reviewTotalStars}" />
 		
                 <div class="flex justify-center mt-6 gap-x-4">
