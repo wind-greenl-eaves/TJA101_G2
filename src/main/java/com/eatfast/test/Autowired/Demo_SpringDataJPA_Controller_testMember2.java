@@ -38,7 +38,7 @@ public class Demo_SpringDataJPA_Controller_testMember2 {
 		//  使用 StringBuilder 來高效地建立 HTML 字串，比用 "+" 連接字串效能更好。
 		StringBuilder reportHtml = new StringBuilder();
 		
-		// 使用 try-with-resources 語法，確保無論是否發生錯誤，
+		// 使用 try-with-resources 語法，確保無論是否發生錯誤，	
 		// Connection, Statement, ResultSet 這些昂貴的資料庫資源都會被【自動關閉】，避免資源洩漏。
 		try (Connection con = dataSource.getConnection();
 			 Statement stmt = con.createStatement();

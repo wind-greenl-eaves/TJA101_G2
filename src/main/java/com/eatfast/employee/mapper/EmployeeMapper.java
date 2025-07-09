@@ -1,3 +1,21 @@
+// ================================================================
+// 檔案名稱: EmployeeMapper.java
+// 功能說明: 員工實體與DTO之間的對象映射轉換器
+// 架構層級: 映射層 (Mapper Layer)
+// 配對關係:
+//   - 實體層: EmployeeEntity - 資料庫實體對象
+//   - DTO層: EmployeeDTO, CreateEmployeeRequest - 資料傳輸對象
+//   - 服務層: EmployeeServiceImpl - 使用此映射器進行轉換
+//   - 控制器: 間接使用 - 透過服務層獲得轉換後的DTO
+// 設計模式: 
+//   - Mapper Pattern (映射器模式)
+//   - Object-to-Object Mapping
+//   - Data Transfer Object Pattern
+// 轉換方向:
+//   - Entity → DTO: toDto() - 用於資料查詢與API響應
+//   - DTO → Entity: toEntity() - 用於資料新增與更新
+// 安全考量: 確保敏感資料的正確映射與過濾
+// ================================================================
 package com.eatfast.employee.mapper;
 
 import com.eatfast.common.enums.AccountStatus;

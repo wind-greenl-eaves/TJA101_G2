@@ -1,3 +1,22 @@
+// ================================================================
+// 檔案名稱: EmployeeViewController.java
+// 功能說明: 員工模組視圖控制器 - 專門處理頁面顯示與導航
+// 架構層級: 視圖控制器層 (View Controller Layer)
+// 配對關係:
+//   - 服務層: EmployeeService - 獲取業務數據
+//   - 視圖層: templates/back-end/employee/*.html - 對應的 Thymeleaf 模板
+//   - API控制器: EmployeeController - RESTful API 提供者
+//   - 權限控制: 基於 Session 進行角色權限檢查
+// 設計模式:
+//   - MVC Pattern (Model-View-Controller)
+//   - Page Controller Pattern
+//   - Role-Based Access Control (RBAC)
+// 頁面導航:
+//   - /employee/select_page → 員工管理首頁
+//   - /employee/add → 新增員工頁面
+//   - /employee/listAll → 員工列表頁面
+//   - /employee/edit/{id} → 編輯員工頁面
+// ================================================================
 package com.eatfast.employee.controller;
 
 import com.eatfast.common.enums.AccountStatus;
