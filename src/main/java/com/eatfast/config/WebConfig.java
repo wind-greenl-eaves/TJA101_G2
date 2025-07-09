@@ -5,17 +5,20 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+// 標註此類別為 Spring 的組態類別
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    // 從 application.properties 讀取 app.upload.employee-photos 屬性，指定員工照片上傳路徑
     @Value("${app.upload.employee-photos}")
     private String uploadPath;
 
+    // 設定靜態資源處理器，將 /employee-photos/** 映射到本地檔案系統的指定資料夾
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/employee-photos/**")
                 .addResourceLocations("file:" + uploadPath + "/")
-                .setCachePeriod(3600)
-                .resourceChain(true);
+                .setCachePeriod(3600) // 設定快取時間為 3600 秒
+                .resourceChain(true); // 啟用資源鏈
     }
 }
