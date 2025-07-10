@@ -195,11 +195,12 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 pb-8">
             <div th:each="meal : ${mealListData}"
                  class="bg-card rounded-2xl shadow-xl border border-milktea flex flex-col items-center p-6 hover:shadow-2xl transition-shadow duration-200 relative">
-                <a th:href="@{'/menu/detail'(mealId=${meal.mealId})}">
-                    <img th:src="${meal.mealPicUrl}" alt="餐點圖片"
-					     class="w-40 h-40 object-cover rounded-xl border"
-					     onerror="this.onerror=null;this.src='/images/nopic.png';" />
-                </a>
+                <!-- 圖片區 + 漂浮購物車按鈕 -->
+			    <div class="relative w-40 h-40 mb-4 flex justify-center items-center">
+                <img th:src="${meal.mealPicUrl}" alt="餐點圖片"
+				     class="w-40 h-40 object-cover rounded-xl border"
+				     onerror="this.onerror=null;this.src='/images/nopic.png';" />
+			    </div>
                 <div class="w-full flex flex-col items-center">
                     <h2 class="text-xl font-bold text-milktea-dark mb-1 text-center" th:text="${meal.mealName}"></h2>
                     <div class="text-[#C7A083] text-lg font-semibold mb-2" th:text="'NT$ ' + ${meal.mealPrice}"></div>
@@ -210,33 +211,36 @@
                 </div>
                 
                 <div class="flex gap-2 w-full mt-auto">
-				    <!-- 移除愛心按鈕 -->
-				    <form th:if="${meal.favored}" th:action="@{/member/removeFav}" method="post" class="flex-1">
-				        <input type="hidden" name="favMealId" th:value="${meal.favMealId}" />
-				        <input type="hidden" name="redirectUrl" th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
-				        <button type="submit"
-				                class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1 btn-outline group"
-				                title="移除收藏">
-				            <i class="fas fa-heart" style="color:#d45a6b;"></i>
-				            <span class="ml-1 text-[#d45a6b] group-hover:text-[#b63a53]">已收藏</span>
-				        </button>
-				    </form>
-				    <!-- 收藏愛心按鈕 -->
-				    <form th:unless="${meal.favored}" th:action="@{/member/addFav}" method="post" class="flex-1" onsubmit="return checkLogin(event)">
-				        <input type="hidden" name="mealId" th:value="${meal.mealId}" />
-				        <input type="hidden" name="redirectUrl" th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
-				        <button type="submit"
-				                class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1 btn-outline group"
-				                title="加入收藏">
-				            <i class="far fa-heart group-hover:text-[#d45a6b]" style="color:#ccc;"></i>
-				            <span class="ml-1 text-[#A67B5B] group-hover:text-[#d45a6b]">加入收藏</span>
-				        </button>
-				    </form>
-				    <!-- 加入購物車 -->
+				    <!-- 已收藏表單 -->
+					<form th:if="${meal.favored}" th:action="@{/member/removeFav}" method="post" class="flex-1">
+					    <input type="hidden" name="favMealId" th:value="${meal.favMealId}" />
+					    <input type="hidden" name="redirectUrl" th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
+					    <button type="submit"
+					            class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex flex-col items-center justify-center btn-outline group"
+					            title="移除收藏">
+					        <i class="fas fa-heart" style="color:#d45a6b;"></i>
+					        <span class="ml-1 text-[#d45a6b] group-hover:text-[#b63a53]"></span>
+					    </button>
+					</form>
+					<!-- 未收藏表單 -->
+					<form th:unless="${meal.favored}" th:action="@{/member/addFav}" method="post" class="flex-1" onsubmit="return checkLogin(event)">
+					    <input type="hidden" name="mealId" th:value="${meal.mealId}" />
+					    <input type="hidden" name="redirectUrl" th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
+					    <button type="submit"
+					            class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex flex-col items-center justify-center btn-outline group"
+					            title="加入收藏">
+					        <i class="far fa-heart group-hover:text-[#d45a6b]" style="color:#ccc;"></i>
+					        <span class="ml-1 text-[#A67B5B] group-hover:text-[#d45a6b]"></span>
+					    </button>
+					</form>
+
+				    <!-- 加入購物車：點擊會跳modal -->
 				    <form th:action="@{/cart}" method="post" class="flex-1" onsubmit="return checkLogin(event)">
 				        <input type="hidden" name="mealId" th:value="${meal.mealId}" />
-				        <button type="submit" class="w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1">
-				            <i class="fas fa-shopping-cart"></i> 加入購物車
+				        <button type="button" class="w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1"
+						        th:attr="data-mealid=${meal.mealId}"
+		       					onclick="return handleAddToCartClick(this)">
+				            <i class="fas fa-shopping-cart"></i>
 				        </button>
 				    </form>
 				</div>
@@ -274,16 +278,59 @@
 	  </div>
 	</div>
 	
+	<!-- ======= Modal 小視窗 ======= -->
+<div id="mealDetailModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md relative">
+    <!-- 關閉按鈕 -->
+    <button type="button" onclick="closeMealModal()"
+      class="absolute top-2 right-2 text-[#A67B5B] text-xl">&times;</button>
+    <!-- 餐點圖片 -->
+    <div class="flex justify-center mb-4">
+      <img id="modalMealPic" src="/images/nopic.png" class="w-40 h-40 object-cover rounded-xl border" />
+    </div>
+    <div class="text-2xl font-bold text-milktea-dark mb-2" id="modalMealName">餐點名稱</div>
+    <div class="text-[#C7A083] text-lg font-semibold mb-2" id="modalMealPrice">NT$ 0</div>
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-yellow-400 text-lg">★</span>
+      <span id="modalMealStars" class="text-[#A67B5B] text-sm">0 / 5</span>
+    </div>
+    <!-- 數量選擇 -->
+    <div class="flex items-center gap-3 mb-5">
+      <span>數量：</span>
+      <button type="button" onclick="changeQty(-1)" class="w-8 h-8 rounded bg-[#E5D0B6]">-</button>
+      <input id="modalMealQty" type="number" min="1" value="1" class="w-12 text-center border rounded" readonly />
+      <button type="button" onclick="changeQty(1)" class="w-8 h-8 rounded bg-[#E5D0B6]">+</button>
+    </div>
+    <form method="post" action="/cart" id="modalCartForm">
+      <input type="hidden" name="mealId" id="modalMealId" />
+      <input type="hidden" name="quantity" id="modalMealFormQty" value="1" />
+      <button type="submit" class="w-full btn-primary rounded-lg px-4 py-2 mt-2">
+        <i class="fas fa-shopping-cart"></i> 加入購物車
+      </button>
+    </form>
+  </div>
+</div>
 	
    <script>
 	// 顯示請先登入的彈窗
 	function checkLogin(e) {
 	    if (!isLoggedIn) {
-	        if (e) e.preventDefault();
+		    if (e) e.preventDefault(); 
 	        showLoginModal();
-	        return false;
+	        return false; // 未登入操作不繼續
 	    }
 	    return true;
+	}
+	
+	// 購物車按鈕點擊判斷登入彈窗
+	function handleAddToCartClick(btnElement) {
+	    // 檢查登入狀態
+	    if (!checkLogin()) { 
+	        return false; // 如果未登入，就停止後續操作
+	    }
+	    // 如果已登入，則執行開啟購物車 modal 的動作
+	    openMealModal(btnElement);
+	    return false; 
 	}
 	
 	// 登入/登出 modal 控制
@@ -335,7 +382,6 @@
 	                credentials: 'same-origin'
 	            }).then(res => {
 	            	if (res.ok) {
-	                    // 登出成功，重新導向到首頁
 	                    window.location.href = '/welcome'; 
 	                } else {
 	                    alert('登出失敗，請稍後再試！');
@@ -366,7 +412,50 @@
 	        });
 	    }
 	});
+	
+	
 	</script>
+
+<script th:inline="javascript">
+  // 將 mealListData 轉成 JS 陣列（僅需用到的屬性）
+  const mealData = /*[[${mealListData}]]*/ [];
+</script>
+<script>
+  let currentMeal = null;
+  function openMealModal(btn) {
+    const mealId = Number(btn.getAttribute('data-mealid'));
+    currentMeal = mealData.find(m => m.mealId === mealId);
+    if (!currentMeal) return;
+
+    // 設定 Modal 內容
+    document.getElementById('modalMealId').value = currentMeal.mealId;
+    document.getElementById('modalMealPic').src = currentMeal.mealPicUrl;
+    document.getElementById('modalMealName').textContent = currentMeal.mealName;
+    document.getElementById('modalMealPrice').textContent = 'NT$ ' + currentMeal.mealPrice;
+    document.getElementById('modalMealStars').textContent = (currentMeal.reviewTotalStars ?? 0) + ' / 5';
+    document.getElementById('modalMealQty').value = 1;
+    document.getElementById('modalMealFormQty').value = 1;
+
+    // 顯示 Modal
+    document.getElementById('mealDetailModal').classList.remove('hidden');
+  }
+  function closeMealModal() {
+    document.getElementById('mealDetailModal').classList.add('hidden');
+  }
+  function changeQty(delta) {
+    let input = document.getElementById('modalMealQty');
+    let val = parseInt(input.value) + delta;
+    if (val < 1) val = 1;
+    input.value = val;
+    document.getElementById('modalMealFormQty').value = val;
+  }
+  // 點 Modal 背景可關閉
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('mealDetailModal').addEventListener('click', function(e) {
+      if (e.target === this) closeMealModal();
+    });
+  });
+</script>
 
 
 	<footer class="bg-brand-deep text-brand-container text-center p-6 mt-16">
