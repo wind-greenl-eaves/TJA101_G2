@@ -89,14 +89,14 @@
             </div>
 
             <div class="hidden md:flex space-x-8"> 
-                <a href="/welcome" class="text-brand-text hover:text-brand-primary font-medium text-lg">關於我們</a>
-                <a href="/welcome" class="text-brand-text hover:text-brand-primary font-medium text-lg">最新消息</a>
+                <a href="@{welcome}" class="text-brand-text hover:text-brand-primary font-medium text-lg">關於我們</a>
+                <a href="@{welcome}" class="text-brand-text hover:text-brand-primary font-medium text-lg">最新消息</a>
                 <a th:href="@{/store/select_page_store}" class="text-brand-primary font-bold text-lg">門市據點</a> 
                 <a th:href="@{/menu}" class="text-brand-text hover:text-brand-primary font-medium text-lg">我要訂餐</a> 
                 <a th:href="@{/cart}" class="text-brand-primary font-bold text-lg">購物車</a> </div>
 
             <div class="hidden md:flex items-center space-x-4">
-                <a href="/api/v1/auth/member-login" class="bg-brand-accent text-brand-deep font-bold px-5 py-2 rounded-full hover:bg-orange-400 transition-colors shadow-sm">
+                <a href="@{/api/v1/auth/member-login}" class="bg-brand-accent text-brand-deep font-bold px-5 py-2 rounded-full hover:bg-orange-400 transition-colors shadow-sm">
                     登入/註冊
                 </a>
             </div>
@@ -202,7 +202,7 @@
 						class="text-center text-lg text-gray-500 py-8 hidden">
 						<p>您的購物車是空的，快去選購吧！</p>
 						<p class="mt-4">
-							<a th:href="@{/}"
+							<a th:href="@{/menu}"
 								class="bg-brand-primary text-white px-4 py-2 rounded hover:bg-brand-primary-hover">開始購物</a>
 						</p>
 					</div>
