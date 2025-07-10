@@ -27,8 +27,11 @@ import com.eatfast.employee.dto.EmployeeDTO;
 import com.eatfast.employee.dto.UpdateEmployeeRequest;
 import com.eatfast.employee.service.EmployeeService;
 import com.eatfast.employee.service.EmployeePermissionService;
+import com.eatfast.employee.util.EmployeeLogger;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,13 +48,17 @@ import java.util.Map;
 @RequestMapping("/api/v1/employees")
 public class EmployeeController {
 
+    private static final Logger logger = LoggerFactory.getLogger(EmployeeController.class);
+    
     private final EmployeeService employeeService;
     private final EmployeePermissionService permissionService; // 新增權限服務
+    private final EmployeeLogger employeeLogger; // 新增員工專用日誌記錄器
 
     @Autowired
-    public EmployeeController(EmployeeService employeeService, EmployeePermissionService permissionService) {
+    public EmployeeController(EmployeeService employeeService, EmployeePermissionService permissionService, EmployeeLogger employeeLogger) {
         this.employeeService = employeeService;
         this.permissionService = permissionService;
+        this.employeeLogger = employeeLogger;
     }
 
     // ========================
@@ -62,16 +69,25 @@ public class EmployeeController {
     // 對應 API 路徑：POST /api/v1/employees
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<?> createEmployee(@Valid @ModelAttribute CreateEmployeeRequest request, HttpSession session) {
+        employeeLogger.logInfo("收到新增員工請求: username={}, email={}, role={}", 
+                   request.getUsername(), request.getEmail(), request.getRole());
+        
         try {
             EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
             if (currentEmployee == null) {
+                employeeLogger.logWarn("未登入用戶嘗試新增員工");
                 Map<String, String> response = new HashMap<>();
                 response.put("message", "請重新登入");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
 
+            employeeLogger.logDebug("當前登入用戶: ID={}, username={}, role={}", 
+                        currentEmployee.getEmployeeId(), currentEmployee.getUsername(), currentEmployee.getRole());
+
             // 【修正】使用統一權限服務檢查
             if (!permissionService.canCreateEmployee(currentEmployee)) {
+                employeeLogger.logWarn("用戶 {} (ID: {}) 嘗試新增員工但權限不足", 
+                           currentEmployee.getUsername(), currentEmployee.getEmployeeId());
                 Map<String, String> response = new HashMap<>();
                 response.put("message", "權限不足：您無法新增員工");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
@@ -80,11 +96,19 @@ public class EmployeeController {
             // 【修正】門市經理強制設定門市ID
             if (currentEmployee.getRole() == EmployeeRole.MANAGER) {
                 request.setStoreId(currentEmployee.getStoreId());
+                employeeLogger.logDebug("門市經理強制設定門市ID: {}", currentEmployee.getStoreId());
             }
 
+            employeeLogger.logInfo("開始創建新員工: username={}", request.getUsername());
             EmployeeDTO createdEmployee = employeeService.createEmployee(request);
+            
+            employeeLogger.logInfo("【成功】創建員工: ID={}, username={}, role={}, storeId={}", 
+                       createdEmployee.getEmployeeId(), createdEmployee.getUsername(), 
+                       createdEmployee.getRole(), createdEmployee.getStoreId());
+            
             return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
         } catch (Exception e) {
+            employeeLogger.logError("【失敗】創建員工失敗: username={}, error={}", request.getUsername(), e.getMessage());
             Map<String, String> response = new HashMap<>();
             response.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(response);
@@ -102,19 +126,36 @@ public class EmployeeController {
     //   - 一般員工無法查詢
     @GetMapping("/{id}")
     public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id, HttpSession session) {
+        logger.info("收到查詢員工請求: employeeId={}", id);
+        
         EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
         if (currentEmployee == null) {
+            logger.warn("未登入用戶嘗試查詢員工: employeeId={}", id);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        EmployeeDTO targetEmployee = employeeService.findEmployeeById(id);
-        
-        // 【修正】使用統一權限服務檢查
-        if (!permissionService.canViewEmployee(currentEmployee, targetEmployee)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        logger.debug("當前登入用戶: ID={}, username={}, role={}", 
+                    currentEmployee.getEmployeeId(), currentEmployee.getUsername(), currentEmployee.getRole());
+
+        try {
+            EmployeeDTO targetEmployee = employeeService.findEmployeeById(id);
+            logger.debug("找到目標員工: ID={}, username={}, storeId={}", 
+                        targetEmployee.getEmployeeId(), targetEmployee.getUsername(), targetEmployee.getStoreId());
+            
+            // 【修正】使用統一權限服務檢查
+            if (!permissionService.canViewEmployee(currentEmployee, targetEmployee)) {
+                logger.warn("用戶 {} (ID: {}) 嘗試查看員工 {} (ID: {}) 但權限不足", 
+                           currentEmployee.getUsername(), currentEmployee.getEmployeeId(),
+                           targetEmployee.getUsername(), targetEmployee.getEmployeeId());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            
+            logger.info("成功查詢員工: ID={}, username={}", targetEmployee.getEmployeeId(), targetEmployee.getUsername());
+            return ResponseEntity.ok(targetEmployee);
+        } catch (Exception e) {
+            logger.error("查詢員工失敗: employeeId={}, error={}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        
-        return ResponseEntity.ok(targetEmployee);
     }
     
     // ========================
@@ -131,33 +172,52 @@ public class EmployeeController {
             @RequestParam(required = false) Long storeId,
             HttpSession session
     ) {
+        logger.info("收到搜尋員工請求: username={}, role={}, status={}, storeId={}", 
+                   username, role, status, storeId);
+        
         EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
         if (currentEmployee == null) {
+            logger.warn("未登入用戶嘗試搜尋員工");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
+        logger.debug("當前登入用戶: ID={}, username={}, role={}", 
+                    currentEmployee.getEmployeeId(), currentEmployee.getUsername(), currentEmployee.getRole());
+
         // 【修正】使用統一權限服務檢查
         if (!permissionService.canAccessEmployeeList(currentEmployee)) {
+            logger.warn("用戶 {} (ID: {}) 嘗試存取員工清單但權限不足", 
+                       currentEmployee.getUsername(), currentEmployee.getEmployeeId());
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Map<String, Object> searchParams = new HashMap<>();
-        if (StringUtils.hasText(username)) searchParams.put("username", username);
-        if (role != null) searchParams.put("role", role);
-        if (status != null) searchParams.put("status", status);
-        
-        // 【修正】根據權限限制查詢範圍
-        Long[] manageableStoreIds = permissionService.getManageableStoreIds(currentEmployee);
-        if (manageableStoreIds != null && manageableStoreIds.length > 0) {
-            // 門市經理只能查詢自己門市的員工
-            searchParams.put("storeId", manageableStoreIds[0]);
-        } else if (storeId != null && currentEmployee.getRole() == EmployeeRole.HEADQUARTERS_ADMIN) {
-            // 總部管理員可以指定門市查詢
-            searchParams.put("storeId", storeId);
-        }
+        try {
+            Map<String, Object> searchParams = new HashMap<>();
+            if (StringUtils.hasText(username)) searchParams.put("username", username);
+            if (role != null) searchParams.put("role", role);
+            if (status != null) searchParams.put("status", status);
+            
+            // 【修正】根據權限限制查詢範圍
+            Long[] manageableStoreIds = permissionService.getManageableStoreIds(currentEmployee);
+            if (manageableStoreIds != null && manageableStoreIds.length > 0) {
+                // 門市經理只能查詢自己門市的員工
+                searchParams.put("storeId", manageableStoreIds[0]);
+                logger.debug("門市經理查詢限制: storeId={}", manageableStoreIds[0]);
+            } else if (storeId != null && currentEmployee.getRole() == EmployeeRole.HEADQUARTERS_ADMIN) {
+                // 總部管理員可以指定門市查詢
+                searchParams.put("storeId", storeId);
+                logger.debug("總部管理員指定門市查詢: storeId={}", storeId);
+            }
 
-        List<EmployeeDTO> employees = employeeService.searchEmployees(searchParams);
-        return ResponseEntity.ok(employees);
+            logger.debug("搜尋參數: {}", searchParams);
+            List<EmployeeDTO> employees = employeeService.searchEmployees(searchParams);
+            
+            logger.info("成功搜尋員工: 找到 {} 位員工", employees.size());
+            return ResponseEntity.ok(employees);
+        } catch (Exception e) {
+            logger.error("搜尋員工失敗: error={}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     // ========================
@@ -172,20 +232,39 @@ public class EmployeeController {
             @ModelAttribute @Valid UpdateEmployeeRequest request,
             HttpSession session) {
         
+        logger.info("收到修改員工請求: employeeId={}, updateFields={}", id, request.toString());
+        
         EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
         if (currentEmployee == null) {
+            logger.warn("未登入用戶嘗試修改員工: employeeId={}", id);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        
-        EmployeeDTO targetEmployee = employeeService.findEmployeeById(id);
-        
-        // 【修正】使用統一權限服務檢查
-        if (!permissionService.canEditEmployee(currentEmployee, targetEmployee)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
 
-        EmployeeDTO updatedEmployee = employeeService.updateEmployee(id, request);
-        return ResponseEntity.ok(updatedEmployee);
+        logger.debug("當前登入用戶: ID={}, username={}, role={}", 
+                    currentEmployee.getEmployeeId(), currentEmployee.getUsername(), currentEmployee.getRole());
+        
+        try {
+            EmployeeDTO targetEmployee = employeeService.findEmployeeById(id);
+            logger.debug("找到目標員工: ID={}, username={}, storeId={}", 
+                        targetEmployee.getEmployeeId(), targetEmployee.getUsername(), targetEmployee.getStoreId());
+            
+            // 【修正】使用統一權限服務檢查
+            if (!permissionService.canEditEmployee(currentEmployee, targetEmployee)) {
+                logger.warn("用戶 {} (ID: {}) 嘗試修改員工 {} (ID: {}) 但權限不足", 
+                           currentEmployee.getUsername(), currentEmployee.getEmployeeId(),
+                           targetEmployee.getUsername(), targetEmployee.getEmployeeId());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            logger.debug("開始更新員工資料: employeeId={}", id);
+            EmployeeDTO updatedEmployee = employeeService.updateEmployee(id, request);
+            
+            logger.info("成功更新員工: ID={}, username={}", updatedEmployee.getEmployeeId(), updatedEmployee.getUsername());
+            return ResponseEntity.ok(updatedEmployee);
+        } catch (Exception e) {
+            logger.error("更新員工失敗: employeeId={}, error={}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     // ========================
@@ -196,20 +275,39 @@ public class EmployeeController {
     // 權限說明同上。
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id, HttpSession session) {
+        logger.info("收到刪除員工請求: employeeId={}", id);
+        
         EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
         if (currentEmployee == null) {
+            logger.warn("未登入用戶嘗試刪除員工: employeeId={}", id);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        
-        EmployeeDTO targetEmployee = employeeService.findEmployeeById(id);
-        
-        // 【修正】使用統一權限服務檢查
-        if (!permissionService.canDeleteEmployee(currentEmployee, targetEmployee)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
 
-        employeeService.deleteEmployee(id);
-        return ResponseEntity.noContent().build();
+        logger.debug("當前登入用戶: ID={}, username={}, role={}", 
+                    currentEmployee.getEmployeeId(), currentEmployee.getUsername(), currentEmployee.getRole());
+        
+        try {
+            EmployeeDTO targetEmployee = employeeService.findEmployeeById(id);
+            logger.debug("找到目標員工: ID={}, username={}, storeId={}", 
+                        targetEmployee.getEmployeeId(), targetEmployee.getUsername(), targetEmployee.getStoreId());
+            
+            // 【修正】使用統一權限服務檢查
+            if (!permissionService.canDeleteEmployee(currentEmployee, targetEmployee)) {
+                logger.warn("用戶 {} (ID: {}) 嘗試刪除員工 {} (ID: {}) 但權限不足", 
+                           currentEmployee.getUsername(), currentEmployee.getEmployeeId(),
+                           targetEmployee.getUsername(), targetEmployee.getEmployeeId());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            logger.debug("開始刪除員工: employeeId={}", id);
+            employeeService.deleteEmployee(id);
+            
+            logger.info("成功刪除員工: ID={}, username={}", targetEmployee.getEmployeeId(), targetEmployee.getUsername());
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            logger.error("刪除員工失敗: employeeId={}, error={}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     // ========================
@@ -221,16 +319,32 @@ public class EmployeeController {
     //   - DELETE /api/v1/employees/{employeeId}/permissions/{permissionId}（收回）
     @PostMapping("/{employeeId}/permissions/{permissionId}")
     public ResponseEntity<Void> grantPermission(@PathVariable Long employeeId, @PathVariable Long permissionId) {
-        // 直接呼叫服務層進行授權
-        employeeService.grantPermissionToEmployee(employeeId, permissionId);
-        return ResponseEntity.noContent().build();
+        logger.info("收到授權請求: employeeId={}, permissionId={}", employeeId, permissionId);
+        
+        try {
+            // 直接呼叫服務層進行授權
+            employeeService.grantPermissionToEmployee(employeeId, permissionId);
+            logger.info("成功授權: employeeId={}, permissionId={}", employeeId, permissionId);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            logger.error("授權失敗: employeeId={}, permissionId={}, error={}", employeeId, permissionId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @DeleteMapping("/{employeeId}/permissions/{permissionId}")
     public ResponseEntity<Void> revokePermission(@PathVariable Long employeeId, @PathVariable Long permissionId) {
-        // 直接呼叫服務層收回權限
-        employeeService.revokePermissionFromEmployee(employeeId, permissionId);
-        return ResponseEntity.noContent().build();
+        logger.info("收到收回權限請求: employeeId={}, permissionId={}", employeeId, permissionId);
+        
+        try {
+            // 直接呼叫服務層收回權限
+            employeeService.revokePermissionFromEmployee(employeeId, permissionId);
+            logger.info("成功收回權限: employeeId={}, permissionId={}", employeeId, permissionId);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            logger.error("收回權限失敗: employeeId={}, permissionId={}, error={}", employeeId, permissionId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     // ========================
@@ -241,27 +355,42 @@ public class EmployeeController {
     // 前端會傳入欄位名稱與值，這裡會呼叫服務層檢查資料庫。
     @PostMapping("/validate-field")
     public ResponseEntity<Map<String, Object>> validateField(@RequestBody ValidateFieldRequest request) {
+        logger.debug("收到欄位驗證請求: field={}, value={}", request.getField(), request.getValue());
+        
         // 檢查參數是否有填寫
         if (!StringUtils.hasText(request.getField()) || !StringUtils.hasText(request.getValue())) {
+            logger.warn("欄位驗證請求參數不完整: field={}, value={}", request.getField(), request.getValue());
             Map<String, Object> response = new HashMap<>();
             response.put("isAvailable", false);
             response.put("message", "欄位名稱和值不可為空");
             return ResponseEntity.badRequest().body(response);
         }
-        // 呼叫服務層檢查唯一性
-        boolean isAvailable = employeeService.isFieldAvailable(request.getField(), request.getValue());
-        Map<String, Object> response = new HashMap<>();
-        response.put("isAvailable", isAvailable);
-        if (!isAvailable) {
-            String fieldName = switch (request.getField()) {
-                case "account" -> "登入帳號";
-                case "email" -> "電子郵件";
-                case "nationalId" -> "身分證字號";
-                default -> "該欄位";
-            };
-            response.put("message", fieldName + "「" + request.getValue() + "」已被使用或格式不正確。");
+        
+        try {
+            // 呼叫服務層檢查唯一性
+            boolean isAvailable = employeeService.isFieldAvailable(request.getField(), request.getValue());
+            logger.debug("欄位驗證結果: field={}, value={}, isAvailable={}", 
+                        request.getField(), request.getValue(), isAvailable);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("isAvailable", isAvailable);
+            if (!isAvailable) {
+                String fieldName = switch (request.getField()) {
+                    case "account" -> "登入帳號";
+                    case "email" -> "電子郵件";
+                    case "nationalId" -> "身分證字號";
+                    default -> "該欄位";
+                };
+                response.put("message", fieldName + "「" + request.getValue() + "」已被使用或格式不正確。");
+            }
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("欄位驗證失敗: field={}, value={}, error={}", request.getField(), request.getValue(), e.getMessage(), e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("isAvailable", false);
+            response.put("message", "驗證過程中發生錯誤");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-        return ResponseEntity.ok(response);
     }
 
     // ========================
@@ -272,30 +401,47 @@ public class EmployeeController {
     @PostMapping("/validate-multiple")
     public ResponseEntity<Map<String, Object>> validateMultipleFields(
             @RequestBody Map<String, String> fieldValues) {
-        Map<String, Object> response = new HashMap<>();
-        Map<String, Boolean> fieldResults = new HashMap<>();
-        Map<String, String> errorMessages = new HashMap<>();
-        boolean allValid = true;
-        for (Map.Entry<String, String> entry : fieldValues.entrySet()) {
-            String field = entry.getKey();
-            String value = entry.getValue();
-            boolean isAvailable = employeeService.isFieldAvailable(field, value);
-            fieldResults.put(field, isAvailable);
-            if (!isAvailable) {
-                allValid = false;
-                String fieldName = switch (field) {
-                    case "account" -> "登入帳號";
-                    case "email" -> "電子郵件";
-                    case "nationalId" -> "身分證字號";
-                    default -> field;
-                };
-                errorMessages.put(field, fieldName + "「" + value + "」已被使用或格式不正確");
+        logger.debug("收到批次欄位驗證請求: fields={}", fieldValues.keySet());
+        
+        try {
+            Map<String, Object> response = new HashMap<>();
+            Map<String, Boolean> fieldResults = new HashMap<>();
+            Map<String, String> errorMessages = new HashMap<>();
+            boolean allValid = true;
+            
+            for (Map.Entry<String, String> entry : fieldValues.entrySet()) {
+                String field = entry.getKey();
+                String value = entry.getValue();
+                boolean isAvailable = employeeService.isFieldAvailable(field, value);
+                fieldResults.put(field, isAvailable);
+                
+                logger.debug("批次驗證結果: field={}, value={}, isAvailable={}", field, value, isAvailable);
+                
+                if (!isAvailable) {
+                    allValid = false;
+                    String fieldName = switch (field) {
+                        case "account" -> "登入帳號";
+                        case "email" -> "電子郵件";
+                        case "nationalId" -> "身分證字號";
+                        default -> field;
+                    };
+                    errorMessages.put(field, fieldName + "「" + value + "」已被使用或格式不正確");
+                }
             }
+            
+            response.put("allValid", allValid);
+            response.put("fieldResults", fieldResults);
+            response.put("errorMessages", errorMessages);
+            
+            logger.info("批次欄位驗證完成: allValid={}, validatedFields={}", allValid, fieldValues.keySet().size());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("批次欄位驗證失敗: fields={}, error={}", fieldValues.keySet(), e.getMessage(), e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("allValid", false);
+            response.put("message", "批次驗證過程中發生錯誤");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-        response.put("allValid", allValid);
-        response.put("fieldResults", fieldResults);
-        response.put("errorMessages", errorMessages);
-        return ResponseEntity.ok(response);
     }
 
     // ========================
@@ -324,59 +470,94 @@ public class EmployeeController {
             @PathVariable Long id,
             @RequestParam("photo") MultipartFile photo,
             HttpSession session) {
+        logger.info("收到上傳員工照片請求: employeeId={}, fileName={}, fileSize={} bytes", 
+                   id, photo.getOriginalFilename(), photo.getSize());
+        
         try {
             // 取得目前登入的員工
             EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
             if (currentEmployee == null) {
+                logger.warn("未登入用戶嘗試上傳員工照片: employeeId={}", id);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
+            
+            logger.debug("當前登入用戶: ID={}, username={}, role={}", 
+                        currentEmployee.getEmployeeId(), currentEmployee.getUsername(), currentEmployee.getRole());
+            
             // 查詢要更新的員工
             EmployeeDTO targetEmployee = employeeService.findEmployeeById(id);
+            logger.debug("找到目標員工: ID={}, username={}, storeId={}", 
+                        targetEmployee.getEmployeeId(), targetEmployee.getUsername(), targetEmployee.getStoreId());
+            
             // 權限判斷
             EmployeeRole currentRole = currentEmployee.getRole();
             switch (currentRole) {
                 case HEADQUARTERS_ADMIN:
+                    logger.debug("總部管理員有權限上傳任何員工照片");
                     break;
                 case MANAGER:
                     if (!targetEmployee.getStoreId().equals(currentEmployee.getStoreId())) {
+                        logger.warn("門市經理 {} 嘗試上傳不同門市員工 {} 的照片", 
+                                   currentEmployee.getUsername(), targetEmployee.getUsername());
                         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
                     }
+                    logger.debug("門市經理有權限上傳同門市員工照片");
                     break;
                 case STAFF:
+                    logger.warn("一般員工 {} 嘗試上傳員工照片，權限不足", currentEmployee.getUsername());
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
                 default:
+                    logger.warn("未知角色 {} 嘗試上傳員工照片", currentRole);
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
+            
             // 驗證照片檔案
             if (photo.isEmpty()) {
+                logger.warn("上傳的照片檔案為空: employeeId={}", id);
                 Map<String, String> response = new HashMap<>();
                 response.put("message", "請選擇要上傳的照片檔案");
                 return ResponseEntity.badRequest().body(response);
             }
+            
             // 檢查檔案格式
             String contentType = photo.getContentType();
             if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
+                logger.warn("上傳的照片格式不支援: employeeId={}, contentType={}", id, contentType);
                 Map<String, String> response = new HashMap<>();
                 response.put("message", "只支援 JPG 或 PNG 格式的圖片");
                 return ResponseEntity.badRequest().body(response);
             }
+            
             // 檢查檔案大小 (5MB)
             if (photo.getSize() > 5 * 1024 * 1024) {
+                logger.warn("上傳的照片檔案過大: employeeId={}, fileSize={} bytes", id, photo.getSize());
                 Map<String, String> response = new HashMap<>();
                 response.put("message", "圖片大小不能超過 5MB");
                 return ResponseEntity.badRequest().body(response);
             }
+            
+            logger.debug("開始處理照片上傳: employeeId={}, fileName={}", id, photo.getOriginalFilename());
+            
             // 呼叫服務層更新照片
             EmployeeDTO updatedEmployee = employeeService.updateEmployeePhoto(id, photo);
+            
+            logger.info("成功上傳員工照片: employeeId={}, fileName={}, photoUrl={}", 
+                       id, photo.getOriginalFilename(), updatedEmployee.getPhotoUrl());
+            
             Map<String, Object> response = new HashMap<>();
             response.put("message", "照片上傳成功");
             response.put("employee", updatedEmployee);
             return ResponseEntity.ok(response);
+            
         } catch (IOException e) {
+            logger.error("照片上傳 IO 錯誤: employeeId={}, fileName={}, error={}", 
+                        id, photo.getOriginalFilename(), e.getMessage(), e);
             Map<String, String> response = new HashMap<>();
             response.put("message", "照片上傳失敗：" + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         } catch (Exception e) {
+            logger.error("照片上傳失敗: employeeId={}, fileName={}, error={}", 
+                        id, photo.getOriginalFilename(), e.getMessage(), e);
             Map<String, String> response = new HashMap<>();
             response.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(response);
