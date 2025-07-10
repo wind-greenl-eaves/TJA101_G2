@@ -170,7 +170,47 @@ public class OrderListController {
 	 */
 	@GetMapping("/select_page_OrderList")
 	public String selectPage(Model model) {
-	    return "back-end/orderlist/select_page_OrderList"; 
+		// 【新增】計算各種狀態的訂單數量，提供給前端統計卡片顯示
+		List<OrderListEntity> allOrders = orderSvc.findAll();
+		
+		// 統計各狀態訂單數量
+		long pendingCount = allOrders.stream()
+				.filter(order -> order.getOrderStatus() == OrderStatus.PENDING)
+				.count();
+		
+		long confirmedCount = allOrders.stream()
+				.filter(order -> order.getOrderStatus() == OrderStatus.CONFIRMED)
+				.count();
+		
+		long completedCount = allOrders.stream()
+				.filter(order -> order.getOrderStatus() == OrderStatus.COMPLETED)
+				.count();
+		
+		long cancelledCount = allOrders.stream()
+				.filter(order -> order.getOrderStatus() == OrderStatus.CANCELLED)
+				.count();
+		
+		// 將統計資料加入 Model
+		model.addAttribute("pendingOrdersCount", pendingCount);
+		model.addAttribute("confirmedOrdersCount", confirmedCount);
+		model.addAttribute("completedOrdersCount", completedCount);
+		model.addAttribute("cancelledOrdersCount", cancelledCount);
+		
+		// 總訂單數和今日訂單數
+		model.addAttribute("totalOrdersCount", allOrders.size());
+		
+		// 計算今日訂單數
+		long todayOrdersCount = allOrders.stream()
+				.filter(order -> {
+					if (order.getOrderDate() != null) {
+						return order.getOrderDate().toLocalDate().equals(java.time.LocalDate.now());
+					}
+					return false;
+				})
+				.count();
+		model.addAttribute("todayOrdersCount", todayOrdersCount);
+		
+		return "back-end/orderlist/select_page_OrderList"; 
 	}
 
 	/**
