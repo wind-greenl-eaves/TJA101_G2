@@ -43,6 +43,8 @@ public class CreateEmployeeRequest {
     /** 電子郵件 (必填，需符合格式) */
     @NotBlank(message = "電子郵件不可為空")
     @Email(message = "請輸入有效的電子郵件格式")
+    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", 
+             message = "電子郵件格式不正確，只能包含英文字母、數字和特殊符號")
     private String email;
 
     /** 聯絡電話 (必填，需符合手機格式) */
