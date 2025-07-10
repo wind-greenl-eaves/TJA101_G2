@@ -161,7 +161,7 @@ public class EmployeeAuthenticationFilter implements Filter {
             redirectUrl.append("?timeout=true");
             
             // 編碼錯誤訊息
-            String timeoutMessage = "登入逾時，請重新登入";
+            String timeoutMessage = "請正常登入系統，重新操作";
             String encodedMessage = URLEncoder.encode(timeoutMessage, StandardCharsets.UTF_8);
             redirectUrl.append("&message=").append(encodedMessage);
             
