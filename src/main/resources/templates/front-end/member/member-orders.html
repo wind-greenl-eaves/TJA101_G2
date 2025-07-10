@@ -304,13 +304,13 @@
                         <label for="status">訂單狀態：</label>
                         <select id="status" name="status" th:value="${param.status}">
                             <option value="">所有狀態</option>
-                            <option value="PENDING" th:selected="${param.status == 'PENDING'}">待處理</option>
+                            <option value="PENDING" th:selected="${param.status == 'PENDING'}">處理中</option>
                             <option value="CONFIRMED" th:selected="${param.status == 'CONFIRMED'}">已確認</option>
-                            <option value="PREPARING" th:selected="${param.status == 'PREPARING'}">製作中</option>
-                            <option value="READY" th:selected="${param.status == 'READY'}">待取餐</option>
+                            <option value="SHIPPED" th:selected="${param.status == 'READY'}">待取餐</option>
                             <option value="COMPLETED" th:selected="${param.status == 'COMPLETED'}">已完成</option>
                             <option value="CANCELLED" th:selected="${param.status == 'CANCELLED'}">已取消</option>
                         </select>
+                        
                     </div>
                     <div class="filter-group">
                         <label for="startDate">開始日期：</label>

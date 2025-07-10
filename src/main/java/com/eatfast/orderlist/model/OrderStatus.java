@@ -5,7 +5,7 @@ public enum OrderStatus {
     // 為每個枚舉常數加上對應的中文顯示名稱
     PENDING("處理中"),
     CONFIRMED("已確認"),
-    SHIPPED("已出餐"),
+    SHIPPED("待取餐"),
     COMPLETED("已完成"),
     CANCELLED("已取消");
 

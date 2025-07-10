@@ -10,28 +10,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-
 <link rel="stylesheet" th:href="@{/css/member/style.css}" />
-
 <style>
     body {
         background-color: var(--milk-tea-page-bg, #fcfaf7); 
         padding-top: 80px;
     }
+    /* ⭐【新增樣式】讓唯讀的純文字欄位與標籤對齊更美觀 */
+    .form-control-plaintext {
+        padding-top: .375rem;
+        padding-bottom: .375rem;
+    }
 </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center">
-                <i class="fas fa-edit mr-3" style="font-size: 1.5rem;"></i>
-                <span style="font-weight: 500; font-size: 1.25rem;">修改訂單資料</span>
-            </a>
-            <a class="btn btn-outline-light" th:href="@{/orderlist/select_page_OrderList}">
-                <i class="fas fa-arrow-left"></i> 回查詢頁
-            </a>
-        </div>
-    </nav>
+        </nav>
     
     <div class="container mt-4 mb-4">
         <div class="row justify-content-center">
@@ -39,7 +33,7 @@
 
                 <div class="card">
                     <div class="card-header">
-                       <i class="fas fa-pencil-alt"></i> 請修改以下欄位
+                       <i class="fas fa-pencil-alt"></i> 請修改訂單狀態
                     </div>
                     <div class="card-body">
                         <form th:action="@{/orderlist/update}" method="post" th:object="${orderListVO}">
@@ -50,17 +44,18 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="memberId">會員ID:</label>
-                                <input type="number" id="memberId" name="memberId" th:value="${orderListVO.member.memberId}" class="form-control" />
+                                <label>會員資訊:</label>
+                                <input type="text" th:value="${orderListVO.member?.memberId} + ' - ' + ${orderListVO.member?.username}" class="form-control-plaintext" readonly />
                             </div>
 
                             <div class="form-group">
-                                <label for="storeId">門市ID:</label>
-                                <input type="number" id="storeId" name="storeId" th:value="${orderListVO.store.storeId}" class="form-control" />
+                                <label>門市資訊:</label>
+                                <input type="text" th:value="${orderListVO.store?.storeId} + ' - ' + ${orderListVO.store?.storeName}" class="form-control-plaintext" readonly />
                             </div>
+
                             <div class="form-group">
-                                <label for="orderAmount">總金額:</label>
-                                <input type="number" id="orderAmount" th:field="*{orderAmount}" class="form-control" />
+                                <label>總金額:</label>
+                                <input type="text" th:value="'NT$ ' + *{orderAmount}" class="form-control-plaintext" readonly />
                             </div>
 
                             <div class="form-group">
@@ -73,10 +68,13 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="mealPickupNumber">取餐號:</label>
-                                <input type="number" id="mealPickupNumber" th:field="*{mealPickupNumber}" class="form-control" />
+                                <label>取餐號:</label>
+                                <input type="text" th:field="*{mealPickupNumber}" class="form-control-plaintext" readonly />
                             </div>
-
+                            
+                            <input type="hidden" name="memberId" th:value="${orderListVO.member.memberId}" />
+                            <input type="hidden" name="storeId" th:value="${orderListVO.store.storeId}" />
+                            <input type="hidden" th:field="*{orderAmount}" />
                             <hr>
 
                             <div class="text-center">
