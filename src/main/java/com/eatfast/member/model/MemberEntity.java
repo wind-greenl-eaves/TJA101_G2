@@ -136,13 +136,17 @@ public class MemberEntity {
     
     /**
      * 此會員的所有訂單。
-     * 對應資料庫 ON DELETE RESTRICT，不設定級聯刪除。
+     * 【重要】: 訂單關聯不設定級聯刪除，因為：
+     * 1. 訂單是重要的業務記錄，即使會員帳號停用也需保留
+     * 2. 會員軟刪除時(isEnabled=false)，訂單仍需保持完整性
+     * 3. 符合資料庫設計中的 ON DELETE RESTRICT 約束
      * 
      * 【路徑說明】
      * 1. 資料庫：member表 ←→ order_list表（透過 member_id 欄位）
      * 2. 程式碼：MemberEntity ←→ OrderListEntity（透過 @OneToMany）
      * 3. @JsonIgnore：防止JSON序列化時的循環引用
      * 4. mappedBy = "member"：對應到 OrderListEntity 中的 member 屬性
+     * 5. 無級聯刪除：保護歷史訂單資料完整性
      */
     @JsonIgnore
     @BatchSize(size = 10) // 優化: 抓取關聯集合時，每次最多抓 10 筆

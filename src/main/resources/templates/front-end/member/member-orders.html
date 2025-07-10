@@ -346,49 +346,55 @@
                         <div class="order-date" th:text="${#temporals.format(order.orderDate, 'yyyy年MM月dd日 HH:mm')}"></div>
                     </div>
                     <span class="order-status" 
-                          th:classappend="${order.orderStatus == 'PENDING' ? 'status-pending' : 
-                                          order.orderStatus == 'CONFIRMED' ? 'status-confirmed' : 
-                                          order.orderStatus == 'PREPARING' ? 'status-preparing' : 
-                                          order.orderStatus == 'READY' ? 'status-ready' : 
-                                          order.orderStatus == 'COMPLETED' ? 'status-completed' : 
+                          th:classappend="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? 'status-pending' : 
+                                          order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? 'status-confirmed' : 
+                                          order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? 'status-preparing' : 
+                                          order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? 'status-completed' : 
                                           'status-cancelled'}"
-                          th:text="${order.orderStatus == 'PENDING' ? '待處理' : 
-                                   order.orderStatus == 'CONFIRMED' ? '已確認' : 
-                                   order.orderStatus == 'PREPARING' ? '製作中' : 
-                                   order.orderStatus == 'READY' ? '待取餐' : 
-                                   order.orderStatus == 'COMPLETED' ? '已完成' : 
+                          th:text="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? '待處理' : 
+                                   order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? '已確認' : 
+                                   order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? '已出餐' : 
+                                   order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? '已完成' : 
                                    '已取消'}"></span>
                 </div>
                 
                 <div class="order-body">
                     <!-- 訂單項目 -->
                     <div class="order-items">
-                        <div th:each="item : ${order.orderItems}" class="order-item">
+                        <div th:each="item : ${order.orderListInfos}" class="order-item">
                             <div>
-                                <div class="item-name" th:text="${item.productName}"></div>
-                                <div class="item-details" th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.unitPrice}"></div>
+                                <div class="item-name" th:text="${item.meal?.mealName ?: '未知餐點'}"></div>
+                                <div class="item-details" th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.mealPrice}"></div>
+                                <div th:if="${item.mealCustomization != null and item.mealCustomization != ''}" 
+                                     class="item-details" th:text="'備註：' + ${item.mealCustomization}"></div>
                             </div>
-                            <div class="item-price" th:text="'$' + ${item.subtotal}"></div>
+                            <div class="item-price" th:text="'$' + ${item.quantity * item.mealPrice}"></div>
                         </div>
                     </div>
                     
                     <!-- 訂單總計 -->
                     <div class="order-total">
                         <span>訂單總額：</span>
-                        <span class="total-amount" th:text="'$' + ${order.totalAmount}"></span>
+                        <span class="total-amount" th:text="'$' + ${order.orderAmount}"></span>
+                    </div>
+                    
+                    <!-- 取餐號碼 -->
+                    <div th:if="${order.mealPickupNumber != null}" style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
+                        <strong>取餐號碼：</strong>
+                        <span style="font-size: 18px; color: #A67B5B; font-weight: bold;" th:text="${order.mealPickupNumber}"></span>
                     </div>
                     
                     <!-- 訂單操作 -->
                     <div class="order-actions">
                         <a th:href="@{/member/orders/{id}(id=${order.orderListId})}" class="btn btn-sm">📄 查看詳情</a>
-                        <button th:if="${order.orderStatus == 'PENDING'}" 
+                        <button th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING}" 
                                 class="btn btn-sm" 
                                 style="background-color: #dc3545;"
                                 onclick="cancelOrder(this)" 
                                 th:data-order-id="${order.orderListId}">
                             ❌ 取消訂單
                         </button>
-                        <button th:if="${order.orderStatus == 'COMPLETED'}" 
+                        <button th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}" 
                                 class="btn btn-sm" 
                                 style="background-color: #28a745;"
                                 onclick="reorder(this)" 

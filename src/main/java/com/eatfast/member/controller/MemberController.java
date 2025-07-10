@@ -17,6 +17,9 @@ import com.eatfast.member.model.MemberEntity;
 import com.eatfast.member.service.MemberService;
 import com.eatfast.member.validation.CreateValidation;
 import com.eatfast.member.validation.UpdateValidation;
+// 【新增】訂單相關的 import
+import com.eatfast.orderlist.model.OrderListEntity;
+import com.eatfast.orderlist.model.OrderStatus;
 // (既有 import)
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpSession;
@@ -25,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.ArrayList;
 // 【新增】時間處理和檔案下載相關的 import
 import java.time.LocalDateTime;
 import java.time.LocalDate;
@@ -537,333 +541,135 @@ public class MemberController {
                                  @RequestParam(required = false) String status,
                                  @RequestParam(required = false) String startDate,
                                  @RequestParam(required = false) String endDate) {
-        // 獲取當前會員的訂單列表
-        // List<OrderListEntity> orders = orderService.getMemberOrders(memberId, status, startDate, endDate);
-        // model.addAttribute("orders", orders);
-        return MemberViewConstants.VIEW_MEMBER_ORDERS;
-    }
-    
-    /**
-     * 【前端會員專區路由】我的收藏頁面(移至 FavController.java)
-     */
-//    @GetMapping("/favorites")
-//    public String showMemberFavorites(Model model, HttpSession session) {
-//        // 獲取當前會員的收藏列表
-//        // List<FavEntity> favorites = favService.getMemberFavorites(memberId);
-//        // model.addAttribute("favorites", favorites);
-//        return MemberViewConstants.VIEW_MEMBER_FAVORITES;
-//    }
-    
-    /**
-     * 【前端會員專區路由】帳號設定頁面
-     */
-    @GetMapping("/settings")
-    public String showMemberSettings(Model model, HttpSession session) {
-        // 【第一步：Session驗證】檢查用戶是否已登入
+        
+        // 【Session驗證】檢查登入狀態
         Long memberId = (Long) session.getAttribute("loggedInMemberId");
         Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
         
-        // 如果未登入，重定向到登入頁面
         if (memberId == null || isLoggedIn == null || !isLoggedIn) {
             return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
         }
         
-        // 【第二步：載入會員資訊】從資料庫獲取最新的會員資料
         try {
+            // 【載入會員資料】驗證會員存在且啟用
             MemberEntity member = memberService.getMemberById(memberId)
                     .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
             
-            // 檢查帳號是否仍然啟用
             if (!member.isEnabled()) {
-                // 如果帳號被停用，清除Session並重定向到登入頁面
                 session.invalidate();
                 return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN + "?error=account_disabled";
             }
             
-            // 【第三步：將會員資料傳遞給模板】
-            model.addAttribute("member", member);
+            // 【獲取會員訂單】從 member 的關聯中獲取訂單列表
+            Set<OrderListEntity> memberOrders = member.getOrders();
+            List<OrderListEntity> orders = new ArrayList<>(memberOrders);
             
-            return MemberViewConstants.VIEW_MEMBER_SETTINGS;
-            
-        } catch (EntityNotFoundException e) {
-            log.error("會員資料載入失敗: {}", e.getMessage());
-            session.invalidate();
-            return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN + "?error=member_not_found";
-        }
-    }
-
-    // ================================================================
-    // 					帳號管理相關功能 (Account Management)
-    // ================================================================
-    
-    /**
-     * 【功能】: 停用會員帳號
-     * 【請求路徑】: 處理 POST /member/settings/deactivate 請求
-     * 【安全性】: 需要登入驗證，只能停用自己的帳號
-     */
-    @PostMapping("/settings/deactivate")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> deactivateAccount(HttpSession session) {
-        Map<String, Object> response = new HashMap<>();
-        
-        try {
-            // 【第一步：Session詳細驗證和調試】
-            log.info("=== 開始停用帳號流程 ===");
-            log.info("Session ID: {}", session.getId());
-            
-            Long memberId = (Long) session.getAttribute("loggedInMemberId");
-            Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
-            String memberAccount = (String) session.getAttribute("loggedInMemberAccount");
-            String memberName = (String) session.getAttribute("loggedInMemberName");
-            
-            log.info("Session 中的會員資訊:");
-            log.info("- Member ID: {}", memberId);
-            log.info("- Is Logged In: {}", isLoggedIn);
-            log.info("- Member Account: {}", memberAccount);
-            log.info("- Member Name: {}", memberName);
-            log.info("- Session Creation Time: {}", new java.util.Date(session.getCreationTime()));
-            log.info("- Session Last Accessed Time: {}", new java.util.Date(session.getLastAccessedTime()));
-            log.info("- Session Max Inactive Interval: {} seconds", session.getMaxInactiveInterval());
-            
-            // 詳細檢查Session狀態
-            if (memberId == null) {
-                log.warn("Session 中沒有會員ID (loggedInMemberId 為 null)");
-                response.put("success", false);
-                response.put("message", "請重新登入 - Session中無會員資訊");
-                response.put("debug", "memberId is null");
-                return ResponseEntity.status(401).body(response);
-            }
-            
-            if (isLoggedIn == null || !isLoggedIn) {
-                log.warn("Session 中登入狀態無效: {}", isLoggedIn);
-                response.put("success", false);
-                response.put("message", "請重新登入 - 登入狀態無效");
-                response.put("debug", "isLoggedIn is " + isLoggedIn);
-                return ResponseEntity.status(401).body(response);
-            }
-            
-            // 【第二步：資料庫查詢和詳細調試】
-            log.info("開始查詢會員資料，會員ID: {}", memberId);
-            
-            // 先檢查會員是否存在（包括已停用的）
-            Optional<MemberEntity> memberOpt = memberService.getMemberById(memberId);
-            
-            if (memberOpt.isEmpty()) {
-                log.error("❌ 嚴重錯誤：Session中的會員ID {} 在資料庫中不存在！", memberId);
-                log.error("這可能表示:");
-                log.error("1. 會員資料被意外刪除");
-                log.error("2. 資料庫連線問題");
-                log.error("3. Session中的ID不正確");
-                
-                // 清除異常的Session
-                session.invalidate();
-                
-                response.put("success", false);
-                response.put("message", "會員資料不存在，請重新登入");
-                response.put("debug", "Member not found in database with ID: " + memberId);
-                return ResponseEntity.badRequest().body(response);
-            }
-            
-            MemberEntity member = memberOpt.get();
-            log.info("✅ 成功找到會員資料:");
-            log.info("- 會員ID: {}", member.getMemberId());
-            log.info("- 會員帳號: {}", member.getAccount());
-            log.info("- 會員姓名: {}", member.getUsername());
-            log.info("- 帳號狀態: {}", member.isEnabled() ? "啟用" : "已停用");
-            log.info("- 創建時間: {}", member.getCreatedAt());
-            log.info("- 最後更新: {}", member.getLastUpdatedAt());
-            
-            // 【第三步：檢查帳號是否已經停用】
-            if (!member.isEnabled()) {
-                log.warn("帳號已處於停用狀態: {}", member.getAccount());
-                response.put("success", false);
-                response.put("message", "帳號已處於停用狀態");
-                response.put("debug", "Account already disabled");
-                return ResponseEntity.badRequest().body(response);
-            }
-            
-            // 【第四步：執行停用操作】
-            log.info("開始停用帳號: {}", member.getAccount());
-            member.setEnabled(false);
-            
-            MemberEntity savedMember = memberService.updateMember(member);
-            log.info("✅ 帳號停用成功，更新後狀態: {}", savedMember.isEnabled() ? "啟用" : "已停用");
-            
-            // 【第五步：清除Session】
-            log.info("清除Session: {}", session.getId());
-            session.invalidate();
-            
-            log.info("=== 停用帳號流程完成 ===");
-            log.info("會員帳號停用成功: memberId={}, account={}", memberId, member.getAccount());
-            
-            response.put("success", true);
-            response.put("message", "帳號已成功停用");
-            response.put("debug", "Account deactivated successfully");
-            return ResponseEntity.ok(response);
-            
-        } catch (EntityNotFoundException e) {
-            log.error("停用帳號失敗 - 會員不存在: {}", e.getMessage());
-            response.put("success", false);
-            response.put("message", "會員資料不存在");
-            response.put("debug", "EntityNotFoundException: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-            
-        } catch (Exception e) {
-            log.error("停用帳號時發生未預期的錯誤: {}", e.getMessage(), e);
-            response.put("success", false);
-            response.put("message", "系統錯誤，請稍後再試");
-            response.put("debug", "Unexpected error: " + e.getMessage());
-            return ResponseEntity.status(500).body(response);
-        }
-    }
-
-    /**
-     * 【調試功能】檢查當前Session狀態 - 臨時診斷用
-     * 【請求路徑】: 處理 GET /member/debug/session 請求
-     */
-    @GetMapping("/debug/session")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> debugSession(HttpSession session) {
-        Map<String, Object> debugInfo = new HashMap<>();
-        
-        try {
-            // Session基本信息
-            debugInfo.put("sessionId", session.getId());
-            debugInfo.put("creationTime", new java.util.Date(session.getCreationTime()));
-            debugInfo.put("lastAccessedTime", new java.util.Date(session.getLastAccessedTime()));
-            debugInfo.put("maxInactiveInterval", session.getMaxInactiveInterval());
-            debugInfo.put("isNew", session.isNew());
-            
-            // Session中的會員信息
-            Long memberId = (Long) session.getAttribute("loggedInMemberId");
-            Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
-            String memberAccount = (String) session.getAttribute("loggedInMemberAccount");
-            String memberName = (String) session.getAttribute("loggedInMemberName");
-            
-            debugInfo.put("memberId", memberId);
-            debugInfo.put("isLoggedIn", isLoggedIn);
-            debugInfo.put("memberAccount", memberAccount);
-            debugInfo.put("memberName", memberName);
-            
-            // 如果有會員ID，檢查資料庫中的會員資料
-            if (memberId != null) {
+            // 【過濾條件處理】根據篩選條件過濾訂單
+            if (status != null && !status.trim().isEmpty()) {
                 try {
-                    Optional<MemberEntity> memberOpt = memberService.getMemberById(memberId);
-                    if (memberOpt.isPresent()) {
-                        MemberEntity member = memberOpt.get();
-                        debugInfo.put("memberInDatabase", true);
-                        debugInfo.put("memberAccountInDb", member.getAccount());
-                        debugInfo.put("memberNameInDb", member.getUsername());
-                        debugInfo.put("memberEnabled", member.isEnabled());
-                        debugInfo.put("memberCreatedAt", member.getCreatedAt());
-                        debugInfo.put("memberLastUpdated", member.getLastUpdatedAt());
-                    } else {
-                        debugInfo.put("memberInDatabase", false);
-                        debugInfo.put("error", "會員ID存在於Session中，但在資料庫中找不到對應記錄");
-                    }
-                } catch (Exception e) {
-                    debugInfo.put("databaseError", e.getMessage());
+                    OrderStatus orderStatus = OrderStatus.valueOf(status.trim());
+                    orders = orders.stream()
+                            .filter(order -> order.getOrderStatus() == orderStatus)
+                            .collect(java.util.stream.Collectors.toList());
+                } catch (IllegalArgumentException e) {
+                    log.warn("無效的訂單狀態參數: {}", status);
                 }
             }
             
-            // 所有Session屬性
-            Map<String, Object> allAttributes = new HashMap<>();
-            java.util.Enumeration<String> attributeNames = session.getAttributeNames();
-            while (attributeNames.hasMoreElements()) {
-                String name = attributeNames.nextElement();
-                Object value = session.getAttribute(name);
-                allAttributes.put(name, value != null ? value.toString() : "null");
+            // 【日期過濾】
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                try {
+                    LocalDate start = LocalDate.parse(startDate);
+                    orders = orders.stream()
+                            .filter(order -> order.getOrderDate().toLocalDate().isAfter(start.minusDays(1)))
+                            .collect(java.util.stream.Collectors.toList());
+                } catch (Exception e) {
+                    log.warn("無效的開始日期參數: {}", startDate);
+                }
             }
-            debugInfo.put("allSessionAttributes", allAttributes);
             
-            debugInfo.put("status", "success");
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                try {
+                    LocalDate end = LocalDate.parse(endDate);
+                    orders = orders.stream()
+                            .filter(order -> order.getOrderDate().toLocalDate().isBefore(end.plusDays(1)))
+                            .collect(java.util.stream.Collectors.toList());
+                } catch (Exception e) {
+                    log.warn("無效的結束日期參數: {}", endDate);
+                }
+            }
             
+            // 【排序】按訂單日期降序排列
+            orders.sort((o1, o2) -> o2.getOrderDate().compareTo(o1.getOrderDate()));
+            
+            // 【計算統計資訊】
+            Map<String, Object> orderStats = calculateOrderStats(orders);
+            
+            // 【傳遞資料到視圖】
+            model.addAttribute("orders", orders);
+            model.addAttribute("orderStats", orderStats);
+            model.addAttribute("member", member);
+            
+            // 【保持篩选參數】
+            model.addAttribute("currentStatus", status);
+            model.addAttribute("currentStartDate", startDate);
+            model.addAttribute("currentEndDate", endDate);
+            
+            log.info("會員 {} 查看訂單記錄，共 {} 筆訂單", member.getAccount(), orders.size());
+            
+        } catch (EntityNotFoundException e) {
+            log.error("載入訂單記錄失敗 - 會員不存在: {}", e.getMessage());
+            session.invalidate();
+            return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN + "?error=member_not_found";
         } catch (Exception e) {
-            debugInfo.put("status", "error");
-            debugInfo.put("error", e.getMessage());
+            log.error("載入訂單記錄時發生錯誤: {}", e.getMessage(), e);
+            model.addAttribute("errorMessage", "載入訂單記錄失敗，請稍後再試");
+            model.addAttribute("orders", new ArrayList<>());
+            model.addAttribute("orderStats", getEmptyOrderStats());
         }
         
-        return ResponseEntity.ok(debugInfo);
+        return MemberViewConstants.VIEW_MEMBER_ORDERS;
     }
-
+    
     /**
-     * 【調試功能】檢查已刪除會員查詢邏輯 - 臨時診斷用
-     * 【請求路徑】: 處理 GET /member/debug/deleted-members 請求
+     * 【輔助方法】計算訂單統計資訊
      */
-    @GetMapping("/debug/deleted-members")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> debugDeletedMembers() {
-        Map<String, Object> debugInfo = new HashMap<>();
+    private Map<String, Object> calculateOrderStats(List<OrderListEntity> orders) {
+        Map<String, Object> stats = new HashMap<>();
         
-        try {
-            log.info("=== 開始調試已刪除會員查詢 ===");
-            
-            // 1. 查詢所有會員
-            List<MemberEntity> allMembers = memberService.getAllMembers();
-            debugInfo.put("totalMembers", allMembers.size());
-            
-            // 2. 統計啟用和停用的會員數量
-            long enabledCount = allMembers.stream().filter(MemberEntity::isEnabled).count();
-            long disabledCount = allMembers.stream().filter(m -> !m.isEnabled()).count();
-            
-            debugInfo.put("enabledMembers", enabledCount);
-            debugInfo.put("disabledMembers", disabledCount);
-            
-            // 3. 使用 Service 方法查詢已刪除會員
-            List<MemberEntity> deletedMembers = memberService.getDeletedMembers();
-            debugInfo.put("deletedMembersFromService", deletedMembers.size());
-            
-            // 4. 列出所有停用會員的詳細資訊
-            List<Map<String, Object>> disabledMemberDetails = allMembers.stream()
-                .filter(m -> !m.isEnabled())
-                .map(m -> {
-                    Map<String, Object> memberInfo = new HashMap<>();
-                    memberInfo.put("memberId", m.getMemberId());
-                    memberInfo.put("account", m.getAccount());
-                    memberInfo.put("username", m.getUsername());
-                    memberInfo.put("enabled", m.isEnabled());
-                    memberInfo.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().toString() : "null");
-                    memberInfo.put("lastUpdatedAt", m.getLastUpdatedAt() != null ? m.getLastUpdatedAt().toString() : "null");
-                    return memberInfo;
-                })
-                .collect(java.util.stream.Collectors.toList());
-            
-            debugInfo.put("disabledMemberDetails", disabledMemberDetails);
-            
-            // 5. 檢查 Repository 是否正常工作
-            boolean repositoryWorking = true;
-            String repositoryError = "";
-            try {
-                // 嘗試直接使用原始查詢
-                memberService.getAllMembers();
-            } catch (Exception e) {
-                repositoryWorking = false;
-                repositoryError = e.getMessage();
-            }
-            
-            debugInfo.put("repositoryWorking", repositoryWorking);
-            debugInfo.put("repositoryError", repositoryError);
-            
-            debugInfo.put("status", "success");
-            debugInfo.put("timestamp", java.time.LocalDateTime.now().toString());
-            
-            log.info("調試結果 - 總會員: {}, 啟用: {}, 停用: {}, Service查詢已刪除: {}", 
-                     allMembers.size(), enabledCount, disabledCount, deletedMembers.size());
-            
-            return ResponseEntity.ok(debugInfo);
-            
-        } catch (Exception e) {
-            log.error("調試已刪除會員查詢時發生錯誤: {}", e.getMessage(), e);
-            debugInfo.put("status", "error");
-            debugInfo.put("error", e.getMessage());
-            debugInfo.put("stackTrace", java.util.Arrays.toString(e.getStackTrace()));
-            return ResponseEntity.status(500).body(debugInfo);
-        }
+        stats.put("totalOrders", orders.size());
+        
+        long pendingCount = orders.stream()
+                .filter(order -> order.getOrderStatus() == OrderStatus.PENDING || 
+                               order.getOrderStatus() == OrderStatus.CONFIRMED)
+                .count();
+        stats.put("pendingOrders", pendingCount);
+        
+        long completedCount = orders.stream()
+                .filter(order -> order.getOrderStatus() == OrderStatus.COMPLETED)
+                .count();
+        stats.put("completedOrders", completedCount);
+        
+        long totalAmount = orders.stream()
+                .filter(order -> order.getOrderStatus() == OrderStatus.COMPLETED)
+                .mapToLong(order -> order.getOrderAmount() != null ? order.getOrderAmount() : 0L)
+                .sum();
+        stats.put("totalAmount", totalAmount);
+        
+        return stats;
     }
-
-    // ================================================================
-    // 					輔助方法 (Helper Methods)
-    // ================================================================
+    
+    /**
+     * 【輔助方法】獲取空的統計資訊
+     */
+    private Map<String, Object> getEmptyOrderStats() {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalOrders", 0);
+        stats.put("pendingOrders", 0);
+        stats.put("completedOrders", 0);
+        stats.put("totalAmount", 0L);
+        return stats;
+    }
     
     /**
      * 【輔助方法】: 重新準備修改頁面所需的 Model。

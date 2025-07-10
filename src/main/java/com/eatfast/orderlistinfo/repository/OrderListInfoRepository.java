@@ -3,6 +3,8 @@ package com.eatfast.orderlistinfo.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.eatfast.orderlist.model.OrderListEntity;
@@ -55,4 +57,40 @@ public interface OrderListInfoRepository extends JpaRepository<OrderListInfoEnti
      */
     List<OrderListInfoEntity> findByOrderListAndReviewStars(OrderListEntity orderList, Long reviewStars);
 
+    /**
+     * 【新增】根據會員ID查詢其所有訂單明細
+     * 使用 JPQL 查詢，透過 orderList.member.memberId 關聯查詢
+     * @param memberId 會員ID
+     * @return 該會員的所有訂單明細列表
+     */
+    @Query("SELECT oli FROM OrderListInfoEntity oli WHERE oli.orderList.member.memberId = :memberId ORDER BY oli.orderList.orderDate DESC")
+    List<OrderListInfoEntity> findByMemberId(@Param("memberId") Long memberId);
+
+    /**
+     * 【新增】根據會員ID和評論狀態查詢訂單明細
+     * @param memberId 會員ID
+     * @param reviewStars 評論星等 (0 表示未評論)
+     * @return 符合條件的訂單明細列表
+     */
+    @Query("SELECT oli FROM OrderListInfoEntity oli WHERE oli.orderList.member.memberId = :memberId AND oli.reviewStars = :reviewStars ORDER BY oli.orderList.orderDate DESC")
+    List<OrderListInfoEntity> findByMemberIdAndReviewStars(@Param("memberId") Long memberId, @Param("reviewStars") Long reviewStars);
+
+    /**
+     * 【新增】查詢會員的可評論訂單明細（訂單已完成且未評論）
+     * @param memberId 會員ID
+     * @return 可評論的訂單明細列表
+     */
+    @Query("SELECT oli FROM OrderListInfoEntity oli WHERE oli.orderList.member.memberId = :memberId " +
+           "AND oli.orderList.orderStatus = com.eatfast.orderlist.model.OrderStatus.COMPLETED " +
+           "AND (oli.reviewStars = 0 OR oli.reviewStars IS NULL) " +
+           "ORDER BY oli.orderList.orderDate DESC")
+    List<OrderListInfoEntity> findReviewableByMemberId(@Param("memberId") Long memberId);
+
+    /**
+     * 【新增】統計會員的訂單明細數量
+     * @param memberId 會員ID
+     * @return 該會員的訂單明細總數
+     */
+    @Query("SELECT COUNT(oli) FROM OrderListInfoEntity oli WHERE oli.orderList.member.memberId = :memberId")
+    Long countByMemberId(@Param("memberId") Long memberId);
 }
