@@ -5,9 +5,12 @@ import com.eatfast.employee.model.EmployeeEntity;
 import com.eatfast.employee.repository.EmployeeRepository;
 import com.eatfast.news.model.NewsEntity;
 import com.eatfast.news.repository.NewsRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // ★ 1. 引入 Transactional
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.persistence.EntityNotFoundException;       // ★ 2. 引入 EntityNotFoundException
 
 import java.io.File;
 import java.io.IOException;
@@ -21,10 +24,10 @@ public class NewsService {
     private final NewsRepository newsRepository;
     private final EmployeeRepository employeeRepository;
 
-    // ✅ 從 application.properties 注入我們設定好的檔案上傳路徑
     @Value("${file.upload-dir}")
     private String uploadDir;
 
+    @Autowired
     public NewsService(NewsRepository newsRepository, EmployeeRepository employeeRepository) {
         this.newsRepository = newsRepository;
         this.employeeRepository = employeeRepository;
@@ -39,8 +42,7 @@ public class NewsService {
 
     public List<NewsEntity> getActivePublishedNews() {
         LocalDateTime currentTime = LocalDateTime.now();
-        List<NewsEntity> activeNews = newsRepository.findActivePublishedNews(NewsStatus.PUBLISHED, currentTime);
-        return activeNews;
+        return newsRepository.findActivePublishedNews(NewsStatus.PUBLISHED, currentTime);
     }
 
     public List<NewsEntity> getAllNews() {
@@ -49,27 +51,42 @@ public class NewsService {
 
     public NewsEntity findById(Long newsId) {
         return newsRepository.findByIdWithEmployee(newsId)
-                .orElseThrow(() -> new RuntimeException("找不到 ID 為 " + newsId + " 的消息"));
+                .orElseThrow(() -> new EntityNotFoundException("找不到 ID 為 " + newsId + " 的消息"));
     }
 
-    /**
-     * ✅ 我們新增的核心方法：儲存上傳的圖片檔案
-     * @param imageFile 使用者上傳的 MultipartFile 物件
-     * @return 儲存後可以用來在網頁上訪問的「相對網址路徑」
-     */
+    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+    // ★     新的 deleteNewsById 方法已整理並放置於此     ★
+    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+    @Transactional
+    public void deleteNewsById(Long id) {
+        if (!newsRepository.existsById(id)) {
+            throw new EntityNotFoundException("找不到 ID 為 " + id + " 的消息，無法刪除。");
+        }
+        newsRepository.deleteById(id);
+    }
+
     public String saveImage(MultipartFile imageFile) throws IOException {
         if (imageFile == null || imageFile.isEmpty()) {
             return null;
         }
 
+        // 確保 news 資料夾存在
+        File newsUploadDir = new File(uploadDir, "news");
+        if (!newsUploadDir.exists()) {
+            newsUploadDir.mkdirs();
+        }
+
         String originalFileName = imageFile.getOriginalFilename();
-        String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+        String fileExtension = "";
+        if (originalFileName != null && originalFileName.contains(".")) {
+            fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+        }
         String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
 
-        File destFile = new File(uploadDir + "news/" + uniqueFileName);
-        destFile.getParentFile().mkdirs();
+        File destFile = new File(newsUploadDir, uniqueFileName);
         imageFile.transferTo(destFile);
 
-        return "/uploads/images/news/" + uniqueFileName;
+        // ★ 注意：這裡回傳的路徑要和 MvcConfig 中的 addResourceHandler 對應
+        return "/uploads/news/" + uniqueFileName;
     }
 }

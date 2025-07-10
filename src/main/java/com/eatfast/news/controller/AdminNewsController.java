@@ -1,11 +1,14 @@
 package com.eatfast.news.controller;
 
+import com.eatfast.common.enums.NewsStatus;
 import com.eatfast.employee.model.EmployeeEntity;
 import com.eatfast.employee.repository.EmployeeRepository;
 import com.eatfast.news.model.NewsEntity;
 import com.eatfast.news.service.NewsService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -15,10 +18,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
 @RequestMapping("/admin/news")
+// ★ 移除原本在類別層級的 @PreAuthorize 註解 ★
 public class AdminNewsController {
 
     private final NewsService newsService;
@@ -30,20 +35,21 @@ public class AdminNewsController {
         this.employeeRepository = employeeRepository;
     }
 
-    // 顯示「新增消息」的表單頁面
+    // ★ 只有總部管理員可以進入「新增」頁面 ★
+    @PreAuthorize("hasRole('HEADQUARTERS_ADMIN')")
     @GetMapping("/create")
     public String showCreateForm(Model model) {
         model.addAttribute("news", new NewsEntity());
         return "back-end/news/news_add_form";
     }
 
-    // 處理「新增消息」的表單提交
+    // ★ 只有總部管理員可以提交「新增」表單 ★
+    @PreAuthorize("hasRole('HEADQUARTERS_ADMIN')")
     @PostMapping("/create")
     public String processCreateForm(
             @Valid @ModelAttribute("news") NewsEntity news,
             BindingResult bindingResult,
             RedirectAttributes redirectAttributes,
-            //Principal principal, // ✅ 暫時註解掉，先不使用登入者資訊
             @RequestParam("imageFile") MultipartFile imageFile) {
 
         if (bindingResult.hasErrors()) {
@@ -53,7 +59,6 @@ public class AdminNewsController {
         try {
             if (imageFile != null && !imageFile.isEmpty()) {
                 String imageUrl = newsService.saveImage(imageFile);
-                System.out.println(">>> 儲存後的圖片路徑是: " + imageUrl);
                 news.setImageUrl(imageUrl);
             }
         } catch (IOException e) {
@@ -62,15 +67,6 @@ public class AdminNewsController {
             return "back-end/news/news_add_form";
         }
 
-        /*
-         ✅ 因為我們暫時拿掉了 Principal，所以底下這些動態抓取使用者的程式碼也要先註解掉
-        String account = principal.getName();
-        EmployeeEntity currentEmployee = employeeRepository.findByAccount(account)
-                .orElseThrow(() -> new RuntimeException("系統中找不到帳號為: " + account + " 的員工"));
-        newsService.saveNews(news, currentEmployee.getEmployeeId());
-        */
-
-        // ✅ 改回我們暫時寫死的版本，先假設是 1 號員工發文
         Long tempEmployeeId = 1L;
         newsService.saveNews(news, tempEmployeeId);
 
@@ -78,19 +74,43 @@ public class AdminNewsController {
         return "redirect:/admin/news/list";
     }
 
-    // 顯示後台消息列表頁的方法
+    // ★ 只要是登入的員工，無論角色，都可以查看列表 ★
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/list")
     public String showNewsList(Model model) {
         List<NewsEntity> allNews = newsService.getAllNews();
         model.addAttribute("newsList", allNews);
         return "back-end/news/news_list_all";
     }
-
-    // 處理查看單一最新消息詳情的請求
-    @GetMapping("/{id}")
-    public String showNewsDetail(@PathVariable("id") Long newsId, Model model) {
-        NewsEntity news = newsService.findById(newsId);
-        model.addAttribute("newsDetail", news);
-        return "back-end/news/news_view_detail";
+    @PreAuthorize("hasRole('HEADQUARTERS_ADMIN')") // 同樣地，只有總部管理員能刪除
+    @GetMapping("/delete/{id}")
+    public String deleteNews(@PathVariable("id") Long newsId, RedirectAttributes redirectAttributes) {
+        try {
+            newsService.deleteNewsById(newsId);
+            // 使用 RedirectAttributes 來傳遞成功訊息
+            redirectAttributes.addFlashAttribute("successMessage", "消息 (ID: " + newsId + ") 已成功刪除！");
+        } catch (Exception e) {
+            // 如果刪除過程中發生任何錯誤（例如找不到ID），就在頁面上顯示錯誤訊息
+            redirectAttributes.addFlashAttribute("errorMessage", "刪除失敗：" + e.getMessage());
+        }
+        // 無論成功或失敗，最後都重導向回列表頁
+        return "redirect:/admin/news/list";
     }
+    // ★ 只要是登入的員工，無論角色，都可以查看詳情 ★
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/view/{id}")
+    public String showNewsDetail(@PathVariable("id") Long newsId, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            NewsEntity news = newsService.findById(newsId);
+            model.addAttribute("newsItem", news);
+            return "back-end/news/news_view_detail";
+
+        } catch (EntityNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "找不到該則消息 (ID: " + newsId + ")");
+            return "redirect:/admin/news/list";
+        }
+    }
+
+    // (未來你的編輯和刪除方法，也應該在上方加上 @PreAuthorize("hasRole('HEADQUARTERS_ADMIN')") )
+
 }

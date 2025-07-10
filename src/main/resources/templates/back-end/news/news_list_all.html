@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
 <head>
-    /* 這邊是後台員工會看到的最新消息編輯頁面 */
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>最新消息管理 - 後台系統</title>
@@ -19,12 +18,14 @@
             --milk-tea-secondary: #D2B48C; /* 次要按鈕/邊框 - 褐色 */
             --milk-tea-header: #EADDCA; /* 表頭背景 */
             --milk-tea-accent: #8A6D99; /* 強調色，柔和的紫色 */
+            --milk-tea-info: #5F9EA0;   /* 資訊按鈕顏色 - 鎘藍色 */
+            --milk-tea-info-hover: #4682B4; /* 資訊按鈕懸停 - 鋼藍色 */
         }
 
         body {
             background-color: var(--milk-tea-bg);
             color: var(--milk-tea-text);
-            font-family: 'Noto Sans TC', sans-serif; /* 也可以使用系統預設字體 */
+            font-family: 'Noto Sans TC', sans-serif;
         }
 
         .container {
@@ -35,7 +36,7 @@
         .table {
             border: 1px solid var(--milk-tea-secondary);
             border-radius: 0.5rem;
-            overflow: hidden; /* 確保圓角效果 */
+            overflow: hidden;
         }
 
         .table thead {
@@ -73,14 +74,27 @@
             color: white;
         }
 
+        /* ★ 新增 info 按鈕的樣式 */
+        .btn-info {
+            background-color: var(--milk-tea-info);
+            border-color: var(--milk-tea-info);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: var(--milk-tea-info-hover);
+            border-color: var(--milk-tea-info-hover);
+            color: white;
+        }
+
         .page-title {
             color: var(--milk-tea-primary-hover);
             font-weight: 700;
             margin-bottom: 1.5rem;
         }
 
-        .action-buttons a {
-            margin-right: 0.5rem;
+        .action-buttons a, .action-buttons .btn {
+            margin-right: 0.25rem;
         }
 
     </style>
@@ -120,17 +134,25 @@
                 <td th:text="${news.newsId}">1</td>
                 <td th:text="${news.title}" class="text-start">範例標題</td>
                 <td>
-                    <span th:if="${news.status.name() == 'PUBLISHED'}" class="badge bg-success" th:text="已發布"></span>
-                    <span th:if="${news.status.name() == 'DRAFT'}" class="badge bg-secondary" th:text="草稿"></span>
-                    <span th:if="${news.status.name() == 'ARCHIVED'}" class="badge bg-dark" th:text="已封存"></span>
+                    <span th:if="${news.status.name() == 'PUBLISHED'}" class="badge bg-success">已發布</span>
+                    <span th:if="${news.status.name() == 'DRAFT'}" class="badge bg-secondary">草稿</span>
+                    <span th:if="${news.status.name() == 'ARCHIVED'}" class="badge bg-dark">已封存</span>
                 </td>
                 <td th:text="${#temporals.format(news.startTime, 'yyyy-MM-dd HH:mm')}">2025-07-08 10:00</td>
                 <td th:text="${news.endTime != null ? #temporals.format(news.endTime, 'yyyy-MM-dd HH:mm') : '無'}">2025-08-08 10:00</td>
+
                 <td class="action-buttons">
+                    <a th:href="@{/admin/news/view/{id}(id=${news.newsId})}" class="btn btn-sm btn-info">
+                        <i class="bi bi-card-text"></i> 查看
+                    </a>
+
                     <a th:href="@{/admin/news/edit/{id}(id=${news.newsId})}" class="btn btn-sm btn-accent">
                         <i class="bi bi-pencil-square"></i> 編輯
                     </a>
-                    <a th:href="@{/admin/news/delete/{id}(id=${news.newsId})}" class="btn btn-sm btn-outline-danger">
+
+                    <a th:href="@{/admin/news/delete/{id}(id=${news.newsId})}"
+                       class="btn btn-sm btn-outline-danger"
+                       onclick="return confirm('確定要刪除這則消息嗎？\n標題：[[${news.title}]]');">
                         <i class="bi bi-trash3"></i> 刪除
                     </a>
                 </td>
