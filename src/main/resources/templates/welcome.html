@@ -1155,10 +1155,12 @@
                             <i class="fas fa-utensils"></i>
                             瀏覽菜單
                         </a>
-                        <a href="/cart" class="btn btn-outline">
-                            <i class="fas fa-shopping-cart"></i>
-                            購物車
-                        </a>
+                        <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+		                   th:href="@{/cart/test}" class="btn btn-outline">
+                            <i class="fas fa-shopping-cart"></i>購物車</a>
+		                <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+		                   th:href="@{/api/v1/auth/member-login}" class="btn btn-outline">
+		                   <i class="fas fa-shopping-cart"></i>購物車</a>
                     </div>
                 </div>
                 
@@ -1175,10 +1177,12 @@
                             <i class="fas fa-tachometer-alt"></i>
                             會員中心
                         </a>
-                        <a th:href="@{/member/favorites}" class="btn btn-outline">
-                            <i class="fas fa-heart"></i>
-                            我的收藏
-                        </a>
+                        <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+		                   th:href="@{/member/favorites}" class="btn btn-outline">
+                            <i class="fas fa-heart"></i>我的收藏</a>
+		                <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+		                   th:href="@{/api/v1/auth/member-login}" class="btn btn-outline">
+		                   <i class="fas fa-heart"></i>我的收藏</a>
                     </div>
                 </div>
                 
