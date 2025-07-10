@@ -16,14 +16,15 @@ import java.nio.charset.StandardCharsets;
  * 員工模組登入狀態檢查過濾器
  * 
  * 功能說明：
- * - 專門針對員工模組和會員管理模組的所有請求進行登入狀態檢查
+ * - 專門針對後台員工模組的所有請求進行登入狀態檢查
  * - 未登入的使用者將被自動重定向至員工登入頁面
  * - 支援 Session 超時檢測和友善的錯誤訊息
  * - 排除不需要驗證的公開路徑（如登入頁面、忘記密碼等）
+ * - 【修正】不再攔截前台會員功能，讓前台保持公開訪問
  * 
- * 適用路徑：/employee/** 和 /member/** (除了排除的公開路徑)
+ * 適用路徑：僅 /employee/** (不包含前台會員功能)
  */
-@WebFilter(urlPatterns = {"/employee/*", "/member/*"})
+@WebFilter(urlPatterns = {"/employee/*"})
 public class EmployeeAuthenticationFilter implements Filter {
 
     private static final Logger log = LoggerFactory.getLogger(EmployeeAuthenticationFilter.class);
@@ -41,7 +42,7 @@ public class EmployeeAuthenticationFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        log.info("員工認證過濾器初始化完成 - 保護路徑: /employee/* 和 /member/*");
+        log.info("員工認證過濾器初始化完成 - 保護路徑: /employee/*");
     }
 
     @Override
@@ -131,9 +132,7 @@ public class EmployeeAuthenticationFilter implements Filter {
      */
     private boolean isProtectedModulePath(String path) {
         return path.startsWith("/employee/") || 
-               path.startsWith("/member/") ||
-               path.startsWith(API_PREFIX) || 
-               path.startsWith(MEMBER_API_PREFIX);
+               path.startsWith(API_PREFIX);
     }
 
     /**
@@ -146,7 +145,7 @@ public class EmployeeAuthenticationFilter implements Filter {
         String contextPath = request.getContextPath();
         
         // 判斷是否為 AJAX/API 請求
-        if (isAjaxRequest(request) || requestedPath.startsWith(API_PREFIX) || requestedPath.startsWith(MEMBER_API_PREFIX)) {
+        if (isAjaxRequest(request) || requestedPath.startsWith(API_PREFIX)) {
             // API 請求返回 JSON 錯誤響應
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");

@@ -197,7 +197,22 @@ public class EmployeeLoginController {
             
         } catch (IllegalArgumentException e) {
             // 帳號被停用或其他業務邏輯錯誤
-            model.addAttribute("errorMessage", e.getMessage());
+            String errorMessage = e.getMessage();
+            model.addAttribute("errorMessage", errorMessage);
+            
+            // 【新增】判斷是否為登入次數限制相關的錯誤，並添加額外資訊
+            if (errorMessage.contains("還有") && errorMessage.contains("次登入機會")) {
+                // 這是登入失敗次數警告
+                model.addAttribute("isLoginWarning", true);
+                model.addAttribute("showFailureCount", true);
+                log.warn("登入失敗次數警告 - 帳號: {}, 訊息: {}", loginRequest.getAccount(), errorMessage);
+            } else if (errorMessage.contains("已被停用") || errorMessage.contains("連續登入失敗")) {
+                // 這是帳號被鎖定的錯誤
+                model.addAttribute("isAccountLocked", true);
+                model.addAttribute("showAccountLocked", true);
+                log.error("帳號已被鎖定 - 帳號: {}, 訊息: {}", loginRequest.getAccount(), errorMessage);
+            }
+            
             log.warn("登入失敗 - 帳號: {}, 原因: {}", loginRequest.getAccount(), e.getMessage());
             
         } catch (Exception e) {

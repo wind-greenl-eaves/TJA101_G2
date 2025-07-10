@@ -295,12 +295,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (employee.getLoginFailureCount() >= 8) {
             log.warn("帳號因登入失敗次數過多已被鎖定 - 帳號: {}, 失敗次數: {}", 
                 employee.getAccount(), employee.getLoginFailureCount());
-            
-            // 自動停用帳號
-            employee.setStatus(com.eatfast.common.enums.AccountStatus.INACTIVE);
-            employee.setAccountLockedTime(java.time.LocalDateTime.now());
-            employeeRepository.save(employee);
-            
             throw new IllegalArgumentException("帳號因連續登入失敗次數過多已被停用，請聯絡管理員");
         }
         
@@ -329,7 +323,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             
             log.warn("密碼驗證失敗 - 帳號: {}, 失敗次數: {}", employee.getAccount(), newFailureCount);
             
-            // 檢查是否達到停用條件
+            // 檢查是否達到停用條件 (8次)
             if (newFailureCount >= 8) {
                 employee.setStatus(com.eatfast.common.enums.AccountStatus.INACTIVE);
                 employee.setAccountLockedTime(java.time.LocalDateTime.now());
@@ -338,8 +332,8 @@ public class EmployeeServiceImpl implements EmployeeService {
                 log.error("帳號因連續登入失敗達到8次已自動停用 - 帳號: {}", employee.getAccount());
                 throw new IllegalArgumentException("帳號因連續登入失敗次數過多已被停用，請聯絡管理員");
             }
-            // 剩餘3次時警告
-            else if (newFailureCount >= 5) {
+            // 修正：在第6次失敗時開始警告 (剩餘2次機會)
+            else if (newFailureCount >= 6) {
                 int remainingAttempts = 8 - newFailureCount;
                 employeeRepository.save(employee);
                 
