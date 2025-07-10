@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>餐點菜單 | EatFast 早餐店</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    
+    <style>
+        .bg-milktea { background-color: #F7F2ED; }
+        .bg-card { background-color: #fff8f2; }
+        .text-milktea-dark { color: #A67B5B; }
+        .border-milktea { border-color: #E5D0B6; }
+        .btn-primary { background: #A67B5B; color: white; }
+        .btn-primary:hover { background: #8B5A3C; }
+        .btn-outline { border: 1.5px solid #A67B5B; color: #A67B5B; }
+        .btn-outline:hover { background: #F3E5D6; }
+        .active-category { background: #E5D0B6; color: #A67B5B; font-weight: bold; }
+        
+        :root {
+	    --primary-color: #A67B5B;         /* 奶茶深 */
+	    --primary-hover: #8B5A3C;         /* 奶茶hover */
+	    --shadow-light: #E5D0B6;          /* 奶茶陰影 */
+	    --text-color: #7a6451;            /* 莫蘭迪深文字 */
+		}
+		
+		.nav-fixed {
+		    position: fixed;
+		    top: 0; left: 0; right: 0;
+		    height: 60px;
+		    background: rgba(255,255,255,0.95);
+		    box-shadow: 0 2px 10px var(--shadow-light);
+		    z-index: 1000;
+		    backdrop-filter: blur(10px);
+		}
+		.nav-container {
+		    max-width: 1200px;
+		    margin: 0 auto;
+		    display: flex;
+		    justify-content: space-between;
+		    align-items: center;
+		    padding: 0 2rem;
+		}
+		.nav-logo {
+		    display: flex; align-items: center; gap: 1rem;
+		    text-decoration: none;
+		    color: var(--primary-color);
+		}
+		.nav-logo-icon {
+		    width: 40px; height: 40px; object-fit: contain;
+		}
+		.nav-logo-text {
+		    font-size: 1.25rem;
+		    font-weight: 700;
+		    color: var(--primary-color);
+		}
+		.nav-menu {
+		    display: flex;
+		    gap: 2rem;
+		    align-items: center;
+		}
+		.nav-link {
+		    color: var(--text-color);
+		    text-decoration: none;
+		    font-weight: 500;
+		    transition: color 0.3s;
+		    position: relative;
+		    padding: 2px 0;
+		}
+		.nav-link.active,
+		.nav-link:hover {
+		    color: var(--primary-color);
+		}
+		.nav-link::after {
+		    content: '';
+		    position: absolute;
+		    bottom: -5px;
+		    left: 0;
+		    width: 0;
+		    height: 2px;
+		    background: var(--primary-color);
+		    transition: width 0.3s;
+		}
+		.nav-link:hover::after, .nav-link.active::after {
+		    width: 100%;
+		}
+		.nav-login {
+		    background: var(--primary-color);
+		    color: white;
+		    padding: 0.5rem 1.5rem;
+		    border-radius: 50px;
+		    text-decoration: none;
+		    transition: all 0.3s;
+		    font-weight: 600;
+		    border: none;
+		    outline: none;
+		}
+		.nav-login:hover {
+		    background: var(--primary-hover);
+		    transform: translateY(-2px);
+		}
+        
+    </style>
+</head>
+<body class="bg-milktea min-h-screen">
+
+<!-- Navbar -->
+<header class="w-full shadow bg-white/70 sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto flex items-center justify-between py-2 px-5">
+        <div class="flex items-center gap-3">
+            <img src="images/123.png"alt="EatFast Logo" class="nav-logo-icon"/>
+            <span class="nav-logo-text"> EatFast 早餐店</span>
+        </div>
+        <nav class="flex gap-8">
+            <a href="/welcome" class="text-[#7a6451] hover:text-milktea-dark font-semibold">回到首頁</a>
+            <a href="/about" class="text-[#7a6451] hover:text-milktea-dark font-semibold">關於我們</a>
+            <a href="/store/storelist" class="text-[#7a6451] hover:text-milktea-dark font-semibold">門市據點</a>
+            <a href="/member/dashboard" class="text-[#7a6451] hover:text-milktea-dark font-semibold">會員專區</a>
+            <a href="/cart" class="text-[#7a6451] hover:text-milktea-dark font-semibold">購物車</a>
+        </nav>
+        
+        <!-- 登入狀態區塊 -->
+        <div class="flex items-center gap-2">
+            <!-- 已登入 -->
+            <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" class="flex items-center gap-2">
+                <span class="text-milktea-dark font-semibold">歡迎, <span th:text="${session.memberName}">會員名稱</span></span>
+                <form th:action="@{/api/v1/auth/logout}" method="post" class="inline">
+                    <button type="submit" class="px-4 py-2 rounded-full btn-outline font-semibold bg-[#fff4e6] hover:bg-[#F3E5D6] transition">
+                        <i class="fas fa-sign-out-alt"></i> 登出
+                    </button>
+                </form>
+            </div>
+            <!-- 未登入 -->
+            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+               th:href="@{/api/v1/auth/member-login}" 
+               class="px-4 py-2 rounded-full btn-outline font-semibold hover:bg-[#F3E5D6] transition">
+                <i class="fas fa-sign-in-alt"></i> 登入/註冊
+            </a>
+        </div>
+    </div>
+</header>
+
+
+<!-- 主內容區 -->    
+<div class="max-w-7xl mx-auto py-8 flex flex-col md:flex-row gap-6">
+    <!-- 左側分類區 -->
+    <aside class="w-1/5 min-w-[180px] bg-card rounded-2xl shadow-lg border border-milktea mr-8 p-6 h-fit">
+        <h2 class="text-lg font-bold text-milktea-dark mb-4">餐點種類</h2>
+        <ul class="space-y-2">
+            <li>
+                <a th:href="@{/menu}" 
+                   th:classappend="${param.type} == null ? 'active-category' : ''"
+                   class="block rounded px-4 py-2 hover:bg-[#f4ede6] transition">
+                    全部
+                </a>
+            </li>
+            <li th:each="type : ${mealTypeListData}">
+                <a th:href="@{'/menu?type=' + ${type.mealTypeId}}"
+				   th:classappend="${param.type != null and !#strings.isEmpty(param.type[0]) and T(java.lang.Long).valueOf(param.type[0]).equals(type.mealTypeId) ? 'active-category' : ''}"
+				   th:text="${type.mealName}"
+				   class="block rounded px-4 py-2 hover:bg-[#f4ede6] transition">
+				   餐點種類名稱
+				</a>
+
+
+            </li>
+        </ul>
+    </aside>
+
+    <!-- 右側餐點清單 -->
+    <main class="flex-1">
+        <!-- 標題 -->
+        <div class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-milktea-dark tracking-wider mb-2">🍳 早餐店菜單</h1>
+            <p class="text-[#7a6451] text-base mb-2">現做早餐，選用新鮮食材，每一道都值得期待！</p>
+            <span th:if="${currentMealTypeName != null}"
+			      th:text="'目前僅顯示：' + ${currentMealTypeName}"
+			      class="inline-block px-3 py-1 bg-[#F0E6D3] rounded text-[#A67B5B] text-sm">
+			</span>
+
+        </div>
+        <!-- 餐點卡片區 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 pb-8">
+            <div th:each="meal : ${mealListData}"
+                 class="bg-card rounded-2xl shadow-xl border border-milktea flex flex-col items-center p-6 hover:shadow-2xl transition-shadow duration-200 relative">
+                <a th:href="@{'/menu/detail'(mealId=${meal.mealId})}">
+                    <img th:src="${meal.mealPicUrl}"
+                         class="w-40 h-40 object-cover rounded-xl border border-[#F3E5D6] bg-gray-100 mb-4"
+                         alt="餐點圖片"
+                         onerror="this.onerror=null;this.src='/images/nopic.png';" />
+                </a>
+                <div class="w-full flex flex-col items-center">
+                    <h2 class="text-xl font-bold text-milktea-dark mb-1 text-center" th:text="${meal.mealName}"></h2>
+                    <div class="text-[#C7A083] text-lg font-semibold mb-2" th:text="'NT$ ' + ${meal.mealPrice}"></div>
+                    <span class="text-xs bg-[#FCF2E2] text-[#A67B5B] px-3 py-1 rounded mb-2"
+                          th:text="${meal.mealName}">餐點種類</span>
+                </div>
+                <div class="flex items-center justify-center gap-2 mb-3">
+                    <span class="text-yellow-400 text-lg">★</span>
+                    <span class="text-[#A67B5B] text-sm" th:text="${meal.reviewTotalStars} + ' / 5'">5 / 5</span>
+                </div>
+                
+                <div class="flex gap-2 w-full mt-auto">
+				    <!-- 移除愛心按鈕 -->
+				    <form th:if="${meal.favored}" th:action="@{/member/removeFav}" method="post" class="flex-1">
+				        <input type="hidden" name="favMealId" th:value="${meal.favMealId}" />
+				        <input type="hidden" name="redirectUrl" th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
+				        <button type="submit"
+				                class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1 btn-outline group"
+				                title="移除收藏">
+				            <i class="fas fa-heart" style="color:#d45a6b;"></i>
+				            <span class="ml-1 text-[#d45a6b] group-hover:text-[#b63a53]">已收藏</span>
+				        </button>
+				    </form>
+				    <!-- 收藏愛心按鈕 -->
+				    <form th:unless="${meal.favored}" th:action="@{/member/addFav}" method="post" class="flex-1">
+				        <input type="hidden" name="mealId" th:value="${meal.mealId}" />
+				        <input type="hidden" name="redirectUrl" th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
+				        <button type="submit"
+				                class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1 btn-outline group"
+				                title="加入收藏">
+				            <i class="far fa-heart group-hover:text-[#d45a6b]" style="color:#ccc;"></i>
+				            <span class="ml-1 text-[#A67B5B] group-hover:text-[#d45a6b]">加入收藏</span>
+				        </button>
+				    </form>
+				    <!-- 加入購物車 -->
+				    <form th:action="@{/cart}" method="post" class="flex-1">
+				        <input type="hidden" name="mealId" th:value="${meal.mealId}" />
+				        <button type="submit" class="w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1">
+				            <i class="fas fa-shopping-cart"></i> 加入購物車
+				        </button>
+				    </form>
+				</div>
+
+
+            </div>
+            <div th:if="${#lists.isEmpty(mealListData)}" class="col-span-full text-center text-milktea-dark py-10">
+                查無符合的餐點！
+            </div>
+        </div>
+    </main>
+</div>
+
+	<footer class="bg-brand-deep text-brand-container text-center p-6 mt-16">
+        <p>&copy; © 2025 EatFast 早餐店 - 版權所有 | 為您提供最優質的早餐服務 </p>
+    </footer>
+</body>
+</html>
