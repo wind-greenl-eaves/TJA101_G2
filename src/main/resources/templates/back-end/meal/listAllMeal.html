@@ -100,6 +100,12 @@
       padding: 0; /* 移除可能的內邊距，使內容更緊湊 */
     }
     
+    /* 單一餐點查詢結果在所有餐點列表中的高亮樣式 */
+    .highlighted-row {
+      background-color: #fcefdc; /* 淺米色背景 */
+      border: 2px solid #9D7C64; /* 主題色邊框 */
+    }
+    
   </style>
 </head>
 <body class="min-h-screen text-[#4A403A]">
@@ -208,27 +214,26 @@
                 <i class="fas fa-search mr-2"></i> 單一餐點查詢
             </div>
             <div class="p-6">
-                <form method="post" th:action="@{/meal/getOne_For_Display}" class="space-y-4">
+                <form id="singleQueryForm" method="post" th:action="@{/meal/getOne_For_Display}" class="space-y-4">
                     <div class="form-group">
                         <label for="mealIdSelect" class="block text-sm font-medium text-[#4A403A] mb-1">依餐點編號查詢:</label>
-                        <select name="mealId" id="mealIdSelect" class="block w-full px-3 py-2 border border-[#E2D7C1] rounded-md shadow-sm focus:outline-none focus:ring-[#9D7C64] focus:border-[#9D7C64] sm:text-sm">
+                        <select name="mealIdSelect" id="mealIdSelect" class="block w-full px-3 py-2 border border-[#E2D7C1] rounded-md shadow-sm focus:outline-none focus:ring-[#9D7C64] focus:border-[#9D7C64] sm:text-sm">
                             <option value="">請選擇餐點編號</option> 
                             <option th:each="mealItem : ${mealListData}"
 							        th:value="${mealItem.mealId}"
 							        th:text="${mealItem.mealId + ' - ' + mealItem.mealName}"
-							        th:selected="${mealItem.mealId != null and mealItem.mealId == #numbers.formatInteger(param.mealId, 0)}">
+							        th:selected="${mealItem.mealId != null and (param.mealId != null ? #strings.toString(mealItem.mealId) == param.mealId : false)}">
 							</option>
                         </select>
                     </div>
-                    
-<!--                     <div class="form-group"> -->
-<!--                     <label for="mealIdInput" class="block text-sm font-medium text-[#4A403A] mb-1">輸入餐點編號查詢:</label> -->
-<!-- 	                    <input type="text" id="mealId" name="mealId" -->
-<!-- 	                           class="block w-full px-3 py-2 border border-[#E2D7C1] rounded-md shadow-sm focus:outline-none focus:ring-[#9D7C64] focus:border-[#9D7C64] sm:text-sm" -->
-<!-- 	                           placeholder="請輸入餐點編號(如 101)" -->
-<!-- 	                           th:value="${param.mealId}">  -->
-<!--                     </div> -->
-                    
+                    <div class="form-group">
+                    <label for="mealIdInput" class="block text-sm font-medium text-[#4A403A] mb-1">輸入餐點編號查詢:</label>
+	                    <input type="text" id="mealIdInput" name="mealIdInput"
+	                           class="block w-full px-3 py-2 border border-[#E2D7C1] rounded-md shadow-sm focus:outline-none focus:ring-[#9D7C64] focus:border-[#9D7C64] sm:text-sm"
+	                           placeholder="請輸入餐點編號(如 101)"
+	                           th:value="${param.mealId != null ? param.mealId : ''}">
+                    </div>
+                    <input type="hidden" id="finalMealId" name="mealId" value="" />
                     <button type="submit" class="w-full btn-custom-primary">
                         <i class="fas fa-search mr-2"></i> 查詢
                     </button>
@@ -312,7 +317,8 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#E2D7C1]">
-                        <tr th:each="mealItem : ${mealListData}" class="hover:bg-[#f0e8dd]">
+                        <tr th:each="mealItem : ${mealListData}" class="hover:bg-[#f0e8dd]"
+                        	th:classappend="${meal != null and mealItem.mealId == meal.mealId} ? 'highlighted-row'">
                             <td th:text="${mealItem.mealId}" class="px-4 py-2"></td>
                             <td th:text="${mealItem.mealName}" class="px-4 py-2"></td>
                             <td th:text="${mealItem.mealType?.mealName}" class="px-4 py-2"></td>
@@ -372,15 +378,65 @@
   </main>
   
   <!-- 清除查詢條件 JS -->
- <script>
+<script>
   document.addEventListener('DOMContentLoaded', () => {
+    // 複合條件查詢的清除按鈕
     const resetBtn = document.getElementById('reset-btn');
-    const form = document.getElementById('searchForm');
+    const searchForm = document.getElementById('searchForm'); // 複合查詢表單
 
-    resetBtn.addEventListener('click', () => {
-      form.querySelectorAll('input, select').forEach(el => el.value = '');
-      form.submit(); // 重送表單
-    });
+    if (resetBtn && searchForm) {
+      resetBtn.addEventListener('click', () => {
+        searchForm.querySelectorAll('input, select').forEach(el => el.value = '');
+        searchForm.submit(); // 重送表單
+      });
+    }
+
+    // 單一條件查詢的表單處理
+    const singleQueryForm = document.getElementById('singleQueryForm');
+    const mealIdSelect = document.getElementById('mealIdSelect');
+    const mealIdInput = document.getElementById('mealIdInput'); // 手動輸入框的 ID
+    const finalMealId = document.getElementById('finalMealId'); // 隱藏欄位
+
+    if (singleQueryForm && mealIdSelect && mealIdInput && finalMealId) {
+        singleQueryForm.addEventListener('submit', function(event) {
+            let selectedValue = mealIdSelect.value.trim();
+            let inputValue = mealIdInput.value.trim();
+
+            if (inputValue !== '') {
+                // 如果手動輸入框有值，則優先使用手動輸入框的值
+                finalMealId.value = inputValue;
+            } else if (selectedValue !== '') {
+                // 如果下拉選單有值 (且手動輸入框無值)，則使用下拉選單的值
+                finalMealId.value = selectedValue;
+            } else {
+                // 如果兩個都沒值，阻止提交並提示
+                alert('請輸入或選擇餐點編號！');
+                event.preventDefault(); // 阻止表單提交
+                return;
+            }
+
+            // 執行基本的數字驗證 (可選，後端通常也會做)
+            // 如果輸入的不是數字，或者為空字串，都視為錯誤
+            if (isNaN(finalMealId.value) || finalMealId.value === '') {
+                alert('餐點編號格式錯誤，請輸入數字！');
+                event.preventDefault(); // 阻止表單提交
+            }
+        });
+
+        // 監聽下拉選單，當選擇時清空手動輸入框
+        mealIdSelect.addEventListener('change', function() {
+            if (this.value !== '') {
+                mealIdInput.value = ''; // 如果下拉選單選了，清空手動輸入框
+            }
+        });
+
+        // 監聽手動輸入框，當輸入時清空下拉選單
+        mealIdInput.addEventListener('input', function() {
+            if (this.value !== '') {
+                mealIdSelect.value = ''; // 如果手動輸入了，清空下拉選單
+            }
+        });
+    }
   });
 </script>
 

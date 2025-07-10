@@ -297,6 +297,19 @@
             </div>
         </div>
         
+        <!-- 餐點管理區塊 (僅總部管理員可見) -->
+        <div class="mb-6" th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
+            <div class="nav-section-title">餐點管理</div>
+            <a th:href="@{/mealtype/select_page_mealtype}" class="nav-item">
+                <i class="fas fa-list"></i>
+                <span>餐點種類管理</span>
+            </a>
+            <a th:href="@{/meal/select_page_meal}" class="nav-item">
+                <i class="fas fa-hamburger"></i>
+                <span>餐點品項管理</span>
+            </a>
+        </div>
+        
         <!-- 會員管理區塊 (僅總部管理員可見) -->
         <div class="mb-6" th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
             <div class="nav-section-title">會員管理</div>
