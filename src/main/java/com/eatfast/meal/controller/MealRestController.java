@@ -2,7 +2,9 @@ package com.eatfast.meal.controller;
 
 import com.eatfast.meal.model.MealEntity; 
 import com.eatfast.meal.model.MealRepository; 
-
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType; 
@@ -40,23 +42,32 @@ public class MealRestController {
         }
 
         MealEntity meal = mealOpt.get();
-        byte[] imageBytes = meal.getMealPic(); // 假設 MealEntity 有 getMealPic() 方法返回 byte[]
+        String fileName = meal.getMealPic(); // 取得檔案名稱，如 "milktea.jpg"
 
-        if (imageBytes == null || imageBytes.length == 0) {
-            // 如果資料庫中沒有圖片，返回預設圖片的 HTTP 轉向 (重定向)
-            // 實際項目中，可能會提供一個預設圖片的位元組陣列，或直接返回 404
-            // 這裡選擇返回 404，前端使用默認佔位圖
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND); 
+        if (fileName == null || fileName.isBlank()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        HttpHeaders headers = new HttpHeaders();
-        // 根據實際圖片類型設定 Content-Type，這裡假設是 JPEG 或 PNG
-        // 在 MealEntity 中儲存圖片類型會更健壯
-        // 如果所有圖片都是 JPEG，則使用 MediaType.IMAGE_JPEG
-        headers.setContentType(MediaType.IMAGE_JPEG); // 假設圖片是 JPEG，如果需要 PNG 則使用 MediaType.IMAGE_PNG
-        headers.setContentLength(imageBytes.length);
+        try {
+            // 假設圖片存在於專案根目錄下的 /images 目錄
+            Path imagePath = Paths.get("images", fileName); 
+            byte[] imageBytes = Files.readAllBytes(imagePath);
 
-        return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
+            HttpHeaders headers = new HttpHeaders();
+
+            // 根據副檔名判斷內容類型
+            if (fileName.toLowerCase().endsWith(".png")) {
+                headers.setContentType(MediaType.IMAGE_PNG);
+            } else {
+                headers.setContentType(MediaType.IMAGE_JPEG); // 預設 JPEG
+            }
+
+            headers.setContentLength(imageBytes.length);
+
+            return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace(); // log error
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-
 }
