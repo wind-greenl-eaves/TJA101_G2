@@ -1,4 +1,3 @@
-// src/main/java/com/eatfast/cart/service/CartServiceImpl.java
 package com.eatfast.cart.service;
 
 import com.eatfast.cart.dto.CartDTO.AddToCartRequest;
@@ -101,12 +100,10 @@ public class CartServiceImpl implements CartService {
         dto.setMealCustomization(newData.getMealCustomization());
         dto.setCreatedAt(LocalDateTime.now()); 
         dto.setCartId(null); 
+        dto.setMealPicUrl(getMealImageUrl(meal.getMealId())); 
 
         return dto;
     }
-
-    // @Override
-    // public Optional<CartItemDto> getCartItemById(Long cartId) { /* 移除或調整 */ return Optional.empty(); }
 
     @Override
     public List<CartItemDto> getCartItemsByMember(Long memberId) {
@@ -149,6 +146,7 @@ public class CartServiceImpl implements CartService {
                 dto.setMealCustomization(data.getMealCustomization());
                 dto.setCreatedAt(null);
                 dto.setCartId(null);
+                dto.setMealPicUrl(getMealImageUrl(meal.getMealId()));
 
                 cartItems.add(dto);
             }
@@ -157,15 +155,8 @@ public class CartServiceImpl implements CartService {
         return cartItems;
     }
 
-    /**
-     * 【新增】基於會員、門市、餐點ID更新購物車項目 (主要操作 Redis)。
-     * @param memberId 會員 ID。
-     * @param storeId 門市 ID。
-     * @param mealId 餐點 ID。
-     * @param request 包含更新數量和備註的請求。
-     * @return 更新後的購物車項目 DTO，如果數量為 0 且項目被移除則返回 null。
-     */
-    @Override
+    // 【關鍵修正】: 實作 updateCartItemByKeys 方法
+    @Override // 必須有 @Override 註解
     @Transactional
     public CartItemDto updateCartItemByKeys(Long memberId, Long storeId, Long mealId, UpdateCartItemRequest request) {
         // 1. 驗證關聯實體是否存在（從資料庫獲取，確保 ID 有效）
@@ -210,16 +201,11 @@ public class CartServiceImpl implements CartService {
         dto.setMealCustomization(newData.getMealCustomization());
         dto.setCreatedAt(LocalDateTime.now()); 
         dto.setCartId(null); 
+        dto.setMealPicUrl(getMealImageUrl(meal.getMealId())); 
 
         return dto;
     }
 
-    /**
-     * 【新增】基於會員、門市、餐點ID移除購物車項目 (主要操作 Redis)。
-     * @param memberId 會員 ID。
-     * @param storeId 門市 ID。
-     * @param mealId 餐點 ID。
-     */
     @Override
     @Transactional
     public void removeCartItemByKeys(Long memberId, Long storeId, Long mealId) {
@@ -230,7 +216,6 @@ public class CartServiceImpl implements CartService {
         if (deletedCount == 0) {
             throw new IllegalArgumentException("購物車項目不存在或已過期，無需移除: member=" + memberId + ", meal=" + mealId + ", store=" + storeId);
         }
-        // 重設 Key 的過期時間 (表示購物車活躍)
         redisTemplate.expire(cartKey, CART_TTL_SECONDS, TimeUnit.SECONDS);
     }
 
@@ -241,7 +226,11 @@ public class CartServiceImpl implements CartService {
         redisTemplate.delete(cartKey);
     }
 
-    // 將 CartEntity 轉換為 CartItemDto 的輔助方法 (通常用於從資料庫獲取 CartEntity 時用)
+    private String getMealImageUrl(Long mealId) {
+        // 替換為您的實際 context path
+        return "/demo/api/meals/" + mealId + "/image"; 
+    }
+
     private CartItemDto convertToDto(CartEntity cartEntity) {
         CartItemDto dto = new CartItemDto();
         dto.setCartId(cartEntity.getCartId());
@@ -256,6 +245,7 @@ public class CartServiceImpl implements CartService {
         if (cartEntity.getMeal() != null) {
             dto.setMealId(cartEntity.getMeal().getMealId());
             dto.setMealName(cartEntity.getMeal().getMealName());
+            dto.setMealPicUrl(getMealImageUrl(cartEntity.getMeal().getMealId()));
         }
         if (cartEntity.getStore() != null) {
             dto.setStoreId(cartEntity.getStore().getStoreId());

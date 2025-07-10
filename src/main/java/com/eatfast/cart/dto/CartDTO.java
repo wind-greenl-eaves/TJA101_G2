@@ -80,7 +80,9 @@ public class CartDTO { // 主類別名稱
         private Long quantity;
         private String mealCustomization;
         private LocalDateTime createdAt;
+        private String mealPicUrl;
         
+        //空的建構子
         public CartItemDto() {}
 
         public Long getCartId() { return cartId; }
@@ -103,6 +105,8 @@ public class CartDTO { // 主類別名稱
         public void setMealCustomization(String mealCustomization) { this.mealCustomization = mealCustomization; }
         public LocalDateTime getCreatedAt() { return createdAt; }
         public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+        public String getMealPicUrl() { return mealPicUrl; } // 【新增】
+        public void setMealPicUrl(String mealPicUrl) { this.mealPicUrl = mealPicUrl; } // 【新增】
     }
 
     /**

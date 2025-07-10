@@ -158,7 +158,7 @@
                 <i class="fas fa-trash-alt mr-2"></i>清空購物車
             </button>
             <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                <a th:href="@{/}" class="btn-secondary flex-1 sm:flex-none text-center w-full sm:w-auto">
+                <a th:href="@{/menu}" class="btn-secondary flex-1 sm:flex-none text-center w-full sm:w-auto">
                     <i class="fas fa-arrow-left mr-2"></i>繼續購物
                 </a>
                 <button id="checkout-btn" class="btn-primary flex-1 sm:flex-none w-full sm:w-auto">
@@ -169,7 +169,7 @@
     </div>
     <div id="empty-cart-message" class="text-center text-lg text-gray-500 py-8 hidden">
         您的購物車是空的，快去選購吧！
-        <p class="mt-4"><a th:href="@{/welcome}" class="btn-primary">開始購物</a></p>
+        <p class="mt-4"><a th:href="@{/menu}" class="btn-primary">開始購物</a></p>
     </div>
 
 </div>
