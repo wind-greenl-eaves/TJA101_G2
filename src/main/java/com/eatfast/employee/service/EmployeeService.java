@@ -92,4 +92,21 @@ public interface EmployeeService {
 	 * @throws IOException 檔案處理異常
 	 */
 	EmployeeDTO updateEmployeePhoto(Long employeeId, MultipartFile photo) throws IOException;
+
+	/**
+	 * 【新增登入安全方法】: 重置員工登入失敗次數
+	 * 管理員可以使用此方法重置員工的登入失敗次數，解鎖被鎖定的帳號
+	 * 
+	 * @param employeeId 員工編號
+	 */
+	void resetLoginFailureCount(Long employeeId);
+
+	/**
+	 * 【新增登入安全方法】: 檢查員工帳號登入狀態
+	 * 返回員工的登入失敗次數和帳號狀態資訊
+	 * 
+	 * @param employeeId 員工編號
+	 * @return 包含登入狀態資訊的 Map
+	 */
+	Map<String, Object> getEmployeeLoginStatus(Long employeeId);
 }

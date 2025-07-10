@@ -191,6 +191,33 @@ public class EmployeeEntity {
     @Column(name = "last_updated_at", nullable = false)
     private LocalDateTime lastUpdatedAt;
 
+    // ======================== 登入失敗追蹤欄位 (Login Failure Tracking) ========================
+
+    /**
+     * 登入失敗次數
+     * 記錄連續登入失敗的次數，成功登入後會重置為 0。
+     * 當達到 8 次時，帳號將被自動停用。
+     * 對應到 employee 資料表的 login_failure_count 欄位。
+     */
+    @Column(name = "login_failure_count", nullable = false)
+    private Integer loginFailureCount = 0;
+
+    /**
+     * 最後一次登入失敗時間
+     * 記錄最後一次登入失敗的時間，用於計算是否需要重置失敗次數。
+     * 對應到 employee 資料表的 last_failure_time 欄位。
+     */
+    @Column(name = "last_failure_time")
+    private LocalDateTime lastFailureTime;
+
+    /**
+     * 帳號鎖定時間
+     * 當登入失敗次數達到上限時，記錄帳號被鎖定的時間。
+     * 對應到 employee 資料表的 account_locked_time 欄位。
+     */
+    @Column(name = "account_locked_time")
+    private LocalDateTime accountLockedTime;
+
     /**
      * 版本號（樂觀鎖定）
      * 用於處理併發更新，防止資料被意外覆蓋。
@@ -311,6 +338,12 @@ public class EmployeeEntity {
     public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
     public Long getVersion() { return version; }
     public void setVersion(Long version) { this.version = version; }
+    public Integer getLoginFailureCount() { return loginFailureCount; }
+    public void setLoginFailureCount(Integer loginFailureCount) { this.loginFailureCount = loginFailureCount; }
+    public LocalDateTime getLastFailureTime() { return lastFailureTime; }
+    public void setLastFailureTime(LocalDateTime lastFailureTime) { this.lastFailureTime = lastFailureTime; }
+    public LocalDateTime getAccountLockedTime() { return accountLockedTime; }
+    public void setAccountLockedTime(LocalDateTime accountLockedTime) { this.accountLockedTime = accountLockedTime; }
 
     // ======================== equals、hashCode、toString 方法 ========================
 
