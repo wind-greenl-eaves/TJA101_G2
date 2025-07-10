@@ -111,9 +111,15 @@ public class MealService {
     // === Entity to DTO（關鍵轉換）===
     public MealDTO toDTOWithFavored(MealEntity meal, Long memberId) {
         boolean favored = false;
+        Long favMealId = null;
+        
         if (memberId != null) {
-            // 判斷該會員是否收藏過這道餐點
-            favored = favRepository.existsByMemberMemberIdAndMealMealId(memberId, meal.getMealId());
+            // 檢查會員是否已收藏此餐點
+        	var favOpt = favRepository.findByMemberMemberIdAndMealMealId(memberId, meal.getMealId());
+            if (favOpt.isPresent()) {
+                favored = true;
+                favMealId = favOpt.get().getFavMealId();
+            }
         }
         // 餐點類型名稱
         String mealTypeName = meal.getMealType() != null ? meal.getMealType().getMealName() : "";
@@ -127,8 +133,11 @@ public class MealService {
         dto.setMealPicUrl(buildMealPicUrl(meal.getMealPic())); // 圖片 URL 處理
         dto.setReviewTotalStars(meal.getReviewTotalStars());
         dto.setFavored(favored);
+        dto.setFavMealId(favMealId); // 收藏ID（若有收藏）
         dto.setMealPic(meal.getMealPic()); // 取得圖片檔名
         return dto;
+   
     }
-	
+    
 }
+	
