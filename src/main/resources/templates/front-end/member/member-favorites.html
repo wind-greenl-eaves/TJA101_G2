@@ -309,8 +309,7 @@
 	        <div class="card-container">
             <div class="favorite-badge">❤️</div>
             <div class="product-image">
-                <img th:if="${favorite.mealPicUrl}" th:src="${favorite.mealPicUrl}" th:alt="${favorite.mealName}" onerror="this.src='/images/nopic.png'">
-                <span th:unless="${favorite.mealPicUrl}">🍳</span>
+                <img th:src="${favorite.mealPicUrl}" onerror="this.src='/images/nopic.png'">
             </div>
             <div class="card-body">
 		        <div class="product-name" th:text="${favorite.mealName}">餐點名稱</div>

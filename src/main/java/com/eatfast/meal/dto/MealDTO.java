@@ -9,11 +9,12 @@ public class MealDTO {
     private Long reviewTotalStars;      // 評價總星數
     private Boolean favored;            // 會員是否已收藏
     private Long favMealId;             // 收藏餐點ID（如果已收藏，則有值）
+    private String mealPic;
 
     public MealDTO() {}
 
     public MealDTO(Long mealId, String mealName, Long mealPrice, String mealTypeName,
-    		String mealPicUrl, Long reviewTotalStars, Boolean favored, Long favMealId) {
+    		String mealPicUrl, Long reviewTotalStars, Boolean favored, Long favMealId, String mealPic) {
         this.mealId = mealId;
         this.mealName = mealName;
         this.mealPrice = mealPrice;
@@ -22,7 +23,7 @@ public class MealDTO {
         this.reviewTotalStars = reviewTotalStars;
         this.favored = favored;
         this.favMealId = favMealId;
-        
+        this.mealPic = mealPic;
         
     }
 
@@ -76,5 +77,12 @@ public class MealDTO {
 	}
     public Long getFavMealId() {
 		return favMealId;
+	}
+    
+    public String getMealPic() {
+		return mealPic;
+	}
+	public void setMealPic(String mealPic) {
+		this.mealPic = mealPic;
 	}
 }
