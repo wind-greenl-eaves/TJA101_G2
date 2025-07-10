@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.eatfast.fav.dto.FavMealDTO;
 import com.eatfast.meal.model.MealEntity;
 import com.eatfast.meal.model.MealRepository;
+import com.eatfast.meal.model.MealService;
 import com.eatfast.member.repository.MemberRepository;
 
 @Service
@@ -18,11 +19,13 @@ public class FavService {
     private final FavRepository favRepo;
     private final MealRepository mealRepo;
     private final MemberRepository memberRepo;
+    private final MealService mealService;
 
-    public FavService(FavRepository favRepo, MealRepository mealRepo, MemberRepository memberRepo) {
+    public FavService(FavRepository favRepo, MealRepository mealRepo, MemberRepository memberRepo, MealService mealService) {
         this.favRepo = favRepo;
         this.mealRepo = mealRepo;
         this.memberRepo = memberRepo;
+        this.mealService = mealService;
     }
 
     // 取得指定會員的收藏餐點詳細資料(前端顯示用)
@@ -36,7 +39,7 @@ public class FavService {
             dto.setMealPrice(meal.getMealPrice());
             dto.setMealTypeId(meal.getMealType().getMealTypeId()); // 收藏分類
 
-            String picUrl = "/mealPic/" + meal.getMealId();
+            String picUrl = mealService.buildMealPicUrl(meal.getMealPic());
             dto.setMealPicUrl(picUrl);
 
             return dto;
