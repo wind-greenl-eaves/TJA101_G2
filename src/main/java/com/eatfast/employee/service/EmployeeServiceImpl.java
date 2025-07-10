@@ -436,8 +436,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         // 生成新的臨時密碼（8位數英數混合）
         String temporaryPassword = generateTemporaryPassword();
         
-        // 更新員工密碼
-        employee.setPassword(temporaryPassword);
+        // 【修正】更新員工密碼 - 使用加密存儲確保一致性
+        employee.setPassword(passwordEncoder.encode(temporaryPassword));
         employeeRepository.save(employee);
         
         // 【新增】發送郵件通知

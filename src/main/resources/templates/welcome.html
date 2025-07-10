@@ -928,10 +928,10 @@
             </div>
             
             <div class="quick-actions">
-                <a th:href="@{/api/v1/auth/member-login}" class="cta-button primary">
-                    <i class="fas fa-sign-in-alt"></i>
-                    會員登入
-                </a>
+<!--                 <a th:href="@{/api/v1/auth/member-login}" class="cta-button primary"> -->
+<!--                     <i class="fas fa-sign-in-alt"></i> -->
+<!--                     會員登入 -->
+<!--                 </a> -->
                 <a th:href="@{/member/register}" class="cta-button">
                     <i class="fas fa-user-plus"></i>
                     立即註冊
@@ -989,6 +989,41 @@
         </div>
     </nav>
     
+    <!-- 輪播圖區域 -->
+    <div class="swiper hero-carousel">
+        <div class="swiper-wrapper">
+            <!-- 輪播項目 1 -->
+            <div class="swiper-slide hero-slide" style="background: url('/images/eatfast6.png') center/cover;">
+                <div class="hero-content">
+                    <h2 class="hero-title">新鮮現做，美味早餐</h2>
+                    <p class="hero-subtitle">使用嚴選食材，為您打造完美的早晨</p>
+                    <a href="/menu" class="hero-cta">立即點餐</a>
+                </div>
+            </div>
+            <!-- 輪播項目 2 -->
+            <div class="swiper-slide hero-slide" style="background: url('/images/eatfast7.png') center/cover;">
+                <div class="hero-content">
+                    <h2 class="hero-title">本月優惠特餐</h2>
+                    <p class="hero-subtitle"></p>
+                    <a href="/menu" class="hero-cta">立即點餐</a>
+                </div>
+            </div>
+            <!-- 輪播項目 3 -->
+            <div class="swiper-slide hero-slide" style="background: url('/images/eatfast8.png') center/cover;">
+                <div class="hero-content">
+                    <h2 class="hero-title">會員專屬福利</h2>
+                    <p class="hero-subtitle"></p>
+                    <a href="/menu" class="hero-cta">立即點餐</a>
+                </div>
+            </div>
+        </div>
+        <!-- 導航按鈕 -->
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+        <!-- 分頁器 -->
+        <div class="swiper-pagination"></div>
+    </div>
+    
     <!-- Main Content 區域 -->
     <main class="main-content">
         <!-- 歡迎區域 -->
@@ -999,41 +1034,6 @@
 <!--                 每一道餐點都是用心製作，讓您在忙碌的早晨也能享受到溫暖的美味。 -->
 <!--             </p> -->
         </section>
-        
-        <!-- 輪播圖區域 -->
-        <div class="swiper hero-carousel">
-            <div class="swiper-wrapper">
-                <!-- 輪播項目 1 -->
-                <div class="swiper-slide hero-slide" style="background: url('/images/slide1.jpg') center/cover;">
-                    <div class="hero-content">
-                        <h2 class="hero-title">新鮮現做，美味早餐</h2>
-                        <p class="hero-subtitle">使用嚴選食材，為您打造完美的早晨</p>
-                        <a href="/menu" class="hero-cta">立即點餐</a>
-                    </div>
-                </div>
-                <!-- 輪播項目 2 -->
-                <div class="swiper-slide hero-slide" style="background: url('/images/slide2.jpg') center/cover;">
-                    <div class="hero-content">
-                        <h2 class="hero-title">本月優惠特餐</h2>
-                        <p class="hero-subtitle">精選套餐85折，限時特惠中</p>
-                        <a href="/menu" class="hero-cta">查看優惠</a>
-                    </div>
-                </div>
-                <!-- 輪播項目 3 -->
-                <div class="swiper-slide hero-slide" style="background: url('/images/slide3.jpg') center/cover;">
-                    <div class="hero-content">
-                        <h2 class="hero-title">會員專屬福利</h2>
-                        <p class="hero-subtitle">加入會員即送100元購物金</p>
-                        <a href="/register" class="hero-cta">立即加入</a>
-                    </div>
-                </div>
-            </div>
-            <!-- 導航按鈕 -->
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
-            <!-- 分頁器 -->
-            <div class="swiper-pagination"></div>
-        </div>
         
         <!-- 最新消息區域 -->
         <section class="news-section">
@@ -1256,6 +1256,79 @@
     </div>
     
     <script>
+        // 等待 DOM 和 Swiper.js 都載入完成
+        document.addEventListener('DOMContentLoaded', function() {
+            // 確保 Swiper 已經載入
+            if (typeof Swiper !== 'undefined') {
+                // 初始化 Swiper
+                const swiper = new Swiper('.hero-carousel', {
+                    // 自動播放
+                    autoplay: {
+                        delay: 5000,
+                        disableOnInteraction: false,
+                    },
+                    // 循環播放
+                    loop: true,
+                    // 效果
+                    effect: 'fade',
+                    fadeEffect: {
+                        crossFade: true
+                    },
+                    // 分頁器
+                    pagination: {
+                        el: '.swiper-pagination',
+                        clickable: true,
+                    },
+                    // 導航按鈕
+                    navigation: {
+                        nextEl: '.swiper-button-next',
+                        prevEl: '.swiper-button-prev',
+                    },
+                    // 確保載入後立即開始
+                    observer: true,
+                    observeParents: true,
+                });
+                
+                console.log('Swiper 初始化成功', swiper);
+            } else {
+                console.error('Swiper.js 尚未載入');
+                // 如果 Swiper 還沒載入，等待一段時間後重試
+                setTimeout(function() {
+                    if (typeof Swiper !== 'undefined') {
+                        const swiper = new Swiper('.hero-carousel', {
+                            autoplay: {
+                                delay: 5000,
+                                disableOnInteraction: false,
+                            },
+                            loop: true,
+                            effect: 'fade',
+                            fadeEffect: {
+                                crossFade: true
+                            },
+                            pagination: {
+                                el: '.swiper-pagination',
+                                clickable: true,
+                            },
+                            navigation: {
+                                nextEl: '.swiper-button-next',
+                                prevEl: '.swiper-button-prev',
+                            },
+                        });
+                        console.log('Swiper 延遲初始化成功', swiper);
+                    }
+                }, 1000);
+            }
+            
+            // 初始化 AOS
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    duration: 1000,
+                    once: true,
+                    offset: 100
+                });
+            }
+        });
+
         // 平滑滾動效果
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -1345,39 +1418,6 @@
         // 初始化頁面透明度
         document.body.style.opacity = '0';
         document.body.style.transition = 'opacity 0.5s ease-in-out';
-        
-        // 初始化 Swiper
-        const swiper = new Swiper('.hero-carousel', {
-            // 自動播放
-            autoplay: {
-                delay: 5000,
-                disableOnInteraction: false,
-            },
-            // 循環播放
-            loop: true,
-            // 效果
-            effect: 'fade',
-            fadeEffect: {
-                crossFade: true
-            },
-            // 分頁器
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
-            },
-            // 導航按鈕
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-        });
-
-        // 初始化 AOS
-        AOS.init({
-            duration: 1000,
-            once: true,
-            offset: 100
-        });
         
         // 登出確認功能
         function confirmLogout() {

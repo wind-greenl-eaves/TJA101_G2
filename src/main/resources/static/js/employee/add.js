@@ -1,10 +1,8 @@
 /* =======================================================================================
  * 檔案: add.js (測試資料預填版)
  * 說明: 【核心修改】
- * 1. 新增 populateWithTestData() 函式，用於在頁面載入時，自動為表單填入一組隨機的、
- * 符合基本格式的測試資料。
- * 2. 在 DOMContentLoaded 事件的起始處呼叫此函式，以實現自動填寫。
- * 3. 此修改旨在加速開發與測試流程，讓開發者無需手動輸入即可快速提交表單。
+ * 1. 移除自動填充測試數據功能，避免在生產環境中意外創建測試數據。
+ * 2. 如需在開發環境中使用，請手動調用 populateWithTestData()
  * ======================================================================================= */
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('add-form');
@@ -16,36 +14,194 @@ document.addEventListener('DOMContentLoaded', function () {
     const successModalConfirm = document.getElementById('success-modal-confirm');
     
     /**
-     * 【新增函式】: 為表單填入預設的測試資料
-     * 說明: 此函式會產生隨機的帳號、信箱等，並填入表單中，方便快速測試。
+     * 【修正函式】隨機填入測試資料
+     * 生成更多樣化的隨機測試資料，確保使用英文郵件格式
+     */
+    function populateRandomTestData() {
+        const timestamp = Date.now().toString().slice(-6);
+        const randomNum = Math.floor(Math.random() * 9000) + 1000;
+        
+        // 隨機姓名陣列
+        const firstNames = ['王', '李', '張', '劉', '陳', '楊', '趙', '黃', '周', '吳', '徐', '孫', '胡', '朱', '高', '林', '何', '郭', '馬', '羅'];
+        const middleNames = ['大', '小', '志', '雅', '美', '智', '宏', '文', '建', '明', '淑', '婷', '怡', '佳', '承', '俊', '嘉', '宜', '雨', '青'];
+        const lastNames = ['明', '華', '強', '芳', '偉', '娟', '勇', '軍', '敏', '靜', '麗', '剛', '洋', '艷', '勤', '燕', '平', '東', '紅', '梅'];
+        
+        const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+        const randomMiddleName = middleNames[Math.floor(Math.random() * middleNames.length)];
+        const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+        const fullName = randomFirstName + randomMiddleName + randomLastName;
+        
+        // 【重要修正】完全獨立的英文郵件帳號生成系統
+        const emailPrefixes = [
+            'john', 'jane', 'mike', 'sarah', 'david', 'mary', 'robert', 'linda', 
+            'james', 'susan', 'michael', 'karen', 'william', 'nancy', 'richard', 
+            'lisa', 'joseph', 'betty', 'thomas', 'helen', 'daniel', 'sandra',
+            'matthew', 'donna', 'anthony', 'carol', 'mark', 'ruth', 'donald',
+            'sharon', 'steven', 'michelle', 'paul', 'laura', 'andrew', 'emily',
+            'chris', 'jessica', 'brian', 'amanda', 'kevin', 'melissa', 'gary',
+            'deborah', 'kenneth', 'stephanie', 'joshua', 'dorothy', 'jeffrey'
+        ];
+        
+        // 生成純英文的郵件帳號
+        const randomEmailPrefix = emailPrefixes[Math.floor(Math.random() * emailPrefixes.length)];
+        const emailAccount = `${randomEmailPrefix}${randomNum}`;
+        const emailAddress = `${emailAccount}@eatfast.com`;
+        
+        // 【驗證】確保郵件地址不含中文字符
+        const hasChineseChars = /[\u4e00-\u9fff]/.test(emailAddress);
+        if (hasChineseChars) {
+            console.error('❌ 郵件地址包含中文字符，重新生成');
+            populateRandomTestData(); // 遞歸重新生成
+            return;
+        }
+        
+        // 隨機性別
+        const genders = ['M', 'F'];
+        const randomGender = genders[Math.floor(Math.random() * genders.length)];
+        
+        // 根據性別生成相應的身分證字號
+        const genderDigit = randomGender === 'M' ? '1' : '2';
+        
+        // 台灣身分證字母對照
+        const idLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+        const randomLetter = idLetters[Math.floor(Math.random() * idLetters.length)];
+        const randomIdSuffix = Math.floor(Math.random() * 100000000).toString().padStart(8, '0');
+        
+        // 隨機電話號碼
+        const phoneTypes = ['0912', '0913', '0918', '0919', '0920', '0921', '0922', '0928', '0932', '0933', '0934', '0937', '0938', '0939'];
+        const randomPhoneType = phoneTypes[Math.floor(Math.random() * phoneTypes.length)];
+        const randomPhoneNum = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+        
+        // 隨機密碼
+        const passwords = [
+            `Pass${randomNum}!`,
+            `Test${randomNum}@`,
+            `Demo${randomNum}#`,
+            `User${randomNum}$`,
+            `Work${randomNum}%`
+        ];
+        const randomPassword = passwords[Math.floor(Math.random() * passwords.length)];
+        
+        try {
+            // 填入隨機資料
+            console.log('開始填入隨機測試資料...');
+            console.log('使用的英文郵件前綴:', randomEmailPrefix);
+            console.log('生成的完整郵件地址:', emailAddress);
+            
+            // 基本資料
+            const usernameInput = document.getElementById('username');
+            const accountInput = document.getElementById('account');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const phoneInput = document.getElementById('phone');
+            const nationalIdInput = document.getElementById('nationalId');
+            
+            if (usernameInput) usernameInput.value = fullName;
+            if (accountInput) accountInput.value = `emp${timestamp}${randomNum}`;
+            
+            // 【確保修正】使用預先驗證的純英文郵件地址
+            if (emailInput) {
+                emailInput.value = emailAddress;
+                console.log('✅ 已設定郵件地址:', emailAddress);
+                
+                // 二次驗證：確認設定的值確實不含中文
+                setTimeout(() => {
+                    const currentValue = emailInput.value;
+                    if (/[\u4e00-\u9fff]/.test(currentValue)) {
+                        console.error('❌ 警告：郵件欄位仍包含中文字符:', currentValue);
+                        emailInput.value = emailAddress; // 強制重設
+                    }
+                }, 100);
+            }
+            
+            if (passwordInput) passwordInput.value = randomPassword;
+            if (phoneInput) phoneInput.value = `${randomPhoneType}-${randomPhoneNum.substring(0,3)}-${randomPhoneNum.substring(3,6)}`;
+            if (nationalIdInput) nationalIdInput.value = `${randomLetter}${genderDigit}${randomIdSuffix}`;
+            
+            // 設定性別
+            const genderSelect = document.getElementById('gender');
+            if (genderSelect && genderSelect.options.length > 1) {
+                genderSelect.value = randomGender;
+                console.log(`設定性別: ${randomGender}`);
+            }
+            
+            // 隨機選擇角色（如果是總部管理員）
+            const roleSelect = document.getElementById('role');
+            if (roleSelect && roleSelect.options.length > 1) {
+                // 檢查是否為hidden input（門市經理情況）
+                if (roleSelect.type !== 'hidden') {
+                    const availableRoles = Array.from(roleSelect.options).slice(1); // 跳過第一個空選項
+                    if (availableRoles.length > 0) {
+                        const randomRole = availableRoles[Math.floor(Math.random() * availableRoles.length)];
+                        roleSelect.value = randomRole.value;
+                        console.log(`設定角色: ${randomRole.value}`);
+                    }
+                } else {
+                    console.log('角色已由系統自動設定（門市經理模式）');
+                }
+            }
+            
+            // 隨機選擇門市（如果是總部管理員）
+            const storeSelect = document.getElementById('storeId');
+            if (storeSelect && storeSelect.options.length > 1) {
+                // 檢查是否為hidden input（門市經理情況）
+                if (storeSelect.type !== 'hidden') {
+                    const availableStores = Array.from(storeSelect.options).slice(1); // 跳過第一個空選項
+                    if (availableStores.length > 0) {
+                        const randomStore = availableStores[Math.floor(Math.random() * availableStores.length)];
+                        storeSelect.value = randomStore.value;
+                        console.log(`設定門市: ${randomStore.text}`);
+                    }
+                } else {
+                    console.log('門市已由系統自動設定（門市經理模式）');
+                }
+            }
+            
+            // 顯示成功訊息
+            showMessage(`✅ 已隨機填入測試資料：${fullName}`, 'success');
+            
+            console.log('✅ 隨機填入測試資料完成:', {
+                姓名: fullName,
+                帳號: `emp${timestamp}${randomNum}`,
+                郵件: `${randomEmailPrefix}${randomNum}@eatfast.com`, // 修正後的郵件格式
+                性別: randomGender,
+                密碼: randomPassword,
+                電話: `${randomPhoneType}-${randomPhoneNum.substring(0,3)}-${randomPhoneNum.substring(3,6)}`,
+                身分證: `${randomLetter}${genderDigit}${randomIdSuffix}`
+            });
+            
+        } catch (error) {
+            console.error('❌ 填入測試資料時發生錯誤:', error);
+            showMessage('❌ 填入測試資料失敗，請檢查控制台錯誤訊息', 'error');
+        }
+    }
+
+    /**
+     * 【相容性函數】為表單填入預設的測試資料
+     * 直接調用新的隨機填入函數，確保使用正確的郵件格式
      */
     function populateWithTestData() {
-        const timestamp = Date.now().toString().slice(-6); // 取得時間戳記後6位
-        const randomSuffix = Math.floor(Math.random() * 9000) + 1000; // 產生 1000-9999 的隨機數
-        
-        // 生成一個符合格式的隨機身分證字號
-        const randomIdSuffix = Math.floor(Math.random() * 100000000).toString().padStart(8, '0');
-        const genderDigit = '1'; // 假設為男性
-        const alphabet = "ABCDEFGHJKLMNPQRSTUVXYWZIO";
-        const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
-
-        // 填入資料到各個欄位，使用時間戳記來確保帳號唯一
-        document.getElementById('username').value = `測試人員${randomSuffix}`;
-        document.getElementById('account').value = `tester${timestamp}${randomSuffix}`; // 加入時間戳記確保唯一性
-        document.getElementById('email').value = `tester${timestamp}${randomSuffix}@example.com`;
-        document.getElementById('password').value = `Test${randomSuffix}!`; // 更強的密碼格式
-        document.getElementById('phone').value = `0912${randomSuffix.toString().padStart(6, '0')}`; // 確保是合法的手機號碼
-        document.getElementById('nationalId').value = `${randomLetter}${genderDigit}${randomIdSuffix}`;
-        
-        // 設定必填的下拉選單
-        document.getElementById('role').value = 'STAFF';
-        document.getElementById('gender').value = 'M';
-        document.getElementById('storeId').value = '1';
+        console.log('調用相容性函數，重導向至隨機填入函數');
+        populateRandomTestData();
     }
     
-    // 【核心修改】: 在頁面載入完成後，立即呼叫函式以填入測試資料。
-    populateWithTestData();
+    // 在全局作用域中暴露函數，供開發者手動調用
+    window.populateWithTestData = populateWithTestData;
+    window.populateRandomTestData = populateRandomTestData;
 
+    // 【新增】隨機填入測試資料按鈕事件
+    const randomFillBtn = document.getElementById('random-fill-btn');
+    if (randomFillBtn) {
+        console.log('✅ 找到隨機填入按鈕，正在綁定事件...');
+        randomFillBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // 防止表單提交
+            console.log('🎯 隨機填入按鈕被點擊了！');
+            populateRandomTestData();
+        });
+        console.log('✅ 隨機填入按鈕事件綁定完成');
+    } else {
+        console.error('❌ 找不到隨機填入按鈕 (ID: random-fill-btn)');
+    }
 
     // 表單提交事件監聽
     form.addEventListener('submit', async function(event) {

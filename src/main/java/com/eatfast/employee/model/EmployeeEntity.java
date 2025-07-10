@@ -95,12 +95,14 @@ public class EmployeeEntity {
     private String password;
 
     /**
-     * 員工聯絡電子郵件（唯一）
-     * 這是員工的 email，不能重複，必須符合 email 格式。
+     * 員工電子郵件
+     * 這是員工的工作郵箱，必須是唯一的且符合標準格式。
      * 對應到 employee 資料表的 email 欄位。
      */
     @NotBlank(message = "電子郵件不可為空")
     @Email(message = "請輸入有效的電子郵件格式")
+    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", 
+             message = "電子郵件格式不正確，只能包含英文字母、數字和特殊符號")
     @Column(name = "email", nullable = false, length = 100, unique = true)
     private String email;
 
