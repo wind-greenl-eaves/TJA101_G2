@@ -364,6 +364,9 @@
 
             <!-- 登入表單 -->
             <form th:action="@{/employee/login}" th:object="${loginRequest}" method="post">
+                <!-- 隱藏欄位：保存返回URL -->
+                <input type="hidden" name="returnUrl" th:value="${returnUrl}" th:if="${returnUrl != null}">
+                
                 <div class="form-group">
                     <label for="account">員工帳號:</label>
                     <input type="text" 
