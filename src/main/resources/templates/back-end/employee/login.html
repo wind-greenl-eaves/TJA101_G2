@@ -462,6 +462,36 @@
             </ul>
         </div>
         
+        <!-- 【新增】調試信息區塊 - 只在開發環境顯示 -->
+        <div class="admin-helper" th:if="${employeeList == null or employeeList.isEmpty()}">
+            <h3>調試信息</h3>
+            <div style="padding: 15px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px;">
+                <p><strong>員工列表狀態檢查：</strong></p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li th:if="${employeeList == null}">❌ employeeList 為 null</li>
+                    <li th:if="${employeeList != null and employeeList.isEmpty()}">⚠️ employeeList 存在但為空列表</li>
+                    <li th:if="${noActiveEmployees}">📭 資料庫中沒有啟用狀態的員工</li>
+                    <li th:if="${employeeListError}">🚫 獲取員工列表時發生錯誤：<span th:text="${employeeListError}"></span></li>
+                </ul>
+                
+                <div th:if="${employeeList != null}">
+                    <p><strong>員工列表詳細信息：</strong></p>
+                    <p>列表大小：<span th:text="${employeeList.size()}"></span></p>
+                    <p>列表類型：<span th:text="${employeeList.getClass().getSimpleName()}"></span></p>
+                </div>
+                
+                <div style="margin-top: 15px; padding: 10px; background-color: #e8f4fd; border-radius: 4px;">
+                    <p><strong>💡 可能的解決方案：</strong></p>
+                    <ol style="margin: 5px 0; padding-left: 20px; font-size: 14px;">
+                        <li>檢查資料庫中是否有狀態為 'ACTIVE' 的員工資料</li>
+                        <li>檢查 EmployeeService.findAllActiveEmployees() 方法是否正常運作</li>
+                        <li>查看應用程式日誌了解詳細錯誤信息</li>
+                        <li>確認資料庫連接正常</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
         <!-- 已停權員工區塊 -->
         <div class="admin-helper inactive-employees" th:if="${inactiveEmployeeList != null and !inactiveEmployeeList.isEmpty()}">
             <h3>已停權員工列表</h3>
@@ -495,6 +525,15 @@
                     </div>
                 </li>
             </ul>
+        </div>
+        
+        <!-- 【新增】已停權員工調試信息 -->
+        <div class="admin-helper inactive-employees" th:if="${inactiveEmployeeListError}">
+            <h3>已停權員工列表錯誤</h3>
+            <div style="padding: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px; color: #721c24;">
+                <p><strong>錯誤信息：</strong></p>
+                <p th:text="${inactiveEmployeeListError}"></p>
+            </div>
         </div>
     </div>
 
