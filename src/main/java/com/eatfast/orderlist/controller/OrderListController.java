@@ -9,11 +9,12 @@ import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.bind.annotation.PathVariable;
+
 import com.eatfast.orderlist.model.OrderListEntity;
 import com.eatfast.orderlist.model.OrderStatus;
 import com.eatfast.orderlist.service.OrderListService;
@@ -259,4 +260,6 @@ public class OrderListController {
         // "pay" 對應到 /resources/templates/pay.html 檔案，這裡是可自定義的
         return "pay";
     }
+	
+
 }

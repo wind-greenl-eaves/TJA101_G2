@@ -246,6 +246,14 @@
             margin-bottom: 20px;
             opacity: 0.5;
         }
+        .btn-active {
+            background-color: #A67B5B;
+            color: white;
+        }
+        .btn-inactive {
+            background-color: #f0f0f0;
+            color: #333;
+        }
         @media (max-width: 768px) {
             .order-header {
                 flex-direction: column;
@@ -272,60 +280,34 @@
             <a href="/logout" onclick="return confirm('確定要登出嗎？')">🚪 登出</a>
         </div>
         
-        <!-- 訂單統計摘要 -->
-        <div class="order-summary">
-            <h3 style="margin-top: 0; color: #004085;">📊 訂單統計</h3>
-            <div class="summary-grid">
-                <div class="summary-item">
-                    <div class="summary-number" th:text="${orderStats?.totalOrders ?: 0}">0</div>
-                    <div class="summary-label">總訂單數</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-number" th:text="${orderStats?.pendingOrders ?: 0}">0</div>
-                    <div class="summary-label">待處理</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-number" th:text="${orderStats?.completedOrders ?: 0}">0</div>
-                    <div class="summary-label">已完成</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-number" th:text="${orderStats?.totalAmount ?: 0}">0</div>
-                    <div class="summary-label">總消費金額</div>
-                </div>
-            </div>
-        </div>
         
         <!-- 訂單篩選器 -->
         <div class="order-filters">
-            <h3 style="margin-top: 0; color: #333;">🔍 訂單篩選</h3>
-            <form method="get" th:action="@{/member/orders}">
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label for="status">訂單狀態：</label>
-                        <select id="status" name="status" th:value="${param.status}">
-                            <option value="">所有狀態</option>
-                            <option value="PENDING" th:selected="${param.status == 'PENDING'}">處理中</option>
-                            <option value="CONFIRMED" th:selected="${param.status == 'CONFIRMED'}">已確認</option>
-                            <option value="SHIPPED" th:selected="${param.status == 'READY'}">待取餐</option>
-                            <option value="COMPLETED" th:selected="${param.status == 'COMPLETED'}">已完成</option>
-                            <option value="CANCELLED" th:selected="${param.status == 'CANCELLED'}">已取消</option>
-                        </select>
-                        
-                    </div>
-                    <div class="filter-group">
-                        <label for="startDate">開始日期：</label>
-                        <input type="date" id="startDate" name="startDate" th:value="${param.startDate}">
-                    </div>
-                    <div class="filter-group">
-                        <label for="endDate">結束日期：</label>
-                        <input type="date" id="endDate" name="endDate" th:value="${param.endDate}">
-                    </div>
-                    <div class="filter-group" style="display: flex; align-items: end;">
-                        <button type="submit" class="btn">🔍 搜尋</button>
-                        <a href="/member/orders" class="btn" style="background-color: #6c757d;">🔄 重置</a>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>訂單狀態：</label>
+                    <div style="display: flex; gap: 10px; margin-top: 5px;">
+                        <a th:href="@{/member/orders}" 
+                           class="btn" 
+                           th:classappend="${param.status == null or param.status == '' ? 'btn-active' : 'btn-inactive'}"
+                           style="text-decoration: none;">
+                            📋 全部訂單
+                        </a>
+                        <a th:href="@{/member/orders(status='COMPLETED')}" 
+                           class="btn" 
+                           th:classappend="${param.status == 'COMPLETED' ? 'btn-active' : 'btn-inactive'}"
+                           style="text-decoration: none;">
+                            ✅ 已完成
+                        </a>
+                        <a th:href="@{/member/orders(status='INCOMPLETE')}" 
+                           class="btn" 
+                           th:classappend="${param.status == 'INCOMPLETE' ? 'btn-active' : 'btn-inactive'}"
+                           style="text-decoration: none;">
+                            ⏳ 未完成
+                        </a>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
         
         <!-- 訂單列表 -->
@@ -351,9 +333,9 @@
                                           order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? 'status-preparing' : 
                                           order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? 'status-completed' : 
                                           'status-cancelled'}"
-                          th:text="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? '待處理' : 
+                          th:text="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? '處理中' : 
                                    order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? '已確認' : 
-                                   order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? '已出餐' : 
+                                   order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? '待取餐' : 
                                    order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? '已完成' : 
                                    '已取消'}"></span>
                 </div>
@@ -411,24 +393,38 @@
         function cancelOrder(button) {
             const orderId = button.getAttribute('data-order-id');
             if (confirm('確定要取消此訂單嗎？取消後無法恢復。')) {
-                // 發送取消訂單的請求
-                fetch(`/member/orders/${orderId}/cancel`, {
+                // 禁用按鈕並顯示載入狀態
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 取消中...';
+                
+                // 使用 fetch 調用後端的取消訂單 API
+                fetch('/orderlist/delete', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                    }
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'orderListId=' + encodeURIComponent(orderId)
                 })
                 .then(response => {
                     if (response.ok) {
+                        // 取消成功，更新頁面顯示
                         alert('訂單已成功取消');
-                        location.reload();
+                        // 重新載入頁面以顯示更新後的狀態
+                        window.location.reload();
                     } else {
+                        // 取消失敗
                         alert('取消訂單失敗，請稍後再試');
+                        // 恢復按鈕狀態
+                        button.disabled = false;
+                        button.innerHTML = '❌ 取消訂單';
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     alert('取消訂單失敗，請稍後再試');
+                    // 恢復按鈕狀態
+                    button.disabled = false;
+                    button.innerHTML = '❌ 取消訂單';
                 });
             }
         }
