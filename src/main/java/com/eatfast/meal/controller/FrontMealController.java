@@ -64,19 +64,5 @@ public class FrontMealController {
         return mealTypeService.getAll();
     }
 
-    // 前台-餐點細節
-    @GetMapping("/detail")
-    public String showMenuDetail(@RequestParam("mealId") Long mealId, Model model, HttpSession session) {
-        MealEntity meal = mealService.getOneMeal(mealId);
-        if (meal == null) {
-            model.addAttribute("errorMessage", "查無此餐點！");
-            return "front-end/menu/menu-detail";
-        }
-        // 取得會員ID，傳給 DTO
-        Long memberId = (Long) session.getAttribute("loggedInMemberId");
-        MealDTO dto = mealService.toDTOWithFavored(meal, memberId);
-        model.addAttribute("meal", dto);
-        return "front-end/menu/menu-detail";
-    }
 }
 

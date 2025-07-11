@@ -6,29 +6,28 @@ public class MealDTO {
     private Long mealPrice;
     private String mealTypeName;        // 餐點種類名稱（MealTypeEntity.name）
     private String mealPicUrl;          // 餐點圖片網址
-    private Long reviewTotalStars;      // 評價總星數
     private Boolean favored;            // 會員是否已收藏
     private Long favMealId;             // 收藏餐點ID（如果已收藏，則有值）
-    private String mealPic;
+    private String mealPic;             // 餐點圖片（Base64編碼的圖片字串）
+    private Double avgStars;            // 平均星級
 
     public MealDTO() {}
 
     public MealDTO(Long mealId, String mealName, Long mealPrice, String mealTypeName,
-    		String mealPicUrl, Long reviewTotalStars, Boolean favored, Long favMealId, String mealPic) {
+    		String mealPicUrl, Boolean favored, Long favMealId, String mealPic, Double avgStars) {
         this.mealId = mealId;
         this.mealName = mealName;
         this.mealPrice = mealPrice;
         this.mealTypeName = mealTypeName;
         this.mealPicUrl = mealPicUrl;
-        this.reviewTotalStars = reviewTotalStars;
         this.favored = favored;
         this.favMealId = favMealId;
         this.mealPic = mealPic;
+        this.avgStars = 0.0; // 避免 null
         
     }
 
     // Getter/Setter
-
     public Long getMealId() {
         return mealId;
     }
@@ -59,12 +58,6 @@ public class MealDTO {
     public void setMealPicUrl(String mealPicUrl) {
         this.mealPicUrl = mealPicUrl;
     }
-    public Long getReviewTotalStars() {
-        return reviewTotalStars;
-    }
-    public void setReviewTotalStars(Long reviewTotalStars) {
-        this.reviewTotalStars = reviewTotalStars;
-    }
     public Boolean getFavored() {
         return favored;
     }
@@ -84,5 +77,13 @@ public class MealDTO {
 	}
 	public void setMealPic(String mealPic) {
 		this.mealPic = mealPic;
+	}
+
+	public Double getAvgStars() {
+		return avgStars;
+	}
+
+	public void setAvgStars(Double avgStars) {
+		this.avgStars = (avgStars != null) ? avgStars : 0.0; // 確保不為 null
 	}
 }

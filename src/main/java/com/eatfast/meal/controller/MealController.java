@@ -50,7 +50,6 @@ public class MealController {
     @GetMapping("/addMeal")
     public String addMealForm(ModelMap model) {
         MealEntity mealEntity = new MealEntity();
-        mealEntity.setReviewTotalStars(0L); // 預設星數
         mealEntity.setMealType(new MealTypeEntity()); // 初始化 mealType 關聯物件，避免 NullPointerException
         model.addAttribute("mealEntity", mealEntity);
         return "back-end/meal/addMeal"; 
