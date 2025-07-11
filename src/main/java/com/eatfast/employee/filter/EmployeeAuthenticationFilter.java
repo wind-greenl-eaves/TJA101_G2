@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
  * 
  * 適用路徑：/employee/**, /member/**, /back-end/member/**
  */
-@WebFilter(urlPatterns = {"/employee/*", "/member/*", "/back-end/member/*"})
+@WebFilter(urlPatterns = {"/employee/*",  "/back-end/member/*"})
 public class EmployeeAuthenticationFilter implements Filter {
 
     private static final Logger log = LoggerFactory.getLogger(EmployeeAuthenticationFilter.class);

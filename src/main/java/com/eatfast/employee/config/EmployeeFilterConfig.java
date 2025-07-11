@@ -44,7 +44,7 @@ public class EmployeeFilterConfig {
         registrationBean.addUrlPatterns(
             "/employee/*",           // 員工模組所有頁面
             "/api/v1/employees/*",   // 員工 API 端點
-            "/member/*",             // 會員管理頁面
+            
             "/back-end/member/*"     // 後台會員管理頁面
         );
         
