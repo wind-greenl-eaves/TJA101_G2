@@ -86,12 +86,6 @@ public class MealEntity {
     @Column(name = "meal_price", nullable = false)
     private Long mealPrice; // 餐點單價
 
-    @NotNull(message = "評價總星數不可為空")
-    @Min(value = 0, message = "評價星數不可低於 0")
-    @Max(value = 5, message = "評價星數不可高於 5")
-    @Column(name = "review_total_stars", nullable = false)
-    private Long reviewTotalStars; // 顧客評價總星數
-
     @NotNull(message = "餐點狀態不可為空")
     @Enumerated(EnumType.ORDINAL) // 遵照團隊決議，將 Enum 以其序號存儲 (0, 1, ...)
     @Column(name = "status", nullable = false)
@@ -200,15 +194,6 @@ public class MealEntity {
 
     public void setMealPrice(Long mealPrice) {
         this.mealPrice = mealPrice;
-    }
-
-    // Review Total Stars 的 Getter 和 Setter
-    public Long getReviewTotalStars() {
-        return reviewTotalStars;
-    }
-
-    public void setReviewTotalStars(Long reviewTotalStars) {
-        this.reviewTotalStars = reviewTotalStars;
     }
 
     // Status 的 Getter 和 Setter

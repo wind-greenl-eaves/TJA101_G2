@@ -256,8 +256,6 @@
             border: 1px solid #e2d7c1; /* 與第一個檔案保持一致 */
             margin-bottom: 0.75rem;
         }
-        .star-rating .fas.fa-star { color: var(--star-filled); } /* 金黃色 */
-        .star-rating .far.fa-star { color: var(--star-empty); } /* 淺奶茶色 */
 
         /* Alert messages */
         .alert {
@@ -356,13 +354,6 @@
                         <p><strong>餐點名稱：：</strong> <span th:text="${meal.mealName}"></span></p>
                         <p><strong>餐點種類名稱：</strong> <span th:text="${meal.mealType?.mealName}"></span></p>
                         <p><strong>餐點價格：</strong> <span th:text="${meal.mealPrice}"></span></p>
-                        <p><strong>總評論星數：：</strong>
-                            <span class="star-rating" th:with="stars=${meal.reviewTotalStars}">
-                                <th:block th:each="i : ${#numbers.sequence(1, 5)}">
-                                    <i th:class="${i <= stars} ? 'fas fa-star' : 'far fa-star'"></i>
-                                </th:block>
-                            </span>                                                                                                                                                     
-                        </p>
                         <p><strong>餐點狀態：：</strong> 
                             <span th:if="${meal.status == T(com.eatfast.common.enums.MealStatus).AVAILABLE}" class="px-2 py-1 rounded-full text-xs font-medium bg-[var(--status-available-bg)] text-[var(--status-available-text)]">上架</span>
                             <span th:if="${meal.status == T(com.eatfast.common.enums.MealStatus).UNAVAILABLE}" class="px-2 py-1 rounded-full text-xs font-medium bg-[var(--status-unavailable-bg)] text-[var(--status-unavailable-text)]">下架</span>
