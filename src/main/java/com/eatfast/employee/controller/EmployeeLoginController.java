@@ -45,6 +45,8 @@ public class EmployeeLoginController {
                                @RequestParam(value = "message", required = false) String message,
                                @RequestParam(value = "returnUrl", required = false) String returnUrl,
                                Model model, RedirectAttributes redirectAttributes) {
+        log.info("=== 員工登入頁面訪問開始 ===");
+        
         // 準備登入表單物件
         model.addAttribute("loginRequest", new EmployeeLoginRequest());
         
@@ -88,22 +90,47 @@ public class EmployeeLoginController {
         
         // 獲取所有啟用狀態的員工列表，用於管理員小幫手
         try {
+            log.info("開始獲取啟用狀態的員工列表...");
             List<EmployeeDTO> activeEmployees = employeeService.findAllActiveEmployees();
-            model.addAttribute("employeeList", activeEmployees);
+            log.info("成功獲取啟用員工列表，數量: {}", activeEmployees != null ? activeEmployees.size() : 0);
+            
+            if (activeEmployees != null && !activeEmployees.isEmpty()) {
+                model.addAttribute("employeeList", activeEmployees);
+                log.info("已將員工列表添加到模型中，員工數量: {}", activeEmployees.size());
+                
+                // 記錄前幾個員工的基本信息用於調試
+                for (int i = 0; i < Math.min(3, activeEmployees.size()); i++) {
+                    EmployeeDTO emp = activeEmployees.get(i);
+                    log.debug("員工[{}]: ID={}, 帳號={}, 姓名={}, 狀態={}", 
+                             i+1, emp.getEmployeeId(), emp.getAccount(), emp.getUsername(), emp.getStatus());
+                }
+            } else {
+                log.warn("沒有找到任何啟用狀態的員工");
+                model.addAttribute("noActiveEmployees", true);
+            }
         } catch (Exception e) {
-            log.warn("無法獲取員工列表: {}", e.getMessage());
-            // 即使獲取員工列表失敗，也不影響登入頁面的顯示
+            log.error("獲取員工列表時發生異常: {}", e.getMessage(), e);
+            model.addAttribute("employeeListError", "無法載入員工列表: " + e.getMessage());
         }
         
         // 獲取所有已停權員工列表，用於管理員小幫手
         try {
+            log.info("開始獲取已停權的員工列表...");
             List<EmployeeDTO> inactiveEmployees = employeeService.findAllInactiveEmployees();
-            model.addAttribute("inactiveEmployeeList", inactiveEmployees);
+            log.info("成功獲取已停權員工列表，數量: {}", inactiveEmployees != null ? inactiveEmployees.size() : 0);
+            
+            if (inactiveEmployees != null && !inactiveEmployees.isEmpty()) {
+                model.addAttribute("inactiveEmployeeList", inactiveEmployees);
+                log.info("已將已停權員工列表添加到模型中，員工數量: {}", inactiveEmployees.size());
+            } else {
+                log.info("沒有找到任何已停權的員工");
+            }
         } catch (Exception e) {
-            log.warn("無法獲取已停權員工列表: {}", e.getMessage());
-            // 即使獲取已停權員工列表失敗，也不影響登入頁面的顯示
+            log.error("獲取已停權員工列表時發生異常: {}", e.getMessage(), e);
+            model.addAttribute("inactiveEmployeeListError", "無法載入已停權員工列表: " + e.getMessage());
         }
         
+        log.info("=== 員工登入頁面準備完成，返回視圖 ===");
         return "back-end/employee/login";
     }
 
