@@ -219,15 +219,13 @@ public class EmployeeEntity {
     private LocalDateTime accountLockedTime;
 
     /**
-     * 版本號（樂觀鎖定）
-     * 用於處理併發更新，防止資料被意外覆蓋。
-     * 每次更新資料時，JPA 會自動檢查版本號是否一致，
-     * 如果不一致則拋出 OptimisticLockException。
+     * 樂觀鎖定版本號
+     * 用於防止併發更新時的資料衝突。
      * 對應到 employee 資料表的 version 欄位。
      */
-    @Version
-    @Column(name = "version", nullable = false)
-    private Long version = 0L;
+    // @Version  // 暫時註解掉，直到資料庫中添加 version 欄位
+    // @Column(name = "version", nullable = false)
+    // private Long version = 0L;
 
     // ======================== 關聯欄位 (Associations) ========================
 
@@ -336,8 +334,8 @@ public class EmployeeEntity {
     public void setEmployeePermissions(Set<EmployeePermissionEntity> employeePermissions) { this.employeePermissions = employeePermissions; }
     public String getPhotoUrl() { return photoUrl; }
     public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
-    public Long getVersion() { return version; }
-    public void setVersion(Long version) { this.version = version; }
+    // public Long getVersion() { return version; }
+    // public void setVersion(Long version) { this.version = version; }
     public Integer getLoginFailureCount() { return loginFailureCount; }
     public void setLoginFailureCount(Integer loginFailureCount) { this.loginFailureCount = loginFailureCount; }
     public LocalDateTime getLastFailureTime() { return lastFailureTime; }
