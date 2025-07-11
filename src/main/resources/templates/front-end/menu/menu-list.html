@@ -208,7 +208,6 @@
                 
                 <div class="flex items-center justify-center gap-2 mb-3">
 				    <span class="star-display" data-meal-id="[[${meal.mealId}]]">
-				      <!-- Thymeleaf初次渲染：半顆星+分數 -->
 				      <span th:with="stars=${meal.avgStars}">
 				        <th:block th:each="i : ${#numbers.sequence(1, 5)}">
 				          <i th:if="${i <= T(java.lang.Math).floor(stars)}" class="fas fa-star text-yellow-400"></i>
@@ -301,8 +300,7 @@
     <div class="text-2xl font-bold text-milktea-dark mb-2" id="modalMealName">餐點名稱</div>
     <div class="text-[#C7A083] text-lg font-semibold mb-2" id="modalMealPrice">NT$ 0</div>
     <div class="flex items-center gap-2 mb-3">
-      <span class="text-yellow-400 text-lg">★</span>
-      <span id="modalMealStars" class="text-[#A67B5B] text-sm">0 / 5</span>
+      <span id="modalMealStars" class="text-[#A67B5B] text-sm"></span>
     </div>
     <!-- 數量選擇 -->
     <div class="flex items-center gap-3 mb-5">
@@ -403,7 +401,7 @@
 	        }
 	    }
 	    
-		 // 新增：點擊 Modal 外部關閉功能
+		 // 點擊 Modal 外部關閉功能
 	    const loginModal = document.getElementById('loginModal');
 	    const logoutModal = document.getElementById('logoutModal');
 	
@@ -442,7 +440,7 @@
 	    document.getElementById('modalMealPic').src = currentMeal.mealPicUrl;
 	    document.getElementById('modalMealName').textContent = currentMeal.mealName;
 	    document.getElementById('modalMealPrice').textContent = 'NT$ ' + currentMeal.mealPrice;
-	    document.getElementById('modalMealStars').textContent = (currentMeal.reviewTotalStars ?? 0) + ' / 5';
+	    document.getElementById('modalMealStars').innerHTML = renderStars(currentMeal.avgStars ?? 0);
 	    document.getElementById('modalMealQty').value = 1;
 	    document.getElementById('modalMealFormQty').value = 1;
 	
@@ -472,13 +470,13 @@
 		  for(let i = 1; i <= max; i++) {
 		    if (score >= i) { // 全星
 		      html += '<i class="fas fa-star text-yellow-400"></i>';
-		    } else if (score > i-1) { // 半星
+		    } else if (score > i-1 && score < i) { // 半星
 		      html += '<i class="fas fa-star-half-alt text-yellow-400"></i>';
 		    } else { // 空星
 		      html += '<i class="far fa-star text-[#DED0B6]"></i>';
 		    }
 		  }
-		  html += ` <span class="ml-1 text-sm text-[#9D7C64]">${score} / 5</span>`;
+		  html += ` <span class="ml-1 text-sm text-[#9D7C64]">${score.toFixed(1)} / 5</span>`;
 		  return html;
 		}
 		// 更新餐點評分星星顯示
