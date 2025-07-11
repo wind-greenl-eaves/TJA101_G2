@@ -52,7 +52,7 @@
         }
         
         .register-container {
-            background: var(--container-bg);
+            background:transparent; /* 透明白色 */
             padding: 40px;
             border-radius: 12px;
             border: 1px solid var(--border-color);
@@ -348,6 +348,7 @@
             border: 1px solid var(--primary-color);
             border-radius: 4px;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
         
         .terms-link:hover {
@@ -363,25 +364,163 @@
             display: none;
         }
         
-        .form-row {
+        /* 模態視窗樣式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: var(--container-bg);
+            margin: 5% auto;
+            padding: 0;
+            border: none;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: white;
+            padding: 20px 30px;
+            border-bottom: none;
+            position: relative;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
             display: flex;
-            gap: 15px;
+            align-items: center;
+            gap: 10px;
         }
         
-        .form-row .form-group {
-            flex: 1;
+        .modal-close {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
         }
         
-        @media (max-width: 480px) {
-            .form-row {
-                flex-direction: column;
-                gap: 0;
-            }
-            
-            .gender-options {
-                flex-direction: column;
-                gap: 10px;
-            }
+        .modal-close:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-50%) rotate(90deg);
+        }
+        
+        .modal-body {
+            padding: 30px;
+            max-height: 60vh;
+            overflow-y: auto;
+            line-height: 1.6;
+            color: var(--text-color);
+        }
+        
+        .modal-body h2 {
+            color: var(--primary-color);
+            font-size: 20px;
+            margin: 25px 0 15px 0;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+        
+        .modal-body h3 {
+            color: var(--primary-hover);
+            font-size: 16px;
+            margin: 20px 0 10px 0;
+        }
+        
+        .modal-body p {
+            margin: 12px 0;
+            font-size: 14px;
+        }
+        
+        .modal-body ul {
+            margin: 12px 0;
+            padding-left: 25px;
+        }
+        
+        .modal-body li {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid var(--border-color);
+            background-color: #f8f9fa;
+            text-align: center;
+        }
+        
+        .modal-footer .btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-footer .btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+        
+        /* 自定義滾動條 */
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .modal-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .modal-body::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+        
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-hover);
         }
     </style>
 </head>
@@ -538,9 +677,9 @@
                         <input type="checkbox" id="termsCheckbox" class="terms-checkbox" required>
                         <label for="termsCheckbox" class="terms-label">
                             我已閱讀並同意
-                            <a href="#" class="terms-link" target="_blank">會員條款</a> 
+                            <a href="#" class="terms-link" id="termsLink">📋 會員條款</a> 
                             與
-                            <a href="#" class="terms-link" target="_blank">隱私權政策</a>
+                            <a href="#" class="terms-link" id="privacyLink">🔒 隱私權政策</a>
                         </label>
                     </div>
                     <div class="terms-error" id="termsError">您必須同意會員條款與隱私權政策才能註冊</div>
@@ -555,6 +694,223 @@
         <div class="login-link">
             已經有帳號了？
             <a th:href="@{/api/v1/auth/member-login}">立即登入</a>
+        </div>
+    </div>
+    
+    <!-- 會員條款模態視窗 -->
+    <div id="termsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📋 會員條款</h2>
+                <button class="modal-close" id="closeTermsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h2>第一條 總則</h2>
+                <p>歡迎加入「EatFast 早餐店」會員服務！為了保障您的權益，請詳細閱讀以下會員條款。</p>
+                
+                <h2>第二條 會員資格與註冊</h2>
+                <h3>2.1 註冊資格</h3>
+                <ul>
+                    <li>年滿 10 歲以上之自然人</li>
+                    <li>提供真實、準確、完整的個人資料</li>
+                    <li>同意遵守本條款之所有規定</li>
+                </ul>
+                
+                <h3>2.2 註冊義務</h3>
+                <p>會員應確保註冊資料之真實性，如有變更應立即更新。若因資料不實造成任何損失，會員應自行負責。</p>
+                
+                <h2>第三條 會員權利與義務</h2>
+                <h3>3.1 會員權利</h3>
+                <ul>
+                    <li>享受會員專屬優惠與促銷活動</li>
+                    <li>累積點數並兌換相關商品或服務</li>
+                    <li>優先預訂熱門商品</li>
+                    <li>參與會員專屬活動</li>
+                    <li>享受生日特別優惠</li>
+                </ul>
+                
+                <h3>3.2 會員義務</h3>
+                <ul>
+                    <li>妥善保管帳號密碼，不得轉讓或借用</li>
+                    <li>遵守店內秩序，不得有不當行為</li>
+                    <li>尊重其他客人與店員</li>
+                    <li>配合店家防疫措施</li>
+                </ul>
+                
+                <h2>第四條 點數制度</h2>
+                <h3>4.1 點數累積</h3>
+                <p>消費金額每滿 NT$10 可累積 1 點，特殊活動期間可能有加倍贈點。</p>
+                
+                <h3>4.2 點數使用</h3>
+                <ul>
+                    <li>100 點可折抵 NT$10</li>
+                    <li>點數有效期限為累積日起 1 年</li>
+                    <li>點數不得轉讓、買賣或兌換現金</li>
+                </ul>
+                
+                <h2>第五條 訂購與取餐</h2>
+                <h3>5.1 線上預訂</h3>
+                <p>會員可透過官方網站或 APP 進行線上預訂，享受免排隊取餐服務。</p>
+                
+                <h3>5.2 取餐規定</h3>
+                <ul>
+                    <li>請於指定時間內取餐，逾時不候</li>
+                    <li>取餐時請出示會員編號或手機號碼</li>
+                    <li>如需取消訂單，請於取餐時間前 30 分鐘通知</li>
+                </ul>
+                
+                <h2>第六條 促銷活動</h2>
+                <p>本店保留修改、暫停或終止任何促銷活動的權利，詳細活動內容以當期公告為準。</p>
+                
+                <h2>第七條 帳號停權</h2>
+                <p>若會員有下列情形，本店得暫停或終止其會員資格：</p>
+                <ul>
+                    <li>提供不實資料</li>
+                    <li>違反店內規定或法令</li>
+                    <li>惡意濫用優惠活動</li>
+                    <li>其他有損本店商譽之行為</li>
+                </ul>
+                
+                <h2>第八條 免責聲明</h2>
+                <p>本店對於因系統故障、天災、戰爭等不可抗力因素導致之服務中斷，不負賠償責任。</p>
+                
+                <h2>第九條 條款修改</h2>
+                <p>本條款如有修改，將於官方網站公告，修改後條款於公告日起生效。</p>
+                
+                <h2>第十條 法律適用</h2>
+                <p>本條款之解釋與適用，以中華民國法律為準。如有爭議，同意以台灣台北地方法院為第一審管轄法院。</p>
+                
+                <p style="margin-top: 30px; font-weight: bold; color: var(--primary-color);">
+                    本條款最後更新日期：2025年1月11日
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="agreeTermsBtn">我已詳細閱讀並同意</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 隱私權政策模態視窗 -->
+    <div id="privacyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🔒 隱私權政策</h2>
+                <button class="modal-close" id="closePrivacyModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h2>前言</h2>
+                <p>「EatFast 早餐店」非常重視您的隱私權保護，本隱私權政策說明我們如何收集、使用、處理及保護您的個人資料。</p>
+                
+                <h2>第一條 適用範圍</h2>
+                <p>本隱私權政策適用於您在使用本店所提供之各項服務時，所涉及的個人資料蒐集、處理及利用。</p>
+                
+                <h2>第二條 個人資料之蒐集</h2>
+                <h3>2.1 蒐集項目</h3>
+                <p>我們可能蒐集以下個人資料：</p>
+                <ul>
+                    <li><strong>基本資料：</strong>姓名、性別、生日、聯絡電話、電子郵件</li>
+                    <li><strong>消費記錄：</strong>訂購內容、消費金額、消費時間、點數累積</li>
+                    <li><strong>偏好資訊：</strong>口味偏好、常購商品、過敏資訊</li>
+                    <li><strong>技術資料：</strong>IP位址、瀏覽器類型、作業系統、點擊記錄</li>
+                </ul>
+                
+                <h3>2.2 蒐集方式</h3>
+                <ul>
+                    <li>會員註冊時主動提供</li>
+                    <li>使用服務過程中自動產生</li>
+                    <li>客戶服務互動時收集</li>
+                    <li>參與活動或問卷調查</li>
+                </ul>
+                
+                <h2>第三條 個人資料之利用</h2>
+                <h3>3.1 利用目的</h3>
+                <ul>
+                    <li>提供會員服務與客戶管理</li>
+                    <li>處理訂單與配送服務</li>
+                    <li>點數累積與兌換服務</li>
+                    <li>促銷活動通知與優惠券發送</li>
+                    <li>客戶滿意度調查與服務改善</li>
+                    <li>防止詐欺與確保交易安全</li>
+                    <li>法令遵循與爭議處理</li>
+                </ul>
+                
+                <h3>3.2 利用期間</h3>
+                <p>個人資料利用期間為會員資格存續期間及法令規定之保存期間。</p>
+                
+                <h2>第四條 個人資料之保護</h2>
+                <h3>4.1 安全措施</h3>
+                <ul>
+                    <li>採用 SSL 加密技術保護資料傳輸</li>
+                    <li>建立嚴格的資料存取權限控制</li>
+                    <li>定期進行系統安全檢測與更新</li>
+                    <li>員工簽署保密協議並接受資安訓練</li>
+                </ul>
+                
+                <h3>4.2 資料儲存</h3>
+                <p>您的個人資料將儲存於台灣境內之安全資料中心，採用業界標準之安全防護措施。</p>
+                
+                <h2>第五條 個人資料之分享</h2>
+                <h3>5.1 不會分享的原則</h3>
+                <p>我們不會將您的個人資料出售、出租或以其他方式轉讓給第三方。</p>
+                
+                <h3>5.2 例外情況</h3>
+                <p>除非符合以下情況，否則不會分享您的個人資料：</p>
+                <ul>
+                    <li>經您明確同意</li>
+                    <li>法律要求或司法機關依法要求</li>
+                    <li>為保護本店或其他用戶之權益</li>
+                    <li>與可信賴的服務提供商合作（如物流配送）</li>
+                </ul>
+                
+                <h2>第六條 Cookie 使用</h2>
+                <h3>6.1 Cookie 說明</h3>
+                <p>我們使用 Cookie 技術來改善使用者體驗，包括：</p>
+                <ul>
+                    <li>記住您的登入狀態</li>
+                    <li>分析網站使用情況</li>
+                    <li>提供個人化內容推薦</li>
+                    <li>協助防範詐欺行為</li>
+                </ul>
+                
+                <h3>6.2 Cookie 管理</h3>
+                <p>您可以透過瀏覽器設定來管理或刪除 Cookie，但這可能會影響某些服務功能。</p>
+                
+                <h2>第七條 您的權利</h2>
+                <p>根據個人資料保護法，您享有以下權利：</p>
+                <ul>
+                    <li><strong>查詢權：</strong>查詢您的個人資料處理情況</li>
+                    <li><strong>閱覽權：</strong>請求提供個人資料副本</li>
+                    <li><strong>更正權：</strong>要求更正不正確的個人資料</li>
+                    <li><strong>刪除權：</strong>要求刪除特定個人資料</li>
+                    <li><strong>停止處理權：</strong>要求停止特定目的之資料處理</li>
+                </ul>
+                
+                <h2>第八條 兒童隱私保護</h2>
+                <p>我們特別重視兒童隱私保護。未滿 12 歲之兒童註冊會員需經法定代理人同意。</p>
+                
+                <h2>第九條 政策更新</h2>
+                <p>本隱私權政策如有修改，將於官方網站公告，並以電子郵件通知會員。重大變更時，將重新取得您的同意。</p>
+                
+                <h2>第十條 聯絡方式</h2>
+                <p>如您對本隱私權政策有任何疑問，或欲行使個人資料相關權利，請透過以下方式聯絡我們：</p>
+                <ul>
+                    <li><strong>電子郵件：</strong>privacy@eatfast.com</li>
+                    <li><strong>客服電話：</strong>02-1234-5678</li>
+                    <li><strong>服務時間：</strong>週一至週日 08:00-20:00</li>
+                    <li><strong>地址：</strong>台北市信義區早餐街123號</li>
+                </ul>
+                
+                <p style="margin-top: 30px; font-weight: bold; color: var(--primary-color);">
+                    本隱私權政策最後更新日期：2025年1月11日
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="agreePrivacyBtn">我已詳細閱讀並了解</button>
+            </div>
         </div>
     </div>
     
@@ -979,6 +1335,131 @@
             
             // 然後進行驗證
             validatePhone(value);
+        });
+        
+        // ========== 模態視窗功能 ==========
+        
+        // 獲取模態視窗元素
+        const termsModal = document.getElementById('termsModal');
+        const privacyModal = document.getElementById('privacyModal');
+        const termsLink = document.getElementById('termsLink');
+        const privacyLink = document.getElementById('privacyLink');
+        const closeTermsModal = document.getElementById('closeTermsModal');
+        const closePrivacyModal = document.getElementById('closePrivacyModal');
+        const agreeTermsBtn = document.getElementById('agreeTermsBtn');
+        const agreePrivacyBtn = document.getElementById('agreePrivacyBtn');
+        const termsCheckbox = document.getElementById('termsCheckbox');
+        
+        // 打開會員條款模態視窗
+        termsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            termsModal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // 防止背景滾動
+        });
+        
+        // 打開隱私權政策模態視窗
+        privacyLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            privacyModal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // 防止背景滾動
+        });
+        
+        // 關閉會員條款模態視窗
+        closeTermsModal.addEventListener('click', function() {
+            termsModal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // 恢復背景滾動
+        });
+        
+        // 關閉隱私權政策模態視窗
+        closePrivacyModal.addEventListener('click', function() {
+            privacyModal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // 恢復背景滾動
+        });
+        
+        // 點擊模態視窗背景關閉視窗
+        termsModal.addEventListener('click', function(e) {
+            if (e.target === termsModal) {
+                termsModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+        
+        privacyModal.addEventListener('click', function(e) {
+            if (e.target === privacyModal) {
+                privacyModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+        
+        // ESC 鍵關閉模態視窗
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (termsModal.style.display === 'block') {
+                    termsModal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+                if (privacyModal.style.display === 'block') {
+                    privacyModal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+            }
+        });
+        
+        // 會員條款同意按鈕
+        agreeTermsBtn.addEventListener('click', function() {
+            // 可以在這裡添加特殊邏輯，例如記錄用戶已閱讀條款
+            console.log('用戶已閱讀會員條款');
+            
+            // 添加視覺反饋
+            this.innerHTML = '<i class="fas fa-check"></i> 已確認閱讀';
+            this.style.backgroundColor = '#28a745';
+            
+            setTimeout(() => {
+                termsModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                
+                // 重置按鈕文字
+                this.innerHTML = '我已詳細閱讀並同意';
+                this.style.backgroundColor = '';
+            }, 1000);
+        });
+        
+        // 隱私權政策了解按鈕
+        agreePrivacyBtn.addEventListener('click', function() {
+            // 可以在這裡添加特殊邏輯，例如記錄用戶已閱讀政策
+            console.log('用戶已閱讀隱私權政策');
+            
+            // 添加視覺反饋
+            this.innerHTML = '<i class="fas fa-check"></i> 已確認閱讀';
+            this.style.backgroundColor = '#28a745';
+            
+            setTimeout(() => {
+                privacyModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                
+                // 重置按鈕文字
+                this.innerHTML = '我已詳細閱讀並了解';
+                this.style.backgroundColor = '';
+            }, 1000);
+        });
+        
+        // 增強勾選框點擊區域
+        document.querySelector('.terms-label').addEventListener('click', function(e) {
+            if (e.target.tagName !== 'A') {
+                termsCheckbox.checked = !termsCheckbox.checked;
+                
+                // 觸發變更事件
+                const event = new Event('change');
+                termsCheckbox.dispatchEvent(event);
+            }
+        });
+        
+        // 勾選框狀態變更時的視覺反饋
+        termsCheckbox.addEventListener('change', function() {
+            const termsError = document.getElementById('termsError');
+            if (this.checked) {
+                termsError.style.display = 'none';
+            }
         });
     </script>
 </body>
