@@ -118,7 +118,7 @@ public class MealService {
 
     // === 前台：依分類查詢，並標註會員是否已收藏 ===
     public List<MealDTO> getMealsByTypeWithFavored(Long mealTypeId, Long memberId) {
-        List<MealEntity> meals = repository.findByMealTypeMealTypeId(mealTypeId);
+        List<MealEntity> meals = repository.findByMealTypeMealTypeIdAndStatus(mealTypeId, MealStatus.AVAILABLE);
 
         // 1. 取得所有餐點的平均評分列表
         List<MealRatingDto> allMealRatings = mealRatingService.getAllMealAvgStars();

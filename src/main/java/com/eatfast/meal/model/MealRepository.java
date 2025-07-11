@@ -22,5 +22,10 @@ public interface MealRepository extends JpaRepository<MealEntity, Long> {
     // 使用 JOIN FETCH 預先載入 mealType 資訊
     @Query("SELECT m FROM MealEntity m JOIN FETCH m.mealType")
     List<MealEntity> findAllWithMealType();
+    
+    // 查特定類別餐點 + 狀態（例如上架 / 下架）
+    @Query("SELECT m FROM MealEntity m JOIN FETCH m.mealType WHERE m.mealType.mealTypeId = :mealTypeId AND m.status = :status")
+    List<MealEntity> findByMealTypeMealTypeIdAndStatus(Long mealTypeId, MealStatus status);
+
 }
 
