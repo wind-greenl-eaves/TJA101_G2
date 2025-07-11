@@ -1,5 +1,6 @@
 package com.eatfast.cart.service;
 
+import com.eatfast.cart.dto.CartDTO;
 import com.eatfast.cart.dto.CartDTO.AddToCartRequest;
 import com.eatfast.cart.dto.CartDTO.CartItemDto;
 import com.eatfast.cart.dto.CartDTO.UpdateCartItemRequest;
@@ -30,21 +31,19 @@ import java.util.concurrent.TimeUnit;
 @Transactional(readOnly = true)
 public class CartServiceImpl implements CartService {
 
-    private final CartRepository cartRepository;
     private final MemberRepository memberRepository;
     private final MealRepository mealRepository;
     private final StoreRepository storeRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final String CART_REDIS_KEY_PREFIX = "cart:";
-    private static final long CART_TTL_SECONDS = TimeUnit.DAYS.toSeconds(7); // 604800 秒
+    private static final long CART_TTL_SECONDS = TimeUnit.DAYS.toSeconds(7); 
 
     public CartServiceImpl(CartRepository cartRepository,
                            MemberRepository memberRepository,
                            MealRepository mealRepository,
                            StoreRepository storeRepository,
                            RedisTemplate<String, Object> redisTemplate) {
-        this.cartRepository = cartRepository;
         this.memberRepository = memberRepository;
         this.mealRepository = mealRepository;
         this.storeRepository = storeRepository;
@@ -62,7 +61,15 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public CartItemDto addOrUpdateCartItem(AddToCartRequest request) {
-        MemberEntity member = memberRepository.findById(request.getMemberId())
+    	System.out.println("Received request: " + request);
+    	System.out.println("mealId: " + request.getMealId());
+    	System.out.println("memberId: " + request.getMemberId());
+    	System.out.println("quantity: " + request.getQuantity());
+
+    	
+    	
+    	
+    	MemberEntity member = memberRepository.findById(request.getMemberId())
                 .orElseThrow(() -> new IllegalArgumentException("會員不存在: " + request.getMemberId()));
         MealEntity meal = mealRepository.findById(request.getMealId())
                 .orElseThrow(() -> new IllegalArgumentException("餐點不存在: " + request.getMealId()));
@@ -230,6 +237,22 @@ public class CartServiceImpl implements CartService {
         // 替換為您的實際 context path
         return "/demo/api/meals/" + mealId + "/image"; 
     }
+    
+    //購物車客製化備註欄為自動更新到redis
+    @Override
+    public void updateAllCartItemsCustomization(Long memberId, String mealCustomization) {
+        String redisKey = "cart:" + memberId;
+        Map<Object, Object> cartMap = redisTemplate.opsForHash().entries(redisKey);
+
+        for (Object key : cartMap.keySet()) {
+            CartDTO.CartItemRedisData data = (CartDTO.CartItemRedisData) cartMap.get(key);
+            data.setMealCustomization(mealCustomization);
+            redisTemplate.opsForHash().put(redisKey, key, data);
+        }
+    }
+
+    
+    
 
     private CartItemDto convertToDto(CartEntity cartEntity) {
         CartItemDto dto = new CartItemDto();

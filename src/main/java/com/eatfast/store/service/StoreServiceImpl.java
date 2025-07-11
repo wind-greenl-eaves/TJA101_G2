@@ -123,4 +123,12 @@ public class StoreServiceImpl implements StoreService {
                 .map(storeMapper::toDto)
                 .collect(Collectors.toList());
     }
+    
+    @Override
+    public List<StoreDto> getAllStoreDTOs() {
+        List<StoreEntity> stores = storeRepository.findAll();
+        return stores.stream()
+                     .map(store -> new StoreDto(store.getStoreId(), store.getStoreName()))
+                     .toList();
+    }
 }

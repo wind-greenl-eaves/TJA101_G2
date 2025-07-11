@@ -20,6 +20,8 @@ import java.util.stream.Collectors; // 引入 Collectors
 	    // 【不可變動的關鍵字/語法】: public, StoreDto, List 等返回類型和參數類型
 	    StoreDto createStore(CreateStoreRequest request);
 
+	    List<StoreDto> getAllStoreDTOs();
+	    
 	    List<StoreDto> findAllStores();
 
 	    StoreDto findStoreById(Long storeId);

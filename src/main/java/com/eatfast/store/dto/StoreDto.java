@@ -19,8 +19,26 @@ public class StoreDto {
     
     //新增googleMap欄位
     private String googleMapUrl; 
+    
+    public StoreDto(Long storeId, String storeName) {
+        this.storeId = storeId;
+        this.storeName = storeName;
+    }
+    
 
-    // Getters and Setters...
+    public StoreDto(Long storeId, String storeName, String storeLoc, String storePhone, String storeTime,
+			StoreStatus storeStatus, LocalDateTime createTime, String googleMapUrl) {
+		super();
+		this.storeId = storeId;
+		this.storeName = storeName;
+		this.storeLoc = storeLoc;
+		this.storePhone = storePhone;
+		this.storeTime = storeTime;
+		this.storeStatus = storeStatus;
+		this.createTime = createTime;
+		this.googleMapUrl = googleMapUrl;
+	}
+	// Getters and Setters...
     public Long getStoreId() { return storeId; }
     public void setStoreId(Long storeId) { this.storeId = storeId; }
     public String getStoreName() { return storeName; }
