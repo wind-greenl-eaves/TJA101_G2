@@ -566,13 +566,23 @@ public class MemberController {
             
             // 【過濾條件處理】根據篩選條件過濾訂單
             if (status != null && !status.trim().isEmpty()) {
-                try {
-                    OrderStatus orderStatus = OrderStatus.valueOf(status.trim());
+                if ("INCOMPLETE".equals(status.trim())) {
+                    // 未完成狀態：包含 PENDING、CONFIRMED、SHIPPED
                     orders = orders.stream()
-                            .filter(order -> order.getOrderStatus() == orderStatus)
+                            .filter(order -> order.getOrderStatus() == OrderStatus.PENDING || 
+                                           order.getOrderStatus() == OrderStatus.CONFIRMED || 
+                                           order.getOrderStatus() == OrderStatus.SHIPPED)
                             .collect(java.util.stream.Collectors.toList());
-                } catch (IllegalArgumentException e) {
-                    log.warn("無效的訂單狀態參數: {}", status);
+                } else {
+                    // 單一狀態篩選
+                    try {
+                        OrderStatus orderStatus = OrderStatus.valueOf(status.trim());
+                        orders = orders.stream()
+                                .filter(order -> order.getOrderStatus() == orderStatus)
+                                .collect(java.util.stream.Collectors.toList());
+                    } catch (IllegalArgumentException e) {
+                        log.warn("無效的訂單狀態參數: {}", status);
+                    }
                 }
             }
             
@@ -610,7 +620,7 @@ public class MemberController {
             model.addAttribute("orderStats", orderStats);
             model.addAttribute("member", member);
             
-            // 【保持篩选參數】
+            // 【保持篩選參數】
             model.addAttribute("currentStatus", status);
             model.addAttribute("currentStartDate", startDate);
             model.addAttribute("currentEndDate", endDate);

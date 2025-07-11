@@ -90,8 +90,8 @@
                 </form>
 
                 <form method="post" th:action="@{/orderlist/delete}" class="d-inline"
-                      th:data-status="${orderListVO.orderStatus.name()}"
-                      onsubmit="return checkCancelable(this);">
+                      th:if="${orderListVO.orderStatus.name() == 'PENDING'}"
+                      onsubmit="return confirm('您確定要取消這筆訂單嗎？');">
                     <input type="hidden" name="orderListId" th:value="${orderListVO.orderListId}">
                     <button type="submit" class="btn btn-sm btn-danger">
                         <i class="fas fa-trash-alt"></i> 取消
