@@ -266,8 +266,11 @@
                 
                 <div class="two-column">
                     <div class="form-group">
-                        <label for="birthday">出生日期：<span style="color: red;">*</span></label>
+                        <label for="birthday">出生日期：</label>
                         <input type="date" id="birthday" th:field="*{birthday}" data-field="birthday">
+                        <small class="info-note" style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                            💡 如不修改出生日期，請保持此欄位不變
+                        </small>
                         <div class="error-message" id="birthday-error" th:if="${#fields.hasErrors('birthday')}" th:errors="*{birthday}"></div>
                         <div class="validation-message" id="birthday-validation"></div>
                     </div>
@@ -366,12 +369,21 @@
                     errorMessage.style.display = 'none';
                 }
                 
-                // 空值檢查
+                // 【修正】生日欄位允許為空，其他欄位仍需必填檢查
                 if (!value || value.trim() === '') {
-                    setFieldStatus(field, validationMessage, false, '此欄位為必填');
-                    validationStatus[fieldName] = false;
-                    updateSubmitButton();
-                    return;
+                    if (fieldName === 'birthday') {
+                        // 生日欄位允許為空
+                        setFieldStatus(field, validationMessage, true, '✓ 生日欄位可選，保持不變');
+                        validationStatus[fieldName] = true;
+                        updateSubmitButton();
+                        return;
+                    } else {
+                        // 其他欄位仍然必填
+                        setFieldStatus(field, validationMessage, false, '此欄位為必填');
+                        validationStatus[fieldName] = false;
+                        updateSubmitButton();
+                        return;
+                    }
                 }
                 
                 // 設置驗證中狀態
@@ -496,8 +508,14 @@
             setTimeout(() => {
                 fieldsToValidate.forEach(fieldName => {
                     const field = document.getElementById(fieldName);
-                    if (field && field.value) {
-                        validateField(fieldName, field.value);
+                    if (field) {
+                        // 【修正】對於生日欄位，即使沒有值也要觸發驗證以設置正確狀態
+                        if (fieldName === 'birthday') {
+                            validateField(fieldName, field.value || '');
+                        } else if (field.value) {
+                            // 其他欄位只在有值時才驗證
+                            validateField(fieldName, field.value);
+                        }
                     }
                 });
             }, 100);
