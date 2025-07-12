@@ -368,7 +368,6 @@
                     
                     <!-- 訂單操作 -->
                     <div class="order-actions">
-                        <a th:href="@{/member/orders/{id}(id=${order.orderListId})}" class="btn btn-sm">📄 查看詳情</a>
                         <button th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING}" 
                                 class="btn btn-sm" 
                                 style="background-color: #dc3545;"

@@ -31,6 +31,41 @@
     </div>
 </nav>
 
+<!-- 新增篩選功能區域 -->
+<div class="container-fluid mt-3 mb-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-filter"></i> 訂單狀態篩選
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group" role="group" aria-label="訂單狀態篩選">
+                        <button type="button" class="btn btn-outline-primary active" id="filterAll">
+                            <i class="fas fa-list"></i> 全部訂單
+                        </button>
+                        
+                        <button type="button" class="btn btn-outline-info" id="filterPending">
+                            <i class="fas fa-clock"></i> 處理中
+                        </button>
+                        <button type="button" class="btn btn-outline-warning" id="filterConfirmed">
+                            <i class="fas fa-clipboard-check"></i> 已確認
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" id="filterShipped">
+                            <i class="fas fa-shipping-fast"></i> 待取餐
+                        </button>
+                        <button type="button" class="btn btn-outline-success" id="filterCompleted">
+                            <i class="fas fa-check-circle"></i> 已完成
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <table id="orderTable" class="table table-striped table-hover" style="width: 100%">
     <thead>
         <tr>
@@ -130,17 +165,80 @@
 
 <script>
 $(document).ready(function() {
-    // 初始化 DataTables (維持不變)
-    $('#orderTable').DataTable({
+    // 初始化 DataTables
+    var table = $('#orderTable').DataTable({
         "lengthMenu": [5, 10, 20, 50],
+        "pageLength": 10, // 設定預設顯示10筆資料
         "language": {
             "url": "https://cdn.datatables.net/plug-ins/1.13.5/i18n/zh-HANT.json"
         },
         "dom": "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
                "<'row'<'col-sm-12'tr>>" +
                "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        "renderer": "bootstrap"
+        "renderer": "bootstrap",
+        // 為特定欄位設定排序規則
+        "columnDefs": [
+            {
+                "targets": 0, // 計數欄位
+                "orderable": false // 關閉排序
+            },
+            {
+                "targets": 2, // 會員欄位 (第3欄，從0開始計算)
+                "type": "num-fmt", // 使用數字格式排序
+                "render": function(data, type, row) {
+                    if (type === 'sort') {
+                        // 排序時只取會員ID部分 (取 " - " 前面的數字)
+                        var memberId = data.split(' - ')[0];
+                        return parseInt(memberId) || 0;
+                    }
+                    return data; // 顯示時仍然顯示完整格式
+                }
+            },
+            {
+                "targets": 8, // 操作欄位
+                "orderable": false // 關閉排序
+            }
+        ]
     });
+
+    // 新增篩選功能
+    // 全部訂單
+    $('#filterAll').on('click', function() {
+        table.column(5).search('').draw(); // 清除第5欄（訂單狀態）的搜尋條件
+        updateFilterButtons('filterAll');
+    });
+
+    // 處理中訂單
+    $('#filterPending').on('click', function() {
+        table.column(5).search('處理中').draw();
+        updateFilterButtons('filterPending');
+    });
+
+    // 已確認訂單
+    $('#filterConfirmed').on('click', function() {
+        table.column(5).search('已確認').draw();
+        updateFilterButtons('filterConfirmed');
+    });
+
+    // 待取餐訂單
+    $('#filterShipped').on('click', function() {
+        table.column(5).search('待取餐').draw();
+        updateFilterButtons('filterShipped');
+    });
+
+    // 已完成訂單
+    $('#filterCompleted').on('click', function() {
+        table.column(5).search('已完成').draw();
+        updateFilterButtons('filterCompleted');
+    });
+
+    // 更新按鈕狀態
+    function updateFilterButtons(activeButton) {
+        // 移除所有按鈕的 active 類別
+        $('#filterAll, #filterPending, #filterConfirmed, #filterShipped, #filterCompleted').removeClass('active');
+        // 為當前按鈕添加 active 類別
+        $('#' + activeButton).addClass('active');
+    }
 
     // --- ⭐【新增】點擊「明細」按鈕的事件監聽 ---
     // 使用事件委派(Event Delegation)，確保 DataTables 換頁後按鈕依然有效
