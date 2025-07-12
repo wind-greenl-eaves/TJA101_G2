@@ -80,7 +80,7 @@
         <div th:if="${newsItem.imageUrl != null and not #strings.isEmpty(newsItem.imageUrl)}" class="text-center">
             <img th:src="${newsItem.imageUrl}" alt="消息圖片" class="news-image img-fluid">
         </div>
-
+        <!-- 測試 -->
         <div class="content-body">
             <p th:text="${newsItem.content}">這是消息的詳細內容...</p>
         </div>

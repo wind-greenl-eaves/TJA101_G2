@@ -4,13 +4,6 @@ target/
 build/
 !**/src/main/**/target/
 !**/src/test/**/target/
-
-# Node.js dependencies
-# ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-# ★ 就是在這裡！新增這一行來忽略 node_modules ★
-# ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-node_modules/
-
 # IDE specific files
 .apt_generated
 .classpath
