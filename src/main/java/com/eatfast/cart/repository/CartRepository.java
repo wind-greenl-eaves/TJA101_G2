@@ -1,16 +1,13 @@
 /*
  * ================================================================
- * 檔案: CartRepository.java (經嚴格審查與重構)
+ * 檔案: CartRepository.java (最終修正版)
  * ================================================================
  * - 存放目錄: src/main/java/com/eatfast/cart/repository/CartRepository.java
- * - 重構總結:
- * 1. 【命名修正】: 全面修正所有自定義查詢方法，採用底線 "_" 導航至
- * 關聯實體 (member, meal) 的主鍵屬性 (memberId, mealId)，
- * 以解決 PropertyReferenceException。
- * 2. 【結構強化】: 為所有公開方法添加標準 Javadoc 註解，明確闡述
- * 其用途、參數和回傳值，提升程式碼可維護性。
- * 3. 【邏輯確認】: 保留了 @Transactional 註解於刪除操作，確保資料
- * 一致性。主鍵型別 Long 的使用是正確的。
+ * - 修正總結:
+ * 1. 【命名統一】: 所有方法均採用底線 "_" 導航命名法，確保
+ * JPA 能正確解析屬性路徑，預防 PropertyReferenceException。
+ * 2. 【代碼整理】: 移除了會導致錯誤的舊命名方法，整合了功能
+ * 重複的查詢。
  */
 package com.eatfast.cart.repository;
 
@@ -32,34 +29,42 @@ public interface CartRepository extends JpaRepository<CartEntity, Long> {
 
     /**
      * 根據會員主鍵 ID 查找其所有購物車項目。
-     * <p>
-     * 命名慣例: `findByMember_MemberId` 會被 JPA 解析為 JPQL:
-     * {@code "SELECT c FROM CartEntity c WHERE c.member.memberId = :memberId"}
-     *
      * @param memberId 會員的主鍵 ID (Long)。
      * @return 包含該會員所有購物車項目的 List，若無則返回空 List。
      */
     List<CartEntity> findByMember_MemberId(Long memberId);
     
     /**
-     * 根據會員主鍵 ID 和餐點主鍵 ID 查找唯一的購物車項目。
-     * <p>
-     * 命名慣例: `findByMember_MemberIdAndMeal_MealId` 會被 JPA 解析為
-     * 兩個查詢條件的組合。
-     *
+     * 根據複合鍵（會員ID、門市ID、餐點ID）查找唯一的購物車項目。
      * @param memberId 會員的主鍵 ID (Long)。
+     * @param storeId 門市的主鍵 ID (Long)。
      * @param mealId 餐點的主鍵 ID (Long)。
      * @return 一個包含唯一購物車項目的 Optional，若不存在則為 Optional.empty()。
      */
     Optional<CartEntity> findByMember_MemberIdAndStore_StoreIdAndMeal_MealId(Long memberId, Long storeId, Long mealId);
     
     /**
+     * 根據會員主鍵 ID 和餐點主鍵 ID 查找唯一的購物車項目。
+     * 【注意】: 這個方法假設一個會員對同一個餐點在所有分店中只會有一條購物車紀錄。
+     * 如果業務邏輯允許在不同分店加入相同餐點，請使用上面的 findByMember_MemberIdAndStore_StoreIdAndMeal_MealId 方法。
+     * @param memberId 會員的主鍵 ID (Long)。
+     * @param mealId 餐點的主鍵 ID (Long)。
+     * @return 一個包含唯一購物車項目的 Optional，若不存在則為 Optional.empty()。
+     */
+    Optional<CartEntity> findByMember_MemberIdAndMeal_MealId(Long memberId, Long mealId);
+    
+    /**
      * 根據會員主鍵 ID 刪除其所有購物車項目。
-     * <p>
-     * 命名慣例: `deleteByMember_MemberId` 同樣會根據正確的屬性路徑生成刪除語句。
-     *
      * @param memberId 會員的主鍵 ID (Long)。
      */
     @Transactional
     void deleteByMember_MemberId(Long memberId);
+    
+    /**
+     * 根據會員主鍵 ID 和餐點主鍵 ID 刪除購物車項目。
+     * @param memberId 會員的主鍵 ID (Long)。
+     * @param mealId 餐點的主鍵 ID (Long)。
+     */
+    @Transactional
+    void deleteByMember_MemberIdAndMeal_MealId(Long memberId, Long mealId);
 }

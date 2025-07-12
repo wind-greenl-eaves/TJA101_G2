@@ -1,6 +1,6 @@
 package com.eatfast.cart.controller;
 
-import com.eatfast.cart.dto.CartDTO;
+import com.eatfast.cart.dto.CartDTO.AddToCartRequest;
 import com.eatfast.cart.dto.CartDTO.CartItemDto;       // 確保已引入
 import com.eatfast.cart.dto.CartDTO.UpdateCartItemRequest; // 確保已引入
 import com.eatfast.cart.service.CartService; // 確保已引入
@@ -8,15 +8,11 @@ import com.eatfast.cart.service.CartService; // 確保已引入
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
-import java.util.Map;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -32,6 +28,7 @@ public class CartController {
 
 	@GetMapping 
 	public String showCartPage() {
+		
 		return "front-end/cart/cart"; // 返回 Thymeleaf 模板的路徑
 	}
 
@@ -94,40 +91,96 @@ public class CartController {
      */
 	//	從表單接收mealId、quantity
 	@PostMapping
-	public String addToCart(@RequestParam("mealId") Long mealId,
-	                        @RequestParam("quantity") Long quantity,
-	                        HttpSession session,
+	public String addToCart(HttpSession session,
+	                        @RequestParam(value = "mealId", required = false) String mealIdStr,
+	                        @RequestParam(value = "storeId", required = false) String storeIdStr,
+	                        @RequestParam(value = "quantity", required = false) String quantityStr,
+	                        @RequestParam(value = "mealCustomization", required = false) String customization,
 	                        RedirectAttributes redirectAttributes) {
+	    
+	    try {
+	        // 手動解析和驗證參數
+	        Long mealId = parseAndValidate(mealIdStr, "餐點ID");
+	        Long storeId = parseAndValidate(storeIdStr, "門市ID");
+	        Long quantity = parseAndValidate(quantityStr, "數量");
+	        
+	        if (quantity <= 0) {
+	            redirectAttributes.addFlashAttribute("errorMessage", "數量必須大於0");
+	            return "redirect:/menu";
+	        }
+	        
+	        Long memberId = (Long) session.getAttribute("loggedInMemberId");
+	        if (memberId == null) {
+	            return "redirect:/api/v1/auth/member-login";
+	        }
 
-		Long memberId = (Long) session.getAttribute("loggedInMemberId");
+	        AddToCartRequest request = new AddToCartRequest();
+	        request.setMemberId(memberId);
+	        request.setMealId(mealId);
+	        request.setStoreId(storeId);
+	        request.setQuantity(quantity);
+	        request.setMealCustomization(customization);
 
-	    if (memberId == null) {
-	        redirectAttributes.addFlashAttribute("errorMessage", "請先登入會員");
-	        return "redirect:/api/v1/auth/member-login";
+	        cartService.addOrUpdateCartItem(request);
+
+	        redirectAttributes.addFlashAttribute("successMessage", "已成功加入購物車！");
+	        return "redirect:/menu";
+	        
+	    } catch (IllegalArgumentException e) {
+	        redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+	        return "redirect:/menu";
+	    } catch (Exception e) {
+	        redirectAttributes.addFlashAttribute("errorMessage", "加入購物車失敗，請稍後再試");
+	        return "redirect:/menu";
 	    }
+	}
 
-	    CartDTO.AddToCartRequest dto = new CartDTO.AddToCartRequest();
-	    dto.setMemberId(memberId);
-	    dto.setMealId(mealId);
-	    dto.setQuantity(quantity);
-	    dto.setMealCustomization(""); // 若前端未提供可先給空字串
+	// 輔助方法
+	private Long parseAndValidate(String value, String fieldName) {
+	    if (value == null || value.trim().isEmpty()) {
+	        throw new IllegalArgumentException(fieldName + "不能為空");
+	    }
+	    try {
+	        return Long.parseLong(value.trim());
+	    } catch (NumberFormatException e) {
+	        throw new IllegalArgumentException(fieldName + "格式不正確");
+	    }
+	}
 
-	    cartService.addOrUpdateCartItem(dto); // ✅ 傳入正確的 DTO
-
-
-	    redirectAttributes.addFlashAttribute("successMessage", "已加入購物車");
-	    return "redirect:/menu"; // 加入成功後回到菜單頁
+	/**
+	 * 根據會員 ID 取得購物車內容
+	 * GET /cart/api/member/{memberId}
+	 */
+	@GetMapping("/api/member/{memberId}")
+	@ResponseBody
+	public ResponseEntity<?> getCartItemsByMemberId(@PathVariable Long memberId) {
+	    try {
+	        // 這邊你應該會有一個 service 方法，如：
+	        List<CartItemDto> cartItems = cartService.getCartItemsByMember(memberId);
+	        if (cartItems == null || cartItems.isEmpty()) {
+	            return ResponseEntity.noContent().build(); // 204 無內容
+	        }
+	        return ResponseEntity.ok(cartItems); // 200 OK
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("取得購物車失敗");
+	    }
 	}
 	
-	@PutMapping("/member/{memberId}/customization")
-	public ResponseEntity<Void> updateMealCustomizationForAll(
-	        @PathVariable Long memberId,
-	        @RequestBody Map<Long, String> request) {
-	    
-	    String customization = request.get("mealCustomization");
-	    cartService.updateAllCartItemsCustomization(memberId, customization);
-	    return ResponseEntity.ok().build();
-	}
+	
+    // 【新增】提供給前端，用來獲取餐點資訊以準備加入購物車的 API
+    // ================================================================
+    @GetMapping("/prepare-item/{mealId}")
+    public ResponseEntity<?> prepareItemForCart(@PathVariable Long mealId) {
+        try {
+            // 呼叫我們在 Service 新增的方法
+            CartItemDto preparedItem = cartService.prepareItemForCart(mealId);
+            // 成功，回傳 200 OK 與 DTO 物件
+            return ResponseEntity.ok(preparedItem);
+        } catch (jakarta.persistence.EntityNotFoundException e) {
+            // 若 Service 找不到餐點拋出例外，則回傳 404 Not Found
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
 
 	
     @PutMapping("/member/{memberId}/store/{storeId}/meal/{mealId}") // 【關鍵修正】路徑和參數
@@ -163,20 +216,85 @@ public class CartController {
      * @param mealId 餐點 ID。
      * @return 無內容的 204 No Content 響應。
      */
-    @DeleteMapping("/member/{memberId}/store/{storeId}/meal/{mealId}") // 【關鍵修正】路徑和參數
-    public ResponseEntity<Void> removeCartItem(
-            @PathVariable Long memberId,
-            @PathVariable Long storeId,
-            @PathVariable Long mealId) {
-        try {
-            // 【關鍵修正】調用 CartService 中正確的方法，並傳遞所有參數
-            cartService.removeCartItemByKeys(memberId, storeId, mealId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+    
+    
+   //更新購物車項目數量 (對應前端 updateQuantity 函式)
+    
+   @PutMapping("/api/member/{memberId}/meal/{mealId}")
+   @ResponseBody
+   public ResponseEntity<CartItemDto> updateItemQuantity(
+           @PathVariable Long memberId,
+           @PathVariable Long mealId,
+           @RequestBody UpdateCartItemRequest request) { // ★ request body 只需要傳 quantity 即可
+       
+       try {
+           // 【注意】同樣假設 storeId 不是更新的必要條件
+           CartItemDto updatedItem = cartService.updateCartItemQuantity(memberId, mealId, request.getQuantity());
+           return ResponseEntity.ok(updatedItem);
+       } catch (IllegalArgumentException e) {
+           return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+       }
+   }
+
+   /**
+    * 【新增API】刪除整個購物車的項目 
+    */
+   @DeleteMapping("/api/member/{memberId}") // ★ 修正路徑，移除 "/clear" 以匹配前端
+   @ResponseBody
+   public ResponseEntity<Void> clearCart(@PathVariable Long memberId) { // 這裡本來就正確
+       try {
+           cartService.clearCartByMember(memberId);
+           return ResponseEntity.noContent().build(); // 204 No Content
+       } catch (Exception e) {
+           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+       }
+   }
+
+   /**
+    * 【新增API】清空指定會員購物車的一個項目 
+    */
+   @DeleteMapping("/api/member/{memberId}/meal/{mealId}")
+   @ResponseBody
+   public ResponseEntity<Void> removeCartItem(
+           @PathVariable Long memberId, // ★ 改用 @PathVariable 從路徑接收 memberId
+           @PathVariable Long mealId) { // ★ 改用 @PathVariable 從路徑接收 mealId
+       
+       try {
+           // 【注意】假設您的 Service 層有能力僅透過 memberId 和 mealId 刪除。
+           // 如果 Service 層強烈需要 storeId，則前端也需要相應修改以傳遞該參數。
+           // 這裡我們先假設 storeId 不是刪除的必要條件。
+           cartService.removeCartItemByKeys(memberId, mealId);
+           return ResponseEntity.noContent().build(); // 204 No Content
+       } catch (IllegalArgumentException e) {
+           // 例如，找不到該項目時 Service 可能會拋出此例外
+           return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+       } catch (Exception e) {
+           // 處理其他潛在的伺服器錯誤
+           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+       }
+   }
+   
+   /**
+    * 根據會員 ID 獲取其購物車內的所有項目。
+    * 這個方法將會處理前端 loadCart() 函式的請求。
+    *
+    * @param memberId 會員 ID，從 URL 路徑中獲取。
+    * @return 一個包含購物車項目 DTO 的 List，以 JSON 格式回傳。
+    */
+   @GetMapping("/member/{memberId}")
+   @ResponseBody // <-- 關鍵#1: 因為您的類別是 @Controller，需要此註解才能直接返回 JSON 資料，而不是尋找樣板頁面。
+   public ResponseEntity<List<CartItemDto>> getCartByMemberId(@PathVariable Long memberId) {
+       // 假設您的 CartService 有一個 getCartItemsByMemberId 方法
+       List<CartItemDto> cartItems = cartService.getCartItemsByMember(memberId); 
+       
+       // 關鍵#2: 您的前端JS有處理 204 的邏輯，所以這裡要對應實作
+       if (cartItems == null || cartItems.isEmpty()) {
+           // 如果購物車是空的，回傳 204 No Content 狀態碼
+           return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+       }
+       
+       // 如果有資料，回傳 200 OK 和 JSON 資料
+       return ResponseEntity.ok(cartItems);
+   }
 
 }

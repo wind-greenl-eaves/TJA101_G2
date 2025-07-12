@@ -25,6 +25,9 @@ public class StoreDto {
         this.storeName = storeName;
     }
     
+    //建立空的建構子
+    public StoreDto() {
+    }
 
     public StoreDto(Long storeId, String storeName, String storeLoc, String storePhone, String storeTime,
 			StoreStatus storeStatus, LocalDateTime createTime, String googleMapUrl) {

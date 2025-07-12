@@ -35,20 +35,47 @@ public class CartServiceImpl implements CartService {
     private final MealRepository mealRepository;
     private final StoreRepository storeRepository;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final CartRepository cartRepository;
 
     private static final String CART_REDIS_KEY_PREFIX = "cart:";
-    private static final long CART_TTL_SECONDS = TimeUnit.DAYS.toSeconds(7); 
+    private static final long CART_TTL_SECONDS = TimeUnit.DAYS.toSeconds(7);
 
-    public CartServiceImpl(CartRepository cartRepository,
+    public CartServiceImpl(
                            MemberRepository memberRepository,
                            MealRepository mealRepository,
                            StoreRepository storeRepository,
-                           RedisTemplate<String, Object> redisTemplate) {
+                           RedisTemplate<String, Object> redisTemplate,
+                           CartRepository cartRepository) {
         this.memberRepository = memberRepository;
         this.mealRepository = mealRepository;
         this.storeRepository = storeRepository;
         this.redisTemplate = redisTemplate;
+        this.cartRepository = cartRepository;
     }
+    
+    
+ // 【新增】實作根據 mealId 獲取餐點資訊的方法
+    // ================================================================
+    @Override
+    public CartItemDto prepareItemForCart(Long mealId) {
+        // 1. 使用已注入的 mealRepository 查詢餐點，若找不到則拋出例外
+        MealEntity meal = mealRepository.findById(mealId)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("找不到 ID 為 " + mealId + " 的餐點"));
+
+        // 2. 建立一個我們之前修改好的 DTO 物件
+        CartItemDto dto = new CartItemDto();
+
+        // 3. 將從 MealEntity 查到的資料，填入 DTO 中
+        dto.setMealId(meal.getMealId());
+        dto.setMealName(meal.getMealName());
+        dto.setMealPrice(meal.getMealPrice()); // 【重點】設定我們新增的價格欄位
+        dto.setMealPicUrl(getMealImageUrl(meal.getMealId())); // 【重點】設定圖片 URL (使用你既有的 helper method)
+        dto.setQuantity(1L); // 新準備的項目，數量預設為 1 (注意型別為 Long)
+
+        // 4. 回傳已填充好資料的 DTO
+        return dto;
+    }
+
 
     private String getCartRedisKey(Long memberId) {
         return CART_REDIS_KEY_PREFIX + memberId;
@@ -58,18 +85,20 @@ public class CartServiceImpl implements CartService {
         return mealId + ":" + storeId;
     }
 
+    // 新增的唯一 cartId 產生方法，格式為 memberId:storeId:mealId
+    private String generateCartId(Long memberId, Long storeId, Long mealId) {
+        return memberId + ":" + storeId + ":" + mealId;
+    }
+
     @Override
     @Transactional
     public CartItemDto addOrUpdateCartItem(AddToCartRequest request) {
-    	System.out.println("Received request: " + request);
-    	System.out.println("mealId: " + request.getMealId());
-    	System.out.println("memberId: " + request.getMemberId());
-    	System.out.println("quantity: " + request.getQuantity());
+        System.out.println("Received request: " + request);
+        System.out.println("mealId: " + request.getMealId());
+        System.out.println("memberId: " + request.getMemberId());
+        System.out.println("quantity: " + request.getQuantity());
 
-    	
-    	
-    	
-    	MemberEntity member = memberRepository.findById(request.getMemberId())
+        MemberEntity member = memberRepository.findById(request.getMemberId())
                 .orElseThrow(() -> new IllegalArgumentException("會員不存在: " + request.getMemberId()));
         MealEntity meal = mealRepository.findById(request.getMealId())
                 .orElseThrow(() -> new IllegalArgumentException("餐點不存在: " + request.getMealId()));
@@ -90,13 +119,14 @@ public class CartServiceImpl implements CartService {
                 customization = existingData.getMealCustomization();
             }
         }
-        
+
         CartItemRedisData newData = new CartItemRedisData(newQuantity, customization);
-        
+
         redisTemplate.opsForHash().put(cartKey, hashField, newData);
         redisTemplate.expire(cartKey, CART_TTL_SECONDS, TimeUnit.SECONDS);
 
         CartItemDto dto = new CartItemDto();
+        dto.setCartId(generateCartId(member.getMemberId(), store.getStoreId(), meal.getMealId())); // 這裡改成帶 cartId
         dto.setMemberId(member.getMemberId());
         dto.setMemberUsername(member.getUsername());
         dto.setMealId(meal.getMealId());
@@ -105,68 +135,64 @@ public class CartServiceImpl implements CartService {
         dto.setStoreName(store.getStoreName());
         dto.setQuantity(newData.getQuantity());
         dto.setMealCustomization(newData.getMealCustomization());
-        dto.setCreatedAt(LocalDateTime.now()); 
-        dto.setCartId(null); 
-        dto.setMealPicUrl(getMealImageUrl(meal.getMealId())); 
+        dto.setCreatedAt(LocalDateTime.now());
+        dto.setMealPicUrl(getMealImageUrl(meal.getMealId()));
 
         return dto;
     }
+    
+    
+    
 
     @Override
     public List<CartItemDto> getCartItemsByMember(Long memberId) {
-        String cartKey = getCartRedisKey(memberId);
-        Map<Object, Object> cartHash = redisTemplate.opsForHash().entries(cartKey);
+        String redisKey = getCartRedisKey(memberId);
+        Map<Object, Object> redisCartMap = redisTemplate.opsForHash().entries(redisKey);
 
-        List<CartItemDto> cartItems = new ArrayList<>();
-        if (cartHash.isEmpty()) {
-            return cartItems;
-        }
+        List<CartItemDto> result = new ArrayList<>();
 
-        MemberEntity member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("會員不存在: " + memberId));
+        for (Map.Entry<Object, Object> entry : redisCartMap.entrySet()) {
+            String key = (String) entry.getKey(); // e.g., "mealId:storeId"
+            CartItemRedisData redisData = (CartItemRedisData) entry.getValue();
 
-        for (Map.Entry<Object, Object> entry : cartHash.entrySet()) {
-            String hashField = (String) entry.getKey();
-            CartItemRedisData data = (CartItemRedisData) entry.getValue();
+            String[] parts = key.split(":");
+            if (parts.length != 2) continue;
 
-            String[] ids = hashField.split(":");
-            if (ids.length != 2) continue;
-
-            Long mealId = Long.parseLong(ids[0]);
-            Long storeId = Long.parseLong(ids[1]);
+            Long mealId = Long.parseLong(parts[0]);
+            Long storeId = Long.parseLong(parts[1]);
 
             Optional<MealEntity> mealOpt = mealRepository.findById(mealId);
             Optional<StoreEntity> storeOpt = storeRepository.findById(storeId);
+            Optional<MemberEntity> memberOpt = memberRepository.findById(memberId);
 
-            if (mealOpt.isPresent() && storeOpt.isPresent()) {
-                MealEntity meal = mealOpt.get();
-                StoreEntity store = storeOpt.get();
+            if (mealOpt.isEmpty() || storeOpt.isEmpty() || memberOpt.isEmpty()) continue;
 
-                CartItemDto dto = new CartItemDto();
-                dto.setMemberId(member.getMemberId());
-                dto.setMemberUsername(member.getUsername());
-                dto.setMealId(meal.getMealId());
-                dto.setMealName(meal.getMealName());
-                dto.setStoreId(store.getStoreId());
-                dto.setStoreName(store.getStoreName());
-                dto.setQuantity(data.getQuantity());
-                dto.setMealCustomization(data.getMealCustomization());
-                dto.setCreatedAt(null);
-                dto.setCartId(null);
-                dto.setMealPicUrl(getMealImageUrl(meal.getMealId()));
+            MealEntity meal = mealOpt.get();
+            StoreEntity store = storeOpt.get();
+            MemberEntity member = memberOpt.get();
 
-                cartItems.add(dto);
-            }
+            CartItemDto dto = new CartItemDto();
+            dto.setCartId(generateCartId(memberId, storeId, mealId)); // 使用 generateCartId
+            dto.setMemberId(memberId);
+            dto.setMemberUsername(member.getUsername());
+            dto.setMealId(mealId);
+            dto.setMealName(meal.getMealName());
+            dto.setMealPrice(meal.getMealPrice()); 
+            dto.setStoreId(storeId);
+            dto.setStoreName(store.getStoreName());
+            dto.setMealPicUrl(meal.getMealPic());
+            dto.setQuantity(redisData.getQuantity());
+            dto.setMealCustomization(redisData.getMealCustomization());
+
+            result.add(dto);
         }
-        redisTemplate.expire(cartKey, CART_TTL_SECONDS, TimeUnit.SECONDS);
-        return cartItems;
+
+        return result;
     }
 
-    // 【關鍵修正】: 實作 updateCartItemByKeys 方法
-    @Override // 必須有 @Override 註解
+    @Override
     @Transactional
     public CartItemDto updateCartItemByKeys(Long memberId, Long storeId, Long mealId, UpdateCartItemRequest request) {
-        // 1. 驗證關聯實體是否存在（從資料庫獲取，確保 ID 有效）
         MemberEntity member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("會員不存在: " + memberId));
         MealEntity meal = mealRepository.findById(mealId)
@@ -187,17 +213,17 @@ public class CartServiceImpl implements CartService {
         String customization = request.getMealCustomization();
 
         if (newQuantity == 0) {
-            redisTemplate.opsForHash().delete(cartKey, hashField); // 數量為0則從購物車移除
-            redisTemplate.expire(cartKey, CART_TTL_SECONDS, TimeUnit.SECONDS); // 重設 TTL
-            return null; // 表示項目被移除
+            redisTemplate.opsForHash().delete(cartKey, hashField);
+            redisTemplate.expire(cartKey, CART_TTL_SECONDS, TimeUnit.SECONDS);
+            return null;
         }
-        
+
         CartItemRedisData newData = new CartItemRedisData(newQuantity, customization != null ? customization : existingData.getMealCustomization());
         redisTemplate.opsForHash().put(cartKey, hashField, newData);
         redisTemplate.expire(cartKey, CART_TTL_SECONDS, TimeUnit.SECONDS);
 
-        // 構建並返回更新後的 DTO
         CartItemDto dto = new CartItemDto();
+        dto.setCartId(generateCartId(memberId, storeId, mealId)); // 這裡帶 cartId
         dto.setMemberId(member.getMemberId());
         dto.setMemberUsername(member.getUsername());
         dto.setMealId(meal.getMealId());
@@ -206,9 +232,8 @@ public class CartServiceImpl implements CartService {
         dto.setStoreName(store.getStoreName());
         dto.setQuantity(newData.getQuantity());
         dto.setMealCustomization(newData.getMealCustomization());
-        dto.setCreatedAt(LocalDateTime.now()); 
-        dto.setCartId(null); 
-        dto.setMealPicUrl(getMealImageUrl(meal.getMealId())); 
+        dto.setCreatedAt(LocalDateTime.now());
+        dto.setMealPicUrl(getMealImageUrl(meal.getMealId()));
 
         return dto;
     }
@@ -235,10 +260,9 @@ public class CartServiceImpl implements CartService {
 
     private String getMealImageUrl(Long mealId) {
         // 替換為您的實際 context path
-        return "/demo/api/meals/" + mealId + "/image"; 
+        return "/demo/api/meals/" + mealId + "/image";
     }
-    
-    //購物車客製化備註欄為自動更新到redis
+
     @Override
     public void updateAllCartItemsCustomization(Long memberId, String mealCustomization) {
         String redisKey = "cart:" + memberId;
@@ -250,13 +274,39 @@ public class CartServiceImpl implements CartService {
             redisTemplate.opsForHash().put(redisKey, key, data);
         }
     }
-
     
+    @Override
+    @Transactional
+    public CartItemDto updateCartItemQuantity(Long memberId, Long mealId, Long quantity) {
+        // 透過呼叫已有的、操作 Redis 的方法來實現更新
+        // 注意：這個方法需要 storeId，但目前的參數沒有。這表示前端的呼叫也需要調整。
+        // 這裡我們先假設一個固定的 storeId，或您需要修改前端傳遞此參數。
+        // 為了讓程式能動，我們先假設 storeId = 1L (這是一個臨時的硬編碼)
+        Long tempStoreId = 1L; 
+        
+        UpdateCartItemRequest request = new UpdateCartItemRequest();
+        request.setQuantity(quantity);
+        request.setMealCustomization(""); // 更新數量時，通常不修改備註
+
+        // 直接呼叫操作 Redis 的 `updateCartItemByKeys` 方法
+        return this.updateCartItemByKeys(memberId, tempStoreId, mealId, request);
+    }
+    
+    @Override
+    @Transactional
+    public void removeCartItemByKeys(Long memberId, Long mealId) {
+        // 同樣，我們需要 storeId 才能在 Redis 中定位到正確的項目
+        // 這裡我們先假設一個固定的 storeId = 1L
+        Long tempStoreId = 1L;
+        
+        // 直接呼叫操作 Redis 的 `removeCartItemByKeys` 方法
+        this.removeCartItemByKeys(memberId, tempStoreId, mealId);
+    }
     
 
     private CartItemDto convertToDto(CartEntity cartEntity) {
         CartItemDto dto = new CartItemDto();
-        dto.setCartId(cartEntity.getCartId());
+        dto.setCartId(String.valueOf(cartEntity.getCartId()));
         dto.setQuantity(cartEntity.getQuantity());
         dto.setMealCustomization(cartEntity.getMealCustomization());
         dto.setCreatedAt(cartEntity.getCreatedAt());
