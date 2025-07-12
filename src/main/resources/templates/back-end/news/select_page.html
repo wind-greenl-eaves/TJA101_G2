@@ -76,41 +76,41 @@
                     <div class="table-responsive">
                         <table class="table table-hover table-striped mb-0">
                             <thead>
-                                <tr>
-                                    <th>公告ID</th>
-                                    <th>員工編號</th>
-                                    <th>標題</th>
-                                    <th>上架時間</th>
-                                    <th>下架時間</th>
-                                    <th>狀態</th>
-                                    <th>內文</th>
-                                    <th>操作</th>
-                                </tr>
+                            <tr>
+                                <th>公告ID</th>
+                                <th>員工編號</th>
+                                <th>標題</th>
+                                <th>上架時間</th>
+                                <th>下架時間</th>
+                                <th>狀態</th>
+                                <th>內文</th>
+                                <th>操作</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="news : ${newsList}">
-                                    <td th:text="${news.newsId}"></td>
-                                    <td th:text="${news.employeeId}"></td>
-                                    <td th:text="${news.title}"></td>
-                                    <td th:text="${#temporals.format(news.startTime, 'yyyy-MM-dd HH:mm')}"></td>
-                                    <td th:text="${news.endTime != null ? #temporals.format(news.endTime, 'yyyy-MM-dd HH:mm') : '無'}"></td>
-                                    <td th:text="${news.status == 1 ? '啟用' : '停用'}"></td>
-                                    <td th:text="${#strings.abbreviate(news.content, 50)}"></td>
-                                    <td>
-                                        <form method="get" th:action="@{'/news/edit/' + ${news.newsId}}" style="display: inline;">
-                                            <button type="submit" class="btn btn-sm btn-success">
-                                                <i class="fas fa-edit"></i> 修改
-                                            </button>
-                                        </form>
-                                        <form method="post" th:action="@{/news/delete}" style="display: inline;"
-                                              onsubmit="return confirm('確定要刪除這則公告嗎？');">
-                                            <input type="hidden" name="newsId" th:value="${news.newsId}" />
-                                            <button type="submit" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-trash-alt"></i> 刪除
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
+                            <tr th:each="news : ${newsList}">
+                                <td th:text="${news.newsId}"></td>
+                                <td th:text="${news.employeeId}"></td>
+                                <td th:text="${news.title}"></td>
+                                <td th:text="${#temporals.format(news.startTime, 'yyyy-MM-dd HH:mm')}"></td>
+                                <td th:text="${news.endTime != null ? #temporals.format(news.endTime, 'yyyy-MM-dd HH:mm') : '無'}"></td>
+                                <td th:text="${news.status == 1 ? '啟用' : '停用'}"></td>
+                                <td th:text="${#strings.abbreviate(news.content, 50)}"></td>
+                                <td>
+                                    <form method="get" th:action="@{'/news/edit/' + ${news.newsId}}" style="display: inline;">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="fas fa-edit"></i> 修改
+                                        </button>
+                                    </form>
+                                    <form method="post" th:action="@{/news/delete}" style="display: inline;"
+                                          onsubmit="return confirm('確定要刪除這則公告嗎？');">
+                                        <input type="hidden" name="newsId" th:value="${news.newsId}" />
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash-alt"></i> 刪除
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>

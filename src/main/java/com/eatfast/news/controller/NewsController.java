@@ -33,7 +33,7 @@ public class NewsController {
         // 1. 從 Service 取得要顯示的公開消息
         List<NewsEntity> newsList = newsService.getActivePublishedNews();
 
-        // 2. 將消息列表放進 Model，取名為 "publicNewsList"
+        // 2. 將消息列表放進 Model，取名為 "publicNewsList"測試
         model.addAttribute("publicNewsList", newsList);
 
         // 3. 回傳到我們建立的片段檔案，並指定只渲染 news_section 這個區塊
