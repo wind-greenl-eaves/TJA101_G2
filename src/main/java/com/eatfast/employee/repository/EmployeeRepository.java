@@ -32,6 +32,7 @@ import java.util.Optional;
  * 員工資料存取層 (Repository)。
  * - JpaRepository: 提供標準 CRUD 功能。
  * - JpaSpecificationExecutor: 提供動態條件查詢功能。
+ * - optional: 使用 Optional 包裝查詢結果，避免 NullPointerException。
  */
 @Repository
 public interface EmployeeRepository extends JpaRepository<EmployeeEntity, Long>, JpaSpecificationExecutor<EmployeeEntity> {
