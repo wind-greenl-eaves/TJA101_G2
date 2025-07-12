@@ -1,10 +1,17 @@
-HELP.md
+# Maven/Gradle build output
 target/
-.mvn/wrapper/maven-wrapper.jar
+.mvn/
+build/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+# Node.js dependencies
+# ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+# ★ 就是在這裡！新增這一行來忽略 node_modules ★
+# ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+node_modules/
+
+# IDE specific files
 .apt_generated
 .classpath
 .factorypath
@@ -12,44 +19,24 @@ target/
 .settings
 .springBeans
 .sts4-cache
-
-### IntelliJ IDEA ###
 .idea
 *.iws
 *.iml
 *.ipr
-
-### NetBeans ###
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
 !**/src/main/**/build/
 !**/src/test/**/build/
-
-### VS Code ###
 .vscode/
-
-.settings/
-.mvn/
-bin/
-target/
-.classpath
-.project
-*.idea
-*.iml
 .DS_Store
 
-# 日誌檔案
-logs/*.log
-logs/*.log.*
-logs/application-*.log
-logs/employee-*.log
-logs/security-*.log
-logs/sql-*.log
-logs/error-*.log
+# Log files
+logs/
+*.log
 
-# 保留 logs 目錄結構但忽略日誌內容
-!logs/.gitkeep
+# Operating System files
+.DS_Store
+Thumbs.db
