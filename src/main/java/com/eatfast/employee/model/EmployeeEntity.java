@@ -204,19 +204,19 @@ public class EmployeeEntity {
 
     /**
      * 最後一次登入失敗時間
-     * 記錄最後一次登入失敗的時間，用於計算是否需要重置失敗次數。
-     * 對應到 employee 資料表的 last_failure_time 欄位。
+     * 記錄最後一次登入失敗的時間，用於追蹤和分析。
+     * 對應到 employee 資料表的 last_login_failure_at 欄位。
      */
-    @Column(name = "last_failure_time")
-    private LocalDateTime lastFailureTime;
+    @Column(name = "last_login_failure_at")
+    private LocalDateTime lastLoginFailureAt;
 
     /**
      * 帳號鎖定時間
-     * 當登入失敗次數達到上限時，記錄帳號被鎖定的時間。
-     * 對應到 employee 資料表的 account_locked_time 欄位。
+     * 記錄帳號因登入失敗過多而被鎖定的時間。
+     * 對應到 employee 資料表的 account_locked_at 欄位。
      */
-    @Column(name = "account_locked_time")
-    private LocalDateTime accountLockedTime;
+    @Column(name = "account_locked_at")
+    private LocalDateTime accountLockedAt;
 
     /**
      * 樂觀鎖定版本號
@@ -338,10 +338,10 @@ public class EmployeeEntity {
     // public void setVersion(Long version) { this.version = version; }
     public Integer getLoginFailureCount() { return loginFailureCount; }
     public void setLoginFailureCount(Integer loginFailureCount) { this.loginFailureCount = loginFailureCount; }
-    public LocalDateTime getLastFailureTime() { return lastFailureTime; }
-    public void setLastFailureTime(LocalDateTime lastFailureTime) { this.lastFailureTime = lastFailureTime; }
-    public LocalDateTime getAccountLockedTime() { return accountLockedTime; }
-    public void setAccountLockedTime(LocalDateTime accountLockedTime) { this.accountLockedTime = accountLockedTime; }
+    public LocalDateTime getLastLoginFailureAt() { return lastLoginFailureAt; }
+    public void setLastLoginFailureAt(LocalDateTime lastLoginFailureAt) { this.lastLoginFailureAt = lastLoginFailureAt; }
+    public LocalDateTime getAccountLockedAt() { return accountLockedAt; }
+    public void setAccountLockedAt(LocalDateTime accountLockedAt) { this.accountLockedAt = accountLockedAt; }
 
     // ======================== equals、hashCode、toString 方法 ========================
 

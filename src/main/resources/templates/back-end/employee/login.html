@@ -356,29 +356,54 @@
                 
                 <!-- 【新增】登入失敗次數警告顯示 -->
                 <div th:if="${errorMessage != null and (#strings.contains(errorMessage, '還有') or #strings.contains(errorMessage, '次登入機會'))}" 
-                     class="mt-3 p-3 bg-yellow-50 border border-yellow-400 rounded-lg">
-                    <div class="flex items-center">
-                        <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
-                        <span class="text-yellow-800 font-semibold">安全警告</span>
+                     style="margin-top: 15px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <i class="fas fa-exclamation-triangle" style="color: #856404; margin-right: 8px;"></i>
+                        <span style="color: #856404; font-weight: bold;">安全警告</span>
                     </div>
-                    <div class="mt-2 text-yellow-700 text-sm">
-                        <p>⚠️ 您的帳號登入失敗次數過多</p>
-                        <p>🔒 達到 8 次失敗將自動停用帳號</p>
-                        <p>💡 請確認帳號密碼是否正確</p>
+                    <div style="color: #856404; font-size: 14px;">
+                        <p style="margin: 5px 0;"><strong>⚠️ 您的帳號登入失敗次數過多</strong></p>
+                        <p style="margin: 5px 0;"><strong>🔒 達到 8 次失敗將自動停用帳號</strong></p>
+                        <p style="margin: 5px 0;"><strong>💡 請確認帳號密碼是否正確</strong></p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                            如果您忘記密碼，請點擊下方「忘記密碼？」連結重設密碼
+                        </p>
                     </div>
                 </div>
                 
                 <!-- 【新增】帳號被鎖定的提示 -->
-                <div th:if="${errorMessage != null and #strings.contains(errorMessage, '已被停用')}" 
-                     class="mt-3 p-3 bg-red-50 border border-red-400 rounded-lg">
-                    <div class="flex items-center">
-                        <i class="fas fa-lock text-red-600 mr-2"></i>
-                        <span class="text-red-800 font-semibold">帳號已鎖定</span>
+                <div th:if="${errorMessage != null and (#strings.contains(errorMessage, '已被停用') or #strings.contains(errorMessage, '聯絡系統管理員'))}" 
+                     style="margin-top: 15px; padding: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <i class="fas fa-lock" style="color: #721c24; margin-right: 8px;"></i>
+                        <span style="color: #721c24; font-weight: bold;">帳號已鎖定</span>
                     </div>
-                    <div class="mt-2 text-red-700 text-sm">
-                        <p>🚫 您的帳號因登入失敗次數過多已被停用</p>
-                        <p>📞 請聯絡系統管理員解鎖帳號</p>
-                        <p>🔧 管理員可透過後台重置您的登入失敗次數</p>
+                    <div style="color: #721c24; font-size: 14px;">
+                        <p style="margin: 5px 0;"><strong>🚫 您的帳號因登入失敗次數過多已被停用</strong></p>
+                        <p style="margin: 5px 0;"><strong>📞 請聯絡系統管理員解鎖帳號</strong></p>
+                        <p style="margin: 5px 0;"><strong>🔧 管理員可透過後台重置您的登入失敗次數</strong></p>
+                        <div style="margin-top: 10px; padding: 10px; background-color: #f1f3f4; border-radius: 4px;">
+                            <p style="margin: 0; font-size: 13px; color: #495057;">
+                                <strong>聯絡資訊：</strong><br>
+                                📧 Email: admin@eatfast.com<br>
+                                📞 電話: (02) 1234-5678<br>
+                                🕒 服務時間: 週一至週五 09:00-18:00
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 【新增】一般帳號錯誤的提示 -->
+                <div th:if="${errorMessage != null and (#strings.contains(errorMessage, '帳號或密碼錯誤') and !#strings.contains(errorMessage, '還有') and !#strings.contains(errorMessage, '已被停用'))}" 
+                     style="margin-top: 15px; padding: 15px; background-color: #e2e3e5; border: 1px solid #d6d8db; border-radius: 6px;">
+                    <div style="color: #383d41; font-size: 14px;">
+                        <p style="margin: 5px 0;"><strong>💡 登入提示：</strong></p>
+                        <ul style="margin: 5px 0; padding-left: 20px;">
+                            <li>請確認帳號和密碼是否正確</li>
+                            <li>注意大小寫是否正確</li>
+                            <li>如果忘記密碼，請使用「忘記密碼」功能</li>
+                            <li>連續登入失敗 8 次將導致帳號被鎖定</li>
+                        </ul>
                     </div>
                 </div>
             </div>

@@ -4,6 +4,9 @@ import com.eatfast.common.exception.ResourceNotFoundException;
 import com.eatfast.employee.dto.EmployeeDTO;
 import com.eatfast.employee.dto.EmployeeLoginRequest;
 import com.eatfast.employee.service.EmployeeService;
+import com.eatfast.employee.service.EmployeeAuthService; // 【新增】引入認證服務
+import com.eatfast.employee.model.EmployeeEntity;
+import com.eatfast.common.enums.AccountStatus;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -18,20 +21,24 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 /**
- * 員工登入控制器
+ * 員工登入控制器 - 整合登入次數限制功能
  * 處理員工登入相關的頁面顯示和表單提交
+ * 包含8次登入失敗自動鎖定帳號的安全機制
  */
 @Controller
 @RequestMapping("/employee") // 統一路徑前綴
 public class EmployeeLoginController {
 
     private static final Logger log = LoggerFactory.getLogger(EmployeeLoginController.class);
+    private static final int MAX_LOGIN_ATTEMPTS = 8; // 最大登入失敗次數
     
     private final EmployeeService employeeService;
+    private final EmployeeAuthService employeeAuthService; // 【新增】認證服務
 
     @Autowired
-    public EmployeeLoginController(EmployeeService employeeService) {
+    public EmployeeLoginController(EmployeeService employeeService, EmployeeAuthService employeeAuthService) {
         this.employeeService = employeeService;
+        this.employeeAuthService = employeeAuthService; // 【新增】注入認證服務
     }
 
     /**
@@ -135,7 +142,7 @@ public class EmployeeLoginController {
     }
 
     /**
-     * 處理員工登入表單提交
+     * 處理員工登入表單提交 - 整合登入次數限制功能
      * 路徑: POST /employee/login
      */
     @PostMapping("/login")
@@ -146,149 +153,183 @@ public class EmployeeLoginController {
                               Model model,
                               RedirectAttributes redirectAttributes) {
         
-        // 如果表單驗證失敗，重新顯示登入頁面
+        log.info("🔍 員工登入嘗試 - 帳號: {}", loginRequest.getAccount());
+        
+        // 【第一步：表單驗證】
         if (bindingResult.hasErrors()) {
-            // 重新添加員工列表
-            try {
-                List<EmployeeDTO> activeEmployees = employeeService.findAllActiveEmployees();
-                model.addAttribute("employeeList", activeEmployees);
-            } catch (Exception e) {
-                log.warn("無法獲取員工列表: {}", e.getMessage());
-            }
-            
-            // 重新添加已停權員工列表
-            try {
-                List<EmployeeDTO> inactiveEmployees = employeeService.findAllInactiveEmployees();
-                model.addAttribute("inactiveEmployeeList", inactiveEmployees);
-            } catch (Exception e) {
-                log.warn("無法獲取已停權員工列表: {}", e.getMessage());
-            }
-            
-            // 保持 returnUrl 參數
-            if (returnUrl != null) {
-                model.addAttribute("returnUrl", returnUrl);
-            }
-            
+            log.warn("❌ 登入表單驗證失敗 - 帳號: {}", loginRequest.getAccount());
+            prepareLoginPageModel(model, returnUrl);
             return "back-end/employee/login";
         }
-
+        
         try {
-            // 進行登入驗證
-            EmployeeDTO authenticatedEmployee = employeeService.authenticateEmployee(
-                loginRequest.getAccount(), 
-                loginRequest.getPassword()
-            );
-
-            // 登入成功，將員工資訊存入 Session
-            session.setAttribute("loggedInEmployee", authenticatedEmployee);
-            session.setAttribute("employeeId", authenticatedEmployee.getEmployeeId());
-            session.setAttribute("employeeName", authenticatedEmployee.getUsername());
-            session.setAttribute("employeeRole", authenticatedEmployee.getRole());
-
-            log.info("員工登入成功 - ID: {}, 帳號: {}, 姓名: {}", 
-                authenticatedEmployee.getEmployeeId(),
-                authenticatedEmployee.getAccount(),
-                authenticatedEmployee.getUsername());
-
-            // 決定重定向路徑
-            String redirectPath;
-            if (returnUrl != null && !returnUrl.trim().isEmpty()) {
-                try {
-                    // 解碼並驗證返回路徑
-                    String decodedReturnUrl = java.net.URLDecoder.decode(returnUrl, "UTF-8");
-                    if (isValidReturnUrl(decodedReturnUrl)) {
-                        redirectPath = "redirect:" + decodedReturnUrl;
-                        log.info("登入成功後重定向到原始請求路徑: {}", decodedReturnUrl);
-                    } else {
-                        redirectPath = "redirect:/employee/select_page?welcome=true";
-                        log.warn("無效的返回路徑，重定向到預設頁面: {}", decodedReturnUrl);
-                    }
-                } catch (Exception e) {
-                    redirectPath = "redirect:/employee/select_page?welcome=true";
-                    log.warn("解碼返回URL失敗，重定向到預設頁面: {}", e.getMessage());
-                }
-            } else {
-                redirectPath = "redirect:/employee/select_page?welcome=true";
+            // 【第二步：帳號存在性檢查】
+            EmployeeEntity employee = employeeAuthService.findEmployeeByAccount(loginRequest.getAccount());
+            if (employee == null) {
+                log.warn("❌ 員工帳號不存在 - 帳號: {}", loginRequest.getAccount());
+                model.addAttribute("errorMessage", "帳號或密碼錯誤");
+                prepareLoginPageModel(model, returnUrl);
+                return "back-end/employee/login";
             }
-
-            // 登入成功後重定向
-            redirectAttributes.addFlashAttribute("successMessage", 
-                "歡迎，" + authenticatedEmployee.getUsername() + "！登入成功。");
             
-            return redirectPath;
-
-        } catch (ResourceNotFoundException e) {
-            // 帳號不存在或密碼錯誤
-            model.addAttribute("errorMessage", "帳號或密碼錯誤，請重新輸入");
-            log.warn("登入失敗 - 帳號: {}, 原因: {}", loginRequest.getAccount(), e.getMessage());
+            // 【第三步：帳號狀態檢查】
+            if (employee.getStatus() == AccountStatus.INACTIVE) {
+                log.warn("❌ 員工帳號已被停用 - 帳號: {}, ID: {}", employee.getAccount(), employee.getEmployeeId());
+                
+                // 檢查是否因登入失敗過多而被停用
+                if (employee.getLoginFailureCount() >= MAX_LOGIN_ATTEMPTS) {
+                    model.addAttribute("errorMessage", 
+                        "您的帳號因登入失敗次數過多已被停用，請聯絡系統管理員解鎖帳號");
+                    model.addAttribute("isAccountLocked", true);
+                    model.addAttribute("showAccountLocked", true);
+                } else {
+                    model.addAttribute("errorMessage", 
+                        "您的帳號已被停用，請聯絡系統管理員");
+                }
+                
+                prepareLoginPageModel(model, returnUrl);
+                return "back-end/employee/login";
+            }
             
-        } catch (IllegalArgumentException e) {
-            // 帳號被停用或其他業務邏輯錯誤
-            String errorMessage = e.getMessage();
-            model.addAttribute("errorMessage", errorMessage);
+            // 【第四步：密碼驗證】
+            boolean passwordValid = employeeAuthService.validatePassword(loginRequest.getPassword(), employee.getPassword());
             
-            // 【新增】判斷是否為登入次數限制相關的錯誤，並添加額外資訊
-            if (errorMessage.contains("還有") && errorMessage.contains("次登入機會")) {
-                // 這是登入失敗次數警告
-                model.addAttribute("isLoginWarning", true);
-                model.addAttribute("showFailureCount", true);
-                log.warn("登入失敗次數警告 - 帳號: {}, 訊息: {}", loginRequest.getAccount(), errorMessage);
-            } else if (errorMessage.contains("已被停用") || errorMessage.contains("連續登入失敗")) {
-                // 這是帳號被鎖定的錯誤
+            if (!passwordValid) {
+                // 【登入失敗處理】
+                return handleLoginFailure(employee, loginRequest.getAccount(), returnUrl, model);
+            }
+            
+            // 【第五步：登入成功處理】
+            return handleLoginSuccess(employee, returnUrl, session, redirectAttributes);
+            
+        } catch (Exception e) {
+            log.error("💥 員工登入處理過程中發生錯誤: {}", e.getMessage(), e);
+            model.addAttribute("errorMessage", "系統錯誤，請稍後再試");
+            prepareLoginPageModel(model, returnUrl);
+            return "back-end/employee/login";
+        }
+    }
+    
+    /**
+     * 處理登入失敗邏輯
+     * 增加失敗次數，達到上限時停用帳號
+     */
+    private String handleLoginFailure(EmployeeEntity employee, String account, String returnUrl, Model model) {
+        log.warn("❌ 密碼驗證失敗 - 帳號: {}, 當前失敗次數: {}", account, employee.getLoginFailureCount());
+        
+        try {
+            // 增加登入失敗次數
+            int newFailureCount = employeeAuthService.incrementLoginFailureCount(employee.getEmployeeId());
+            
+            if (newFailureCount >= MAX_LOGIN_ATTEMPTS) {
+                // 【達到上限，停用帳號】
+                employeeAuthService.lockAccount(employee.getEmployeeId());
+                log.error("🚫 帳號已被鎖定 - 帳號: {}, 失敗次數: {}", account, newFailureCount);
+                
+                model.addAttribute("errorMessage", 
+                    "登入失敗次數過多，您的帳號已被停用，請聯絡系統管理員解鎖");
                 model.addAttribute("isAccountLocked", true);
                 model.addAttribute("showAccountLocked", true);
-                log.error("帳號已被鎖定 - 帳號: {}, 訊息: {}", loginRequest.getAccount(), errorMessage);
+            } else {
+                // 【未達上限，顯示警告】
+                int remainingAttempts = MAX_LOGIN_ATTEMPTS - newFailureCount;
+                log.warn("⚠️ 登入失敗 - 帳號: {}, 失敗次數: {}/{}, 還有 {} 次登入機會", 
+                           account, newFailureCount, MAX_LOGIN_ATTEMPTS, remainingAttempts);
+                
+                String errorMessage = String.format("帳號或密碼錯誤，您還有 %d 次登入機會，達到 %d 次失敗將自動停用帳號", 
+                                                   remainingAttempts, MAX_LOGIN_ATTEMPTS);
+                model.addAttribute("errorMessage", errorMessage);
+                model.addAttribute("isLoginWarning", true);
+                model.addAttribute("showFailureCount", true);
+                model.addAttribute("remainingAttempts", remainingAttempts);
+                model.addAttribute("maxAttempts", MAX_LOGIN_ATTEMPTS);
             }
             
-            log.warn("登入失敗 - 帳號: {}, 原因: {}", loginRequest.getAccount(), e.getMessage());
-            
         } catch (Exception e) {
-            // 其他未預期的錯誤
-            model.addAttribute("errorMessage", "登入過程中發生錯誤，請稍後再試");
-            log.error("登入過程中發生未預期錯誤 - 帳號: {}", loginRequest.getAccount(), e);
-        }
-
-        // 登入失敗，重新顯示登入頁面並保留輸入的帳號和返回路徑
-        try {
-            List<EmployeeDTO> activeEmployees = employeeService.findAllActiveEmployees();
-            model.addAttribute("employeeList", activeEmployees);
-        } catch (Exception e) {
-            log.warn("無法獲取員工列表: {}", e.getMessage());
+            log.error("處理登入失敗時發生錯誤: {}", e.getMessage(), e);
+            model.addAttribute("errorMessage", "帳號或密碼錯誤");
         }
         
-        // 重新添加已停權員工列表
+        prepareLoginPageModel(model, returnUrl);
+        return "back-end/employee/login";
+    }
+    
+    /**
+     * 處理登入成功邏輯
+     * 重置失敗次數，建立 Session
+     */
+    private String handleLoginSuccess(EmployeeEntity employee, String returnUrl, HttpSession session, RedirectAttributes redirectAttributes) {
+        log.info("✅ 員工登入成功 - 帳號: {}, 姓名: {}, 角色: {}", 
+                   employee.getAccount(), employee.getUsername(), employee.getRole());
+        
         try {
-            List<EmployeeDTO> inactiveEmployees = employeeService.findAllInactiveEmployees();
-            model.addAttribute("inactiveEmployeeList", inactiveEmployees);
+            // 【重置登入失敗次數】
+            employeeAuthService.resetLoginFailureCount(employee.getEmployeeId());
+            
+            // 【建立 Session】
+            EmployeeDTO employeeDTO = employeeAuthService.convertToDTO(employee);
+            session.setAttribute("loggedInEmployee", employeeDTO);
+            session.setAttribute("employeeId", employee.getEmployeeId());
+            session.setAttribute("employeeAccount", employee.getAccount());
+            session.setAttribute("employeeName", employee.getUsername());
+            session.setAttribute("employeeRole", employee.getRole());
+            session.setAttribute("storeId", employee.getStore().getStoreId());
+            session.setAttribute("isEmployeeLoggedIn", true);
+            session.setAttribute("loginTime", System.currentTimeMillis());
+            
+            // 設定 Session 過期時間（4小時）
+            session.setMaxInactiveInterval(4 * 60 * 60);
+            
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "歡迎回來，" + employee.getUsername() + "！");
+            
+            // 【重定向處理】
+            if (returnUrl != null && !returnUrl.isEmpty() && !returnUrl.contains("login")) {
+                log.info("重定向到指定頁面: {}", returnUrl);
+                return "redirect:" + returnUrl;
+            } else {
+                log.info("重定向到員工後台首頁");
+                return "redirect:/employee/select_page?welcome=true";
+            }
+            
         } catch (Exception e) {
-            log.warn("無法獲取已停權員工列表: {}", e.getMessage());
+            log.error("建立登入 Session 時發生錯誤: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "登入成功但系統錯誤，請重新登入");
+            return "redirect:/employee/login";
+        }
+    }
+    
+    /**
+     * 準備登入頁面所需的模型資料
+     */
+    private void prepareLoginPageModel(Model model, String returnUrl) {
+        try {
+            // 【修正】使用返回 DTO 的方法，而不是 Entity 方法
+            List<EmployeeDTO> activeEmployees = employeeService.findAllActiveEmployees();
+            if (activeEmployees != null && !activeEmployees.isEmpty()) {
+                model.addAttribute("employeeList", activeEmployees);
+                log.debug("成功載入 {} 筆啟用員工資料", activeEmployees.size());
+            } else {
+                model.addAttribute("noActiveEmployees", true);
+                log.warn("沒有找到任何啟用狀態的員工");
+            }
+            
+            // 【修正】使用返回 DTO 的方法，而不是 Entity 方法
+            List<EmployeeDTO> inactiveEmployees = employeeService.findAllInactiveEmployees();
+            if (inactiveEmployees != null && !inactiveEmployees.isEmpty()) {
+                model.addAttribute("inactiveEmployeeList", inactiveEmployees);
+                log.debug("成功載入 {} 筆已停權員工資料", inactiveEmployees.size());
+            }
+            
+        } catch (Exception e) {
+            log.error("準備登入頁面模型資料時發生錯誤: {}", e.getMessage(), e);
+            model.addAttribute("employeeListError", "載入員工列表失敗: " + e.getMessage());
         }
         
         // 保持 returnUrl 參數
         if (returnUrl != null) {
             model.addAttribute("returnUrl", returnUrl);
         }
-        
-        return "back-end/employee/login";
-    }
-
-    /**
-     * 驗證返回URL是否安全有效
-     * 防止開放重定向漏洞
-     */
-    private boolean isValidReturnUrl(String returnUrl) {
-        if (returnUrl == null || returnUrl.trim().isEmpty()) {
-            return false;
-        }
-        
-        // 只允許相對路徑，且必須以 /employee 開頭
-        if (returnUrl.startsWith("http://") || returnUrl.startsWith("https://") || 
-            returnUrl.startsWith("//") || returnUrl.contains("..")) {
-            return false;
-        }
-        
-        // 確保是員工模組的路徑
-        return returnUrl.startsWith("/employee/") && !returnUrl.equals("/employee/login");
     }
 
     /**
