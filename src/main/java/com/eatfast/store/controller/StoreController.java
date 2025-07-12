@@ -123,7 +123,9 @@ public class StoreController {
         }
         
         // 5. 指定要去渲染的 HTML 樣板檔案
-        return "front-end/store/storelist"; // 假設我們將新頁面放在這個路徑
+        return "front-end/store/storelist";
     }
+    
+    
 
 }

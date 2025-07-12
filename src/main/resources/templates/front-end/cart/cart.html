@@ -1,70 +1,128 @@
 <!DOCTYPE html>
 
+
+
 <html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+
+
 
 <head>
 
+
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>我的購物車 - EatFast</title>
-
 
 <script src="https://cdn.tailwindcss.com"></script>
 
+
+
 <script>
+
+
 
 tailwind.config = {
 
+
+
 theme: {
+
+
 
 extend: {
 
+
+
 fontFamily: {
+
+
 
 sans: ['Noto Sans TC', 'sans-serif'],
 
+
+
 },
+
+
 
 colors: {
 
+
+
 'brand-bg': '#FDFBF6',
+
+
 
 'brand-container': '#F5EFE6',
 
+
+
 'brand-primary': '#A67B5B',
+
+
 
 'brand-primary-hover': '#8C684A',
 
+
+
 'brand-text': '#5D534A',
+
+
 
 'brand-deep': '#3C2A21',
 
+
+
 'brand-accent': '#E1A87A',
 
-}
+
 
 }
 
-}
+
 
 }
+
+
+
+}
+
+
+
+}
+
+
 
 </script>
 
 
+
+
+
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 
+
+
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+
 
 <link
 	href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap"
 	rel="stylesheet">
 
 
+
+
+
+
 <link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+
+
+
 
 
 <style>
@@ -92,116 +150,218 @@ body {
 }
 </style>
 
+
+
 </head>
 
+
+
 <body class="bg-brand-bg text-brand-text antialiased">
+
+
+
+
+
+
 
 
 
 	<header
 		class="bg-white shadow-md fixed top-0 left-0 w-full z-50 transition-all duration-300">
 
+
+
 		<nav
 			class="container mx-auto px-6 py-4 flex justify-between items-center">
 
+
+
 			<div class="flex-shrink-0">
+
+
 
 				<a th:href="@{/welcome}" class="flex items-center"> <img
 					th:src="@{/images/123.png}" alt="Logo"
 					class="w-12 h-12 rounded-full mr-2"> <span
 					class="text-xl font-bold text-brand-deep">EatFast 早安！</span>
 
+
+
 				</a>
+
+
 
 			</div>
 
+
+
 			<div class="hidden md:flex space-x-8">
+
+
 
 				<a href="/welcome"
 					class="text-brand-text hover:text-brand-primary font-medium text-lg">關於我們</a>
 
+
+
 				<a href="/welcome"
 					class="text-brand-text hover:text-brand-primary font-medium text-lg">最新消息</a>
+
+
 
 				<a th:href="@{/store/select_page_store}"
 					class="text-brand-primary font-bold text-lg">門市據點</a> <a
 					th:href="@{/menu}"
 					class="text-brand-text hover:text-brand-primary font-medium text-lg">我要訂餐</a>
 
+
+
 				<a th:href="@{/cart}" class="text-brand-primary font-bold text-lg">購物車</a>
+
+
 
 			</div>
 
+
+
 			<div class="hidden md:flex items-center space-x-4">
+
+
 
 				<a href="/api/v1/auth/member-login"
 					class="bg-brand-accent text-brand-deep font-bold px-5 py-2 rounded-full hover:bg-orange-400 transition-colors shadow-sm">
 
+
+
 					登入/註冊 </a>
+
+
 
 			</div>
 
+
+
 		</nav>
+
+
 
 	</header>
 
 
 
+
+
+
+
+
+
 	<main class="container mx-auto p-4 md:p-8 pt-28 md:pt-32">
+
+
 
 		<div class="flex flex-col md:flex-row gap-8">
 
 
 
+
+
+
+
+
+
 			<aside class="w-full md:w-64 flex-shrink-0">
 
+
+
 				<div class="bg-brand-container p-4 rounded-lg shadow-md h-full">
+
+
 
 					<h2
 						class="text-xl font-bold text-brand-deep mb-4 border-b-2 border-gray-300 pb-2">餐點分類</h2>
 
+
+
 					<nav class="space-y-2">
+
+
 
 						<a th:href="@{/meal/list(type='漢堡')}"
 							class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">漢堡</a>
 
+
+
 						<a th:href="@{/meal/list(type='吐司')}"
 							class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">吐司</a>
+
+
 
 						<a th:href="@{/meal/list(type='麵類')}"
 							class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">麵類</a>
 
+
+
 						<a th:href="@{/meal/list(type='蛋餅')}"
 							class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">蛋餅</a>
+
+
 
 						<a th:href="@{/meal/list(type='飲品')}"
 							class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">飲品</a>
 
+
+
 					</nav>
 
+
+
 				</div>
+
+
 
 			</aside>
 
 
 
+
+
+
+
+
+
 			<section class="flex-grow">
+
+
 
 				<div
 					class="bg-white p-6 md:p-8 rounded-lg shadow-md border border-gray-200">
 
+
+
 					<h1 class="text-2xl font-bold text-brand-primary mb-6 text-center">我的購物車</h1>
+
+
+
+
 
 
 					<div id="message-container" class="hidden"></div>
 
 
+
+
+
+
 					<div id="not-logged-in-message"
 						class="text-center text-lg text-red-500 py-8 hidden">
+
+
 
 						<p class="mb-4">
 							<i class="fas fa-exclamation-triangle mr-2"></i>請先登入會員才能使用購物車功能。
 						</p>
+
+
 
 						<p>
 							<a th:href="@{/login}"
@@ -209,320 +369,296 @@ body {
 								class="fas fa-sign-in-alt mr-2"></i>前往登入</a>
 						</p>
 
+
+
 					</div>
+
+
+
+
+
+
 
 
 
 					<div id="cart-content" class="hidden">
 
+
+
 						<table class="w-full text-left mb-6">
+
+
 
 							<thead class="border-b-2 border-gray-300">
 
+
+
 								<tr>
+
+
 
 									<th class="py-2 font-semibold">餐點品項</th>
 
+
+
 									<th class="py-2 font-semibold text-right w-24">單價</th>
+
+
 
 									<th class="py-2 font-semibold text-center w-32">數量</th>
 
+
+
 									<th class="py-2 font-semibold text-right w-24">小計</th>
+
+
 
 									<th class="w-20"></th>
 								</tr>
 
+
+
 							</thead>
+
+
 
 							<tbody id="cart-items-body">
 
+
+
 								<tr id="loading-row">
+
+
 
 									<td colspan="5" class="text-center py-4">載入中...</td>
 
+
+
 								</tr>
 
+
+
 							</tbody>
+
+
 
 						</table>
 
 
 
+
+
+
+
+
+
 						<div class="flex justify-start mb-8">
+
+
 
 							<button id="clear-cart-btn"
 								class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm flex items-center shadow-sm transition-colors">
 
+
+
 								<i class="fas fa-trash-alt mr-2"></i>清空購物車
+
+
 
 							</button>
 
+
+
 						</div>
+
+
+
+
+
+
 
 
 
 						<div class="space-y-4 border-t border-gray-300 pt-8 mt-8">
 
+
+
 							<div class="flex items-center">
+
+
 
 								<label for="pickup-store"
 									class="w-24 font-semibold flex-shrink-0">取餐門市</label> <input
-									type="text" id="pickup-store" value="二號店"
+									type="text" id="pickup-store" placeholder="---"
 									class="flex-grow p-2 border rounded-md bg-gray-100" readonly>
+
+
 
 							</div>
 
-							<div class="flex items-center">
 
+
+							<div class="flex items-center">
 								<label for="pickup-time"
 									class="w-24 font-semibold flex-shrink-0">取餐時間</label> <select
 									id="pickup-time" class="flex-grow p-2 border rounded-md"></select>
-
 							</div>
 
+
+
 							<div class="flex items-start">
-
 								<label for="notes" class="w-24 font-semibold mt-2 flex-shrink-0">備註</label>
-
 								<textarea id="notes" rows="3"
 									class="flex-grow p-2 border rounded-md"
 									placeholder="例如：不加生菜、飲料去冰等..."></textarea>
-
 							</div>
-
 						</div>
 
-
-
 						<div class="border-t mt-8 pt-6 flex justify-between items-center">
-
 							<div>
-
 								<span class="text-xl font-bold text-brand-text">總金額： <span
 									id="cart-total-amount" class="text-2xl text-red-600">NT$
 										0</span>
-
 								</span>
-
 							</div>
 
-							<div class="flex items-center space-x-4">
 
+
+							<div class="flex items-center space-x-4">
 								<a th:href="@{/menu}"
 									class="bg-gray-200 text-gray-800 font-bold px-8 py-3 rounded-md hover:bg-gray-300 transition-colors">←
 									繼續購物</a>
-
 								<button id="checkout-btn"
 									class="bg-brand-accent text-brand-deep font-bold px-8 py-3 rounded-lg hover:bg-orange-400 transition-colors shadow">前往結帳</button>
-
 							</div>
-
 						</div>
-
 					</div>
 
 
 					<div id="empty-cart-message"
 						class="text-center text-lg text-gray-500 py-8 hidden">
-
 						<p>您的購物車是空的，快去選購吧！</p>
-
 						<p class="mt-4">
-
 							<a th:href="@{/menu}"
 								class="bg-brand-primary text-white px-4 py-2 rounded hover:bg-brand-primary-hover">開始購物</a>
-
 						</p>
-
 					</div>
-
 				</div>
-
 			</section>
-
 		</div>
-
 	</main>
+
+
+
+
 
 
 	<footer
 		class="bg-brand-deep text-brand-container text-center p-6 mt-16">
-
 		<p>&copy; 2025 EatFast 早餐店 - 版權所有</p>
-
 	</footer>
 
 
 
 	<script th:inline="javascript">
-
 document.addEventListener('DOMContentLoaded', function() {
 
 // --- 元素選擇 (DOM Elements) ---
-
 const messageContainer = document.getElementById('message-container');
-
 const cartItemsBody = document.getElementById('cart-items-body');
-
 const cartTotalAmountSpan = document.getElementById('cart-total-amount');
-
 const emptyCartMessageDiv = document.getElementById('empty-cart-message');
-
 const cartContentDiv = document.getElementById('cart-content');
-
 const notLoggedInMessageDiv = document.getElementById('not-logged-in-message');
-
 const clearCartBtn = document.getElementById('clear-cart-btn');
-
 const checkoutBtn = document.getElementById('checkout-btn');
-
 const pickupTimeSelect = document.getElementById('pickup-time');
 
 
-
 // --- 後端資料與設定 (Configuration) ---
-
 const IS_LOGGED_IN = /*[[${session.loggedInMemberId != null}]]*/ false;
-
 const MEMBER_ID = /*[[${session.loggedInMemberId}]]*/ null;
-
 const contextPath = /*[[@{/}]]*/ '/';
-
 const API_CART_BASE_URL = contextPath + 'cart';
-
-
 
 // --- 核心功能函式 (Core Functions) ---
 
 
-
 // 載入購物車
-
 async function loadCart() {
-
 cartItemsBody.innerHTML = '<tr id="loading-row"><td colspan="5" class="text-center py-4">載入中...</td></tr>';
-
 if (messageContainer) {
-
 messageContainer.classList.add('hidden');
-
 messageContainer.textContent = '';
-
 }
 
+
 if (!IS_LOGGED_IN || MEMBER_ID === null) {
-
 displayNotLoggedIn();
-
 return;
-
 }
 
 try {
-
 const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}`);
 
 if (response.status === 204) {
-
 displayEmptyCart();
-
 return;
-
 }
 
+
 if (!response.ok) {
-
 throw new Error(`伺服器錯誤 (狀態碼: ${response.status})`);
-
 }
 
 const cartItems = await response.json();
-
 if (cartItems && cartItems.length > 0) {
-
 renderCartItems(cartItems);
-
 } else {
-
 displayEmptyCart();
-
 }
 
 } catch (error) {
-
 console.error('載入購物車時發生錯誤:', error);
-
 showMessage('error', '無法載入購物車，請稍後再試。');
-
 displayEmptyCart();
-
 }
 
 }
-
 
 
 // 渲染購物車列表
-
 function renderCartItems(items) {
-
 cartItemsBody.innerHTML = '';
-
 let totalAmount = 0;
-
-
-
 items.forEach(item => {
-
 const mealPrice = parseFloat(item.mealPrice) || 0;
-
 const quantity = parseInt(item.quantity) || 0;
-
 const subtotal = mealPrice * quantity;
-
 totalAmount += subtotal;
-
-
-
 const row = document.createElement('tr');
-
 row.className = 'border-b';
 
-
 // 【修正 1/3】: 在產生按鈕的 HTML 時，將 storeId 也存入 data-store-id 屬性中
-
 row.innerHTML = `
-
 <td class="py-4 flex items-center">
-
 <img src="${item.mealPicUrl || contextPath + 'images/meal_default.png'}" alt="${item.mealName}" class="w-16 h-16 rounded-md mr-4 object-cover">
-
 <div>
-
 <span class="font-medium">${item.mealName || '未知餐點'}</span>
-
 <p class="text-sm text-gray-500">
-
 ${item.storeName ? `(${item.storeName})` : ''}
-
 ${item.mealCustomization ? `<br>備註: ${item.mealCustomization}` : ''}
-
 </p>
-
 </div>
 
 </td>
 
 <td class="py-4 align-middle text-right">NT$ ${mealPrice}</td>
-
 <td class="py-4 align-middle">
-
 <div class="flex items-center justify-center">
 
 <button class="px-2 py-1 border rounded-l-md minus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">-</button>
-
-<input type="number" value="${quantity}" min="1" class="w-12 text-center border-t border-b quantity-input" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">
-
+	<input type="number" value="${quantity}" min="1" class="w-12 text-center border-t border-b quantity-input" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">
 <button class="px-2 py-1 border rounded-r-md plus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">+</button>
 
 </div>
@@ -530,117 +666,82 @@ ${item.mealCustomization ? `<br>備註: ${item.mealCustomization}` : ''}
 </td>
 
 <td class="py-4 align-middle text-right font-medium">NT$ ${subtotal}</td>
-
 <td class="py-4 align-middle text-center">
-
 <button class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors shadow-sm delete-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">刪除</button>
-
 </td>
-
 `;
 
 cartItemsBody.appendChild(row);
 
+
 });
 
-
+if (items && items.length > 0 && items[0].storeName) {
+    // 確保我們能正確獲取到 input 元素
+    const pickupStoreInput = document.getElementById('pickup-store');
+    if (pickupStoreInput) {
+        // 從 API 回傳的第一筆資料中，取得門市名稱並設定到輸入框中
+        pickupStoreInput.value = items[0].storeName;
+    }
+}
 
 cartTotalAmountSpan.textContent = `NT$ ${totalAmount}`;
-
 displayCartContent();
-
 attachItemEventListeners();
 
 }
 
 
 // 更新商品數量
-
 async function updateQuantity(element, change) {
 
+
 // 【修正 2/3】: 讀取 storeId 並更新 API 路徑
-
 const mealId = element.dataset.mealId;
-
 const storeId = element.dataset.storeId; // 從 data-* 屬性中讀取 storeId
 
-
-
 if (!storeId) {
-
 showMessage('error', '操作失敗：缺少門市資訊。');
-
 return;
-
 }
-
 
 
 const quantityInput = element.closest('td').querySelector('.quantity-input');
-
 let newQuantity;
 
-
-
 if (change === 0) {
-
 newQuantity = parseInt(quantityInput.value, 10);
-
 if (isNaN(newQuantity) || newQuantity < 0) {
-
 showMessage('error', '數量必須是有效的正整數。');
-
 loadCart();
-
 return;
-
 }
 
 } else {
-
 newQuantity = parseInt(quantityInput.value, 10) + change;
-
 }
-
-
 
 if (newQuantity <= 0) {
-
 deleteCartItem(element);
-
 return;
-
 }
-
 
 try {
-
 // 將 storeId 加入到 API 路徑中
-
 const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}/store/${storeId}/meal/${mealId}`, {
-
 method: 'PUT',
-
 headers: { 'Content-Type': 'application/json' },
-
 body: JSON.stringify({ quantity: newQuantity })
-
 });
 
+
 if (!response.ok) throw new Error('更新失敗');
-
 loadCart();
-
 } catch (error) {
-
 console.error('更新數量失敗:', error);
-
 showMessage('error', '更新購物車失敗，請稍後再試。');
-
 loadCart();
-
 }
-
 }
 
 
@@ -651,239 +752,220 @@ async function deleteCartItem(element) {
 // 【修正 3/3】: 讀取 storeId 並更新 API 路徑
 
 if (!confirm('確定要從購物車中移除此項商品嗎？')) {
-
 return;
-
 }
 
 const mealId = element.dataset.mealId;
-
 const storeId = element.dataset.storeId; // 從 data-* 屬性中讀取 storeId
 
 
-
 if (!storeId) {
-
 showMessage('error', '操作失敗：缺少門市資訊。');
-
 return;
-
 }
-
-
-
 try {
 
 // 將 storeId 加入到 API 路徑中
-
 const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}/store/${storeId}/meal/${mealId}`, {
-
 method: 'DELETE'
-
 });
 
 if (!response.ok) throw new Error('刪除失敗');
-
-
-
 showMessage('success', '商品已成功移除！');
-
 loadCart();
-
 } catch (error) {
-
 console.error('刪除商品失敗:', error);
-
 showMessage('error', '移除商品失敗，請稍後再試。');
-
 }
-
 }
-
 
 
 // 清空整個購物車
-
 async function clearCart() {
-
 if (!confirm('您確定要清空整個購物車嗎？此操作無法復原。')) {
-
 return;
-
 }
-
 try {
-
 const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}`, {
-
 method: 'DELETE'
-
 });
 
 if (!response.ok) throw new Error('清空失敗');
-
 showMessage('success', '購物車已成功清空！');
-
 loadCart();
-
 } catch (error) {
-
 console.error('清空購物車失敗:', error);
-
 showMessage('error', '清空購物車時發生錯誤，請稍後再試。');
-
+}
 }
 
-}
 
-
-// 處理結帳 (此處無須修改)
-
+// 處理結帳
 function handleCheckout() {
-
 const pickupStore = document.getElementById('pickup-store').value;
-
 const pickupTime = document.getElementById('pickup-time').value;
-
 const notes = document.getElementById('notes').value;
-
 alert(`準備結帳！\n取餐門市: ${pickupStore}\n取餐時間: ${pickupTime}\n備註: ${notes}\n(此功能尚未完全實作)`);
-
 }
 
 
-// --- 畫面顯示控制 (無需修改) ---
 
+// --- 畫面顯示控制  ---
 function displayNotLoggedIn() {
-
 cartContentDiv.classList.add('hidden');
-
 emptyCartMessageDiv.classList.add('hidden');
-
 notLoggedInMessageDiv.classList.remove('hidden');
-
 }
-
 
 
 function displayEmptyCart() {
-
 cartContentDiv.classList.add('hidden');
-
 notLoggedInMessageDiv.classList.add('hidden');
-
 emptyCartMessageDiv.classList.remove('hidden');
-
 }
-
 
 
 function displayCartContent() {
 
+
+
 notLoggedInMessageDiv.classList.add('hidden');
+
+
 
 emptyCartMessageDiv.classList.add('hidden');
 
+
+
 cartContentDiv.classList.remove('hidden');
 
+
+
 }
+
+
+
+
 
 
 function showMessage(type, message) {
 
+
+
 if (!messageContainer) return;
+
+
 
 messageContainer.textContent = message;
 
+
+
 messageContainer.className = `message-${type}`;
+
+
 
 setTimeout(() => {
 
+
+
 messageContainer.classList.add('hidden');
+
+
 
 }, 5000);
 
+
+
 }
+
+
+
+
+
+
 
 
 
 // --- 事件綁定 (無需修改) ---
 
+
+
 function attachItemEventListeners() {
+
+
 
 cartItemsBody.querySelectorAll('.plus-btn').forEach(button => {
 
+
+
 button.addEventListener('click', (e) => updateQuantity(e.currentTarget, 1));
 
+
+
 });
+
+
 
 cartItemsBody.querySelectorAll('.minus-btn').forEach(button => {
 
+
+
 button.addEventListener('click', (e) => updateQuantity(e.currentTarget, -1));
 
+
+
 });
+
+
 
 cartItemsBody.querySelectorAll('.quantity-input').forEach(input => {
 
+
+
 input.addEventListener('change', (e) => updateQuantity(e.currentTarget, 0));
 
+
+
 });
+
+
 
 cartItemsBody.querySelectorAll('.delete-btn').forEach(button => {
 
-button.addEventListener('click', (e) => deleteCartItem(e.currentTarget));
 
+
+button.addEventListener('click', (e) => deleteCartItem(e.currentTarget));
 });
 
-}
 
+
+}
 
 function attachGlobalEventListeners() {
-
 clearCartBtn.addEventListener('click', clearCart);
-
 checkoutBtn.addEventListener('click', handleCheckout);
-
 }
 
 
-
-// --- 初始化功能 (無需修改) ---
+// --- 初始化功能  ---
 
 function generatePickupTimes() {
-
 if (!pickupTimeSelect) return;
-
 const now = new Date();
-
 now.setMinutes(now.getMinutes() + 20);
-
 const minutes = now.getMinutes();
-
 const roundedMinutes = Math.ceil(minutes / 15) * 15;
-
 now.setMinutes(roundedMinutes, 0, 0);
-
 const closingTime = new Date(now);
-
-closingTime.setHours(23, 0, 0, 0);
-
+closingTime.setHours(24, 0, 0, 0); // 設定營業時間到晚上24點
 while (now <= closingTime) {
-
 const option = document.createElement('option');
-
 const hours = String(now.getHours()).padStart(2, '0');
-
 const mins = String(now.getMinutes()).padStart(2, '0');
-
 const timeString = `${hours}:${mins}`;
-
 option.value = timeString;
-
 option.textContent = timeString;
-
 pickupTimeSelect.appendChild(option);
-
 now.setMinutes(now.getMinutes() + 15);
 
 }
@@ -891,14 +973,11 @@ now.setMinutes(now.getMinutes() + 15);
 }
 
 
-
 function initializePage() {
-
 generatePickupTimes();
-
 attachGlobalEventListeners();
-
 loadCart();
+
 
 }
 
@@ -911,4 +990,8 @@ initializePage();
 
 </body>
 
+
 </html>
+
+
+

@@ -4,7 +4,6 @@ import com.eatfast.common.enums.StoreStatus; // 確保引入 StoreStatus，即�
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
 import java.time.LocalDateTime;
 
 /**
@@ -118,11 +117,13 @@ public class CartDTO { // 主類別名稱
      * Redis 中購物車 Hash 的 Value 結構。
      * 【關鍵修正】: 此類別已移至 CartDTO 的第一層靜態內部類，與其他 DTOs 平級。
      */
-    public static class CartItemRedisData {
+    public static class CartItemRedisData implements java.io.Serializable {
+    	private static final long serialVersionUID = 1L;
         private Long quantity;
         private String mealCustomization;
 
         public CartItemRedisData() {}
+        
         public CartItemRedisData(Long quantity, String mealCustomization) {
             this.quantity = quantity;
             this.mealCustomization = mealCustomization;

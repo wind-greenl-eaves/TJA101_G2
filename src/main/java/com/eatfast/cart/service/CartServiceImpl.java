@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -73,36 +74,52 @@ public class CartServiceImpl implements CartService {
    private String generateCartId(Long memberId, Long storeId, Long mealId) {
        return memberId + ":" + storeId + ":" + mealId;
    }
+   
    @Override
    @Transactional
    public CartItemDto addOrUpdateCartItem(AddToCartRequest request) {
-       // 驗證 Member, Meal, Store 是否存在
-       memberRepository.findById(request.getMemberId())
-           .orElseThrow(() -> new EntityNotFoundException("會員不存在: " + request.getMemberId()));
-       mealRepository.findById(request.getMealId())
-           .orElseThrow(() -> new EntityNotFoundException("餐點不存在: " + request.getMealId()));
-       storeRepository.findById(request.getStoreId())
-           .orElseThrow(() -> new EntityNotFoundException("門市不存在: " + request.getStoreId()));
-       String cartKey = getCartRedisKey(request.getMemberId());
-       String hashField = getCartItemHashField(request.getMealId(), request.getStoreId());
-       // 從 Redis 取出已存在的項目
-       CartItemRedisData existingData = (CartItemRedisData) redisTemplate.opsForHash().get(cartKey, hashField);
+       // 1. 驗證資料存在性
+       Long memberId = request.getMemberId();
+       Long newStoreId = request.getStoreId();
+       Long mealId = request.getMealId();
+       
+       memberRepository.findById(memberId).orElseThrow(() -> new EntityNotFoundException("會員不存在"));
+       mealRepository.findById(mealId).orElseThrow(() -> new EntityNotFoundException("餐點不存在"));
+       storeRepository.findById(newStoreId).orElseThrow(() -> new EntityNotFoundException("門市不存在"));
+
+       String cartKey = getCartRedisKey(memberId);
+       Map<Object, Object> currentCart = redisTemplate.opsForHash().entries(cartKey);
+
+       // 2. 【關鍵邏輯】檢查購物車是否為空，以及門市是否一致
+       if (!currentCart.isEmpty()) {
+           // 取出購物車中任一筆資料來判斷其 storeId
+           String firstItemField = (String) currentCart.keySet().iterator().next();
+           String[] parts = firstItemField.split(":");
+           Long existingStoreId = Long.parseLong(parts[1]); // 根據 "mealId:storeId" 格式
+
+           // 如果新加入的餐點門市與現有購物車的門市不同，則拋出例外
+           if (!newStoreId.equals(existingStoreId)) {
+               throw new IllegalStateException("不允許將不同門市的餐點加入同一個購物車。請先清空購物車。");
+           }
+       }
+
+       // 3. 執行原有的新增或更新邏輯
+       String hashField = getCartItemHashField(mealId, newStoreId);
+       CartItemRedisData existingData = (CartItemRedisData) currentCart.get(hashField);
+
        long newQuantity = request.getQuantity();
        if (existingData != null) {
-           newQuantity += existingData.getQuantity(); // 疊加數量
+           newQuantity += existingData.getQuantity();
        }
-      
-       // 建立或更新要存入 Redis 的資料包
+       
        CartItemRedisData newData = new CartItemRedisData(newQuantity, request.getMealCustomization());
-      
-       // 存入 Redis
+       
        redisTemplate.opsForHash().put(cartKey, hashField, newData);
-       // 重設整個購物車的過期時間
        redisTemplate.expire(cartKey, CART_TTL_SECONDS, TimeUnit.SECONDS);
-      
-       // 此方法的回傳值其實不會被使用到 (因為是頁面跳轉)，可以簡化或回傳 null
-       return null;
+       
+       return null; // 因為是頁面跳轉，無需回傳 DTO
    }
+   
   
   
    @Override

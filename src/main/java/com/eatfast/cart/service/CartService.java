@@ -39,6 +39,7 @@ public interface CartService {
 
 	// 基於會員更新購物車客製化備註欄位
 	void updateAllCartItemsCustomization(Long memberId, String mealCustomization);
+	
 
 	/**
 	 * 根據餐點 ID 獲取餐點資訊，用於在前端組裝購物車項目。 這是一個唯讀操作，不會修改購物車內容。

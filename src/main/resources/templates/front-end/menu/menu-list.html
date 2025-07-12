@@ -417,9 +417,11 @@
 				<button type="button" onclick="changeQty(1)"
 					class="w-8 h-8 rounded bg-[#E5D0B6]">+</button>
 			</div>
-			<form method="post" th:action="@{/cart}" id="modalCartForm">
-				<input type="hidden" name="mealId" id="modalMealId" /> <input
-					type="hidden" name="quantity" id="modalMealFormQty" value="1" /> <input
+			<form method="post" th:action="@{/cart/add}" id="modalCartForm">
+				<input type="hidden" name="mealId" id="modalMealId" /> 
+				<input
+					type="hidden" name="quantity" id="modalMealFormQty" value="1" /> 
+				<input
 					type="hidden" name="storeId" id="modalStoreId" />
 				<button type="submit"
 					class="w-full btn-primary rounded-lg px-4 py-2 mt-2">
@@ -436,13 +438,55 @@
 
 	<script>
   // 全域函式：選擇門市後存入 sessionStorage 並重新載入頁面
-  function handleStoreChange(selectEl) {
-      const storeId = selectEl.value;
-      if (storeId) {
-          sessionStorage.setItem("selectedStoreId", storeId);
-          window.location.reload();
-      }
-  }
+function handleStoreChange(selectEl) {
+    const newStoreId = selectEl.value;
+    if (!newStoreId) return;
+
+    // 從 sessionStorage 讀取當前購物車所屬的門市ID
+    // 我們假設在成功加入第一個商品時，會用 sessionStorage.setItem("cartStoreId", a_store_id) 來記錄
+    const currentCartStoreId = sessionStorage.getItem("cartStoreId");
+
+    // 如果購物車中有商品(cartStoreId存在)且使用者選擇了不同的門市
+    if (currentCartStoreId && currentCartStoreId !== newStoreId) {
+        if (confirm("更換門市將會清空您目前的購物車，確定要繼續嗎？")) {
+            // 使用者同意，先呼叫 API 清空購物車
+            clearCartForStoreChange(newStoreId);
+        } else {
+            // 使用者取消，將下拉選單恢復原狀
+            selectEl.value = currentCartStoreId;
+            return;
+        }
+    } else {
+        // 如果購物車是空的，或選擇的門市與原來相同，直接更新 sessionStorage
+        sessionStorage.setItem("selectedStoreId", newStoreId);
+        // 如果購物車本來是空的，現在把新選擇的門市也存入 cartStoreId
+        if(!currentCartStoreId) {
+            sessionStorage.setItem("cartStoreId", newStoreId);
+        }
+        window.location.reload(); // 重新載入頁面以應用新的門市
+    }
+}
+
+// 【新增】一個專門用於清空購物車並處理後續動作的函式
+async function clearCartForStoreChange(newStoreId) {
+    if (!memberId) {
+        alert("請先登入會員");
+        return;
+    }
+    // 呼叫後端清空購物車的 API (DELETE /cart/member/{id})
+    try {
+        const response = await fetch(`/cart/member/${memberId}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('清空購物車失敗');
+
+        // 清空成功後，更新 sessionStorage 並刷新頁面
+        sessionStorage.setItem("selectedStoreId", newStoreId);
+        sessionStorage.setItem("cartStoreId", newStoreId);
+        window.location.reload();
+        
+    } catch(error) {
+        alert("清空購物車時發生錯誤，請稍後再試。");
+    }
+}
 
   // 顯示請先登入的彈窗
   function checkLogin(e) {
@@ -479,23 +523,31 @@
   let currentMeal = null;
 
   function openMealModal(btn) {
-      const mealId = Number(btn.getAttribute('data-mealid'));
-      currentMeal = mealData.find(m => m.mealId === mealId);
-      if (!currentMeal) return;
+	    // 【關鍵新增】第一步：先檢查是否已選擇門市
+	    const storeId = sessionStorage.getItem("selectedStoreId");
+	    if (!storeId) {
+	        // 如果沒有選擇門市，跳出提示，並終止後續操作
+	        alert("請先從頁面上方的下拉選單中選擇一個取餐門市！");
+	        return; // 直接結束函式
+	    }
 
-      document.getElementById('modalMealId').value = currentMeal.mealId;
-      document.getElementById('modalMealPic').src = currentMeal.mealPicUrl;
-      document.getElementById('modalMealName').textContent = currentMeal.mealName;
-      document.getElementById('modalMealPrice').textContent = 'NT$ ' + currentMeal.mealPrice;
-      document.getElementById('modalMealStars').innerHTML = renderStars(currentMeal.avgStars ?? 0);
-      document.getElementById('modalMealQty').value = 1;
-      document.getElementById('modalMealFormQty').value = 1;
+	    const mealId = Number(btn.getAttribute('data-mealid'));
+	    currentMeal = mealData.find(m => m.mealId === mealId);
+	    if (!currentMeal) return;
 
-      const storeId = sessionStorage.getItem("selectedStoreId");
-      document.getElementById('modalStoreId').value = storeId;
+	    document.getElementById('modalMealId').value = currentMeal.mealId;
+	    document.getElementById('modalMealPic').src = currentMeal.mealPicUrl;
+	    document.getElementById('modalMealName').textContent = currentMeal.mealName;
+	    document.getElementById('modalMealPrice').textContent = 'NT$ ' + currentMeal.mealPrice;
+	    document.getElementById('modalMealStars').innerHTML = renderStars(currentMeal.avgStars ?? 0);
+	    document.getElementById('modalMealQty').value = 1;
+	    document.getElementById('modalMealFormQty').value = 1;
 
-      document.getElementById('mealDetailModal').classList.remove('hidden');
-  }
+	    // 將已確認存在的 storeId 填入表單
+	    document.getElementById('modalStoreId').value = storeId;
+
+	    document.getElementById('mealDetailModal').classList.remove('hidden');
+	}
 
   function closeMealModal() {
       document.getElementById('mealDetailModal').classList.add('hidden');
@@ -668,7 +720,12 @@
               // 2. 獲取表單資料
               const formData = new FormData(modalCartForm);
               const data = new URLSearchParams(formData);
-
+              
+           // 【新增】當成功加入第一個商品時，將門市ID記錄到 sessionStorage
+              const currentCartStoreId = sessionStorage.getItem("cartStoreId");
+              if (!currentCartStoreId) {
+                   sessionStorage.setItem("cartStoreId", formData.get("storeId"));
+              }
               // 3. 使用 Fetch API 將資料送到後端
               fetch(modalCartForm.action, {
                   method: 'POST',
