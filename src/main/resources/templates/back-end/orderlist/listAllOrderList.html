@@ -77,7 +77,9 @@
             <th>訂單狀態</th>
             <th>取餐號</th>
             <th>訂單日期</th>
-            <th>操作</th> </tr>
+            <th>取餐時間</th>
+            <th>操作</th>
+        </tr>
     </thead>
     <tbody>
         <tr th:each="orderListVO, iterStat : ${orderListData}">
@@ -102,6 +104,7 @@
             </td>
             <td th:text="${orderListVO.mealPickupNumber}"></td>
             <td th:text="${#temporals.format(orderListVO.orderDate, 'yyyy-MM-dd HH:mm')}"></td>
+            <td th:text="${orderListVO.pickupTime != null ? #temporals.format(orderListVO.pickupTime, 'yyyy-MM-dd HH:mm') : '尚未設定'}"></td>
             <td class="text-nowrap">
                 <button type="button" class="btn btn-sm btn-info view-details-btn" 
                         th:data-order-id="${orderListVO.orderListId}">
@@ -195,7 +198,7 @@ $(document).ready(function() {
                 }
             },
             {
-                "targets": 8, // 操作欄位
+                "targets": 9, // 操作欄位 (因為新增了取餐時間欄位，所以從8變成9)
                 "orderable": false // 關閉排序
             }
         ]

@@ -45,6 +45,10 @@ public class OrderListEntity {
     @Column(name = "card_number", nullable = false, length = 20)
     private String cardNumber;
 
+    // 【新增】取餐時間欄位
+    @Column(name = "pickup_time")
+    private LocalDateTime pickupTime;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private MemberEntity member;
@@ -76,6 +80,14 @@ public class OrderListEntity {
     public void setStore(StoreEntity store) { this.store = store; }
     public Set<OrderListInfoEntity> getOrderListInfos() { return orderListInfos; }
     public void setOrderListInfos(Set<OrderListInfoEntity> orderListInfos) { this.orderListInfos = orderListInfos; }
+    // 【新增】pickupTime 的 getter 和 setter 方法
+    public LocalDateTime getPickupTime() { 
+        return pickupTime; 
+    }
+    
+    public void setPickupTime(LocalDateTime pickupTime) { 
+        this.pickupTime = pickupTime; 
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
