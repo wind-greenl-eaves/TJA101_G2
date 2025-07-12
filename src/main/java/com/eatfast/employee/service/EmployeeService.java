@@ -99,14 +99,55 @@ public interface EmployeeService {
 	 * 
 	 * @param employeeId 員工編號
 	 */
-	void resetLoginFailureCount(Long employeeId);
+	void resetEmployeeLoginFailureCount(Long employeeId);
 
 	/**
-	 * 【新增登入安全方法】: 檢查員工帳號登入狀態
-	 * 返回員工的登入失敗次數和帳號狀態資訊
+	 * 【新增登入安全方法】: 解鎖員工帳號
+	 * 管理員可以使用此方法解鎖因登入失敗過多而被停用的員工帳號
+	 * 
+	 * @param employeeId 員工編號
+	 */
+	void unlockEmployeeAccount(Long employeeId);
+
+	/**
+	 * 【新增登入安全方法】: 獲取員工登入失敗資訊
+	 * 用於查看員工的登入失敗次數和鎖定狀態
+	 * 
+	 * @param employeeId 員工編號
+	 * @return 包含登入失敗資訊的 Map
+	 */
+	Map<String, Object> getEmployeeLoginFailureInfo(Long employeeId);
+
+	/**
+	 * 【新增登入安全方法】: 獲取員工登入狀態（用於 SecurityController）
+	 * 提供員工登入狀態的詳細資訊，包括失敗次數、鎖定狀態等
 	 * 
 	 * @param employeeId 員工編號
 	 * @return 包含登入狀態資訊的 Map
 	 */
 	Map<String, Object> getEmployeeLoginStatus(Long employeeId);
+
+	/**
+	 * 【新增登入安全方法】: 重置員工登入失敗次數（用於 SecurityController）
+	 * 管理員可以使用此方法重置員工的登入失敗次數
+	 * 
+	 * @param employeeId 員工編號
+	 */
+	void resetLoginFailureCount(Long employeeId);
+
+	/**
+	 * 【新增查詢方法】: 查找所有啟用狀態的員工實體（返回 Entity）
+	 * 專門用於登入頁面顯示員工列表
+	 * 
+	 * @return 所有啟用狀態的員工實體列表
+	 */
+	List<com.eatfast.employee.model.EmployeeEntity> findAllActiveEmployeeEntities();
+
+	/**
+	 * 【新增查詢方法】: 查找所有已停權員工實體（返回 Entity）
+	 * 專門用於登入頁面顯示已停權員工列表
+	 * 
+	 * @return 所有已停權的員工實體列表
+	 */
+	List<com.eatfast.employee.model.EmployeeEntity> findAllInactiveEmployeeEntities();
 }
