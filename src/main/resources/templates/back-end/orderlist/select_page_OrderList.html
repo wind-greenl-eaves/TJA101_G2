@@ -30,9 +30,22 @@
                 <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-3">
                 <span style="font-weight: 500; font-size: 1.25rem;">訂單資料管理</span>
             </a>
-            <a class="btn btn-outline-light" th:href="@{/}">
-                <i class="fas fa-home"></i> 回首頁
-            </a>
+            <div class="navbar-nav ml-auto">
+                <!-- 顯示當前登入的員工資訊 -->
+                <span class="navbar-text text-light mr-3" th:if="${currentEmployeeName != null}">
+                    <i class="fas fa-user-circle mr-2"></i>
+                    <span th:text="${'歡迎，' + currentEmployeeName }"></span>
+                </span>
+                <!-- 如果沒有登入，顯示登入連結 -->
+                <span class="navbar-text text-light mr-3" th:unless="${currentEmployeeName != null}">
+                    <a th:href="@{/employee/login}" class="text-light">
+                        <i class="fas fa-sign-in-alt mr-2"></i>員工登入
+                    </a>
+                </span>
+                <a class="btn btn-outline-light" th:href="@{/}">
+                    <i class="fas fa-home"></i> 回首頁
+                </a>
+            </div>
         </div>
     </nav>
 

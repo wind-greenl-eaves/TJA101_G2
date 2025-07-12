@@ -1237,6 +1237,20 @@ public class MemberController {
             
             log.info("會員 {} 主動停用帳號", member.getAccount());
             
+            // 【修正】停用成功後立即清除Session
+            // 清除所有會員相關的Session屬性
+            session.removeAttribute("loggedInMemberId");
+            session.removeAttribute("loggedInMemberAccount");
+            session.removeAttribute("loggedInMemberName");
+            session.removeAttribute("memberName");
+            session.removeAttribute("isLoggedIn");
+            session.removeAttribute("loginTime");
+            
+            // 使整個Session失效，確保完全登出
+            session.invalidate();
+            
+            log.info("會員 {} 停用帳號後，Session已清除", member.getAccount());
+            
             response.put("success", true);
             response.put("message", "帳號已成功停用");
             return ResponseEntity.ok(response);

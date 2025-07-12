@@ -19,6 +19,7 @@ import com.eatfast.orderlist.model.OrderListEntity;
 import com.eatfast.orderlist.model.OrderStatus;
 import com.eatfast.orderlist.service.OrderListService;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 @Controller
@@ -66,7 +67,30 @@ public class OrderListController {
 
 	
 	@PostMapping("/getOne_For_Display")
-	public String getOne_For_Display(@RequestParam("orderListId") String orderListId, ModelMap model) {
+	public String getOne_For_Display(@RequestParam("orderListId") String orderListId, ModelMap model, HttpSession session) {
+	    
+	    // 【修復】確保員工資訊也被傳遞到查詢結果頁面 - 修復所有類型轉換問題
+	    String employeeName = (String) session.getAttribute("employeeName");
+	    Object employeeIdObj = session.getAttribute("employeeId");
+	    Object employeeRoleObj = session.getAttribute("employeeRole");
+	    
+	    // 【修復】安全地轉換employeeId
+	    String employeeId = null;
+	    if (employeeIdObj != null) {
+	        employeeId = employeeIdObj.toString();
+	    }
+	    
+	    // 【修復】安全地轉換employeeRole
+	    String employeeRole = null;
+	    if (employeeRoleObj != null) {
+	        employeeRole = employeeRoleObj.toString();
+	    }
+	    
+	    if (employeeName != null) {
+	        model.addAttribute("currentEmployeeName", employeeName);
+	        model.addAttribute("currentEmployeeId", employeeId);
+	        model.addAttribute("currentEmployeeRole", employeeRole);
+	    }
 	    
 	    OrderListEntity orderListVO = orderSvc.getOrderById(orderListId).orElse(null);
 	    
@@ -167,49 +191,112 @@ public class OrderListController {
 	}
 
 	/**
-	 * 導向至訂單查詢主頁面
+	 * 前往訂單查詢頁面
 	 */
 	@GetMapping("/select_page_OrderList")
-	public String selectPage(Model model) {
-		// 【新增】計算各種狀態的訂單數量，提供給前端統計卡片顯示
-		List<OrderListEntity> allOrders = orderSvc.findAll();
-		
-		// 統計各狀態訂單數量
-		long pendingCount = allOrders.stream()
-				.filter(order -> order.getOrderStatus() == OrderStatus.PENDING)
-				.count();
-		
-		long confirmedCount = allOrders.stream()
-				.filter(order -> order.getOrderStatus() == OrderStatus.CONFIRMED)
-				.count();
-		
-		long completedCount = allOrders.stream()
-				.filter(order -> order.getOrderStatus() == OrderStatus.COMPLETED)
-				.count();
-		
-		long cancelledCount = allOrders.stream()
-				.filter(order -> order.getOrderStatus() == OrderStatus.CANCELLED)
-				.count();
-		
-		// 將統計資料加入 Model
-		model.addAttribute("pendingOrdersCount", pendingCount);
-		model.addAttribute("confirmedOrdersCount", confirmedCount);
-		model.addAttribute("completedOrdersCount", completedCount);
-		model.addAttribute("cancelledOrdersCount", cancelledCount);
-		
-		// 總訂單數和今日訂單數
-		model.addAttribute("totalOrdersCount", allOrders.size());
-		
-		// 計算今日訂單數
-		long todayOrdersCount = allOrders.stream()
-				.filter(order -> {
-					if (order.getOrderDate() != null) {
-						return order.getOrderDate().toLocalDate().equals(java.time.LocalDate.now());
-					}
-					return false;
-				})
-				.count();
-		model.addAttribute("todayOrdersCount", todayOrdersCount);
+	public String selectPage(Model model, HttpSession session) {
+		try {
+			// 【修復】正確獲取當前登入的員工資訊 - 注意所有類型轉換
+			String employeeName = (String) session.getAttribute("employeeName");
+			Object employeeIdObj = session.getAttribute("employeeId");
+			Object employeeRoleObj = session.getAttribute("employeeRole");
+			
+			// 【修復】安全地轉換employeeId
+			String employeeId = null;
+			if (employeeIdObj != null) {
+				employeeId = employeeIdObj.toString();
+			}
+			
+			// 【修復】安全地轉換employeeRole
+			String employeeRole = null;
+			if (employeeRoleObj != null) {
+				employeeRole = employeeRoleObj.toString();
+			}
+			
+			// 【調試】輸出Session中的員工資訊
+			System.out.println("=== 調試信息 ===");
+			System.out.println("Session ID: " + session.getId());
+			System.out.println("Employee Name: " + employeeName);
+			System.out.println("Employee ID Object: " + employeeIdObj + " (type: " + (employeeIdObj != null ? employeeIdObj.getClass().getSimpleName() : "null") + ")");
+			System.out.println("Employee ID: " + employeeId);
+			System.out.println("Employee Role Object: " + employeeRoleObj + " (type: " + (employeeRoleObj != null ? employeeRoleObj.getClass().getSimpleName() : "null") + ")");
+			System.out.println("Employee Role: " + employeeRole);
+			System.out.println("================");
+			
+			// 將員工資訊添加到模型中
+			if (employeeName != null) {
+				model.addAttribute("currentEmployeeName", employeeName);
+				model.addAttribute("currentEmployeeId", employeeId);
+				model.addAttribute("currentEmployeeRole", employeeRole);
+				System.out.println("員工資訊已添加到模型中");
+			} else {
+				System.out.println("警告：Session中沒有找到員工資訊");
+			}
+			
+			// 【新增】計算各種狀態的訂單數量，提供給前端統計卡片顯示
+			List<OrderListEntity> allOrders = orderSvc.findAll();
+			
+			// 確保 allOrders 不為 null
+			if (allOrders != null && !allOrders.isEmpty()) {
+				// 統計各狀態訂單數量
+				long pendingCount = allOrders.stream()
+						.filter(order -> order.getOrderStatus() == OrderStatus.PENDING)
+						.count();
+				
+				long confirmedCount = allOrders.stream()
+						.filter(order -> order.getOrderStatus() == OrderStatus.CONFIRMED)
+						.count();
+				
+				long completedCount = allOrders.stream()
+						.filter(order -> order.getOrderStatus() == OrderStatus.COMPLETED)
+						.count();
+				
+				long cancelledCount = allOrders.stream()
+						.filter(order -> order.getOrderStatus() == OrderStatus.CANCELLED)
+						.count();
+				
+				// 將統計資料加入 Model
+				model.addAttribute("pendingOrdersCount", pendingCount);
+				model.addAttribute("confirmedOrdersCount", confirmedCount);
+				model.addAttribute("completedOrdersCount", completedCount);
+				model.addAttribute("cancelledOrdersCount", cancelledCount);
+				
+				// 總訂單數和今日訂單數
+				model.addAttribute("totalOrdersCount", allOrders.size());
+				
+				// 計算今日訂單數
+				long todayOrdersCount = allOrders.stream()
+						.filter(order -> {
+							if (order.getOrderDate() != null) {
+								return order.getOrderDate().toLocalDate().equals(java.time.LocalDate.now());
+							}
+							return false;
+						})
+						.count();
+				model.addAttribute("todayOrdersCount", todayOrdersCount);
+			} else {
+				// 如果沒有訂單資料，設定預設值
+				model.addAttribute("pendingOrdersCount", 0L);
+				model.addAttribute("confirmedOrdersCount", 0L);
+				model.addAttribute("completedOrdersCount", 0L);
+				model.addAttribute("cancelledOrdersCount", 0L);
+				model.addAttribute("totalOrdersCount", 0L);
+				model.addAttribute("todayOrdersCount", 0L);
+			}
+			
+		} catch (Exception e) {
+			// 記錄錯誤並設定預設值
+			System.err.println("Error in selectPage: " + e.getMessage());
+			e.printStackTrace();
+			
+			// 設定預設值以防止頁面錯誤
+			model.addAttribute("pendingOrdersCount", 0L);
+			model.addAttribute("confirmedOrdersCount", 0L);
+			model.addAttribute("completedOrdersCount", 0L);
+			model.addAttribute("cancelledOrdersCount", 0L);
+			model.addAttribute("totalOrdersCount", 0L);
+			model.addAttribute("todayOrdersCount", 0L);
+		}
 		
 		return "back-end/orderlist/select_page_OrderList"; 
 	}

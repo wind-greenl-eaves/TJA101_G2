@@ -319,14 +319,14 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (!passwordMatches) {
             int newFailureCount = employee.getLoginFailureCount() + 1;
             employee.setLoginFailureCount(newFailureCount);
-            employee.setLastFailureTime(java.time.LocalDateTime.now());
+            employee.setLastLoginFailureAt(java.time.LocalDateTime.now()); // 【修正】使用正確的方法名稱
             
             log.warn("密碼驗證失敗 - 帳號: {}, 失敗次數: {}", employee.getAccount(), newFailureCount);
             
             // 檢查是否達到停用條件 (8次)
             if (newFailureCount >= 8) {
                 employee.setStatus(com.eatfast.common.enums.AccountStatus.INACTIVE);
-                employee.setAccountLockedTime(java.time.LocalDateTime.now());
+                employee.setAccountLockedAt(java.time.LocalDateTime.now()); // 【修正】使用正確的方法名稱
                 employeeRepository.save(employee);
                 
                 log.error("帳號因連續登入失敗達到8次已自動停用 - 帳號: {}", employee.getAccount());
@@ -353,8 +353,8 @@ public class EmployeeServiceImpl implements EmployeeService {
             log.info("登入成功，重置失敗次數 - 帳號: {}, 原失敗次數: {}", 
                 employee.getAccount(), employee.getLoginFailureCount());
             employee.setLoginFailureCount(0);
-            employee.setLastFailureTime(null);
-            employee.setAccountLockedTime(null);
+            employee.setLastLoginFailureAt(null); // 【修正】使用正確的方法名稱
+            employee.setAccountLockedAt(null); // 【修正】使用正確的方法名稱
         }
         
         // 【關鍵修正】如果需要升級密碼，在同一個事務中直接升級
@@ -764,8 +764,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         
         // 重置失敗次數
         employee.setLoginFailureCount(0);
-        employee.setLastFailureTime(null);
-        employee.setAccountLockedTime(null);
+        employee.setLastLoginFailureAt(null); // 【修正】使用正確的方法名稱
+        employee.setAccountLockedAt(null); // 【修正】使用正確的方法名稱
         
         // 如果帳號因為失敗次數過多而被停用，則重新啟用
         if (employee.getStatus() == com.eatfast.common.enums.AccountStatus.INACTIVE && originalCount >= 8) {
@@ -796,11 +796,117 @@ public class EmployeeServiceImpl implements EmployeeService {
         status.put("username", employee.getUsername());
         status.put("status", employee.getStatus());
         status.put("loginFailureCount", employee.getLoginFailureCount());
-        status.put("lastFailureTime", employee.getLastFailureTime());
-        status.put("accountLockedTime", employee.getAccountLockedTime());
+        status.put("lastFailureTime", employee.getLastLoginFailureAt()); // 【修正】使用正確的方法名稱
+        status.put("accountLockedTime", employee.getAccountLockedAt()); // 【修正】使用正確的方法名稱
         status.put("isLocked", employee.getLoginFailureCount() >= 8);
         status.put("remainingAttempts", Math.max(0, 8 - employee.getLoginFailureCount()));
         
         return status;
+    }
+
+    /**
+     * 【新增方法實作】- 重置員工登入失敗次數（專門給 EmployeeService 介面用）
+     * 管理員可以使用此方法重置員工的登入失敗次數，解鎖被鎖定的帳號
+     */
+    @Override
+    @Transactional
+    public void resetEmployeeLoginFailureCount(Long employeeId) {
+        EmployeeEntity employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + employeeId + " 的員工"));
+        
+        // 記錄重置前的狀態
+        int originalCount = employee.getLoginFailureCount();
+        
+        // 重置失敗次數
+        employee.setLoginFailureCount(0);
+        employee.setLastLoginFailureAt(null);
+        employee.setAccountLockedAt(null);
+        
+        // 如果帳號因為失敗次數過多而被停用，則重新啟用
+        if (employee.getStatus() == com.eatfast.common.enums.AccountStatus.INACTIVE && originalCount >= 8) {
+            employee.setStatus(com.eatfast.common.enums.AccountStatus.ACTIVE);
+            log.info("重置登入失敗次數並重新啟用帳號 - 員工ID: {}, 帳號: {}, 原失敗次數: {}", 
+                employeeId, employee.getAccount(), originalCount);
+        } else {
+            log.info("重置登入失敗次數 - 員工ID: {}, 帳號: {}, 原失敗次數: {}", 
+                employeeId, employee.getAccount(), originalCount);
+        }
+        
+        employeeRepository.save(employee);
+    }
+
+    /**
+     * 【新增方法實作】- 解鎖員工帳號
+     * 管理員可以使用此方法解鎖因登入失敗過多而被停用的員工帳號
+     */
+    @Override
+    @Transactional
+    public void unlockEmployeeAccount(Long employeeId) {
+        EmployeeEntity employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + employeeId + " 的員工"));
+        
+        // 記錄解鎖前的狀態
+        int originalCount = employee.getLoginFailureCount();
+        com.eatfast.common.enums.AccountStatus originalStatus = employee.getStatus();
+        
+        // 解鎖帳號：重置失敗次數並啟用帳號
+        employee.setLoginFailureCount(0);
+        employee.setLastLoginFailureAt(null);
+        employee.setAccountLockedAt(null);
+        employee.setStatus(com.eatfast.common.enums.AccountStatus.ACTIVE);
+        
+        employeeRepository.save(employee);
+        
+        log.info("員工帳號已解鎖 - 員工ID: {}, 帳號: {}, 原狀態: {}, 原失敗次數: {}", 
+                 employeeId, employee.getAccount(), originalStatus, originalCount);
+    }
+
+    /**
+     * 【新增方法實作】- 獲取員工登入失敗資訊
+     * 用於查看員工的登入失敗次數和鎖定狀態
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Object> getEmployeeLoginFailureInfo(Long employeeId) {
+        EmployeeEntity employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + employeeId + " 的員工"));
+        
+        Map<String, Object> info = new java.util.HashMap<>();
+        info.put("employeeId", employee.getEmployeeId());
+        info.put("account", employee.getAccount());
+        info.put("username", employee.getUsername());
+        info.put("status", employee.getStatus());
+        info.put("loginFailureCount", employee.getLoginFailureCount());
+        info.put("lastLoginFailureAt", employee.getLastLoginFailureAt());
+        info.put("accountLockedAt", employee.getAccountLockedAt());
+        info.put("isLocked", employee.getLoginFailureCount() >= 8);
+        info.put("remainingAttempts", Math.max(0, 8 - employee.getLoginFailureCount()));
+        info.put("maxAttempts", 8);
+        
+        return info;
+    }
+
+    /**
+     * 【新增方法實作】- 查找所有啟用狀態的員工實體（返回 Entity）
+     * 專門用於登入頁面顯示員工列表
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<EmployeeEntity> findAllActiveEmployeeEntities() {
+        return employeeRepository.findAll().stream()
+                .filter(employee -> employee.getStatus() == com.eatfast.common.enums.AccountStatus.ACTIVE)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 【新增方法實作】- 查找所有已停權員工實體（返回 Entity）
+     * 專門用於登入頁面顯示已停權員工列表
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<EmployeeEntity> findAllInactiveEmployeeEntities() {
+        return employeeRepository.findAll().stream()
+                .filter(employee -> employee.getStatus() == com.eatfast.common.enums.AccountStatus.INACTIVE)
+                .collect(Collectors.toList());
     }
 }
