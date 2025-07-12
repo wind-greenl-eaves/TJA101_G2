@@ -197,28 +197,17 @@ body {
 
 			<div class="hidden md:flex space-x-8">
 
-
-
 				<a href="/welcome"
 					class="text-brand-text hover:text-brand-primary font-medium text-lg">關於我們</a>
 
-
-
 				<a href="/welcome"
 					class="text-brand-text hover:text-brand-primary font-medium text-lg">最新消息</a>
-
-
 
 				<a th:href="@{/store/select_page_store}"
 					class="text-brand-primary font-bold text-lg">門市據點</a> <a
 					th:href="@{/menu}"
 					class="text-brand-text hover:text-brand-primary font-medium text-lg">我要訂餐</a>
-
-
-
 				<a th:href="@{/cart}" class="text-brand-primary font-bold text-lg">購物車</a>
-
-
 
 			</div>
 
@@ -226,142 +215,56 @@ body {
 
 			<div class="hidden md:flex items-center space-x-4">
 
-
-
 				<a href="/api/v1/auth/member-login"
 					class="bg-brand-accent text-brand-deep font-bold px-5 py-2 rounded-full hover:bg-orange-400 transition-colors shadow-sm">
-
-
-
 					登入/註冊 </a>
-
-
-
 			</div>
-
-
-
 		</nav>
-
-
 
 	</header>
 
 
 
-
-
-
-
-
-
 	<main class="container mx-auto p-4 md:p-8 pt-28 md:pt-32">
-
-
-
 		<div class="flex flex-col md:flex-row gap-8">
-
-
-
-
-
-
-
-
-
 			<aside class="w-full md:w-64 flex-shrink-0">
-
-
-
 				<div class="bg-brand-container p-4 rounded-lg shadow-md h-full">
-
-
-
 					<h2
 						class="text-xl font-bold text-brand-deep mb-4 border-b-2 border-gray-300 pb-2">餐點分類</h2>
-
-
-
 					<nav class="space-y-2">
-
-
 
 						<a th:href="@{/meal/list(type='漢堡')}"
 							class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">漢堡</a>
 
-
-
 						<a th:href="@{/meal/list(type='吐司')}"
 							class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">吐司</a>
-
-
 
 						<a th:href="@{/meal/list(type='麵類')}"
 							class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">麵類</a>
 
-
-
 						<a th:href="@{/meal/list(type='蛋餅')}"
 							class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">蛋餅</a>
 
-
-
 						<a th:href="@{/meal/list(type='飲品')}"
 							class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">飲品</a>
-
-
-
 					</nav>
-
-
 
 				</div>
 
-
-
 			</aside>
 
-
-
-
-
-
-
-
-
 			<section class="flex-grow">
-
-
 
 				<div
 					class="bg-white p-6 md:p-8 rounded-lg shadow-md border border-gray-200">
 
-
-
 					<h1 class="text-2xl font-bold text-brand-primary mb-6 text-center">我的購物車</h1>
-
-
-
-
-
-
 					<div id="message-container" class="hidden"></div>
-
-
-
-
-
-
 					<div id="not-logged-in-message"
 						class="text-center text-lg text-red-500 py-8 hidden">
-
-
-
 						<p class="mb-4">
 							<i class="fas fa-exclamation-triangle mr-2"></i>請先登入會員才能使用購物車功能。
 						</p>
-
-
 
 						<p>
 							<a th:href="@{/login}"
@@ -369,54 +272,24 @@ body {
 								class="fas fa-sign-in-alt mr-2"></i>前往登入</a>
 						</p>
 
-
-
 					</div>
-
-
-
-
-
-
-
-
 
 					<div id="cart-content" class="hidden">
 
-
-
 						<table class="w-full text-left mb-6">
-
-
-
 							<thead class="border-b-2 border-gray-300">
-
-
-
 								<tr>
-
-
 
 									<th class="py-2 font-semibold">餐點品項</th>
 
-
-
 									<th class="py-2 font-semibold text-right w-24">單價</th>
-
-
 
 									<th class="py-2 font-semibold text-center w-32">數量</th>
 
-
-
 									<th class="py-2 font-semibold text-right w-24">小計</th>
-
-
 
 									<th class="w-20"></th>
 								</tr>
-
-
 
 							</thead>
 
@@ -424,87 +297,40 @@ body {
 
 							<tbody id="cart-items-body">
 
-
-
 								<tr id="loading-row">
 
-
-
 									<td colspan="5" class="text-center py-4">載入中...</td>
-
-
-
 								</tr>
-
-
 
 							</tbody>
 
-
-
 						</table>
 
-
-
-
-
-
-
-
-
 						<div class="flex justify-start mb-8">
-
-
 
 							<button id="clear-cart-btn"
 								class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm flex items-center shadow-sm transition-colors">
 
-
-
 								<i class="fas fa-trash-alt mr-2"></i>清空購物車
-
-
 
 							</button>
 
-
-
 						</div>
 
-
-
-
-
-
-
-
-
 						<div class="space-y-4 border-t border-gray-300 pt-8 mt-8">
-
-
-
 							<div class="flex items-center">
-
-
 
 								<label for="pickup-store"
 									class="w-24 font-semibold flex-shrink-0">取餐門市</label> <input
 									type="text" id="pickup-store" placeholder="---"
 									class="flex-grow p-2 border rounded-md bg-gray-100" readonly>
-
-
-
 							</div>
-
-
 
 							<div class="flex items-center">
 								<label for="pickup-time"
 									class="w-24 font-semibold flex-shrink-0">取餐時間</label> <select
 									id="pickup-time" class="flex-grow p-2 border rounded-md"></select>
 							</div>
-
-
 
 							<div class="flex items-start">
 								<label for="notes" class="w-24 font-semibold mt-2 flex-shrink-0">備註</label>
@@ -521,8 +347,6 @@ body {
 										0</span>
 								</span>
 							</div>
-
-
 
 							<div class="flex items-center space-x-4">
 								<a th:href="@{/menu}"
@@ -547,11 +371,6 @@ body {
 			</section>
 		</div>
 	</main>
-
-
-
-
-
 
 	<footer
 		class="bg-brand-deep text-brand-container text-center p-6 mt-16">
@@ -646,7 +465,6 @@ row.innerHTML = `
 <div>
 <span class="font-medium">${item.mealName || '未知餐點'}</span>
 <p class="text-sm text-gray-500">
-${item.storeName ? `(${item.storeName})` : ''}
 ${item.mealCustomization ? `<br>備註: ${item.mealCustomization}` : ''}
 </p>
 </div>

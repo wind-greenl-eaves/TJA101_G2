@@ -146,10 +146,19 @@ public class CartServiceImpl implements CartService {
                dto.setStoreId(storeId);
                dto.setMealName(meal.getMealName());
                dto.setMealPrice(meal.getMealPrice());
-               dto.setMealPicUrl(meal.getMealPic());
+               dto.setMealPicUrl(getMealImageUrl(meal.getMealId()));
                dto.setStoreName(store.getStoreName());
                dto.setQuantity(redisData.getQuantity());
                dto.setMealCustomization(redisData.getMealCustomization());
+               
+               //直接組合靜態資源的 圖片URL 路徑來取得圖片
+               if (meal.getMealPic() != null && !meal.getMealPic().isBlank()) {
+                   dto.setMealPicUrl("/images/meal_pic/" + meal.getMealPic());
+               } else {
+                   dto.setMealPicUrl("/images/nopic.png"); // 設定預設圖片
+               }
+               
+               
                resultList.add(dto);
            }
        }
@@ -212,8 +221,7 @@ public class CartServiceImpl implements CartService {
        redisTemplate.delete(cartKey);
    }
    private String getMealImageUrl(Long mealId) {
-       // 替換為您的實際 context path
-       return "/demo/api/meals/" + mealId + "/image";
+	   return "/api/meals/" + mealId + "/image"; 
    }
    @Override
    public void updateAllCartItemsCustomization(Long memberId, String mealCustomization) {
