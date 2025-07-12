@@ -179,6 +179,15 @@
 			<!-- 版本由 spring-boot-starter-parent 管理 -->
 		</dependency>
 
+		<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ -->
+		<!-- ★ 就是在這裡！加入了讓 Thymeleaf 和 Spring Security 溝通的橋樑套件 ★ -->
+		<!-- ★ (已移除手動指定的版本號，讓 Spring Boot 自動管理)                 ★ -->
+		<!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ -->
+		<dependency>
+			<groupId>org.thymeleaf.extras</groupId>
+			<artifactId>thymeleaf-extras-springsecurity6</artifactId>
+		</dependency>
+
 		<!-- MySQL Connector/J Driver -->
 		<dependency>
 			<groupId>com.mysql</groupId>

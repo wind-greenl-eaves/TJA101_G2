@@ -1,44 +1,49 @@
-package com.eatfast.news.repository;// package...
+package com.eatfast.news.repository;
+
 import com.eatfast.common.enums.NewsStatus;
-import com.eatfast.employee.model.EmployeeEntity;
 import com.eatfast.news.model.NewsEntity;
-import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 最新消息的資料存取層 (Repository)
+ * <p>
+ * 負責與資料庫的 `news` 資料表進行所有互動。
+ * 繼承 JpaRepository 後，會自動擁有多數基本的 CRUD (新增、讀取、更新、刪除) 功能。
+ */
 @Repository
 public interface NewsRepository extends JpaRepository<NewsEntity, Long> {
 
-    // 根據狀態查找消息
-    List<NewsEntity> findByStatus(NewsStatus status);
-
-    // 根據發布員工查找消息
-    List<NewsEntity> findByEmployee_EmployeeId(Long employeeId);
+    /**
+     * 【後台專用】根據指定的狀態，查詢所有符合的消息。
+     * Spring Data JPA 會自動根據方法名稱產生對應的 SQL 查詢 (WHERE status = ?)。
+     * @param status 要查詢的消息狀態 (例如: PUBLISHED 或 DRAFT)
+     * @return 符合狀態的消息列表
+     */
+    List<NewsEntity> findAllByStatus(NewsStatus status);
 
     /**
-     * 【推薦】給前台使用的查詢：
-     * 找出所有「已發布」且在「有效時間內」的消息
+     * 【前台專用】找出所有「已發布」且在「有效時間內」的消息。
+     * 使用 @Query 自定義 JPQL 查詢，實現更複雜的邏輯：
      * (當前時間 >= startTime AND (endTime is NULL OR 當前時間 < endTime))
+     * 並依照開始時間降序排列，讓最新的消息顯示在最前面。
      */
     @Query("SELECT n FROM NewsEntity n WHERE n.status = :status AND n.startTime <= :now AND (n.endTime IS NULL OR n.endTime > :now) ORDER BY n.startTime DESC")
     List<NewsEntity> findActivePublishedNews(@Param("status") NewsStatus status, @Param("now") LocalDateTime now);
 
+    /**
+     * 【效能優化】在查詢單筆消息時，立即抓取關聯的員工資料。
+     * 使用 JOIN FETCH 可以避免 N+1 查詢問題，一次查詢就取得所有需要的資料。
+     * @param id 要查詢的消息 ID
+     * @return 包含員工資訊的 Optional<NewsEntity>
+     */
     @Query("SELECT n FROM NewsEntity n JOIN FETCH n.employee WHERE n.newsId = :id")
     Optional<NewsEntity> findByIdWithEmployee(@Param("id") Long id);
-    // 在 EmployeeRepository.java 中
 
-
-
-// 以下方法為自動識別員工編號方法，0709尚未開放
-//    public interface EmployeeRepository extends JpaRepository<EmployeeEntity, Long> {
-//
-//        // ✅ 新增這個方法
-//        // Spring Data JPA 會自動根據方法名稱，產生對應的 SQL 查詢
-//        // 這行會變成：SELECT * FROM employee WHERE account = ?
-//        Optional<EmployeeEntity> findByAccount(String account);
-//    }
 }
