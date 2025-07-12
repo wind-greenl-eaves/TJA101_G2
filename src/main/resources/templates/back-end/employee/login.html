@@ -35,6 +35,10 @@
             align-items: center;
             min-height: 100vh;
             overflow: auto;
+            background-image: url('/images/eatfast16.png'); /* 新增背景圖片 */
+            background-size: cover; /* 讓圖片覆蓋整個背景 */
+            background-position: center; /* 置中顯示 */
+            background-repeat: no-repeat; /* 不重複 */
         }
         
         .page-wrapper {
@@ -52,7 +56,7 @@
             width: 100%;
             max-width: 400px;
             padding: 40px;
-            background-color: #fff;
+            background-color: rgba(255, 255, 255, 0.8); /* 半透明白色 */
             border-radius: 12px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             text-align: center;
@@ -176,7 +180,7 @@
         .admin-helper {
             width: 350px;
             padding: 30px;
-            background-color: #fff;
+            background-color: rgba(255, 255, 255, 0.8);
             border-radius: 12px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             border: 1px solid var(--container-bg);
@@ -379,7 +383,7 @@
                         <span style="color: #721c24; font-weight: bold;">帳號已鎖定</span>
                     </div>
                     <div style="color: #721c24; font-size: 14px;">
-                        <p style="margin: 5px 0;"><strong>🚫 您的帳號因登入失敗次數過多已被停用</strong></p>
+                        <p style="margin: 5px 0;"><strong>🚫 您的帳號可能因登入失敗次數過多已被停用</strong></p>
                         <p style="margin: 5px 0;"><strong>📞 請聯絡系統管理員解鎖帳號</strong></p>
                         <p style="margin: 5px 0;"><strong>🔧 管理員可透過後台重置您的登入失敗次數</strong></p>
                         <div style="margin-top: 10px; padding: 10px; background-color: #f1f3f4; border-radius: 4px;">
