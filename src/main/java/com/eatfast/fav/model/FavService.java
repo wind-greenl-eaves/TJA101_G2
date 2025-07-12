@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.eatfast.common.enums.MealStatus;
 import com.eatfast.fav.dto.FavMealDTO;
 import com.eatfast.meal.model.MealEntity;
 import com.eatfast.meal.model.MealRepository;
@@ -30,7 +31,10 @@ public class FavService {
 
     // 取得指定會員的收藏餐點詳細資料(前端顯示用)
     public List<FavMealDTO> getFavMeals(Long memberId) {
-        return favRepo.findByMemberMemberId(memberId).stream().map(fav -> {
+        return favRepo.findByMemberMemberId(memberId)
+        			  .stream()
+        			  .filter(fav -> fav.getMeal().getStatus() == MealStatus.AVAILABLE) 
+        			  .map(fav -> {
             MealEntity meal = fav.getMeal();
             FavMealDTO dto = new FavMealDTO();
             dto.setFavMealId(fav.getFavMealId());
@@ -79,9 +83,10 @@ public class FavService {
         if (memberId == null) return Map.of();
         return favRepo.findByMemberMemberId(memberId) // 透過favRepo找到該會員的所有收藏紀錄
                       .stream()  // 把這個 List 轉成 Stream，不用寫 for 迴圈就能一行處理所有轉換或過濾的需求
-                      .collect(Collectors.toMap(
-                          fav -> fav.getMeal().getMealId(),
-                          FavEntity::getFavMealId
+                      .filter(fav -> fav.getMeal().getStatus() == MealStatus.AVAILABLE) // 過濾掉下架的餐點
+                      .collect(Collectors.toMap(  // 把每個收藏紀錄轉換成一個 Map
+                          fav -> fav.getMeal().getMealId(), // Key 是餐點ID
+                          FavEntity::getFavMealId           // Value 是收藏ID
                       ));
     }
 

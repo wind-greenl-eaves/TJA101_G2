@@ -16,14 +16,15 @@ import java.nio.charset.StandardCharsets;
  * 員工模組登入狀態檢查過濾器
  * 
  * 功能說明：
- * - 專門針對員工模組的所有請求進行登入狀態檢查
+ * - 專門針對後台員工模組和後台會員管理的所有請求進行登入狀態檢查
  * - 未登入的使用者將被自動重定向至員工登入頁面
  * - 支援 Session 超時檢測和友善的錯誤訊息
  * - 排除不需要驗證的公開路徑（如登入頁面、忘記密碼等）
+ * - 【新增】保護後台會員管理功能，只有登入員工才能訪問
  * 
- * 適用路徑：/employee/** (除了排除的公開路徑)
+ * 適用路徑：/employee/**, /member/**, /back-end/member/**
  */
-@WebFilter(urlPatterns = "/employee/*")
+@WebFilter(urlPatterns = {"/employee/*",  "/back-end/member/*"})
 public class EmployeeAuthenticationFilter implements Filter {
 
     private static final Logger log = LoggerFactory.getLogger(EmployeeAuthenticationFilter.class);
@@ -37,10 +38,13 @@ public class EmployeeAuthenticationFilter implements Filter {
 
     // API 路徑前綴
     private static final String API_PREFIX = "/api/v1/employees";
+    private static final String MEMBER_API_PREFIX = "/member/api";
+    private static final String BACKEND_MEMBER_PREFIX = "/back-end/member";
+    private static final String MEMBER_PREFIX = "/member";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        log.info("員工認證過濾器初始化完成");
+        log.info("員工認證過濾器初始化完成 - 保護路徑: /employee/*, /member/*, /back-end/member/*");
     }
 
     @Override
@@ -63,9 +67,9 @@ public class EmployeeAuthenticationFilter implements Filter {
             return;
         }
 
-        // 檢查是否為員工模組相關路徑
-        if (!isEmployeeModulePath(path)) {
-            log.debug("路徑 {} 不屬於員工模組，直接通過", path);
+        // 檢查是否為受保護的模組路徑
+        if (!isProtectedModulePath(path)) {
+            log.debug("路徑 {} 不屬於受保護模組，直接通過", path);
             chain.doFilter(request, response);
             return;
         }
@@ -79,7 +83,7 @@ public class EmployeeAuthenticationFilter implements Filter {
         }
 
         if (loggedInEmployee == null) {
-            log.info("未登入使用者嘗試存取員工模組: {} - IP: {}", 
+            log.info("未登入使用者嘗試存取受保護模組: {} - IP: {}", 
                 path, getClientIP(httpRequest));
             
             handleUnauthenticatedRequest(httpRequest, httpResponse, path);
@@ -126,10 +130,13 @@ public class EmployeeAuthenticationFilter implements Filter {
     }
 
     /**
-     * 檢查是否為員工模組相關路徑
+     * 檢查是否為受保護的模組路徑（員工模組或會員模組）
      */
-    private boolean isEmployeeModulePath(String path) {
-        return path.startsWith("/employee/") || path.startsWith(API_PREFIX);
+    private boolean isProtectedModulePath(String path) {
+        return path.startsWith("/employee/") || 
+               path.startsWith(API_PREFIX) ||
+               path.startsWith(BACKEND_MEMBER_PREFIX) ||
+               path.startsWith(MEMBER_PREFIX);
     }
 
     /**
@@ -153,20 +160,26 @@ public class EmployeeAuthenticationFilter implements Filter {
             );
             log.info("API 請求未認證，返回 401 錯誤: {}", requestedPath);
         } else {
-            // 網頁請求重定向到登入頁面
+            // 網頁請求重定向到員工登入頁面
             String loginUrl = contextPath + "/employee/login";
             
             // 添加超時訊息和原始請求路徑
             StringBuilder redirectUrl = new StringBuilder(loginUrl);
             redirectUrl.append("?timeout=true");
             
-            // 編碼錯誤訊息
-            String timeoutMessage = "請正常登入系統，重新操作";
+            // 根據存取的模組設定不同的錯誤訊息
+            String timeoutMessage;
+            if (requestedPath.startsWith("/member/")) {
+                timeoutMessage = "存取會員管理系統需要先登入員工帳號";
+            } else {
+                timeoutMessage = "請正常登入系統，重新操作";
+            }
+            
             String encodedMessage = URLEncoder.encode(timeoutMessage, StandardCharsets.UTF_8);
             redirectUrl.append("&message=").append(encodedMessage);
             
             // 保存原始請求路徑（用於登入後重定向）
-            if (!requestedPath.equals("/employee/select_page")) {
+            if (!requestedPath.equals("/employee/select_page") && !requestedPath.equals("/member/select_page")) {
                 String encodedPath = URLEncoder.encode(requestedPath, StandardCharsets.UTF_8);
                 redirectUrl.append("&returnUrl=").append(encodedPath);
             }

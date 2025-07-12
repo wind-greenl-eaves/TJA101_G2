@@ -9,6 +9,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -235,4 +236,30 @@ public class OrderListController {
 	    
 	    return "redirect:/orderlist/listAllOrderList";
 	}
+	@GetMapping("/pay/{orderListId}") // 不可變更: @GetMapping, 可自定義: "/pay/{orderListId}" (URL路徑)
+    public String showPaymentPage(@PathVariable("orderListId") String orderListId, Model model) {
+        
+        // 1. 根據 ID 查找訂單資料
+        // orderSvc.getOrderById() 是您 Service 中既有的方法，直接使用
+        // orderToPay 是可自定義的變數名稱
+        OrderListEntity orderToPay = orderSvc.getOrderById(orderListId).orElse(null);
+
+        // 2. 檢查訂單是否存在
+        if (orderToPay == null) {
+            // 如果訂單不存在，可以導向到一個錯誤頁面或顯示錯誤訊息
+            model.addAttribute("errorMessage", "錯誤：找不到指定的訂單 (ID: " + orderListId + ")");
+            // "error_page" 是可自定義的錯誤頁面路徑
+            return "error_page"; 
+        }
+
+        // 3. 將查找到的訂單物件放入 Model，準備傳給 pay.html
+        // "orderToPay" 是可自定義的屬性名稱，稍後在 pay.html 中會用到它
+        model.addAttribute("orderToPay", orderToPay);
+
+        // 4. 回傳視圖名稱
+        // "pay" 對應到 /resources/templates/pay.html 檔案，這裡是可自定義的
+        return "pay";
+    }
+	
+
 }

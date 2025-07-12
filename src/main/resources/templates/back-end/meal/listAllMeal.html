@@ -10,26 +10,26 @@
   <style>
     body {
       font-family: 'Noto Sans TC', sans-serif;
-      background-color: #f8f5ee; /* 淺米白/輕柔奶茶 */
+      background-color: #f8f5ee;
     }
     .meal-img {
       width: 100px;
       height: 100px;
       object-fit: cover;
       border-radius: 0.5rem;
-      border: 1px solid #e2d7c1; /* 淺棕灰邊框 */
+      border: 1px solid #e2d7c1; 
     }
     /* 自定義按鈕樣式，與您的導覽列按鈕保持一致 */
     .btn-custom-primary {
-      background-color: #9D7C64; /* 主題色 */
+      background-color: #9D7C64;
       color: white;
-      padding: 0.75rem 1.5rem; /* 更舒適的內邊距 */
+      padding: 0.75rem 1.5rem; 
       border-radius: 0.5rem;
       font-weight: 600;
       transition: background-color 0.2s ease-in-out;
     }
     .btn-custom-primary:hover {
-      background-color: #8a6c5a; /* 稍深的 hover 色 */
+      background-color: #8a6c5a;
     }
     .btn-custom-outline {
       background-color: white;
@@ -44,13 +44,13 @@
       background-color: #f0e8dd;
     }
     .card-custom {
-      border: 1px solid #E2D7C1; /* 邊框 */
-      background-color: white; /* 背景色 */
-      border-radius: 0.5rem; /* 圓角 */
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); /* 輕微陰影 */
+      border: 1px solid #E2D7C1; 
+      background-color: white; 
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     }
     .card-header-custom {
-      background-color: #D8CFC4; /* 表格頭部背景色 */
+      background-color: #D8CFC4;
       padding: 1rem 1.5rem;
       font-weight: 700;
       color: #4A403A;
@@ -74,30 +74,35 @@
 
     /* ====== 以下為針對所有餐點列表表格的調整 ====== */
     .table-meals th, .table-meals td {
-        padding-left: 0.4rem; /* 左右邊距進一步縮小 */
+        padding-left: 0.4rem;
         padding-right: 0.4rem;
-        padding-top: 0.3rem; /* 上下邊距也進一步縮小 */
+        padding-top: 0.3rem; 
         padding-bottom: 0.3rem;
-        vertical-align: middle; /* 垂直居中對齊 */
+        vertical-align: middle; 
     }
-    .table-meals th:nth-child(1), .table-meals td:nth-child(1) { width: 7%; } /* 編號 (減少) */
-    .table-meals th:nth-child(2), .table-meals td:nth-child(2) { width: 20%; } /* 名稱 (增加) */
-    .table-meals th:nth-child(3), .table-meals td:nth-child(3) { width: 10%; } /* 種類 (減少) */
-    .table-meals th:nth-child(4), .table-meals td:nth-child(4) { width: 8%; } /* 價格 (減少) */
-    .table-meals th:nth-child(5), .table-meals td:nth-child(5) { width: 12%; } /* 評價 (不變或微調) */
-    .table-meals th:nth-child(6), .table-meals td:nth-child(6) { width: 10%; } /* 狀態 (不變或微調) */
-    .table-meals th:nth-child(7), .table-meals td:nth-child(7) { width: 15%; } /* 圖片 (不變) */
-    .table-meals th:nth-child(8), .table-meals td:nth-child(8) { width: 9%; } /* 修改 (增加，讓按鈕有空間) */
-    .table-meals th:nth-child(9), .table-meals td:nth-child(9) { width: 9%; } /* 刪除 (增加，讓按鈕有空間) */
+    .table-meals th:nth-child(1), .table-meals td:nth-child(1) { width: 8%; } /* 編號 */
+    .table-meals th:nth-child(2), .table-meals td:nth-child(2) { width: 25%; } /* 名稱 */
+    .table-meals th:nth-child(3), .table-meals td:nth-child(3) { width: 15%; } /* 種類 */
+    .table-meals th:nth-child(4), .table-meals td:nth-child(4) { width: 12%; } /* 價格 */
+    .table-meals th:nth-child(5), .table-meals td:nth-child(5) { width: 12%; } /* 狀態 */
+    .table-meals th:nth-child(6), .table-meals td:nth-child(6) { width: 18%; } /* 圖片 */
+    .table-meals th:nth-child(7), .table-meals td:nth-child(7) { width: 9%; } /* 修改 */
+    .table-meals th:nth-child(8), .table-meals td:nth-child(8) { width: 9%; } /* 刪除 */
     
     /* 調整按鈕大小以適應更小的表格儲存格 */
     .btn-in-table {
-        padding: 0.2rem 0.4rem; /* 更小的內邊距 */
-        font-size: 0.7rem; /* 更小的字體 */
+        padding: 0.2rem 0.4rem; 
+        font-size: 0.7rem; 
     }
     .single-query-result-placeholder {
-      text-align: left; /* 將文字靠左對齊 */
-      padding: 0; /* 移除可能的內邊距，使內容更緊湊 */
+      text-align: left; 
+      padding: 0; 
+    }
+    
+    /* 單一餐點查詢結果在所有餐點列表中的高亮樣式 */
+    .highlighted-row {
+      background-color: #fcefdc;
+      border: 2px solid #9D7C64;
     }
     
   </style>
@@ -208,27 +213,26 @@
                 <i class="fas fa-search mr-2"></i> 單一餐點查詢
             </div>
             <div class="p-6">
-                <form method="post" th:action="@{/meal/getOne_For_Display}" class="space-y-4">
+                <form id="singleQueryForm" method="post" th:action="@{/meal/getOne_For_Display}" class="space-y-4">
                     <div class="form-group">
                         <label for="mealIdSelect" class="block text-sm font-medium text-[#4A403A] mb-1">依餐點編號查詢:</label>
-                        <select name="mealId" id="mealIdSelect" class="block w-full px-3 py-2 border border-[#E2D7C1] rounded-md shadow-sm focus:outline-none focus:ring-[#9D7C64] focus:border-[#9D7C64] sm:text-sm">
+                        <select name="mealIdSelect" id="mealIdSelect" class="block w-full px-3 py-2 border border-[#E2D7C1] rounded-md shadow-sm focus:outline-none focus:ring-[#9D7C64] focus:border-[#9D7C64] sm:text-sm">
                             <option value="">請選擇餐點編號</option> 
                             <option th:each="mealItem : ${mealListData}"
 							        th:value="${mealItem.mealId}"
 							        th:text="${mealItem.mealId + ' - ' + mealItem.mealName}"
-							        th:selected="${mealItem.mealId != null and mealItem.mealId == #numbers.formatInteger(param.mealId, 0)}">
+							        th:selected="${mealItem.mealId != null and (param.mealId != null ? #strings.toString(mealItem.mealId) == param.mealId : false)}">
 							</option>
                         </select>
                     </div>
-                    
-<!--                     <div class="form-group"> -->
-<!--                     <label for="mealIdInput" class="block text-sm font-medium text-[#4A403A] mb-1">輸入餐點編號查詢:</label> -->
-<!-- 	                    <input type="text" id="mealId" name="mealId" -->
-<!-- 	                           class="block w-full px-3 py-2 border border-[#E2D7C1] rounded-md shadow-sm focus:outline-none focus:ring-[#9D7C64] focus:border-[#9D7C64] sm:text-sm" -->
-<!-- 	                           placeholder="請輸入餐點編號(如 101)" -->
-<!-- 	                           th:value="${param.mealId}">  -->
-<!--                     </div> -->
-                    
+                    <div class="form-group">
+                    <label for="mealIdInput" class="block text-sm font-medium text-[#4A403A] mb-1">輸入餐點編號查詢:</label>
+	                    <input type="text" id="mealIdInput" name="mealIdInput"
+	                           class="block w-full px-3 py-2 border border-[#E2D7C1] rounded-md shadow-sm focus:outline-none focus:ring-[#9D7C64] focus:border-[#9D7C64] sm:text-sm"
+	                           placeholder="請輸入餐點編號(如 101)"
+	                           th:value="${param.mealId != null ? param.mealId : ''}">
+                    </div>
+                    <input type="hidden" id="finalMealId" name="mealId" value="" />
                     <button type="submit" class="w-full btn-custom-primary">
                         <i class="fas fa-search mr-2"></i> 查詢
                     </button>
@@ -304,7 +308,6 @@
                             <th class="px-4 py-3">餐點名稱</th>
                             <th class="px-4 py-3">餐點種類</th>
                             <th class="px-4 py-3">價格</th>
-                            <th class="px-4 py-3">評價總星數</th>
                             <th class="px-4 py-3">狀態</th>
                             <th class="px-4 py-3">圖片</th>
                             <th class="px-4 py-3">修改</th>
@@ -312,18 +315,13 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#E2D7C1]">
-                        <tr th:each="mealItem : ${mealListData}" class="hover:bg-[#f0e8dd]">
+                        <tr th:each="mealItem : ${mealListData}" class="hover:bg-[#f0e8dd]"
+                        	th:classappend="${meal != null and mealItem.mealId == meal.mealId} ? 'highlighted-row'">
                             <td th:text="${mealItem.mealId}" class="px-4 py-2"></td>
                             <td th:text="${mealItem.mealName}" class="px-4 py-2"></td>
                             <td th:text="${mealItem.mealType?.mealName}" class="px-4 py-2"></td>
                             <td th:text="${mealItem.mealPrice}" class="px-4 py-2"></td>
-                            <td class="px-4 py-2">
-                              <span th:with="stars=${mealItem.reviewTotalStars}">
-                                <th:block th:each="i : ${#numbers.sequence(1, 5)}">
-                                  <i th:class="${i <= stars} ? 'fas fa-star text-yellow-400' : 'far fa-star text-[#DED0B6]'"></i>
-                                </th:block>
-                              </span>
-                            </td>
+                            
                             <td class="px-4 py-2">
                               <span th:switch="${mealItem.status.name()}" class="px-2 py-1 rounded-full text-xs font-medium"
                                     th:classappend="${mealItem.status.name() == 'AVAILABLE'} ? 'bg-[#c7d3c2] text-[#355E3B]' : 'bg-[#e4caca] text-[#7B4B4B]'">
@@ -372,18 +370,68 @@
   </main>
   
   <!-- 清除查詢條件 JS -->
- <script>
+<script>
   document.addEventListener('DOMContentLoaded', () => {
+    // 複合條件查詢的清除按鈕
     const resetBtn = document.getElementById('reset-btn');
-    const form = document.getElementById('searchForm');
+    const searchForm = document.getElementById('searchForm'); // 複合查詢表單
 
-    resetBtn.addEventListener('click', () => {
-      form.querySelectorAll('input, select').forEach(el => el.value = '');
-      form.submit(); // 重送表單
-    });
+    if (resetBtn && searchForm) {
+      resetBtn.addEventListener('click', () => {
+        searchForm.querySelectorAll('input, select').forEach(el => el.value = '');
+        searchForm.submit(); // 重送表單
+      });
+    }
+
+    // 單一條件查詢的表單處理
+    const singleQueryForm = document.getElementById('singleQueryForm');
+    const mealIdSelect = document.getElementById('mealIdSelect');
+    const mealIdInput = document.getElementById('mealIdInput'); // 手動輸入框的 ID
+    const finalMealId = document.getElementById('finalMealId'); // 隱藏欄位
+
+    if (singleQueryForm && mealIdSelect && mealIdInput && finalMealId) {
+        singleQueryForm.addEventListener('submit', function(event) {
+            let selectedValue = mealIdSelect.value.trim();
+            let inputValue = mealIdInput.value.trim();
+
+            if (inputValue !== '') {
+                // 如果手動輸入框有值，則優先使用手動輸入框的值
+                finalMealId.value = inputValue;
+            } else if (selectedValue !== '') {
+                // 如果下拉選單有值 (且手動輸入框無值)，則使用下拉選單的值
+                finalMealId.value = selectedValue;
+            } else {
+                // 如果兩個都沒值，阻止提交並提示
+                alert('請輸入或選擇餐點編號！');
+                event.preventDefault(); // 阻止表單提交
+                return;
+            }
+
+            // 執行基本的數字驗證 (可選，後端通常也會做)
+            // 如果輸入的不是數字，或者為空字串，都視為錯誤
+            if (isNaN(finalMealId.value) || finalMealId.value === '') {
+                alert('餐點編號格式錯誤，請輸入數字！');
+                event.preventDefault(); // 阻止表單提交
+            }
+        });
+
+        // 監聽下拉選單，當選擇時清空手動輸入框
+        mealIdSelect.addEventListener('change', function() {
+            if (this.value !== '') {
+                mealIdInput.value = ''; // 如果下拉選單選了，清空手動輸入框
+            }
+        });
+
+        // 監聽手動輸入框，當輸入時清空下拉選單
+        mealIdInput.addEventListener('input', function() {
+            if (this.value !== '') {
+                mealIdSelect.value = ''; // 如果手動輸入了，清空下拉選單
+            }
+        });
+    }
   });
+  
 </script>
-
 
 </body>
 </html>

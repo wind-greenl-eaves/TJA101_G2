@@ -43,7 +43,9 @@ public class EmployeeFilterConfig {
         // 設定過濾器適用的 URL 模式
         registrationBean.addUrlPatterns(
             "/employee/*",           // 員工模組所有頁面
-            "/api/v1/employees/*"    // 員工 API 端點
+            "/api/v1/employees/*",   // 員工 API 端點
+            
+            "/back-end/member/*"     // 後台會員管理頁面
         );
         
         // 設定過濾器執行順序（數字越小優先級越高）

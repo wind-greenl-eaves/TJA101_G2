@@ -95,12 +95,14 @@ public class EmployeeEntity {
     private String password;
 
     /**
-     * 員工聯絡電子郵件（唯一）
-     * 這是員工的 email，不能重複，必須符合 email 格式。
+     * 員工電子郵件
+     * 這是員工的工作郵箱，必須是唯一的且符合標準格式。
      * 對應到 employee 資料表的 email 欄位。
      */
     @NotBlank(message = "電子郵件不可為空")
     @Email(message = "請輸入有效的電子郵件格式")
+    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", 
+             message = "電子郵件格式不正確，只能包含英文字母、數字和特殊符號")
     @Column(name = "email", nullable = false, length = 100, unique = true)
     private String email;
 
@@ -189,16 +191,41 @@ public class EmployeeEntity {
     @Column(name = "last_updated_at", nullable = false)
     private LocalDateTime lastUpdatedAt;
 
+    // ======================== 登入失敗追蹤欄位 (Login Failure Tracking) ========================
+
     /**
-     * 版本號（樂觀鎖定）
-     * 用於處理併發更新，防止資料被意外覆蓋。
-     * 每次更新資料時，JPA 會自動檢查版本號是否一致，
-     * 如果不一致則拋出 OptimisticLockException。
+     * 登入失敗次數
+     * 記錄連續登入失敗的次數，成功登入後會重置為 0。
+     * 當達到 8 次時，帳號將被自動停用。
+     * 對應到 employee 資料表的 login_failure_count 欄位。
+     */
+    @Column(name = "login_failure_count", nullable = false)
+    private Integer loginFailureCount = 0;
+
+    /**
+     * 最後一次登入失敗時間
+     * 記錄最後一次登入失敗的時間，用於計算是否需要重置失敗次數。
+     * 對應到 employee 資料表的 last_failure_time 欄位。
+     */
+    @Column(name = "last_failure_time")
+    private LocalDateTime lastFailureTime;
+
+    /**
+     * 帳號鎖定時間
+     * 當登入失敗次數達到上限時，記錄帳號被鎖定的時間。
+     * 對應到 employee 資料表的 account_locked_time 欄位。
+     */
+    @Column(name = "account_locked_time")
+    private LocalDateTime accountLockedTime;
+
+    /**
+     * 樂觀鎖定版本號
+     * 用於防止併發更新時的資料衝突。
      * 對應到 employee 資料表的 version 欄位。
      */
-    @Version
-    @Column(name = "version", nullable = false)
-    private Long version = 0L;
+    // @Version  // 暫時註解掉，直到資料庫中添加 version 欄位
+    // @Column(name = "version", nullable = false)
+    // private Long version = 0L;
 
     // ======================== 關聯欄位 (Associations) ========================
 
@@ -307,8 +334,14 @@ public class EmployeeEntity {
     public void setEmployeePermissions(Set<EmployeePermissionEntity> employeePermissions) { this.employeePermissions = employeePermissions; }
     public String getPhotoUrl() { return photoUrl; }
     public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
-    public Long getVersion() { return version; }
-    public void setVersion(Long version) { this.version = version; }
+    // public Long getVersion() { return version; }
+    // public void setVersion(Long version) { this.version = version; }
+    public Integer getLoginFailureCount() { return loginFailureCount; }
+    public void setLoginFailureCount(Integer loginFailureCount) { this.loginFailureCount = loginFailureCount; }
+    public LocalDateTime getLastFailureTime() { return lastFailureTime; }
+    public void setLastFailureTime(LocalDateTime lastFailureTime) { this.lastFailureTime = lastFailureTime; }
+    public LocalDateTime getAccountLockedTime() { return accountLockedTime; }
+    public void setAccountLockedTime(LocalDateTime accountLockedTime) { this.accountLockedTime = accountLockedTime; }
 
     // ======================== equals、hashCode、toString 方法 ========================
 
@@ -356,3 +389,4 @@ public class EmployeeEntity {
         return getClass().hashCode();
     }
 }
+// ======================== 注意事項 ========================

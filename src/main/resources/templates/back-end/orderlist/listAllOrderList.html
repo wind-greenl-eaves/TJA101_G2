@@ -59,7 +59,7 @@
                                      (${orderListVO.orderStatus.name() == 'SHIPPED'} ? 'badge-primary' : 'badge-info'))">
                     <span th:case="'PENDING'">處理中</span>
                     <span th:case="'CONFIRMED'">已確認</span>
-                    <span th:case="'SHIPPED'">已出餐</span>
+                    <span th:case="'SHIPPED'">待取餐</span>
                     <span th:case="'COMPLETED'">已完成</span>
                     <span th:case="'CANCELLED'">已取消</span>
                     <span th:case="*">未知狀態</span>
@@ -90,8 +90,8 @@
                 </form>
 
                 <form method="post" th:action="@{/orderlist/delete}" class="d-inline"
-                      th:data-status="${orderListVO.orderStatus.name()}"
-                      onsubmit="return checkCancelable(this);">
+                      th:if="${orderListVO.orderStatus.name() == 'PENDING'}"
+                      onsubmit="return confirm('您確定要取消這筆訂單嗎？');">
                     <input type="hidden" name="orderListId" th:value="${orderListVO.orderListId}">
                     <button type="submit" class="btn btn-sm btn-danger">
                         <i class="fas fa-trash-alt"></i> 取消
@@ -164,7 +164,7 @@ $(document).ready(function() {
                 // 5. 請求成功後，建立 HTML 表格來顯示明細
                 if (details && details.length > 0) {
                     var tableHtml = '<table class="table table-bordered">';
-                    tableHtml += '<thead><tr><th>餐點名稱</th><th>數量</th><th>單價</th><th>客製化</th></tr></thead>';
+                    tableHtml += '<thead><tr><th>餐點名稱</th><th>數量</th><th>單價</th><th>評論星數</th><th>客製化</th></tr></thead>';
                     tableHtml += '<tbody>';
                     
                     // 遍歷回傳的 JSON 陣列，產生每一筆明細的資料列
@@ -174,6 +174,17 @@ $(document).ready(function() {
                         tableHtml += '<td>' + item.quantity + '</td>';
                         tableHtml += '<td> NT$ ' + item.mealPrice + '</td>';
                         // 如果客製化備註是 null 或空字串，就顯示 "無"
+                        var starsHtml = '';
+                        if (item.reviewStars && item.reviewStars > 0) {
+                            // 使用 text-warning 讓星星變黃色
+                            for (var i = 0; i < item.reviewStars; i++) {
+                                starsHtml += '<i class="fas fa-star text-warning"></i> ';
+                            }
+                        } else {
+                            // 如果星數是 0 或 null，顯示提示文字
+                            starsHtml = '<span class="text-muted">尚未評論</span>';
+                        }
+                        tableHtml += '<td>' + starsHtml + '</td>';
                         tableHtml += '<td>' + (item.mealCustomization || '無') + '</td>';
                         tableHtml += '</tr>';
                     });

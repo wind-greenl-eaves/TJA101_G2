@@ -1034,4 +1034,48 @@ public class MemberService {
             throw new RuntimeException("永久刪除會員失敗: " + e.getMessage(), e);
         }
     }
+    
+    // ================================================================
+    // 					會員帳號管理功能 (Account Management)
+    // ================================================================
+    
+    /**
+     * 【功能】: 停用會員帳號
+     * 【請求路徑】: 供會員主動停用自己的帳號使用
+     */
+    @Transactional
+    public void deactivateMember(Long memberId) {
+        log.info("開始停用會員帳號，ID: {}", memberId);
+        
+        try {
+            // 查找會員
+            MemberEntity member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員 ID: " + memberId));
+            
+            // 檢查會員是否已經被停用
+            if (!member.isEnabled()) {
+                log.warn("會員 ID {} 已經處於停用狀態", memberId);
+                throw new IllegalStateException("會員已經處於停用狀態");
+            }
+            
+            // 執行停用：將 enabled 設為 false
+            member.setEnabled(false);
+            member.setLastUpdatedAt(LocalDateTime.now());
+            
+            // 保存更新
+            MemberEntity savedMember = memberRepository.save(member);
+            
+            log.info("會員帳號停用成功 - ID: {}, 帳號: {}, 姓名: {}", 
+                     savedMember.getMemberId(), 
+                     savedMember.getAccount(), 
+                     savedMember.getUsername());
+            
+        } catch (EntityNotFoundException e) {
+            log.error("停用會員失敗 - 會員不存在: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("停用會員時發生未預期錯誤: {}", e.getMessage(), e);
+            throw new RuntimeException("停用會員失敗：" + e.getMessage(), e);
+        }
+    }
 }

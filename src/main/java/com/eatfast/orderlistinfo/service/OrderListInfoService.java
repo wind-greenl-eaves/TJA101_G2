@@ -94,16 +94,15 @@ public class OrderListInfoService {
      * @return 訂單明細 DTO 列表
      */
     public List<OrderListInfoDTO> getDetailsForOrderDTO(String orderId) {
-        // 1. 呼叫 Repository 取得 Entity 列表
         List<OrderListInfoEntity> details = orderListInfoRepository.findByOrderList_OrderListId(orderId);
 
-        // 2. 使用 Java Stream API 將 List<OrderListInfoEntity> 轉換為 List<OrderListInfoDTO>
         return details.stream()
                 .map(entity -> new OrderListInfoDTO(
-                        entity.getMeal().getMealName(), // 從關聯的 MealEntity 取得餐點名稱
+                        entity.getMeal().getMealName(),
                         entity.getQuantity(),
                         entity.getMealPrice(),
-                        entity.getMealCustomization()
+                        entity.getMealCustomization(),
+                        entity.getReviewStars() // ⭐【修改】將 reviewStars 傳入 DTO 建構子
                 ))
                 .collect(Collectors.toList());
     }

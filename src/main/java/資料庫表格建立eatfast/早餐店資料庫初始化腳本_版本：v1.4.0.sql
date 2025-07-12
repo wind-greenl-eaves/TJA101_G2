@@ -1,7 +1,7 @@
 -- =======================================================================================
 -- 檔案名稱：eatfast_db_initialization.sql
 -- 資料庫：eatfast_db
--- 版本：v1.3.4 - 正式初版
+-- 版本：v1.4.0 - 正式初版
 -- 功能：此腳本為早餐店系統「eatfast_db」的完整初始化腳本。
 --      它會執行以下操作：
 --      1. 建立資料庫 (如果不存在)。
@@ -25,24 +25,28 @@ USE eatfast_db;
 -- -----------------------------------------------------
 -- 步驟 2: 資料表刪除 (確保可重複執行此腳本)
 -- -----------------------------------------------------
--- 為了避免重複建立資料表造成錯誤，在建立前先嘗試刪除已存在的資料表。
--- 刪除順序遵循「由子到父」的原則，先刪除有外鍵依賴的資料表，再刪除被其他表參考的父表。
-DROP TABLE IF EXISTS announcement;          -- 門市公告 (依賴 employee, store)
-DROP TABLE IF EXISTS homepage_Info;         -- 首頁資訊 (獨立父表)
-DROP TABLE IF EXISTS news;                  -- 最新消息 (依賴 employee)
-DROP TABLE IF EXISTS feedback;              -- 顧客意見 (依賴 member, store)
-DROP TABLE IF EXISTS store_meal_status;     -- 門市餐點狀態 (依賴 store, meal)
-DROP TABLE IF EXISTS cart;                  -- 購物車 (依賴 member, meal, store)
-DROP TABLE IF EXISTS fav;                   -- 我的最愛 (依賴 member 和 meal)
-DROP TABLE IF EXISTS order_list_info;       -- 訂單明細 (依賴 order_list 和 meal)
-DROP TABLE IF EXISTS order_list;            -- 訂單主表 (依賴 member 和 store)
-DROP TABLE IF EXISTS employee_permission;   -- 員工權限 (依賴 employee 和 permission)
-DROP TABLE IF EXISTS employee;              -- 員工資料 (依賴 store)
-DROP TABLE IF EXISTS permission;            -- 權限定義 (獨立父表)
-DROP TABLE IF EXISTS meal;                  -- 餐點資料 (依賴 meal_type)
-DROP TABLE IF EXISTS meal_type;             -- 餐點種類 (獨立父表)
-DROP TABLE IF EXISTS store;                 -- 門市資料 (獨立父表)
-DROP TABLE IF EXISTS member;                -- 會員資料 (獨立父表)
+-- 【修正】為了穩定地處理複雜的外鍵相依性，在刪除操作前後停用/啟用外鍵檢查。
+-- 這是重設資料庫時的標準做法，可以避免因刪除順序問題造成的錯誤。
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS announcement;
+DROP TABLE IF EXISTS homepage_Info;
+DROP TABLE IF EXISTS news;
+DROP TABLE IF EXISTS feedback;
+DROP TABLE IF EXISTS store_meal_status;
+DROP TABLE IF EXISTS cart;
+DROP TABLE IF EXISTS fav;
+DROP TABLE IF EXISTS order_list_info;
+DROP TABLE IF EXISTS order_list;
+DROP TABLE IF EXISTS employee_permission;
+DROP TABLE IF EXISTS employee;
+DROP TABLE IF EXISTS permission;
+DROP TABLE IF EXISTS meal;
+DROP TABLE IF EXISTS meal_type;
+DROP TABLE IF EXISTS store;
+DROP TABLE IF EXISTS member;
+
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- =================================================================
 -- 步驟一：建立 member 資料表 (支援軟刪除)
@@ -171,6 +175,9 @@ INSERT INTO store (store_name, store_loc, store_phone, store_time, store_status)
 -- =======================================================================================
 
 -- 修正後的 employee 資料表結構
+-- =======================================================================================
+-- 資料表: employee (員工資料表) - 【已整合帳號鎖定機制】
+-- =======================================================================================
 CREATE TABLE employee (
     employee_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '員工編號 (主鍵，自動增長)',
     store_id BIGINT NOT NULL COMMENT '所屬門市編號 (外鍵)',
@@ -182,10 +189,12 @@ CREATE TABLE employee (
     email VARCHAR(100) NOT NULL COMMENT '員工的電子郵件 (不可重複)',
     role VARCHAR(50) NOT NULL COMMENT '員工角色 (儲存 Enum 名稱，例如: HEADQUARTERS_ADMIN)',
     status VARCHAR(50) NOT NULL COMMENT '帳號狀態 (儲存 Enum 名稱，例如: ACTIVE, INACTIVE)',
+    login_failure_count INT NOT NULL DEFAULT 0 COMMENT '登入失敗次數',
+    last_failure_time DATETIME NULL COMMENT '最後一次登入失敗時間',
+    account_locked_time DATETIME NULL COMMENT '帳號被鎖定時間',
     gender CHAR(1) NOT NULL COMMENT '員工性別 (M=男性, F=女性, O=其他)',
     create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '此員工資料的建立時間',
     last_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '此員工資料的最後更新時間',
-    -- 【核心修正】: 將 photo 欄位從 LONGBLOB 修改為 photo_url VARCHAR
     photo_url VARCHAR(255) NULL COMMENT '員工大頭照的路徑或URL',
     national_id VARCHAR(10) NOT NULL COMMENT '身分證字號 (不可重複)',
     PRIMARY KEY (employee_id),
@@ -194,7 +203,7 @@ CREATE TABLE employee (
     UNIQUE KEY uk_employee_national_id (national_id),
     CONSTRAINT fk_employee_store FOREIGN KEY (store_id) REFERENCES store(store_id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_employee_created_by_ref FOREIGN KEY (created_by) REFERENCES employee(employee_id) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='員工資料表，後台系統的使用者。';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='員工資料表，後台系統的使用者 (已包含帳號鎖定機制)。';
 
 /*
  * -----------------------------------------------------
@@ -396,16 +405,13 @@ CREATE TABLE meal(
     meal_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '餐點編號 (主鍵，自動增長)',
     meal_type_id BIGINT NOT NULL COMMENT '餐點種類編號 (外鍵，關聯至 meal_type 表)',
     meal_name VARCHAR(50) NOT NULL COMMENT '餐點的完整名稱 (例如: 起司火腿蛋吐司)',
-    meal_pic LONGBLOB DEFAULT NULL COMMENT '餐點圖片',
+    meal_pic VARCHAR(255) DEFAULT NULL COMMENT '餐點圖片(路徑或URL)',
     meal_price BIGINT NOT NULL COMMENT '餐點單價',
     review_total_stars BIGINT NOT NULL DEFAULT 0 CHECK (review_total_stars BETWEEN 0 AND 5) COMMENT '評價總星數',
     status TINYINT(1) NOT NULL DEFAULT 1 COMMENT '狀態 (1:上架, 0:下架)',
     PRIMARY KEY (meal_id),
     FOREIGN KEY (meal_type_id) REFERENCES meal_type(meal_type_id) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='所有餐點的詳細資料表。';
-
--- 確保圖片欄位強制為 LONGBLOB
-ALTER TABLE meal MODIFY COLUMN meal_pic LONGBLOB COMMENT '餐點圖片';
 
 ALTER TABLE meal AUTO_INCREMENT = 101;
 
@@ -709,7 +715,7 @@ INSERT INTO feedback (member_id, store_id, phone, content) VALUES
 (20, 2, '0977-456-789', '二號店的店員服務很熱情，值得推薦。');
 
 -- =======================================================================================
--- 資料表: news (最新消息表)
+-- 資料表: news (最新消息表) - 【已修正，加入 update_time】
 -- 功能: 儲存由後台員工發布的最新消息或公告。
 -- =======================================================================================
 CREATE TABLE news (
@@ -717,8 +723,11 @@ CREATE TABLE news (
     employee_id BIGINT NOT NULL COMMENT '發布此消息的員工編號 (外鍵)',
     title VARCHAR(50) NOT NULL COMMENT '消息標題',
     content VARCHAR(5000) NOT NULL COMMENT '消息詳細內容',
+    image_url VARCHAR(255) NULL COMMENT '最新消息的圖片路徑',
     start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '消息開始顯示時間',
     end_time TIMESTAMP NULL COMMENT '消息結束顯示時間 (允許NULL代表永久顯示)',
+    update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '資料最後更新時間',
+    
     status TINYINT NOT NULL COMMENT '消息狀態 (1=已發布, 0=草稿)',
     PRIMARY KEY (news_id),
     FOREIGN KEY (employee_id) REFERENCES employee(employee_id) ON DELETE CASCADE ON UPDATE CASCADE
@@ -828,3 +837,4 @@ BEGIN
 END$$
 -- 將結束符改回預設的分號(;)
 DELIMITER ;
+

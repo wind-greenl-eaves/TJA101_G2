@@ -566,13 +566,23 @@ public class MemberController {
             
             // 【過濾條件處理】根據篩選條件過濾訂單
             if (status != null && !status.trim().isEmpty()) {
-                try {
-                    OrderStatus orderStatus = OrderStatus.valueOf(status.trim());
+                if ("INCOMPLETE".equals(status.trim())) {
+                    // 未完成狀態：包含 PENDING、CONFIRMED、SHIPPED
                     orders = orders.stream()
-                            .filter(order -> order.getOrderStatus() == orderStatus)
+                            .filter(order -> order.getOrderStatus() == OrderStatus.PENDING || 
+                                           order.getOrderStatus() == OrderStatus.CONFIRMED || 
+                                           order.getOrderStatus() == OrderStatus.SHIPPED)
                             .collect(java.util.stream.Collectors.toList());
-                } catch (IllegalArgumentException e) {
-                    log.warn("無效的訂單狀態參數: {}", status);
+                } else {
+                    // 單一狀態篩選
+                    try {
+                        OrderStatus orderStatus = OrderStatus.valueOf(status.trim());
+                        orders = orders.stream()
+                                .filter(order -> order.getOrderStatus() == orderStatus)
+                                .collect(java.util.stream.Collectors.toList());
+                    } catch (IllegalArgumentException e) {
+                        log.warn("無效的訂單狀態參數: {}", status);
+                    }
                 }
             }
             
@@ -610,7 +620,7 @@ public class MemberController {
             model.addAttribute("orderStats", orderStats);
             model.addAttribute("member", member);
             
-            // 【保持篩选參數】
+            // 【保持篩選參數】
             model.addAttribute("currentStatus", status);
             model.addAttribute("currentStartDate", startDate);
             model.addAttribute("currentEndDate", endDate);
@@ -1147,6 +1157,102 @@ public class MemberController {
     // ================================================================
     // 					會員設定功能擴展 (Member Settings Extensions)
     // ================================================================
+    
+    /**
+     * 【前端會員專區路由】會員設定頁面
+     * 
+     * 路徑說明：
+     * - URL: GET /member/settings
+     * - 完整 URL: http://localhost:8080/member/settings
+     * - 視圖路徑: src/main/resources/templates/front-end/member/member-settings.html
+     * 
+     * 功能說明：
+     * 1. 檢查用戶是否已登入（Session驗證）
+     * 2. 如果已登入，載入會員資訊並顯示設定頁面
+     * 3. 如果未登入，重定向到登入頁面
+     */
+    @GetMapping("/settings")
+    public String showMemberSettings(Model model, HttpSession session) {
+        // 【第一步：Session驗證】檢查用戶是否已登入
+        Long memberId = (Long) session.getAttribute("loggedInMemberId");
+        Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
+        
+        // 如果未登入，重定向到登入頁面
+        if (memberId == null || isLoggedIn == null || !isLoggedIn) {
+            return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
+        }
+        
+        // 【第二步：載入會員資訊】從資料庫獲取最新的會員資料
+        try {
+            MemberEntity member = memberService.getMemberById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
+            
+            // 檢查帳號是否仍然啟用
+            if (!member.isEnabled()) {
+                // 如果帳號被停用，清除Session並重定向到登入頁面
+                session.invalidate();
+                return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN + "?error=account_disabled";
+            }
+            
+            // 【第三步：準備頁面資料】將會員資訊傳遞給前端頁面
+            model.addAttribute("member", member);
+            model.addAttribute("memberName", member.getUsername());
+            model.addAttribute("memberAccount", member.getAccount());
+            
+            log.info("會員 {} 進入設定頁面", member.getAccount());
+            
+        } catch (Exception e) {
+            log.error("載入會員設定頁面時發生錯誤：{}", e.getMessage());
+            model.addAttribute("errorMessage", "載入設定頁面失敗，請重新登入");
+            return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
+        }
+        
+        return MemberViewConstants.VIEW_MEMBER_SETTINGS;
+    }
+    
+    /**
+     * 【功能】: 停用帳號
+     * 【請求路徑】: 處理 POST /member/settings/deactivate 請求
+     */
+    @PostMapping("/settings/deactivate")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deactivateAccount(HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // Session驗證
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            if (memberId == null) {
+                response.put("success", false);
+                response.put("message", "請重新登入");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 獲取會員資料
+            MemberEntity member = memberService.getMemberById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
+            
+            // 停用帳號
+            memberService.deactivateMember(memberId);
+            
+            log.info("會員 {} 主動停用帳號", member.getAccount());
+            
+            response.put("success", true);
+            response.put("message", "帳號已成功停用");
+            return ResponseEntity.ok(response);
+            
+        } catch (EntityNotFoundException e) {
+            log.error("停用帳號失敗 - 會員不存在: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", "找不到會員資料");
+            return ResponseEntity.status(404).body(response);
+        } catch (Exception e) {
+            log.error("停用帳號失敗: {}", e.getMessage(), e);
+            response.put("success", false);
+            response.put("message", "停用失敗，請稍後再試");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
     
     /**
      * 【功能】: 更新通知設定

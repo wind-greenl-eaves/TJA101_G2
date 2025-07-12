@@ -291,6 +291,13 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new IllegalArgumentException("此帳號已被停用，請聯絡管理員");
         }
         
+        // 檢查是否因登入失敗次數過多而被鎖定
+        if (employee.getLoginFailureCount() >= 8) {
+            log.warn("帳號因登入失敗次數過多已被鎖定 - 帳號: {}, 失敗次數: {}", 
+                employee.getAccount(), employee.getLoginFailureCount());
+            throw new IllegalArgumentException("帳號因連續登入失敗次數過多已被停用，請聯絡管理員");
+        }
+        
         boolean passwordMatches = false;
         boolean needsPasswordUpgrade = false;
         
@@ -308,10 +315,46 @@ public class EmployeeServiceImpl implements EmployeeService {
             needsPasswordUpgrade = passwordMatches; // 只有密碼正確時才升級
         }
         
-        // 如果密碼驗證失敗，拋出異常
+        // 如果密碼驗證失敗，處理失敗次數
         if (!passwordMatches) {
-            log.warn("密碼驗證失敗 - 帳號: {}", employee.getAccount());
-            throw new IllegalArgumentException("帳號或密碼錯誤");
+            int newFailureCount = employee.getLoginFailureCount() + 1;
+            employee.setLoginFailureCount(newFailureCount);
+            employee.setLastFailureTime(java.time.LocalDateTime.now());
+            
+            log.warn("密碼驗證失敗 - 帳號: {}, 失敗次數: {}", employee.getAccount(), newFailureCount);
+            
+            // 檢查是否達到停用條件 (8次)
+            if (newFailureCount >= 8) {
+                employee.setStatus(com.eatfast.common.enums.AccountStatus.INACTIVE);
+                employee.setAccountLockedTime(java.time.LocalDateTime.now());
+                employeeRepository.save(employee);
+                
+                log.error("帳號因連續登入失敗達到8次已自動停用 - 帳號: {}", employee.getAccount());
+                throw new IllegalArgumentException("帳號因連續登入失敗次數過多已被停用，請聯絡管理員");
+            }
+            // 修正：在第6次失敗時開始警告 (剩餘2次機會)
+            else if (newFailureCount >= 6) {
+                int remainingAttempts = 8 - newFailureCount;
+                employeeRepository.save(employee);
+                
+                log.warn("帳號登入失敗警告 - 帳號: {}, 剩餘嘗試次數: {}", employee.getAccount(), remainingAttempts);
+                throw new IllegalArgumentException(
+                    String.format("帳號或密碼錯誤！警告：還有 %d 次登入機會，超過將停用帳號", remainingAttempts));
+            }
+            // 一般失敗情況
+            else {
+                employeeRepository.save(employee);
+                throw new IllegalArgumentException("帳號或密碼錯誤");
+            }
+        }
+        
+        // 登入成功 - 重置失敗次數
+        if (employee.getLoginFailureCount() > 0) {
+            log.info("登入成功，重置失敗次數 - 帳號: {}, 原失敗次數: {}", 
+                employee.getAccount(), employee.getLoginFailureCount());
+            employee.setLoginFailureCount(0);
+            employee.setLastFailureTime(null);
+            employee.setAccountLockedTime(null);
         }
         
         // 【關鍵修正】如果需要升級密碼，在同一個事務中直接升級
@@ -322,7 +365,6 @@ public class EmployeeServiceImpl implements EmployeeService {
                 // 【修正】直接在當前事務中進行密碼升級
                 String encryptedPassword = passwordEncoder.encode(password);
                 employee.setPassword(encryptedPassword);
-                employeeRepository.save(employee);
                 
                 log.info("密碼升級成功 - 帳號: {}, 原密碼: {}, 新密碼前綴: {}", 
                     employee.getAccount(), password, encryptedPassword.substring(0, 10));
@@ -334,6 +376,9 @@ public class EmployeeServiceImpl implements EmployeeService {
                 e.printStackTrace();
             }
         }
+        
+        // 保存所有變更（重置失敗次數和可能的密碼升級）
+        employeeRepository.save(employee);
         
         log.info("員工登入成功 - 帳號: {}, 姓名: {}", employee.getAccount(), employee.getUsername());
         return employeeMapper.toDto(employee);
@@ -436,8 +481,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         // 生成新的臨時密碼（8位數英數混合）
         String temporaryPassword = generateTemporaryPassword();
         
-        // 更新員工密碼
-        employee.setPassword(temporaryPassword);
+        // 【修正】更新員工密碼 - 使用加密存儲確保一致性
+        employee.setPassword(passwordEncoder.encode(temporaryPassword));
         employeeRepository.save(employee);
         
         // 【新增】發送郵件通知
@@ -701,5 +746,61 @@ public class EmployeeServiceImpl implements EmployeeService {
             log.error("員工照片上傳失敗 - 員工ID: {}", employeeId, e);
             throw new IOException("照片上傳失敗: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * 【新增方法實作】- 重置員工登入失敗次數
+     * 管理員可以使用此方法重置員工的登入失敗次數，解鎖被鎖定的帳號
+     */
+    @Override
+    @Transactional
+    public void resetLoginFailureCount(Long employeeId) {
+        EmployeeEntity employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + employeeId + " 的員工"));
+        
+        // 記錄重置前的狀態
+        int originalCount = employee.getLoginFailureCount();
+        com.eatfast.common.enums.AccountStatus originalStatus = employee.getStatus();
+        
+        // 重置失敗次數
+        employee.setLoginFailureCount(0);
+        employee.setLastFailureTime(null);
+        employee.setAccountLockedTime(null);
+        
+        // 如果帳號因為失敗次數過多而被停用，則重新啟用
+        if (employee.getStatus() == com.eatfast.common.enums.AccountStatus.INACTIVE && originalCount >= 8) {
+            employee.setStatus(com.eatfast.common.enums.AccountStatus.ACTIVE);
+            log.info("重置登入失敗次數並重新啟用帳號 - 員工ID: {}, 帳號: {}, 原失敗次數: {}", 
+                employeeId, employee.getAccount(), originalCount);
+        } else {
+            log.info("重置登入失敗次數 - 員工ID: {}, 帳號: {}, 原失敗次數: {}", 
+                employeeId, employee.getAccount(), originalCount);
+        }
+        
+        employeeRepository.save(employee);
+    }
+
+    /**
+     * 【新增方法實作】- 檢查員工帳號登入狀態
+     * 返回員工的登入失敗次數和帳號狀態資訊
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Object> getEmployeeLoginStatus(Long employeeId) {
+        EmployeeEntity employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + employeeId + " 的員工"));
+        
+        Map<String, Object> status = new java.util.HashMap<>();
+        status.put("employeeId", employee.getEmployeeId());
+        status.put("account", employee.getAccount());
+        status.put("username", employee.getUsername());
+        status.put("status", employee.getStatus());
+        status.put("loginFailureCount", employee.getLoginFailureCount());
+        status.put("lastFailureTime", employee.getLastFailureTime());
+        status.put("accountLockedTime", employee.getAccountLockedTime());
+        status.put("isLocked", employee.getLoginFailureCount() >= 8);
+        status.put("remainingAttempts", Math.max(0, 8 - employee.getLoginFailureCount()));
+        
+        return status;
     }
 }
