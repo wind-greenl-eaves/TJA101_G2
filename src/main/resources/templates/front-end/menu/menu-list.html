@@ -1,441 +1,540 @@
 <!DOCTYPE html>
 <html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>餐點菜單 | EatFast 早餐店</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    
-    <style>
-        .bg-milktea { background-color: #F7F2ED; }
-        .bg-card { background-color: #fff8f2; }
-        .text-milktea-dark { color: #A67B5B; }
-        .border-milktea { border-color: #E5D0B6; }
-        .btn-primary { background: #A67B5B; color: white; }
-        .btn-primary:hover { background: #8B5A3C; }
-        .btn-outline { border: 1.5px solid #A67B5B; color: #A67B5B; }
-        .btn-outline:hover { background: #F3E5D6; }
-        .active-category { background: #E5D0B6; color: #A67B5B; font-weight: bold; }
-        
-        :root {
-	    --primary-color: #A67B5B;         /* 奶茶深 */
-	    --primary-hover: #8B5A3C;         /* 奶茶hover */
-	    --shadow-light: #E5D0B6;          /* 奶茶陰影 */
-	    --text-color: #7a6451;            /* 莫蘭迪深文字 */
-		}
-		
-		.nav-fixed {
-		    position: fixed;
-		    top: 0; left: 0; right: 0;
-		    height: 60px;
-		    background: rgba(255,255,255,0.95);
-		    box-shadow: 0 2px 10px var(--shadow-light);
-		    z-index: 1000;
-		    backdrop-filter: blur(10px);
-		}
-		.nav-container {
-		    max-width: 1200px;
-		    margin: 0 auto;
-		    display: flex;
-		    justify-content: space-between;
-		    align-items: center;
-		    padding: 0 2rem;
-		}
-		.nav-logo {
-		    display: flex; align-items: center; gap: 1rem;
-		    text-decoration: none;
-		    color: var(--primary-color);
-		}
-		.nav-logo-icon {
-		    width: 40px; height: 40px; object-fit: contain;
-		}
-		.nav-logo-text {
-		    font-size: 1.25rem;
-		    font-weight: 700;
-		    color: var(--primary-color);
-		}
-		.nav-menu {
-		    display: flex;
-		    gap: 2rem;
-		    align-items: center;
-		}
-		.nav-link {
-		    color: var(--text-color);
-		    text-decoration: none;
-		    font-weight: 500;
-		    transition: color 0.3s;
-		    position: relative;
-		    padding: 2px 0;
-		}
-		.nav-link.active,
-		.nav-link:hover {
-		    color: var(--primary-color);
-		}
-		.nav-link::after {
-		    content: '';
-		    position: absolute;
-		    bottom: -5px;
-		    left: 0;
-		    width: 0;
-		    height: 2px;
-		    background: var(--primary-color);
-		    transition: width 0.3s;
-		}
-		.nav-link:hover::after, .nav-link.active::after {
-		    width: 100%;
-		}
-		.nav-login {
-		    background: var(--primary-color);
-		    color: white;
-		    padding: 0.5rem 1.5rem;
-		    border-radius: 50px;
-		    text-decoration: none;
-		    transition: all 0.3s;
-		    font-weight: 600;
-		    border: none;
-		    outline: none;
-		}
-		.nav-login:hover {
-		    background: var(--primary-hover);
-		    transform: translateY(-2px);
-		}
-        
-    </style>
+<meta charset="UTF-8">
+<title>餐點菜單 | EatFast 早餐店</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+	href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap"
+	rel="stylesheet">
+
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+<style>
+.bg-milktea {
+	background-color: #F7F2ED;
+}
+
+.bg-card {
+	background-color: #fff8f2;
+}
+
+.text-milktea-dark {
+	color: #A67B5B;
+}
+
+.border-milktea {
+	border-color: #E5D0B6;
+}
+
+.btn-primary {
+	background: #A67B5B;
+	color: white;
+}
+
+.btn-primary:hover {
+	background: #8B5A3C;
+}
+
+.btn-outline {
+	border: 1.5px solid #A67B5B;
+	color: #A67B5B;
+}
+
+.btn-outline:hover {
+	background: #F3E5D6;
+}
+
+.active-category {
+	background: #E5D0B6;
+	color: #A67B5B;
+	font-weight: bold;
+}
+
+:root {
+	--primary-color: #A67B5B; /* 奶茶深 */
+	--primary-hover: #8B5A3C; /* 奶茶hover */
+	--shadow-light: #E5D0B6; /* 奶茶陰影 */
+	--text-color: #7a6451; /* 莫蘭迪深文字 */
+}
+
+.nav-fixed {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 60px;
+	background: rgba(255, 255, 255, 0.95);
+	box-shadow: 0 2px 10px var(--shadow-light);
+	z-index: 1000;
+	backdrop-filter: blur(10px);
+}
+
+.nav-container {
+	max-width: 1200px;
+	margin: 0 auto;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0 2rem;
+}
+
+.nav-logo {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	text-decoration: none;
+	color: var(--primary-color);
+}
+
+.nav-logo-icon {
+	width: 40px;
+	height: 40px;
+	object-fit: contain;
+}
+
+.nav-logo-text {
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: var(--primary-color);
+}
+
+.nav-menu {
+	display: flex;
+	gap: 2rem;
+	align-items: center;
+}
+
+.nav-link {
+	color: var(--text-color);
+	text-decoration: none;
+	font-weight: 500;
+	transition: color 0.3s;
+	position: relative;
+	padding: 2px 0;
+}
+
+.nav-link.active, .nav-link:hover {
+	color: var(--primary-color);
+}
+
+.nav-link::after {
+	content: '';
+	position: absolute;
+	bottom: -5px;
+	left: 0;
+	width: 0;
+	height: 2px;
+	background: var(--primary-color);
+	transition: width 0.3s;
+}
+
+.nav-link:hover::after, .nav-link.active::after {
+	width: 100%;
+}
+
+.nav-login {
+	background: var(--primary-color);
+	color: white;
+	padding: 0.5rem 1.5rem;
+	border-radius: 50px;
+	text-decoration: none;
+	transition: all 0.3s;
+	font-weight: 600;
+	border: none;
+	outline: none;
+}
+
+.nav-login:hover {
+	background: var(--primary-hover);
+	transform: translateY(-2px);
+}
+</style>
 </head>
 <body class="bg-milktea min-h-screen">
-
+	<!-- 成功加入購物車的提示彈窗 -->
+	<div id="toast-container"
+		class="fixed inset-0 flex items-center justify-center z-[1001] pointer-events-none"></div>
 	<!-- 動態設定是否登入 -->
 	<script th:inline="javascript">
 	    var isLoggedIn = /*[[${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}]]*/ false;
-	</script>
+	    var memberId = /*[[${session.loggedInMemberId}]]*/ null;
+	    </script>
 
-<!-- Navbar -->
-<header class="w-full shadow bg-white/70 sticky top-0 z-10">
-    <div class="max-w-7xl mx-auto flex items-center justify-between py-2 px-5">
-        <div class="flex items-center gap-3">
-            <img src="images/123.png"alt="EatFast早餐店 Logo" class="nav-logo-icon"/>
-            <span class="nav-logo-text"> EatFast 早餐店</span>
-        </div>
-        <nav class="flex gap-8">
-            <a href="/welcome" class="text-[#7a6451] hover:text-milktea-dark font-semibold">回到首頁</a>
-            <a href="/about" class="text-[#7a6451] hover:text-milktea-dark font-semibold">關於我們</a>
-            <a href="/store/storelist" class="text-[#7a6451] hover:text-milktea-dark font-semibold">門市據點</a>
-            <a href="/member/dashboard" class="text-[#7a6451] hover:text-milktea-dark font-semibold">會員專區</a>
-            <a href="/cart" class="text-[#7a6451] hover:text-milktea-dark font-semibold">購物車</a>
-        </nav>
-        
-        <!-- 登入狀態區塊 -->
-        <div class="flex items-center gap-2">
-            <!-- 已登入 -->
-            <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" class="flex items-center gap-2">
-                <span class="text-milktea-dark font-semibold">歡迎, <span th:text="${session.memberName}">會員名稱</span></span>
-                <form id="logoutForm" th:action="@{/api/v1/auth/logout}" method="post" class="inline">
-				    <button type="button" id="logoutBtn" class="px-4 py-2 rounded-full btn-outline font-semibold bg-[#fff4e6] hover:bg-[#F3E5D6] transition">
-				        <i class="fas fa-sign-out-alt"></i> 登出
-				    </button>
-				</form>
+	<!-- Navbar -->
+	<header class="w-full shadow bg-white/70 sticky top-0 z-10">
+		<div
+			class="max-w-7xl mx-auto flex items-center justify-between py-2 px-5">
+			<div class="flex items-center gap-3">
+				<img src="images/123.png" alt="EatFast早餐店 Logo"
+					class="nav-logo-icon" /> <span class="nav-logo-text">
+					EatFast 早餐店</span>
+			</div>
+			<nav class="flex gap-8">
+				<a href="/welcome"
+					class="text-[#7a6451] hover:text-milktea-dark font-semibold">回到首頁</a>
+				<a href="/about"
+					class="text-[#7a6451] hover:text-milktea-dark font-semibold">關於我們</a>
+				<a href="/store/storelist"
+					class="text-[#7a6451] hover:text-milktea-dark font-semibold">門市據點</a>
+				<a href="/member/dashboard"
+					class="text-[#7a6451] hover:text-milktea-dark font-semibold">會員專區</a>
+				<a href="/cart"
+					class="text-[#7a6451] hover:text-milktea-dark font-semibold">購物車</a>
+			</nav>
 
-            </div>
-            <!-- 未登入 -->
-            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
-               th:href="@{/api/v1/auth/member-login}" 
-               class="px-4 py-2 rounded-full btn-outline font-semibold hover:bg-[#F3E5D6] transition">
-                <i class="fas fa-sign-in-alt"></i> 登入/註冊
-            </a>
-        </div>
-    </div>
-</header>
+			<!-- 登入狀態區塊 -->
+			<div class="flex items-center gap-2">
+				<!-- 已登入 -->
+				<div
+					th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
+					class="flex items-center gap-2">
+					<span class="text-milktea-dark font-semibold">歡迎, <span
+						th:text="${session.memberName}">會員名稱</span></span>
+					<form id="logoutForm" th:action="@{/api/v1/auth/logout}"
+						method="post" class="inline">
+						<button type="button" id="logoutBtn"
+							class="px-4 py-2 rounded-full btn-outline font-semibold bg-[#fff4e6] hover:bg-[#F3E5D6] transition">
+							<i class="fas fa-sign-out-alt"></i> 登出
+						</button>
+					</form>
 
-
-<!-- 主內容區 -->    
-<div class="max-w-7xl mx-auto py-8 flex flex-col md:flex-row gap-6">
-    <!-- 左側分類區 -->
-    <aside class="w-1/5 min-w-[180px] bg-card rounded-2xl shadow-lg border border-milktea mr-8 p-6 h-fit">
-        <h2 class="text-lg font-bold text-milktea-dark mb-4">餐點種類</h2>
-        <ul class="space-y-2">
-            <li>
-                <a th:href="@{/menu}" 
-                   th:classappend="${param.type} == null ? 'active-category' : ''"
-                   class="block rounded px-4 py-2 hover:bg-[#f4ede6] transition">
-                    全部
-                </a>
-            </li>
-            <li th:each="type : ${mealTypeListData}">
-                <a th:href="@{'/menu?type=' + ${type.mealTypeId}}"
-				   th:classappend="${param.type != null and !#strings.isEmpty(param.type[0]) and T(java.lang.Long).valueOf(param.type[0]).equals(type.mealTypeId) ? 'active-category' : ''}"
-				   th:text="${type.mealName}"
-				   class="block rounded px-4 py-2 hover:bg-[#f4ede6] transition">
-				   餐點種類名稱
+				</div>
+				<!-- 未登入 -->
+				<a
+					th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
+					th:href="@{/api/v1/auth/member-login}"
+					class="px-4 py-2 rounded-full btn-outline font-semibold hover:bg-[#F3E5D6] transition">
+					<i class="fas fa-sign-in-alt"></i> 登入/註冊
 				</a>
+			</div>
+		</div>
+	</header>
 
 
-            </li>
-        </ul>
-    </aside>
+	<!-- 主內容區 -->
+	<div class="max-w-7xl mx-auto py-8 flex flex-col md:flex-row gap-6">
 
-    <!-- 右側餐點清單 -->
-    <main class="flex-1">
-        <!-- 標題 -->
-        <div class="mb-8 text-center">
-            <h1 class="text-4xl font-bold text-milktea-dark tracking-wider mb-2">🍳 早餐店菜單</h1>
-            <p class="text-[#7a6451] text-base mb-2">現做早餐，選用新鮮食材，每一道都值得期待！</p>
-            <span th:if="${currentMealTypeName != null}"
-			      th:text="'目前僅顯示：' + ${currentMealTypeName}"
-			      class="inline-block px-3 py-1 bg-[#F0E6D3] rounded text-[#A67B5B] text-sm">
-			</span>
+		<!-- 門市下拉選單 -->
+		<div class="mb-6 text-right">
+			<label for="storeSelector"
+				class="text-milktea-dark font-semibold mr-2">選擇門市：</label> <select
+				id="storeSelector" name="storeId" class="border rounded px-3 py-2"
+				onchange="handleStoreChange(this)">
+				<option value="" disabled selected>請選擇門市</option>
+				<option th:each="store : ${storeList}" th:value="${store.storeId}"
+					th:text="${store.storeName}"
+					th:selected="${store.storeId == session.selectedStoreId}">
+				</option>
+			</select>
+		</div>
 
-        </div>
-        <!-- 餐點卡片區 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 pb-8">
-            <div th:each="meal : ${mealListData}"
-                 class="bg-card rounded-2xl shadow-xl border border-milktea flex flex-col items-center p-6 hover:shadow-2xl transition-shadow duration-200 relative">
-                <!-- 圖片區 + 漂浮購物車按鈕 -->
-			    <div class="relative w-40 h-40 mb-4 flex justify-center items-center">
-                <img th:src="${meal.mealPicUrl}" alt="餐點圖片"
-				     class="w-40 h-40 object-cover rounded-xl border"
-				     onerror="this.onerror=null;this.src='/images/nopic.png';" />
-			    </div>
-                <div class="w-full flex flex-col items-center">
-                    <h2 class="text-xl font-bold text-milktea-dark mb-1 text-center" th:text="${meal.mealName}"></h2>
-                    <div class="text-[#C7A083] text-lg font-semibold mb-2" th:text="'NT$ ' + ${meal.mealPrice}"></div>
-                </div>
-                
-                <div class="flex items-center justify-center gap-2 mb-3">
-				    <span class="star-display" data-meal-id="[[${meal.mealId}]]">
-				      <span th:with="stars=${meal.avgStars}">
-				        <th:block th:each="i : ${#numbers.sequence(1, 5)}">
-				          <i th:if="${i <= T(java.lang.Math).floor(stars)}" class="fas fa-star text-yellow-400"></i>
-				          <i th:if="${i > T(java.lang.Math).floor(stars)} and ${i - stars <= 1}" class="fas fa-star-half-alt text-yellow-400"></i>
-				          <i th:if="${i - stars > 1}" class="far fa-star text-[#DED0B6]"></i>
-				        </th:block>
-				        <span th:text="${stars} + ' / 5'" class="ml-1 text-sm text-[#A67B5B]"></span>
-				      </span>
-				    </span>
+
+
+
+		<!-- 左側分類區 -->
+		<aside
+			class="w-1/5 min-w-[180px] bg-card rounded-2xl shadow-lg border border-milktea mr-8 p-6 h-fit">
+			<h2 class="text-lg font-bold text-milktea-dark mb-4">餐點種類</h2>
+			<ul class="space-y-2">
+				<li><a th:href="@{/menu}"
+					th:classappend="${param.type} == null ? 'active-category' : ''"
+					class="block rounded px-4 py-2 hover:bg-[#f4ede6] transition">
+						全部 </a></li>
+				<li th:each="type : ${mealTypeListData}"><a
+					th:href="@{'/menu?type=' + ${type.mealTypeId}}"
+					th:classappend="${param.type != null and !#strings.isEmpty(param.type[0]) and T(java.lang.Long).valueOf(param.type[0]).equals(type.mealTypeId) ? 'active-category' : ''}"
+					th:text="${type.mealName}"
+					class="block rounded px-4 py-2 hover:bg-[#f4ede6] transition">
+						餐點種類名稱 </a></li>
+			</ul>
+		</aside>
+
+
+
+		<!-- 右側餐點清單 -->
+		<main class="flex-1">
+			<!-- 標題 -->
+			<div class="mb-8 text-center">
+				<h1 class="text-4xl font-bold text-milktea-dark tracking-wider mb-2">🍳
+					早餐店菜單</h1>
+				<p class="text-[#7a6451] text-base mb-2">現做早餐，選用新鮮食材，每一道都值得期待！</p>
+				<span th:if="${currentMealTypeName != null}"
+					th:text="'目前僅顯示：' + ${currentMealTypeName}"
+					class="inline-block px-3 py-1 bg-[#F0E6D3] rounded text-[#A67B5B] text-sm">
+				</span>
+
+			</div>
+			<!-- 餐點卡片區 -->
+			<div
+				class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 pb-8">
+				<div th:each="meal : ${mealListData}"
+					class="bg-card rounded-2xl shadow-xl border border-milktea flex flex-col items-center p-6 hover:shadow-2xl transition-shadow duration-200 relative">
+					<!-- 圖片區 + 漂浮購物車按鈕 -->
+					<div
+						class="relative w-40 h-40 mb-4 flex justify-center items-center">
+						<img th:src="${meal.mealPicUrl}" alt="餐點圖片"
+							class="w-40 h-40 object-cover rounded-xl border"
+							onerror="this.onerror=null;this.src='/images/nopic.png';" />
+					</div>
+					<div class="w-full flex flex-col items-center">
+						<h2 class="text-xl font-bold text-milktea-dark mb-1 text-center"
+							th:text="${meal.mealName}"></h2>
+						<div class="text-[#C7A083] text-lg font-semibold mb-2"
+							th:text="'NT$ ' + ${meal.mealPrice}"></div>
+					</div>
+
+					<div class="flex items-center justify-center gap-2 mb-3">
+						<span class="star-display" data-meal-id="[[${meal.mealId}]]">
+							<span th:with="stars=${meal.avgStars}"> <th:block
+									th:each="i : ${#numbers.sequence(1, 5)}">
+									<i th:if="${i <= T(java.lang.Math).floor(stars)}"
+										class="fas fa-star text-yellow-400"></i>
+									<i
+										th:if="${i > T(java.lang.Math).floor(stars)} and ${i - stars <= 1}"
+										class="fas fa-star-half-alt text-yellow-400"></i>
+									<i th:if="${i - stars > 1}" class="far fa-star text-[#DED0B6]"></i>
+								</th:block> <span th:text="${stars} + ' / 5'"
+								class="ml-1 text-sm text-[#A67B5B]"></span>
+						</span>
+						</span>
+					</div>
+
+					<div class="flex gap-2 w-full mt-auto">
+						<!-- 已收藏表單 -->
+						<form th:if="${meal.favored}" th:action="@{/member/removeFav}"
+							method="post" class="flex-1">
+							<input type="hidden" name="favMealId"
+								th:value="${meal.favMealId}" /> <input type="hidden"
+								name="redirectUrl"
+								th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
+							<button type="submit"
+								class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex flex-col items-center justify-center btn-outline group"
+								title="移除收藏">
+								<i class="fas fa-heart" style="color: #d45a6b;"></i> <span
+									class="ml-1 text-[#d45a6b] group-hover:text-[#b63a53]"></span>
+							</button>
+						</form>
+						<!-- 未收藏表單 -->
+						<form th:unless="${meal.favored}" th:action="@{/member/addFav}"
+							method="post" class="flex-1" onsubmit="return checkLogin(event)">
+							<input type="hidden" name="mealId" th:value="${meal.mealId}" />
+							<input type="hidden" name="redirectUrl"
+								th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
+							<button type="submit"
+								class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex flex-col items-center justify-center btn-outline group"
+								title="加入收藏">
+								<i class="far fa-heart group-hover:text-[#d45a6b]"
+									style="color: #ccc;"></i> <span
+									class="ml-1 text-[#A67B5B] group-hover:text-[#d45a6b]"></span>
+							</button>
+						</form>
+
+						<!-- 加入購物車：點擊會跳modal -->
+						<form th:action="@{/cart}" method="post" class="flex-1"
+							onsubmit="return checkLogin(event)">
+							<input type="hidden" name="mealId" th:value="${meal.mealId}" />
+							<button type="button"
+								class="w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1"
+								th:attr="data-mealid=${meal.mealId}"
+								onclick="return handleAddToCartClick(this)">
+								<i class="fas fa-shopping-cart"></i>
+							</button>
+						</form>
+					</div>
+
+
 				</div>
-
-                <div class="flex gap-2 w-full mt-auto">
-				    <!-- 已收藏表單 -->
-					<form th:if="${meal.favored}" th:action="@{/member/removeFav}" method="post" class="flex-1">
-					    <input type="hidden" name="favMealId" th:value="${meal.favMealId}" />
-					    <input type="hidden" name="redirectUrl" th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
-					    <button type="submit"
-					            class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex flex-col items-center justify-center btn-outline group"
-					            title="移除收藏">
-					        <i class="fas fa-heart" style="color:#d45a6b;"></i>
-					        <span class="ml-1 text-[#d45a6b] group-hover:text-[#b63a53]"></span>
-					    </button>
-					</form>
-					<!-- 未收藏表單 -->
-					<form th:unless="${meal.favored}" th:action="@{/member/addFav}" method="post" class="flex-1" onsubmit="return checkLogin(event)">
-					    <input type="hidden" name="mealId" th:value="${meal.mealId}" />
-					    <input type="hidden" name="redirectUrl" th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
-					    <button type="submit"
-					            class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex flex-col items-center justify-center btn-outline group"
-					            title="加入收藏">
-					        <i class="far fa-heart group-hover:text-[#d45a6b]" style="color:#ccc;"></i>
-					        <span class="ml-1 text-[#A67B5B] group-hover:text-[#d45a6b]"></span>
-					    </button>
-					</form>
-
-				    <!-- 加入購物車：點擊會跳modal -->
-				    <form th:action="@{/cart}" method="post" class="flex-1" onsubmit="return checkLogin(event)">
-				        <input type="hidden" name="mealId" th:value="${meal.mealId}" />
-				        <button type="button" class="w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1"
-						        th:attr="data-mealid=${meal.mealId}"
-		       					onclick="return handleAddToCartClick(this)">
-				            <i class="fas fa-shopping-cart"></i>
-				        </button>
-				    </form>
-				</div>
-
-
-            </div>
-            <div th:if="${#lists.isEmpty(mealListData)}" class="col-span-full text-center text-milktea-dark py-10">
-                查無符合的餐點！
-            </div>
-        </div>
-    </main>
-</div>
-
-    <!-- 自訂請先登入 Modal -->
-	<div id="loginModal" class="fixed inset-0 bg-black/30 flex items-center justify-center z-50 hidden">
-	  <div class="bg-white rounded-2xl p-8 shadow-2xl w-[320px] text-center">
-	    <div class="text-lg font-bold mb-3 text-[#A67B5B]">請先登入會員</div>
-	    <div class="text-[#554431] mb-6">您必須先登入會員才能使用此功能，是否前往登入頁？</div>
-	    <div class="flex gap-4 justify-center">
-	      <button id="loginConfirmBtn" class="bg-[#A67B5B] hover:bg-[#8B5A3C] text-white rounded-full px-5 py-2 font-semibold shadow transition">前往登入</button>
-	      <button id="loginCancelBtn" class="bg-[#F3E5D6] text-[#A67B5B] rounded-full px-5 py-2 font-semibold border border-[#E5D0B6] transition">取消</button>
-	    </div>
-	  </div>
+				<div th:if="${#lists.isEmpty(mealListData)}"
+					class="col-span-full text-center text-milktea-dark py-10">
+					查無符合的餐點！</div>
+			</div>
+		</main>
 	</div>
-	
+
+	<!-- 自訂請先登入 Modal -->
+	<div id="loginModal"
+		class="fixed inset-0 bg-black/30 flex items-center justify-center z-50 hidden">
+		<div class="bg-white rounded-2xl p-8 shadow-2xl w-[320px] text-center">
+			<div class="text-lg font-bold mb-3 text-[#A67B5B]">請先登入會員</div>
+			<div class="text-[#554431] mb-6">您必須先登入會員才能使用此功能，是否前往登入頁？</div>
+			<div class="flex gap-4 justify-center">
+				<button id="loginConfirmBtn"
+					class="bg-[#A67B5B] hover:bg-[#8B5A3C] text-white rounded-full px-5 py-2 font-semibold shadow transition">前往登入</button>
+				<button id="loginCancelBtn"
+					class="bg-[#F3E5D6] text-[#A67B5B] rounded-full px-5 py-2 font-semibold border border-[#E5D0B6] transition">取消</button>
+			</div>
+		</div>
+	</div>
+
 	<!-- 登出確認 Modal -->
-	<div id="logoutModal" class="fixed inset-0 bg-black/30 flex items-center justify-center z-50 hidden">
-	  <div class="bg-white rounded-2xl p-8 shadow-2xl w-[320px] text-center">
-	    <div class="text-lg font-bold mb-3 text-[#A67B5B]">確定要登出嗎？</div>
-	    <div class="text-[#554431] mb-6">登出後將返回首頁。</div>
-	    <div class="flex gap-4 justify-center">
-	      <button id="logoutConfirmBtn" class="bg-[#A67B5B] hover:bg-[#8B5A3C] text-white rounded-full px-5 py-2 font-semibold shadow transition">確定</button>
-	      <button id="logoutCancelBtn" class="bg-[#F3E5D6] text-[#A67B5B] rounded-full px-5 py-2 font-semibold border border-[#E5D0B6] transition">取消</button>
-	    </div>
-	  </div>
+	<div id="logoutModal"
+		class="fixed inset-0 bg-black/30 flex items-center justify-center z-50 hidden">
+		<div class="bg-white rounded-2xl p-8 shadow-2xl w-[320px] text-center">
+			<div class="text-lg font-bold mb-3 text-[#A67B5B]">確定要登出嗎？</div>
+			<div class="text-[#554431] mb-6">登出後將返回首頁。</div>
+			<div class="flex gap-4 justify-center">
+				<button id="logoutConfirmBtn"
+					class="bg-[#A67B5B] hover:bg-[#8B5A3C] text-white rounded-full px-5 py-2 font-semibold shadow transition">確定</button>
+				<button id="logoutCancelBtn"
+					class="bg-[#F3E5D6] text-[#A67B5B] rounded-full px-5 py-2 font-semibold border border-[#E5D0B6] transition">取消</button>
+			</div>
+		</div>
 	</div>
-	
+
 	<!-- ======= Modal 小視窗 ======= -->
-<div id="mealDetailModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
-  <div class="bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md relative">
-    <!-- 關閉按鈕 -->
-    <button type="button" onclick="closeMealModal()"
-      class="absolute top-2 right-2 text-[#A67B5B] text-xl">&times;</button>
-    <!-- 餐點圖片 -->
-    <div class="flex justify-center mb-4">
-      <img id="modalMealPic" src="/images/nopic.png" class="w-40 h-40 object-cover rounded-xl border" />
-    </div>
-    <div class="text-2xl font-bold text-milktea-dark mb-2" id="modalMealName">餐點名稱</div>
-    <div class="text-[#C7A083] text-lg font-semibold mb-2" id="modalMealPrice">NT$ 0</div>
-    <div class="flex items-center gap-2 mb-3">
-      <span id="modalMealStars" class="text-[#A67B5B] text-sm"></span>
-    </div>
-    <!-- 數量選擇 -->
-    <div class="flex items-center gap-3 mb-5">
-      <span>數量：</span>
-      <button type="button" onclick="changeQty(-1)" class="w-8 h-8 rounded bg-[#E5D0B6]">-</button>
-      <input id="modalMealQty" type="number" min="1" value="1" class="w-12 text-center border rounded" readonly />
-      <button type="button" onclick="changeQty(1)" class="w-8 h-8 rounded bg-[#E5D0B6]">+</button>
-    </div>
-    <form method="post" action="/cart" id="modalCartForm">
-      <input type="hidden" name="mealId" id="modalMealId" />
-      <input type="hidden" name="quantity" id="modalMealFormQty" value="1" />
-      <button type="submit" class="w-full btn-primary rounded-lg px-4 py-2 mt-2">
-        <i class="fas fa-shopping-cart"></i> 加入購物車
-      </button>
-    </form>
-  </div>
-</div>
-	
-   <script>
-	// 顯示請先登入的彈窗
-	function checkLogin(e) {
-	    if (!isLoggedIn) {
-		    if (e) e.preventDefault(); 
-	        showLoginModal();
-	        return false; // 未登入操作不繼續
-	    }
-	    return true;
-	}
-	
-	// 購物車按鈕點擊判斷登入彈窗
-	function handleAddToCartClick(btnElement) {
-	    // 檢查登入狀態
-	    if (!checkLogin()) { 
-	        return false; // 如果未登入，就停止後續操作
-	    }
-	    // 如果已登入，則執行開啟購物車 modal 的動作
-	    openMealModal(btnElement);
-	    return false; 
-	}
-	
-	// 登入/登出 modal 控制
-	function showLoginModal() {
-	    document.getElementById('loginModal').classList.remove('hidden');
-	}
-	function hideLoginModal() {
-	    document.getElementById('loginModal').classList.add('hidden');
-	}
-	function showLogoutModal() {
-	    document.getElementById('logoutModal').classList.remove('hidden');
-	}
-	function hideLogoutModal() {
-	    document.getElementById('logoutModal').classList.add('hidden');
-	}
-	
-	// 綁定事件
-	document.addEventListener('DOMContentLoaded', function() {
-	    // 登入 modal
-	    document.getElementById('loginConfirmBtn').onclick = function() {
-	        window.location.href = '/api/v1/auth/member-login';
-	    };
-	    document.getElementById('loginCancelBtn').onclick = function() {
-	        hideLoginModal();
-	    };
-	
-	    // 登出 modal
-	    const logoutBtn = document.getElementById('logoutBtn');
-	    const logoutForm = document.getElementById('logoutForm');
-	    const logoutConfirmBtn = document.getElementById('logoutConfirmBtn');
-	    const logoutCancelBtn = document.getElementById('logoutCancelBtn');
-	
-	    if (logoutBtn) {
-	        logoutBtn.onclick = function(e) {
-	            e.preventDefault();
-	            showLogoutModal();
-	        }
-	    }
-	    if (logoutCancelBtn) {
-	        logoutCancelBtn.onclick = function() {
-	            hideLogoutModal();
-	        }
-	    }
-	    if (logoutConfirmBtn && logoutForm) {
-	        logoutConfirmBtn.onclick = function() {
-	            hideLogoutModal();
-	            fetch(logoutForm.action, {
-	                method: 'POST',
-	                credentials: 'same-origin'
-	            }).then(res => {
-	            	if (res.ok) {
-	                    window.location.href = '/welcome'; 
-	                } else {
-	                    alert('登出失敗，請稍後再試！');
-	                }
-	            }).catch(error => {
-	                console.error('登出請求發生錯誤:', error);
-	                alert('登出失敗，請檢查網路連線或稍後再試！');
-	            });
-	        }
-	    }
-	    
-		 // 點擊 Modal 外部關閉功能
-	    const loginModal = document.getElementById('loginModal');
-	    const logoutModal = document.getElementById('logoutModal');
-	
-	    if (loginModal) {
-	        loginModal.addEventListener('click', function(e) {
-	            if (e.target === loginModal) { // 只有點擊到背景才關閉
-	                hideLoginModal();
-	            }
-	        });
-	    }
-	    if (logoutModal) {
-	        logoutModal.addEventListener('click', function(e) {
-	            if (e.target === logoutModal) { // 只有點擊到背景才關閉
-	                hideLogoutModal();
-	            }
-	        });
-	    }
-	});
-	
-	
-	</script>
+	<div id="mealDetailModal"
+		class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
+		<div
+			class="bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md relative">
+			<!-- 關閉按鈕 -->
+			<button type="button" onclick="closeMealModal()"
+				class="absolute top-2 right-2 text-[#A67B5B] text-xl">&times;</button>
+			<!-- 餐點圖片 -->
+			<div class="flex justify-center mb-4">
+				<img id="modalMealPic" src="/images/nopic.png"
+					class="w-40 h-40 object-cover rounded-xl border" />
+			</div>
+			<div class="text-2xl font-bold text-milktea-dark mb-2"
+				id="modalMealName">餐點名稱</div>
+			<div class="text-[#C7A083] text-lg font-semibold mb-2"
+				id="modalMealPrice">NT$ 0</div>
+			<div class="flex items-center gap-2 mb-3">
+				<span id="modalMealStars" class="text-[#A67B5B] text-sm"></span>
+			</div>
+			<!-- 數量選擇 -->
+			<div class="flex items-center gap-3 mb-5">
+				<span>數量：</span>
+				<button type="button" onclick="changeQty(-1)"
+					class="w-8 h-8 rounded bg-[#E5D0B6]">-</button>
+				<input id="modalMealQty" type="number" min="1" value="1"
+					class="w-12 text-center border rounded" readonly />
+				<button type="button" onclick="changeQty(1)"
+					class="w-8 h-8 rounded bg-[#E5D0B6]">+</button>
+			</div>
+			<form method="post" th:action="@{/cart/add}" id="modalCartForm">
+				<input type="hidden" name="mealId" id="modalMealId" /> 
+				<input
+					type="hidden" name="quantity" id="modalMealFormQty" value="1" /> 
+				<input
+					type="hidden" name="storeId" id="modalStoreId" />
+				<button type="submit"
+					class="w-full btn-primary rounded-lg px-4 py-2 mt-2">
+					<i class="fas fa-shopping-cart"></i> 加入購物車
+				</button>
+			</form>
+		</div>
+	</div>
 
 	<script th:inline="javascript">
 	  // 將 mealListData 轉成 JS 陣列（僅需用到的屬性）
 	  const mealData = /*[[${mealListData}]]*/ [];
 	</script>
+
 	<script>
-	  let currentMeal = null;
-	  function openMealModal(btn) {
+  // 全域函式：選擇門市後存入 sessionStorage 並重新載入頁面
+function handleStoreChange(selectEl) {
+    const newStoreId = selectEl.value;
+    if (!newStoreId) return;
+
+    // 從 sessionStorage 讀取當前購物車所屬的門市ID
+    // 我們假設在成功加入第一個商品時，會用 sessionStorage.setItem("cartStoreId", a_store_id) 來記錄
+    const currentCartStoreId = sessionStorage.getItem("cartStoreId");
+
+    // 如果購物車中有商品(cartStoreId存在)且使用者選擇了不同的門市
+    if (currentCartStoreId && currentCartStoreId !== newStoreId) {
+        if (confirm("更換門市將會清空您目前的購物車，確定要繼續嗎？")) {
+            // 使用者同意，先呼叫 API 清空購物車
+            clearCartForStoreChange(newStoreId);
+        } else {
+            // 使用者取消，將下拉選單恢復原狀
+            selectEl.value = currentCartStoreId;
+            return;
+        }
+    } else {
+        // 如果購物車是空的，或選擇的門市與原來相同，直接更新 sessionStorage
+        sessionStorage.setItem("selectedStoreId", newStoreId);
+        // 如果購物車本來是空的，現在把新選擇的門市也存入 cartStoreId
+        if(!currentCartStoreId) {
+            sessionStorage.setItem("cartStoreId", newStoreId);
+        }
+        window.location.reload(); // 重新載入頁面以應用新的門市
+    }
+}
+
+// 【新增】一個專門用於清空購物車並處理後續動作的函式
+async function clearCartForStoreChange(newStoreId) {
+    if (!memberId) {
+        alert("請先登入會員");
+        return;
+    }
+    // 呼叫後端清空購物車的 API (DELETE /cart/member/{id})
+    try {
+        const response = await fetch(`/cart/member/${memberId}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('清空購物車失敗');
+
+        // 清空成功後，更新 sessionStorage 並刷新頁面
+        sessionStorage.setItem("selectedStoreId", newStoreId);
+        sessionStorage.setItem("cartStoreId", newStoreId);
+        window.location.reload();
+        
+    } catch(error) {
+        alert("清空購物車時發生錯誤，請稍後再試。");
+    }
+}
+
+  // 顯示請先登入的彈窗
+  function checkLogin(e) {
+      if (!isLoggedIn) {
+          if (e) e.preventDefault();
+          showLoginModal();
+          return false;
+      }
+      return true;
+  }
+
+  function handleAddToCartClick(btnElement) {
+      if (!checkLogin()) {
+          return false;
+      }
+      openMealModal(btnElement);
+      return false;
+  }
+
+  function showLoginModal() {
+      document.getElementById('loginModal').classList.remove('hidden');
+  }
+  function hideLoginModal() {
+      document.getElementById('loginModal').classList.add('hidden');
+  }
+
+  function showLogoutModal() {
+      document.getElementById('logoutModal').classList.remove('hidden');
+  }
+  function hideLogoutModal() {
+      document.getElementById('logoutModal').classList.add('hidden');
+  }
+
+  let currentMeal = null;
+
+  function openMealModal(btn) {
+	    // 【關鍵新增】第一步：先檢查是否已選擇門市
+	    const storeId = sessionStorage.getItem("selectedStoreId");
+	    if (!storeId) {
+	        // 如果沒有選擇門市，跳出提示，並終止後續操作
+	        alert("請先從頁面上方的下拉選單中選擇一個取餐門市！");
+	        return; // 直接結束函式
+	    }
+
 	    const mealId = Number(btn.getAttribute('data-mealid'));
 	    currentMeal = mealData.find(m => m.mealId === mealId);
 	    if (!currentMeal) return;
-	
-	    // 設定 Modal 內容
+
 	    document.getElementById('modalMealId').value = currentMeal.mealId;
 	    document.getElementById('modalMealPic').src = currentMeal.mealPicUrl;
 	    document.getElementById('modalMealName').textContent = currentMeal.mealName;
@@ -443,67 +542,230 @@
 	    document.getElementById('modalMealStars').innerHTML = renderStars(currentMeal.avgStars ?? 0);
 	    document.getElementById('modalMealQty').value = 1;
 	    document.getElementById('modalMealFormQty').value = 1;
-	
-	    // 顯示 Modal
+
+	    // 將已確認存在的 storeId 填入表單
+	    document.getElementById('modalStoreId').value = storeId;
+
 	    document.getElementById('mealDetailModal').classList.remove('hidden');
-	  }
-	  function closeMealModal() {
-	    document.getElementById('mealDetailModal').classList.add('hidden');
-	  }
-	  function changeQty(delta) {
-	    let input = document.getElementById('modalMealQty');
-	    let val = parseInt(input.value) + delta;
-	    if (val < 1) val = 1;
-	    input.value = val;
-	    document.getElementById('modalMealFormQty').value = val;
-	  }
-	  // 點 Modal 背景可關閉
-	  document.addEventListener('DOMContentLoaded', function() {
-	    document.getElementById('mealDetailModal').addEventListener('click', function(e) {
-	      if (e.target === this) closeMealModal();
-	    });
-	  });
-	  
-	  // 星星顯示
-	  function renderStars(score, max=5) {
-		  let html = '';
-		  for(let i = 1; i <= max; i++) {
-		    if (score >= i) { // 全星
-		      html += '<i class="fas fa-star text-yellow-400"></i>';
-		    } else if (score > i-1 && score < i) { // 半星
-		      html += '<i class="fas fa-star-half-alt text-yellow-400"></i>';
-		    } else { // 空星
-		      html += '<i class="far fa-star text-[#DED0B6]"></i>';
-		    }
-		  }
-		  html += ` <span class="ml-1 text-sm text-[#9D7C64]">${score.toFixed(1)} / 5</span>`;
-		  return html;
-		}
-		// 更新餐點評分星星顯示
-		function updateMealStars() {
-		  fetch('/api/meals/ratings')
-		    .then(res => res.json())
-		    .then(data => {
-		      data.forEach(meal => {
-		        document.querySelectorAll(`.star-display[data-meal-id='${meal.mealId}']`).forEach(el => {
-		          el.innerHTML = renderStars(meal.avgStars);
-		        });
-		      });
-		    });
-		}
-		document.addEventListener('DOMContentLoaded', function() {
-		    updateMealStars();
-		    setInterval(updateMealStars, 30000);
-		});
+	}
 
-	  
-	</script>
+  function closeMealModal() {
+      document.getElementById('mealDetailModal').classList.add('hidden');
+  }
+
+  function changeQty(delta) {
+      let input = document.getElementById('modalMealQty');
+      let val = parseInt(input.value) + delta;
+      if (val < 1) val = 1;
+      input.value = val;
+      document.getElementById('modalMealFormQty').value = val;
+  }
+
+  function renderStars(score, max = 5) {
+      let html = '';
+      for (let i = 1; i <= max; i++) {
+          if (score >= i) {
+              html += '<i class="fas fa-star text-yellow-400"></i>';
+          } else if (score > i - 1 && score < i) {
+              html += '<i class="fas fa-star-half-alt text-yellow-400"></i>';
+          } else {
+              html += '<i class="far fa-star text-[#DED0B6]"></i>';
+          }
+      }
+      html += ` <span class="ml-1 text-sm text-[#9D7C64]">${score.toFixed(1)} / 5</span>`;
+      return html;
+  }
+  
+	//✅ 新增：顯示提示訊息的函式 (置中 + 可靠的自動關閉)
+    function showToast(message, isSuccess = true) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        // 為了確保畫面中央永遠只有一個提示，先清空容器
+        container.innerHTML = '';
+
+        // 建立 toast 元素
+        const toast = document.createElement('div');
+        const bgColor = isSuccess ? 'bg-[#A67B5B]' : 'bg-red-500';
+        const icon = isSuccess ? '<i class="fas fa-check-circle mr-3"></i>' : '<i class="fas fa-times-circle mr-3"></i>';
+
+        // 使用縮放與透明度動畫，並重新啟用滑鼠事件
+        toast.className = `pointer-events-auto flex items-center text-white text-lg font-semibold px-6 py-4 rounded-xl shadow-2xl transform transition-all duration-300 opacity-0 scale-90`;
+        toast.classList.add(bgColor);
+        toast.innerHTML = `${icon} ${message}`;
+
+        container.appendChild(toast);
+
+        // --- 觸發「出現」動畫 ---
+        // 使用一個極短的延遲，確保瀏覽器能捕捉到 class 的變化並觸發 transition
+        setTimeout(() => {
+            toast.classList.remove('opacity-0', 'scale-90');
+            toast.classList.add('opacity-100', 'scale-100');
+        }, 10);
+
+        // --- 觸發「消失」動畫 ---
+        // 設定 2.5 秒後開始消失
+        setTimeout(() => {
+            toast.classList.remove('opacity-100', 'scale-100');
+            toast.classList.add('opacity-0', 'scale-90');
+
+            // 【關鍵修復】在淡出動畫（300ms）結束後，直接從 DOM 中移除元素
+            // 這樣就不再依賴可能不觸發的 'transitionend' 事件
+            setTimeout(() => {
+                if (container.contains(toast)) {
+                    container.removeChild(toast);
+                }
+            }, 300); // 這個時間要和 CSS 的 duration-300 匹配
+
+        }, 1200); // 提示顯示 2.5 秒
+    }
+
+    // ✅ 更新餐點星星顯示
+  function updateMealStars() {
+      fetch('/api/meals/ratings')
+          .then(res => res.json())
+          .then(data => {
+              data.forEach(meal => {
+                  document.querySelectorAll(`.star-display[data-meal-id='${meal.mealId}']`).forEach(el => {
+                      el.innerHTML = renderStars(meal.avgStars);
+                  });
+              });
+          });
+  }
+
+  // ✅ 整合所有 DOMContentLoaded 邏輯
+  document.addEventListener('DOMContentLoaded', function () {
+      // 1. 套用 sessionStorage 中的 storeId
+      const selectedStoreId = sessionStorage.getItem("selectedStoreId");
+      if (selectedStoreId) {
+          const selector = document.getElementById('storeSelector');
+          if (selector) selector.value = selectedStoreId;
+      }
+
+      // 2. 登入 modal 按鈕
+      document.getElementById('loginConfirmBtn').onclick = () => {
+          window.location.href = '/api/v1/auth/member-login';
+      };
+      document.getElementById('loginCancelBtn').onclick = hideLoginModal;
+
+      // 3. 登出 modal 行為
+      const logoutBtn = document.getElementById('logoutBtn');
+      const logoutForm = document.getElementById('logoutForm');
+      const logoutConfirmBtn = document.getElementById('logoutConfirmBtn');
+      const logoutCancelBtn = document.getElementById('logoutCancelBtn');
+
+      if (logoutBtn) {
+          logoutBtn.onclick = function (e) {
+              e.preventDefault();
+              showLogoutModal();
+          };
+      }
+
+      if (logoutCancelBtn) {
+          logoutCancelBtn.onclick = hideLogoutModal;
+      }
+
+      if (logoutConfirmBtn && logoutForm) {
+          logoutConfirmBtn.onclick = function () {
+              hideLogoutModal();
+              fetch(logoutForm.action, {
+                  method: 'POST',
+                  credentials: 'same-origin'
+              }).then(res => {
+                  if (res.ok) {
+                      window.location.href = '/welcome';
+                  } else {
+                      alert('登出失敗，請稍後再試！');
+                  }
+              }).catch(error => {
+                  console.error('登出請求發生錯誤:', error);
+                  alert('登出失敗，請檢查網路連線或稍後再試！');
+              });
+          };
+      }
+
+      // 4. 點擊 modal 背景可關閉
+      const loginModal = document.getElementById('loginModal');
+      const logoutModal = document.getElementById('logoutModal');
+      const mealDetailModal = document.getElementById('mealDetailModal');
+
+      if (loginModal) {
+          loginModal.addEventListener('click', function (e) {
+              if (e.target === loginModal) hideLoginModal();
+          });
+      }
+
+      if (logoutModal) {
+          logoutModal.addEventListener('click', function (e) {
+              if (e.target === logoutModal) hideLogoutModal();
+          });
+      }
+
+      if (mealDetailModal) {
+          mealDetailModal.addEventListener('click', function (e) {
+              if (e.target === mealDetailModal) closeMealModal();
+          });
+      }
+
+      // 5. 初始星星顯示與定時刷新
+      updateMealStars();
+      setInterval(updateMealStars, 30000);
+   // ✅ 新增：攔截並修改 Modal 中的購物車表單提交行為
+      const modalCartForm = document.getElementById('modalCartForm');
+      if (modalCartForm) {
+          modalCartForm.addEventListener('submit', function (e) {
+              // 1. 阻止表單的預設提交行為 (避免頁面刷新)
+              e.preventDefault();
+
+              // 2. 獲取表單資料
+              const formData = new FormData(modalCartForm);
+              const data = new URLSearchParams(formData);
+              
+           // 【新增】當成功加入第一個商品時，將門市ID記錄到 sessionStorage
+              const currentCartStoreId = sessionStorage.getItem("cartStoreId");
+              if (!currentCartStoreId) {
+                   sessionStorage.setItem("cartStoreId", formData.get("storeId"));
+              }
+              // 3. 使用 Fetch API 將資料送到後端
+              fetch(modalCartForm.action, {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded',
+                  },
+                  body: data
+              })
+              .then(response => {
+                  // 4. 根據伺服器回應判斷是否成功
+                  if (response.ok) {
+                      // 成功加入購物車
+                      closeMealModal(); // 關閉 Modal
+                      showToast('✅ 已成功加入購物車！'); // 顯示成功提示
+                  } else {
+                      // 處理失敗情況
+                      response.text().then(text => {
+                           // 如果後端有回傳錯誤訊息，可以顯示它
+                           showToast(`加入失敗: ${text || '請稍後再試'}`, false);
+                      });
+                  }
+              })
+              .catch(error => {
+                  // 5. 處理網路錯誤
+                  console.error('加入購物車請求失敗:', error);
+                  showToast('網路錯誤，請檢查連線。', false);
+              });
+          });
+      }
+  });
+      
+</script>
 
 
-	<footer class="bg-brand-deep text-brand-container text-center p-6 mt-16">
-        <p>&copy; © 2025 EatFast 早餐店 - 版權所有 | 為您提供最優質的早餐服務 </p>
-    </footer>
 
-	
+	<footer
+		class="bg-brand-deep text-brand-container text-center p-6 mt-16">
+		<p>&copy; © 2025 EatFast 早餐店 - 版權所有 | 為您提供最優質的早餐服務</p>
+	</footer>
+
+
 </body>
 </html>

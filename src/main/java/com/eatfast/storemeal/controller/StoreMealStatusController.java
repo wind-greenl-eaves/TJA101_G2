@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.List;
 /**
  * 處理門市餐點供應狀態相關 API 請求的控制器 (Controller)。
  */
-@RestController
+@Controller
 @RequestMapping("/api/stores") // 所有此 Controller 的 API 路徑都以 /api/stores 開頭
 public class StoreMealStatusController {
 
