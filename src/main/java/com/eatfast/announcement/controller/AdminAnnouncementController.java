@@ -127,6 +127,12 @@ public class AdminAnnouncementController {
             return ResponseEntity.internalServerError().body("發布失敗: " + e.getMessage());
         }
     }
+
+
+    @GetMapping("/") // 監聽對網站根目錄 (首頁) 的請求
+    public String showWelcomePage() {
+        return "welcome"; // 告訴 Thymeleaf 去渲染 templates/welcome.html
+    }
     /**
      * 顯示「編輯公告」的表單
      * @param id 這是從 URL 路徑中抓下來的公告 ID
