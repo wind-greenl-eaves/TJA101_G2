@@ -1,13 +1,17 @@
 package com.eatfast.employee.controller;
 
+import com.eatfast.common.enums.AccountStatus;
 import com.eatfast.common.exception.ResourceNotFoundException;
 import com.eatfast.employee.dto.EmployeeDTO;
 import com.eatfast.employee.dto.EmployeeLoginRequest;
-import com.eatfast.employee.service.EmployeeService;
-import com.eatfast.employee.service.EmployeeAuthService; // 【新增】引入認證服務
 import com.eatfast.employee.model.EmployeeEntity;
-import com.eatfast.common.enums.AccountStatus;
+import com.eatfast.employee.service.EmployeeService;
+import com.eatfast.employee.service.EmployeeAuthService;
+import com.eatfast.employee.service.ForgotPasswordRateLimitService; // 新增
+import com.eatfast.employee.util.EmployeeLogger;
+
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest; // 新增
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,12 +37,19 @@ public class EmployeeLoginController {
     private static final int MAX_LOGIN_ATTEMPTS = 8; // 最大登入失敗次數
     
     private final EmployeeService employeeService;
-    private final EmployeeAuthService employeeAuthService; // 【新增】認證服務
+    private final EmployeeAuthService employeeAuthService;
+    private final ForgotPasswordRateLimitService rateLimitService; // 新增
+    private final EmployeeLogger employeeLogger;
 
     @Autowired
-    public EmployeeLoginController(EmployeeService employeeService, EmployeeAuthService employeeAuthService) {
+    public EmployeeLoginController(EmployeeService employeeService, 
+                                  EmployeeAuthService employeeAuthService,
+                                  ForgotPasswordRateLimitService rateLimitService, // 新增
+                                  EmployeeLogger employeeLogger) {
         this.employeeService = employeeService;
-        this.employeeAuthService = employeeAuthService; // 【新增】注入認證服務
+        this.employeeAuthService = employeeAuthService;
+        this.rateLimitService = rateLimitService; // 新增
+        this.employeeLogger = employeeLogger;
     }
 
     /**
@@ -371,20 +382,57 @@ public class EmployeeLoginController {
     /**
      * 處理忘記密碼表單提交
      * 路徑: POST /employee/forgot-password
+     * 新增頻率限制功能，防止同一帳號或IP在30秒內重複請求
      */
     @PostMapping("/forgot-password")
     public String processForgotPassword(@Valid @ModelAttribute("forgotPasswordRequest") com.eatfast.employee.dto.ForgotPasswordRequest forgotPasswordRequest,
                                       BindingResult bindingResult,
-                                      Model model) {
+                                      Model model,
+                                      HttpServletRequest request) { // 新增HttpServletRequest參數
         
         // 如果表單驗證失敗，重新顯示忘記密碼頁面
         if (bindingResult.hasErrors()) {
             return "back-end/employee/forgot-password";
         }
 
+        String accountOrEmail = forgotPasswordRequest.getAccountOrEmail();
+        String clientIP = getClientIP(request); // 獲取客戶端IP
+
         try {
+            // 檢查帳號請求頻率限制
+            if (!rateLimitService.canSendRequest(accountOrEmail)) {
+                long remainingTime = rateLimitService.getRemainingWaitTime(accountOrEmail);
+                String errorMessage = String.format("請求過於頻繁，請等待 %d 秒後再試。為了帳號安全，每個帳號30秒內只能發送一次忘記密碼請求。", remainingTime);
+                
+                model.addAttribute("message", errorMessage);
+                model.addAttribute("success", false);
+                
+                log.warn("忘記密碼請求被限制 - 帳號: {}, IP: {}, 剩餘等待時間: {}秒", 
+                    accountOrEmail, clientIP, remainingTime);
+                
+                return "back-end/employee/forgot-password";
+            }
+
+            // 檢查IP請求頻率限制
+            if (!rateLimitService.canSendRequestFromIP(clientIP)) {
+                long remainingTime = rateLimitService.getRemainingWaitTimeForIP(clientIP);
+                String errorMessage = String.format("請求過於頻繁，請等待 %d 秒後再試。為了系統安全，每個IP30秒內只能發送一次忘記密碼請求。", remainingTime);
+                
+                model.addAttribute("message", errorMessage);
+                model.addAttribute("success", false);
+                
+                log.warn("忘記密碼請求被限制 - IP: {}, 帳號: {}, 剩餘等待時間: {}秒", 
+                    clientIP, accountOrEmail, remainingTime);
+                
+                return "back-end/employee/forgot-password";
+            }
+
+            // 記錄本次請求（無論後續處理成功與否都記錄，防止重複請求）
+            rateLimitService.recordAccountRequest(accountOrEmail);
+            rateLimitService.recordIPRequest(clientIP);
+
             // 處理忘記密碼請求
-            String resultMessage = employeeService.processForgotPassword(forgotPasswordRequest.getAccountOrEmail());
+            String resultMessage = employeeService.processForgotPassword(accountOrEmail);
             
             // 判斷是否成功（根據訊息內容判斷）
             boolean isSuccess = resultMessage.contains("密碼重設成功");
@@ -392,25 +440,53 @@ public class EmployeeLoginController {
             model.addAttribute("message", resultMessage);
             model.addAttribute("success", isSuccess);
             
-            log.info("忘記密碼請求處理完成 - 輸入: {}, 結果: {}", 
-                forgotPasswordRequest.getAccountOrEmail(), 
-                isSuccess ? "成功" : "失敗");
+            log.info("忘記密碼請求處理完成 - 輸入: {}, IP: {}, 結果: {}", 
+                accountOrEmail, clientIP, isSuccess ? "成功" : "失敗");
 
         } catch (IllegalArgumentException e) {
             // 處理輸入參數錯誤
             model.addAttribute("message", e.getMessage());
             model.addAttribute("success", false);
-            log.warn("忘記密碼請求參數錯誤 - 輸入: {}, 錯誤: {}", 
-                forgotPasswordRequest.getAccountOrEmail(), e.getMessage());
+            log.warn("忘記密碼請求參數錯誤 - 輸入: {}, IP: {}, 錯誤: {}", 
+                accountOrEmail, clientIP, e.getMessage());
             
         } catch (Exception e) {
             // 處理其他未預期的錯誤
             model.addAttribute("message", "系統處理忘記密碼請求時發生錯誤，請稍後再試或聯絡管理員");
             model.addAttribute("success", false);
-            log.error("忘記密碼請求處理發生未預期錯誤 - 輸入: {}", 
-                forgotPasswordRequest.getAccountOrEmail(), e);
+            log.error("忘記密碼請求處理發生未預期錯誤 - 輸入: {}, IP: {}", 
+                accountOrEmail, clientIP, e);
         }
 
         return "back-end/employee/forgot-password";
+    }
+
+    /**
+     * 獲取客戶端真實IP地址
+     * 考慮代理服務器和負載平衡器的情況
+     */
+    private String getClientIP(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        String xRealIP = request.getHeader("X-Real-IP");
+        String xForwardedProto = request.getHeader("X-Forwarded-Proto");
+        
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
+            // X-Forwarded-For 可能包含多個IP，取第一個
+            return xForwardedFor.split(",")[0].trim();
+        }
+        
+        if (xRealIP != null && !xRealIP.isEmpty() && !"unknown".equalsIgnoreCase(xRealIP)) {
+            return xRealIP;
+        }
+        
+        // 如果沒有代理，直接返回請求的遠程地址
+        String remoteAddr = request.getRemoteAddr();
+        
+        // 處理IPv6本地回環地址
+        if ("0:0:0:0:0:0:0:1".equals(remoteAddr)) {
+            return "127.0.0.1";
+        }
+        
+        return remoteAddr;
     }
 }
