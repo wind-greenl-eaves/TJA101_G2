@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>員工管理後台 - EatFast</title>
-    
+
     <!-- 引入 Tailwind CSS 框架 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- 引入 Google Fonts (思源黑體) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    
+
     <!-- 引入 Font Awesome 圖示庫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    
+
     <style>
         /* 自定義 CSS 變數，實現奶茶色主題 */
         :root {
@@ -39,7 +39,7 @@
             background-repeat: no-repeat;
             position: relative;
         }
-        
+
         /* 在 body 後添加一個半透明的覆蓋層，增強文字可讀性 */
         body::before {
             content: '';
@@ -128,7 +128,7 @@
             0%   { transform: translateX(100%); }
             100% { transform: translateX(-150%); }
         }
-        
+
         /* 添加新的固定右側面板樣式 */
         .page-container {
             display: flex;
@@ -140,7 +140,7 @@
             margin: 0 auto;
             width: 90%;      /* 增加寬度限制 */
         }
-        
+
         /* 新增左側導航區塊樣式 */
         .left-nav-panel {
             width: 200px;  /* 左側導航寬度 */
@@ -155,13 +155,13 @@
             box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1);
             padding: 1rem;
         }
-        
+
         .main-content {
             flex: 1;
             margin-left: 220px;  /* 為左側導航留出空間 */
             max-width: calc(100% - 540px);  /* 調整主內容寬度 */
         }
-        
+
         .detail-panel {
             width: 300px;  /* 從 340px 縮小到 300px */
             position: fixed;
@@ -174,7 +174,7 @@
             border: 1px solid var(--border-color);
             box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1);
         }
-        
+
         @media (max-width: 1200px) {
             .left-nav-panel {
                 left: 0.75rem;
@@ -183,7 +183,7 @@
                 right: 0.75rem;
             }
         }
-        
+
         @media (max-width: 1024px) {
             .page-container {
                 flex-direction: column;
@@ -249,13 +249,15 @@
 </head>
 <body class="antialiased" th:data-has-employee-session="${session.loggedInEmployee != null}">
 
+<!-- 這是一行絕對會被偵測到的測試註解 -->
+
 <div class="page-container">
     <!-- 左側導航區塊 -->
     <aside class="left-nav-panel">
         <div class="nav-section-title">
             <i class="fas fa-compass mr-2"></i>系統導航
         </div>
-        
+
         <!-- 員工管理區塊 -->
         <div class="mb-6">
             <div class="nav-section-title">員工管理</div>
@@ -264,39 +266,39 @@
                 <span>新增員工</span>
             </a>
             <!-- 修改員工列表權限：總部管理員和門市經理都可以訪問 -->
-            <a th:href="@{/employee/listAll}" class="nav-item" 
+            <a th:href="@{/employee/listAll}" class="nav-item"
                th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN' or session.loggedInEmployee?.role?.name() == 'MANAGER'}">
                 <i class="fas fa-list"></i>
                 <span>員工列表</span>
             </a>
             <!-- 一般員工顯示禁用狀態 -->
-            <div class="nav-item bg-gray-100 cursor-not-allowed opacity-60" 
+            <div class="nav-item bg-gray-100 cursor-not-allowed opacity-60"
                  th:if="${session.loggedInEmployee?.role?.name() == 'STAFF'}">
                 <i class="fas fa-list text-gray-400"></i>
                 <span class="text-gray-500">員工列表 (權限不足)</span>
             </div>
         </div>
-        
+
         <!-- 訂單管理區塊 -->
         <div class="mb-6">
             <div class="nav-section-title">訂單管理</div>
-            
+
             <!-- 門市經理和一般員工可以使用 -->
             <a th:href="@{/orderlist/select_page_OrderList}" class="nav-item"
                th:if="${session.loggedInEmployee?.role?.name() == 'MANAGER' or session.loggedInEmployee?.role?.name() == 'STAFF'}">
                 <i class="fas fa-clipboard-list"></i>
                 <span>訂單資料管理</span>
             </a>
-            
+
             <!-- 總部管理員顯示禁用狀態 -->
-            <div class="nav-item bg-gray-100 cursor-not-allowed opacity-60" 
+            <div class="nav-item bg-gray-100 cursor-not-allowed opacity-60"
                  th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
                 <i class="fas fa-clipboard-list text-gray-400"></i>
                 <span class="text-gray-500">訂單資料管理</span>
                 <div class="ml-auto text-xs text-gray-400">(此功能為各自分店管理)</div>
             </div>
         </div>
-        
+
         <!-- 餐點管理區塊 (僅總部管理員可見) -->
         <div class="mb-6" th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
             <div class="nav-section-title">餐點管理</div>
@@ -309,7 +311,7 @@
                 <span>餐點品項管理</span>
             </a>
         </div>
-        
+
         <!-- 會員管理區塊 (僅總部管理員可見) -->
         <div class="mb-6" th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
             <div class="nav-section-title">會員管理</div>
@@ -320,6 +322,19 @@
             <a th:href="@{/member/addMember}" class="nav-item">
                 <i class="fas fa-user-plus"></i>
                 <span>新增會員</span>
+            </a>
+        </div>
+        <div class="mb-6">
+            <div class="nav-section-title">內容管理</div>
+            <!-- 最新消息管理 -->
+            <a th:href="@{/admin/news/list}" class="nav-item" th:if="${session.loggedInEmployee != null}">
+                <i class="fas fa-newspaper"></i>
+                <span>最新消息管理</span>
+            </a>
+            <!-- 門市公告管理 -->
+            <a th:href="@{/admin/announcements}" class="nav-item" th:if="${session.loggedInEmployee != null}">
+                <i class="fas fa-bullhorn"></i>
+                <span>門市公告管理</span>
             </a>
         </div>
     </aside>
@@ -355,12 +370,12 @@
                 </button>
             </div>
         </header>
-        
+
         <!-- 跑馬燈訊息 -->
         <div class="bg-white p-3 rounded-lg border border-[var(--border-color)] shadow-sm overflow-hidden whitespace-nowrap mb-8">
             <p class="inline-block marquee-text text-[var(--primary-color)] font-medium">歡迎使用員工資料管理系統，今天也一起加油吧！為我們 5 人團隊的早餐店專案喝采！</p>
         </div>
-        
+
         <!-- 錯誤訊息提示區塊 -->
         <div id="error-messages" class="hidden bg-red-100 border border-[var(--error-color)] text-[var(--error-color)] px-4 py-3 rounded-lg mb-6"></div>
 
@@ -370,32 +385,32 @@
             <div class="section-title-container">
                 <h2 class="section-title">資料查詢</h2>
             </div>
-            
+
             <!-- 單一查詢區塊 -->
             <div id="single-query-section" class="space-y-6">
                 <!-- 查詢所有員工資料 - 根據權限顯示 -->
-                <div th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}" 
-                     class="form-container hover:shadow-md transition-shadow cursor-pointer" 
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}"
+                     class="form-container hover:shadow-md transition-shadow cursor-pointer"
                      onclick="window.location.href='/employee/listAll'">
                     <span class="font-semibold text-lg">查詢所有員工資料 (總部管理員專用)</span>
                     <span class="text-lg text-[var(--primary-color)]">➔</span>
                 </div>
-                
+
                 <!-- 門市經理的查詢功能 -->
-                <div th:if="${session.loggedInEmployee?.role?.name() == 'MANAGER'}" 
-                     class="form-container hover:shadow-md transition-shadow cursor-pointer" 
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'MANAGER'}"
+                     class="form-container hover:shadow-md transition-shadow cursor-pointer"
                      onclick="window.location.href='/employee/listAll'">
                     <span class="font-semibold text-lg">查詢本門市員工資料 (門市經理專用)</span>
                     <span class="text-lg text-[var(--primary-color)]">➔</span>
                 </div>
-                
+
                 <!-- 一般員工的提示訊息 -->
-                <div th:if="${session.loggedInEmployee?.role?.name() == 'STAFF'}" 
+                <div th:if="${session.loggedInEmployee?.role?.name() == 'STAFF'}"
                      class="form-container bg-gray-100 cursor-not-allowed opacity-60">
                     <span class="font-semibold text-lg text-gray-500">員工資料查詢 (權限不足)</span>
                     <span class="text-lg text-gray-400">✗</span>
                 </div>
-                
+
                 <!-- 原有的查詢功能 - 根據權限控制 -->
                 <div th:if="${session.loggedInEmployee?.role?.name() != 'STAFF'}">
                     <form id="query-by-id-input-form" class="form-container">
@@ -420,11 +435,11 @@
                 </div>
             </div>
         </section>
-        
+
         <!-- 員工管理區塊 -->
         <section>
             <div class="section-title-container">
-               <h2 class="section-title">員工管理</h2>
+                <h2 class="section-title">員工管理</h2>
             </div>
             <a th:href="@{/employee/add}" class="form-container hover:shadow-md transition-shadow cursor-pointer">
                 <span class="font-semibold text-lg">新增員工資料</span>
@@ -451,7 +466,7 @@
                         <p><span class="font-medium">建立時間：</span><span id="detail-create-time"></span></p>
                     </div>
                 </div>
-                
+
                 <!-- 聯絡資訊區塊 -->
                 <div>
                     <h3 class="text-lg font-semibold mb-4 text-[var(--primary-color)]">聯絡資訊</h3>
@@ -460,7 +475,7 @@
                         <p><span class="font-medium">聯絡電話：</span><span id="detail-phone"></span></p>
                     </div>
                 </div>
-                
+
                 <!-- 系統資訊區塊 -->
                 <div>
                     <h3 class="text-lg font-semibold mb-4 text-[var(--primary-color)]">系統資訊</h3>
@@ -509,368 +524,368 @@
 
 
 <script th:inline="javascript">
-document.addEventListener('DOMContentLoaded', function() {
-    // 獲取上下文路徑
-    const contextPath = /*[[@{/}]]*/ '/eatfast/';
-    const API_BASE_URL = contextPath + 'api/v1/employees';
-    
-    // 修改圖片路徑
-    const logoImg = document.querySelector('header img');
-    logoImg.src = contextPath + 'images/123.png';
-    
-    // --- 元素選擇 ---
-    const errorMessagesDiv = document.getElementById('error-messages');
-    const employeeIdSelect = document.getElementById('employee-id-select');
-    const employeeNameSelect = document.getElementById('employee-name-select');
+    document.addEventListener('DOMContentLoaded', function() {
+        // 獲取上下文路徑
+        const contextPath = /*[[@{/}]]*/ '/eatfast/';
+        const API_BASE_URL = contextPath + 'api/v1/employees';
 
-    // 錯誤訊息顯示函數
-    function showError(messages) {
-        errorMessagesDiv.innerHTML = Array.isArray(messages) 
-            ? messages.map(msg => `<div>${msg}</div>`).join('') 
-            : `<div>${messages}</div>`;
-        errorMessagesDiv.classList.remove('hidden');
-    }
+        // 修改圖片路徑
+        const logoImg = document.querySelector('header img');
+        logoImg.src = contextPath + 'images/123.png';
 
-    function clearError() {
-        errorMessagesDiv.innerHTML = '';
-        errorMessagesDiv.classList.add('hidden');
-    }
+        // --- 元素選擇 ---
+        const errorMessagesDiv = document.getElementById('error-messages');
+        const employeeIdSelect = document.getElementById('employee-id-select');
+        const employeeNameSelect = document.getElementById('employee-name-select');
 
-    // --- 動態填充下拉選單 (單一查詢) ---
-    async function populateEmployeeSelects() {
-        // 檢查元素是否存在再進行操作
-        if (!employeeIdSelect || !employeeNameSelect) {
-            // 一般員工看不到這些表單，直接返回
-            return;
+        // 錯誤訊息顯示函數
+        function showError(messages) {
+            errorMessagesDiv.innerHTML = Array.isArray(messages)
+                ? messages.map(msg => `<div>${msg}</div>`).join('')
+                : `<div>${messages}</div>`;
+            errorMessagesDiv.classList.remove('hidden');
         }
-        
-        try {
-            const response = await fetch(API_BASE_URL);
-            if (!response.ok) throw new Error(`無法載入員工列表 (狀態碼: ${response.status})`);
-            
-            const employees = await response.json();
-            
-            employeeIdSelect.innerHTML = '<option value="">-- 請選擇編號 --</option>';
-            employeeNameSelect.innerHTML = '<option value="">-- 請選擇姓名 --</option>'; 
-            
-            employees.forEach(emp => {
-                const idOption = new Option(`員編: ${emp.employeeId}`, emp.employeeId);
-                employeeIdSelect.appendChild(idOption);
-                const nameOption = new Option(`${emp.username} (ID: ${emp.employeeId})`, emp.employeeId);
-                employeeNameSelect.appendChild(nameOption);
+
+        function clearError() {
+            errorMessagesDiv.innerHTML = '';
+            errorMessagesDiv.classList.add('hidden');
+        }
+
+        // --- 動態填充下拉選單 (單一查詢) ---
+        async function populateEmployeeSelects() {
+            // 檢查元素是否存在再進行操作
+            if (!employeeIdSelect || !employeeNameSelect) {
+                // 一般員工看不到這些表單，直接返回
+                return;
+            }
+
+            try {
+                const response = await fetch(API_BASE_URL);
+                if (!response.ok) throw new Error(`無法載入員工列表 (狀態碼: ${response.status})`);
+
+                const employees = await response.json();
+
+                employeeIdSelect.innerHTML = '<option value="">-- 請選擇編號 --</option>';
+                employeeNameSelect.innerHTML = '<option value="">-- 請選擇姓名 --</option>';
+
+                employees.forEach(emp => {
+                    const idOption = new Option(`員編: ${emp.employeeId}`, emp.employeeId);
+                    employeeIdSelect.appendChild(idOption);
+                    const nameOption = new Option(`${emp.username} (ID: ${emp.employeeId})`, emp.employeeId);
+                    employeeNameSelect.appendChild(nameOption);
+                });
+
+            } catch (error) {
+                const errorMessage = error.message || '載入員工資料時發生未知錯誤';
+                showError(errorMessage);
+                if (employeeIdSelect) {
+                    employeeIdSelect.innerHTML = `<option value="">-- 載入失敗 --</option>`;
+                    employeeIdSelect.disabled = true;
+                }
+                if (employeeNameSelect) {
+                    employeeNameSelect.innerHTML = `<option value="">-- 載入失敗 --</option>`;
+                    employeeNameSelect.disabled = true;
+                }
+            }
+        }
+
+        // --- 表單提交邏輯 ---
+        const singleQueryEndpoint = /*[[@{/employee/listOne}]]*/ '/employee/listOne';
+
+        // 處理「單一查詢」所有表單 - 增加安全檢查
+        const queryByIdInputForm = document.getElementById('query-by-id-input-form');
+        const queryByIdSelectForm = document.getElementById('query-by-id-select-form');
+        const queryByNameSelectForm = document.getElementById('query-by-name-select-form');
+
+        if (queryByIdInputForm) {
+            queryByIdInputForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const employeeId = document.getElementById('employee-id-input').value;
+                if (employeeId) {
+                    handleSingleEmployeeQuery(employeeId);
+                }
             });
-
-        } catch (error) {
-            const errorMessage = error.message || '載入員工資料時發生未知錯誤';
-            showError(errorMessage);
-            if (employeeIdSelect) {
-                employeeIdSelect.innerHTML = `<option value="">-- 載入失敗 --</option>`;
-                employeeIdSelect.disabled = true;
-            }
-            if (employeeNameSelect) {
-                employeeNameSelect.innerHTML = `<option value="">-- 載入失敗 --</option>`;
-                employeeNameSelect.disabled = true;
-            }
-        }
-    }
-
-    // --- 表單提交邏輯 ---
-    const singleQueryEndpoint = /*[[@{/employee/listOne}]]*/ '/employee/listOne';
-
-    // 處理「單一查詢」所有表單 - 增加安全檢查
-    const queryByIdInputForm = document.getElementById('query-by-id-input-form');
-    const queryByIdSelectForm = document.getElementById('query-by-id-select-form');
-    const queryByNameSelectForm = document.getElementById('query-by-name-select-form');
-
-    if (queryByIdInputForm) {
-        queryByIdInputForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const employeeId = document.getElementById('employee-id-input').value;
-            if (employeeId) {
-                handleSingleEmployeeQuery(employeeId);
-            }
-        });
-    }
-
-    if (queryByIdSelectForm) {
-        queryByIdSelectForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const employeeId = document.getElementById('employee-id-select').value;
-            if (employeeId) {
-                handleSingleEmployeeQuery(employeeId);
-            }
-        });
-    }
-
-    if (queryByNameSelectForm) {
-        queryByNameSelectForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const employeeId = document.getElementById('employee-name-select').value;
-            if (employeeId) {
-                handleSingleEmployeeQuery(employeeId);
-            }
-        });
-    }
-
-    // --- 歡迎彈窗邏輯 ---
-    const welcomeModal = document.getElementById('welcomeModal');
-    const closeWelcomeBtn = document.getElementById('closeWelcomeBtn');
-    const welcomeMessage = document.getElementById('welcomeMessage');
-    const employeeInfo = document.getElementById('employeeInfo');
-
-    // 檢查 URL 參數是否包含 welcome=true
-    const urlParams = new URLSearchParams(window.location.search);
-    const showWelcome = urlParams.get('welcome') === 'true';
-
-    // 如果 URL 包含 welcome=true 參數，顯示歡迎彈窗
-    if (showWelcome && welcomeModal) {
-        // 從 session 資料或其他方式獲取員工資訊
-        const loggedInEmployee = /*[[${session.loggedInEmployee}]]*/ null;
-        const employeeName = /*[[${session.employeeName}]]*/ null;
-        const employeeId = /*[[${session.employeeId}]]*/ null;
-
-        // 設置歡迎訊息
-        if (employeeName) {
-            welcomeMessage.textContent = `歡迎回來，${employeeName}！`;
         }
 
-        // 設置員工資訊
-        if (loggedInEmployee) {
-            employeeInfo.innerHTML = `
+        if (queryByIdSelectForm) {
+            queryByIdSelectForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const employeeId = document.getElementById('employee-id-select').value;
+                if (employeeId) {
+                    handleSingleEmployeeQuery(employeeId);
+                }
+            });
+        }
+
+        if (queryByNameSelectForm) {
+            queryByNameSelectForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const employeeId = document.getElementById('employee-name-select').value;
+                if (employeeId) {
+                    handleSingleEmployeeQuery(employeeId);
+                }
+            });
+        }
+
+        // --- 歡迎彈窗邏輯 ---
+        const welcomeModal = document.getElementById('welcomeModal');
+        const closeWelcomeBtn = document.getElementById('closeWelcomeBtn');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const employeeInfo = document.getElementById('employeeInfo');
+
+        // 檢查 URL 參數是否包含 welcome=true
+        const urlParams = new URLSearchParams(window.location.search);
+        const showWelcome = urlParams.get('welcome') === 'true';
+
+        // 如果 URL 包含 welcome=true 參數，顯示歡迎彈窗
+        if (showWelcome && welcomeModal) {
+            // 從 session 資料或其他方式獲取員工資訊
+            const loggedInEmployee = /*[[${session.loggedInEmployee}]]*/ null;
+            const employeeName = /*[[${session.employeeName}]]*/ null;
+            const employeeId = /*[[${session.employeeId}]]*/ null;
+
+            // 設置歡迎訊息
+            if (employeeName) {
+                welcomeMessage.textContent = `歡迎回來，${employeeName}！`;
+            }
+
+            // 設置員工資訊
+            if (loggedInEmployee) {
+                employeeInfo.innerHTML = `
                 <p class="text-sm text-gray-600">員工編號：<span class="font-semibold">${employeeId}</span></p>
                 <p class="text-sm text-gray-600">職位：<span class="font-semibold">${loggedInEmployee.role?.displayName || loggedInEmployee.role}</span></p>
                 <p class="text-sm text-gray-600">所屬門市：<span class="font-semibold">${loggedInEmployee.storeName}</span></p>
             `;
+            }
+
+            // 延遲顯示彈窗
+            setTimeout(() => {
+                welcomeModal.classList.remove('hidden');
+                welcomeModal.classList.add('flex');
+            }, 500);
+
+            // 清除 URL 參數，防止重新整理時再次顯示
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.delete('welcome');
+            window.history.replaceState({}, '', newUrl);
         }
 
-        // 延遲顯示彈窗
-        setTimeout(() => {
-            welcomeModal.classList.remove('hidden');
-            welcomeModal.classList.add('flex');
-        }, 500);
-
-        // 清除 URL 參數，防止重新整理時再次顯示
-        const newUrl = new URL(window.location);
-        newUrl.searchParams.delete('welcome');
-        window.history.replaceState({}, '', newUrl);
-    }
-
-    // 關閉歡迎彈窗
-    if (closeWelcomeBtn) {
-        closeWelcomeBtn.addEventListener('click', function() {
-            welcomeModal.classList.add('hidden');
-            welcomeModal.classList.remove('flex');
-        });
-    }
-
-    // 點擊背景關閉歡迎彈窗
-    if (welcomeModal) {
-        welcomeModal.addEventListener('click', function(e) {
-            if (e.target === this) {
+        // 關閉歡迎彈窗
+        if (closeWelcomeBtn) {
+            closeWelcomeBtn.addEventListener('click', function() {
                 welcomeModal.classList.add('hidden');
                 welcomeModal.classList.remove('flex');
+            });
+        }
+
+        // 點擊背景關閉歡迎彈窗
+        if (welcomeModal) {
+            welcomeModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    welcomeModal.classList.add('hidden');
+                    welcomeModal.classList.remove('flex');
+                }
+            });
+        }
+
+        // --- 登出 Modal 邏輯 ---
+        const logoutBtn = document.getElementById('logoutBtn');
+        const logoutModal = document.getElementById('logoutModal');
+        const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+        const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+
+        // 顯示登出確認視窗
+        logoutBtn.addEventListener('click', function() {
+            logoutModal.classList.remove('hidden');
+            logoutModal.classList.add('flex');
+        });
+
+        // 取消登出
+        cancelLogoutBtn.addEventListener('click', function() {
+            logoutModal.classList.add('hidden');
+            logoutModal.classList.remove('flex');
+        });
+
+        // 確認登出
+        confirmLogoutBtn.addEventListener('click', async function() {
+            try {
+                // 調用後端登出端點清除 Session
+                const response = await fetch('/employee/logout', {
+                    method: 'GET',
+                    credentials: 'same-origin'
+                });
+
+                if (response.ok) {
+                    // 登出成功，重定向到登入頁面
+                    window.location.href = '/employee/login?logout=success';
+                } else {
+                    throw new Error('登出請求失敗');
+                }
+            } catch (error) {
+                console.error('登出錯誤:', error);
+                // 即使出錯也嘗試重定向到登入頁面
+                window.location.href = '/employee/login?logout=success';
+            } finally {
+                logoutModal.classList.add('hidden');
+                logoutModal.classList.remove('flex');
             }
         });
-    }
 
-    // --- 登出 Modal 邏輯 ---
-    const logoutBtn = document.getElementById('logoutBtn');
-    const logoutModal = document.getElementById('logoutModal');
-    const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
-    const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
-
-    // 顯示登出確認視窗
-    logoutBtn.addEventListener('click', function() {
-        logoutModal.classList.remove('hidden');
-        logoutModal.classList.add('flex');
-    });
-
-    // 取消登出
-    cancelLogoutBtn.addEventListener('click', function() {
-        logoutModal.classList.add('hidden');
-        logoutModal.classList.remove('flex');
-    });
-
-    // 確認登出
-    confirmLogoutBtn.addEventListener('click', async function() {
-        try {
-            // 調用後端登出端點清除 Session
-            const response = await fetch('/employee/logout', {
-                method: 'GET',
-                credentials: 'same-origin'
-            });
-            
-            if (response.ok) {
-                // 登出成功，重定向到登入頁面
-                window.location.href = '/employee/login?logout=success';
-            } else {
-                throw new Error('登出請求失敗');
+        // 點擊背景關閉 Modal
+        logoutModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                logoutModal.classList.add('hidden');
+                logoutModal.classList.remove('flex');
             }
-        } catch (error) {
-            console.error('登出錯誤:', error);
-            // 即使出錯也嘗試重定向到登入頁面
-            window.location.href = '/employee/login?logout=success';
-        } finally {
-            logoutModal.classList.add('hidden');
-            logoutModal.classList.remove('flex');
-        }
-    });
+        });
 
-    // 點擊背景關閉 Modal
-    logoutModal.addEventListener('click', function(e) {
-        if (e.target === this) {
-            logoutModal.classList.add('hidden');
-            logoutModal.classList.remove('flex');
-        }
-    });
+        // --- 員工詳細資訊顯示 ---
+        function displayEmployeeDetail(employee) {
+            // 顯示詳細資訊區塊
+            document.getElementById('employee-detail-section').classList.remove('hidden');
 
-    // --- 員工詳細資訊顯示 ---
-    function displayEmployeeDetail(employee) {
-        // 顯示詳細資訊區塊
-        document.getElementById('employee-detail-section').classList.remove('hidden');
-        
-        // 性別圖示和顯示文字
-        const genderDisplay = {
-            'M': '<i class="fas fa-mars text-blue-500 mr-1"></i>男',
-            'F': '<i class="fas fa-venus text-pink-500 mr-1"></i>女',
-            'O': '<i class="fas fa-genderless text-gray-500 mr-1"></i>其他'
-        };
-        
-        // 帳號狀態徽章
-        const statusBadges = {
-            'ACTIVE': '<span class="status-badge status-active"><i class="fas fa-check-circle mr-1"></i>啟用</span>',
-            'INACTIVE': '<span class="status-badge status-inactive"><i class="fas fa-times-circle mr-1"></i>停用</span>'
-        };
-        
-        // 員工角色徽章和圖示
-        const roleInfo = {
-            'STAFF': { icon: 'fas fa-user', text: '一般員工' },
-            'MANAGER': { icon: 'fas fa-user-tie', text: '門市經理' },
-            'HEADQUARTERS_ADMIN': { icon: 'fas fa-user-shield', text: '總部管理員' }
-        };
-        
-        // 格式化日期時間
-        const formatDateTime = (dateTimeStr) => {
-            const dt = new Date(dateTimeStr);
-            return dt.toLocaleString('zh-TW', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            });
-        };
+            // 性別圖示和顯示文字
+            const genderDisplay = {
+                'M': '<i class="fas fa-mars text-blue-500 mr-1"></i>男',
+                'F': '<i class="fas fa-venus text-pink-500 mr-1"></i>女',
+                'O': '<i class="fas fa-genderless text-gray-500 mr-1"></i>其他'
+            };
 
-        // 更新所有欄位的顯示，添加圖示和樣式
-        document.getElementById('detail-employee-id').innerHTML = 
-            `<i class="fas fa-id-card text-gray-500 mr-2"></i>${employee.employeeId}`;
-        
-        document.getElementById('detail-username').innerHTML = 
-            `<i class="fas fa-user text-gray-500 mr-2"></i>${employee.username}`;
-        
-        document.getElementById('detail-gender').innerHTML = genderDisplay[employee.gender] || 
-            `<i class="fas fa-question text-gray-500 mr-1"></i>${employee.gender}`;
-        
-        document.getElementById('detail-national-id').innerHTML = 
-            `<i class="fas fa-passport text-gray-500 mr-2"></i>${employee.nationalId}`;
-        
-        document.getElementById('detail-create-time').innerHTML = 
-            `<i class="far fa-calendar-alt text-gray-500 mr-2"></i>${formatDateTime(employee.createTime)}`;
-        
-        document.getElementById('detail-email').innerHTML = 
-            `<i class="fas fa-envelope text-gray-500 mr-2"></i>${employee.email}`;
-        
-        document.getElementById('detail-phone').innerHTML = 
-            `<i class="fas fa-phone text-gray-500 mr-2"></i>${employee.phone}`;
-        
-        document.getElementById('detail-account').innerHTML = 
-            `<i class="fas fa-user-circle text-gray-500 mr-2"></i>${employee.account}`;
-        
-        // 角色顯示
-        const roleData = roleInfo[employee.role] || { icon: 'fas fa-user', text: employee.role };
-        document.getElementById('detail-role').innerHTML = 
-            `<span class="role-badge"><i class="${roleData.icon} mr-1"></i>${roleData.text}</span>`;
-        
-        // 狀態顯示
-        document.getElementById('detail-status').innerHTML = 
-            statusBadges[employee.status] || `<span class="status-badge">${employee.status}</span>`;
-        
-        // 門市資訊
-        document.getElementById('detail-store').innerHTML = 
-            `<i class="fas fa-store text-gray-500 mr-2"></i>${employee.storeName} <span class="text-gray-500">(ID: ${employee.storeId})</span>`;
-        
-        // 在小螢幕上自動滾動到詳細資訊區域
-        if (window.innerWidth <= 1024) {
-            document.getElementById('employee-detail-section').scrollIntoView({ behavior: 'smooth' });
-        }
-    }
+            // 帳號狀態徽章
+            const statusBadges = {
+                'ACTIVE': '<span class="status-badge status-active"><i class="fas fa-check-circle mr-1"></i>啟用</span>',
+                'INACTIVE': '<span class="status-badge status-inactive"><i class="fas fa-times-circle mr-1"></i>停用</span>'
+            };
 
-    // 更新單一查詢的處理邏輯
-    async function handleSingleEmployeeQuery(employeeId) {
-        try {
-            clearError();
-            const response = await fetch(`${API_BASE_URL}/${employeeId}`);
-            if (!response.ok) {
-                throw new Error(`查詢失敗 (狀態碼: ${response.status})`);
+            // 員工角色徽章和圖示
+            const roleInfo = {
+                'STAFF': { icon: 'fas fa-user', text: '一般員工' },
+                'MANAGER': { icon: 'fas fa-user-tie', text: '門市經理' },
+                'HEADQUARTERS_ADMIN': { icon: 'fas fa-user-shield', text: '總部管理員' }
+            };
+
+            // 格式化日期時間
+            const formatDateTime = (dateTimeStr) => {
+                const dt = new Date(dateTimeStr);
+                return dt.toLocaleString('zh-TW', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+            };
+
+            // 更新所有欄位的顯示，添加圖示和樣式
+            document.getElementById('detail-employee-id').innerHTML =
+                `<i class="fas fa-id-card text-gray-500 mr-2"></i>${employee.employeeId}`;
+
+            document.getElementById('detail-username').innerHTML =
+                `<i class="fas fa-user text-gray-500 mr-2"></i>${employee.username}`;
+
+            document.getElementById('detail-gender').innerHTML = genderDisplay[employee.gender] ||
+                `<i class="fas fa-question text-gray-500 mr-1"></i>${employee.gender}`;
+
+            document.getElementById('detail-national-id').innerHTML =
+                `<i class="fas fa-passport text-gray-500 mr-2"></i>${employee.nationalId}`;
+
+            document.getElementById('detail-create-time').innerHTML =
+                `<i class="far fa-calendar-alt text-gray-500 mr-2"></i>${formatDateTime(employee.createTime)}`;
+
+            document.getElementById('detail-email').innerHTML =
+                `<i class="fas fa-envelope text-gray-500 mr-2"></i>${employee.email}`;
+
+            document.getElementById('detail-phone').innerHTML =
+                `<i class="fas fa-phone text-gray-500 mr-2"></i>${employee.phone}`;
+
+            document.getElementById('detail-account').innerHTML =
+                `<i class="fas fa-user-circle text-gray-500 mr-2"></i>${employee.account}`;
+
+            // 角色顯示
+            const roleData = roleInfo[employee.role] || { icon: 'fas fa-user', text: employee.role };
+            document.getElementById('detail-role').innerHTML =
+                `<span class="role-badge"><i class="${roleData.icon} mr-1"></i>${roleData.text}</span>`;
+
+            // 狀態顯示
+            document.getElementById('detail-status').innerHTML =
+                statusBadges[employee.status] || `<span class="status-badge">${employee.status}</span>`;
+
+            // 門市資訊
+            document.getElementById('detail-store').innerHTML =
+                `<i class="fas fa-store text-gray-500 mr-2"></i>${employee.storeName} <span class="text-gray-500">(ID: ${employee.storeId})</span>`;
+
+            // 在小螢幕上自動滾動到詳細資訊區域
+            if (window.innerWidth <= 1024) {
+                document.getElementById('employee-detail-section').scrollIntoView({ behavior: 'smooth' });
             }
-            const employee = await response.json();
-            displayEmployeeDetail(employee);
-        } catch (error) {
-            showError(error.message);
         }
-    }
 
-    // --- 門市經理專用查詢功能 ---
-    window.handleManagerEmployeeQuery = async function() {
-        try {
-            clearError();
-            // 門市經理查詢本門市所有員工
-            const response = await fetch(API_BASE_URL);
-            if (!response.ok) {
-                if (response.status === 403) {
-                    showError('權限不足：您沒有權限查看員工資料');
-                } else if (response.status === 401) {
-                    showError('請重新登入');
-                    setTimeout(() => {
-                        window.location.href = '/employee/login';
-                    }, 2000);
-                } else {
+        // 更新單一查詢的處理邏輯
+        async function handleSingleEmployeeQuery(employeeId) {
+            try {
+                clearError();
+                const response = await fetch(`${API_BASE_URL}/${employeeId}`);
+                if (!response.ok) {
                     throw new Error(`查詢失敗 (狀態碼: ${response.status})`);
                 }
-                return;
+                const employee = await response.json();
+                displayEmployeeDetail(employee);
+            } catch (error) {
+                showError(error.message);
             }
-            
-            const employees = await response.json();
-            if (employees.length === 0) {
-                showError('您的門市目前沒有其他員工');
-                return;
-            }
-            
-            // 顯示門市員工列表
-            displayManagerEmployeesList(employees);
-            
-        } catch (error) {
-            showError(error.message || '查詢員工資料時發生錯誤');
         }
-    };
 
-    // --- 顯示門市員工列表 ---
-    function displayManagerEmployeesList(employees) {
-        // 創建一個臨時的列表顯示區域
-        let listContainer = document.getElementById('manager-employees-list');
-        if (!listContainer) {
-            listContainer = document.createElement('div');
-            listContainer.id = 'manager-employees-list';
-            listContainer.className = 'bg-white p-4 rounded-lg border border-[var(--border-color)] shadow-sm mt-4';
-            
-            // 插入到單一查詢區塊後面
-            const singleQuerySection = document.getElementById('single-query-section');
-            singleQuerySection.parentNode.insertBefore(listContainer, singleQuerySection.nextSibling);
-        }
-        
-        let html = `
+        // --- 門市經理專用查詢功能 ---
+        window.handleManagerEmployeeQuery = async function() {
+            try {
+                clearError();
+                // 門市經理查詢本門市所有員工
+                const response = await fetch(API_BASE_URL);
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        showError('權限不足：您沒有權限查看員工資料');
+                    } else if (response.status === 401) {
+                        showError('請重新登入');
+                        setTimeout(() => {
+                            window.location.href = '/employee/login';
+                        }, 2000);
+                    } else {
+                        throw new Error(`查詢失敗 (狀態碼: ${response.status})`);
+                    }
+                    return;
+                }
+
+                const employees = await response.json();
+                if (employees.length === 0) {
+                    showError('您的門市目前沒有其他員工');
+                    return;
+                }
+
+                // 顯示門市員工列表
+                displayManagerEmployeesList(employees);
+
+            } catch (error) {
+                showError(error.message || '查詢員工資料時發生錯誤');
+            }
+        };
+
+        // --- 顯示門市員工列表 ---
+        function displayManagerEmployeesList(employees) {
+            // 創建一個臨時的列表顯示區域
+            let listContainer = document.getElementById('manager-employees-list');
+            if (!listContainer) {
+                listContainer = document.createElement('div');
+                listContainer.id = 'manager-employees-list';
+                listContainer.className = 'bg-white p-4 rounded-lg border border-[var(--border-color)] shadow-sm mt-4';
+
+                // 插入到單一查詢區塊後面
+                const singleQuerySection = document.getElementById('single-query-section');
+                singleQuerySection.parentNode.insertBefore(listContainer, singleQuerySection.nextSibling);
+            }
+
+            let html = `
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold text-[var(--primary-color)]">本門市員工列表 (${employees.length} 人)</h3>
                 <button onclick="document.getElementById('manager-employees-list').remove()" 
@@ -880,17 +895,17 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="grid gap-3">
         `;
-        
-        employees.forEach(emp => {
-            const roleIcon = {
-                'STAFF': 'fas fa-user',
-                'MANAGER': 'fas fa-user-tie',
-                'HEADQUARTERS_ADMIN': 'fas fa-user-shield'
-            }[emp.role] || 'fas fa-user';
-            
-            const statusColor = emp.status === 'ACTIVE' ? 'text-green-600' : 'text-red-600';
-            
-            html += `
+
+            employees.forEach(emp => {
+                const roleIcon = {
+                    'STAFF': 'fas fa-user',
+                    'MANAGER': 'fas fa-user-tie',
+                    'HEADQUARTERS_ADMIN': 'fas fa-user-shield'
+                }[emp.role] || 'fas fa-user';
+
+                const statusColor = emp.status === 'ACTIVE' ? 'text-green-600' : 'text-red-600';
+
+                html += `
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
                      onclick="handleSingleEmployeeQuery(${emp.employeeId})">
                     <div class="flex items-center">
@@ -906,16 +921,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             `;
-        });
-        
-        html += '</div>';
-        listContainer.innerHTML = html;
-    }
+            });
 
-    // --- 頁面初始化 ---
-    populateEmployeeSelects();
+            html += '</div>';
+            listContainer.innerHTML = html;
+        }
 
-});
+        // --- 頁面初始化 ---
+        populateEmployeeSelects();
+
+    });
 </script>
 
 <!-- 引入Session警告系統 -->

@@ -2,94 +2,94 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-<meta charset="UTF-8">
-<meta name="viewport"
-	content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>編輯公告 - 溫馨奶茶風</title>
+	<meta charset="UTF-8">
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>編輯公告 - 溫馨奶茶風</title>
 
-<link rel="stylesheet"
-	th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
-<link rel="stylesheet"
-	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<link
-	href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap"
-	rel="stylesheet">
-<link rel="stylesheet" th:href="@{/css/member/style.css}" />
+	<link rel="stylesheet"
+		  th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+	<link rel="stylesheet"
+		  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+	<link
+			href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap"
+			rel="stylesheet">
+	<link rel="stylesheet" th:href="@{/css/member/style.css}" />
 </head>
 
 <body>
 
-	<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-		<div class="container">
-			<div class="navbar-brand d-flex align-items-center">
-				<img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon"
-					width="40" height="40" class="mr-3"> <span
-					style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 編輯公告</span>
-			</div>
-			<a class="btn btn-outline-light" th:href="@{/news/page}"> <i
-				class="fas fa-arrow-left"></i> 返回公告列表
-			</a>
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+	<div class="container">
+		<div class="navbar-brand d-flex align-items-center">
+			<img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon"
+				 width="40" height="40" class="mr-3"> <span
+				style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 編輯公告</span>
 		</div>
-	</nav>
+		<a class="btn btn-outline-light" th:href="@{/news/page}"> <i
+				class="fas fa-arrow-left"></i> 返回公告列表
+		</a>
+	</div>
+</nav>
 
-	<div class="container mt-5 pt-3">
-		<div class="row justify-content-center">
-			<div class="col-md-8">
-				<div class="card shadow">
-					<div class="card-header bg-info text-white">
-						<i class="fas fa-edit"></i> 編輯公告
-					</div>
-					<div class="card-body">
-						<form th:action="@{/news/save}" method="post" th:object="${news}">
-							<input type="hidden" th:field="*{newsId}" />
-							<div class="form-group">
-								<label for="employeeId">員工編號</label> <input type="number"
-									id="employeeId" th:field="*{employeeId}" class="form-control"
-									required />
-							</div>
-							<div class="form-group">
-								<label for="title">公告標題</label> <input type="text" id="title"
-									th:field="*{title}" class="form-control" required />
-							</div>
-							<div class="form-group">
-								<label for="content">公告內容</label>
-								<textarea id="content" th:field="*{content}" rows="6"
-									class="form-control" required></textarea>
-							</div>
-							<div class="form-group">
-								<label for="startTime">上架時間</label> <input type="datetime-local"
-									id="startTime" th:field="*{startTime}" class="form-control"
-									required />
-							</div>
-							<div class="form-group">
-								<label for="endTime">下架時間（可空白）</label> <input
-									type="datetime-local" id="endTime" th:field="*{endTime}"
-									class="form-control" />
-							</div>
-							<div class="form-group">
-								<label for="status">狀態</label> <select id="status"
-									th:field="*{status}" class="form-control" required>
-									<option th:value="1" th:selected="${news.status == 1}">啟用</option>
-									<option th:value="0" th:selected="${news.status == 0}">停用</option>
-								</select>
-							</div>
-							<div class="text-center mt-4">
-								<button type="submit" class="btn btn-primary">
-									<i class="fas fa-save"></i> 儲存變更
-								</button>
-								<a th:href="@{/news/page}" class="btn btn-secondary ml-2"> <i
+<div class="container mt-5 pt-3">
+	<div class="row justify-content-center">
+		<div class="col-md-8">
+			<div class="card shadow">
+				<div class="card-header bg-info text-white">
+					<i class="fas fa-edit"></i> 編輯公告
+				</div>
+				<div class="card-body">
+					<form th:action="@{/news/save}" method="post" th:object="${news}">
+						<input type="hidden" th:field="*{newsId}" />
+						<div class="form-group">
+							<label for="employeeId">員工編號</label> <input type="number"
+																			id="employeeId" th:field="*{employeeId}" class="form-control"
+																			required />
+						</div>
+						<div class="form-group">
+							<label for="title">公告標題</label> <input type="text" id="title"
+																	   th:field="*{title}" class="form-control" required />
+						</div>
+						<div class="form-group">
+							<label for="content">公告內容</label>
+							<textarea id="content" th:field="*{content}" rows="6"
+									  class="form-control" required></textarea>
+						</div>
+						<div class="form-group">
+							<label for="startTime">上架時間</label> <input type="datetime-local"
+																		   id="startTime" th:field="*{startTime}" class="form-control"
+																		   required />
+						</div>
+						<div class="form-group">
+							<label for="endTime">下架時間（可空白）</label> <input
+								type="datetime-local" id="endTime" th:field="*{endTime}"
+								class="form-control" />
+						</div>
+						<div class="form-group">
+							<label for="status">狀態</label> <select id="status"
+																	 th:field="*{status}" class="form-control" required>
+							<option th:value="1" th:selected="${news.status == 1}">啟用</option>
+							<option th:value="0" th:selected="${news.status == 0}">停用</option>
+						</select>
+						</div>
+						<div class="text-center mt-4">
+							<button type="submit" class="btn btn-primary">
+								<i class="fas fa-save"></i> 儲存變更
+							</button>
+							<a th:href="@{/news/page}" class="btn btn-secondary ml-2"> <i
 									class="fas fa-times"></i> 取消
-								</a>
-							</div>
-						</form>
-					</div>
+							</a>
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>
 	</div>
-
-	<script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
-	<script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+</div>
+<!-- 測試 -->
+<script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
 
 </body>
 </html>

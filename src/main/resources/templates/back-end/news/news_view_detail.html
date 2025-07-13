@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'消息詳情 - ' + ${newsItem.title}">消息詳情</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --milk-tea-bg: #FAF0E6;
+            --milk-tea-text: #5D4037;
+            --milk-tea-primary: #A0522D;
+            --milk-tea-primary-hover: #8B4513;
+            --milk-tea-secondary: #D2B48C;
+            --milk-tea-header: #EADDCA;
+        }
+        body {
+            background-color: var(--milk-tea-bg);
+            color: var(--milk-tea-text);
+        }
+        .detail-card {
+            background-color: white;
+            border: 1px solid var(--milk-tea-secondary);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-top: 3rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .detail-header .badge {
+            font-size: 1rem;
+        }
+        .detail-title {
+            color: var(--milk-tea-primary-hover);
+            font-weight: 700;
+        }
+        .content-body {
+            /* 讓內容中的換行符號 (\n) 能被正確顯示 */
+            white-space: pre-wrap;
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            border: 1px solid #eee;
+        }
+        .meta-info {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .news-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="detail-card">
+
+        <div class="detail-header d-flex justify-content-between align-items-start mb-3">
+            <h1 class="detail-title" th:text="${newsItem.title}">消息標題</h1>
+            <div>
+                <span th:if="${newsItem.status.name() == 'PUBLISHED'}" class="badge bg-success">已發布</span>
+                <span th:if="${newsItem.status.name() == 'DRAFT'}" class="badge bg-secondary">草稿</span>
+                <span th:if="${newsItem.status.name() == 'ARCHIVED'}" class="badge bg-dark">已封存</span>
+            </div>
+        </div>
+
+        <div class="meta-info border-bottom pb-3 mb-3">
+            <span><strong>發布時間:</strong> <span th:text="${#temporals.format(newsItem.startTime, 'yyyy-MM-dd HH:mm')}"></span></span> |
+            <span><strong>結束時間:</strong> <span th:text="${newsItem.endTime != null ? #temporals.format(newsItem.endTime, 'yyyy-MM-dd HH:mm') : '無'}"></span></span> |
+            <span><strong>建立者:</strong> <span th:text="${newsItem.employee.username}"></span></span> | <span><strong>最後更新:</strong> <span th:text="${#temporals.format(newsItem.updateTime, 'yyyy-MM-dd HH:mm:ss')}"></span></span>
+        </div>
+
+        <div th:if="${newsItem.imageUrl != null and not #strings.isEmpty(newsItem.imageUrl)}" class="text-center">
+            <img th:src="${newsItem.imageUrl}" alt="消息圖片" class="news-image img-fluid">
+        </div>
+        <!-- 測試 -->
+        <div class="content-body">
+            <p th:text="${newsItem.content}">這是消息的詳細內容...</p>
+        </div>
+
+        <div class="mt-4 text-center">
+            <a th:href="@{/admin/news/list}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left-circle"></i> 返回列表
+            </a>
+            <a th:href="@{/admin/news/edit/{id}(id=${newsItem.newsId})}" class="btn" style="background-color: var(--milk-tea-accent); color: white;">
+                <i class="bi bi-pencil-square"></i> 編輯此消息
+            </a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
