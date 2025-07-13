@@ -311,7 +311,7 @@
                             <th class="px-4 py-3">狀態</th>
                             <th class="px-4 py-3">圖片</th>
                             <th class="px-4 py-3">修改</th>
-                            <th class="px-4 py-3">刪除</th>
+                           
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#E2D7C1]">
@@ -349,14 +349,6 @@
                                     <input type="hidden" name="mealId" th:value="${mealItem.mealId}">
                                     <button type="submit" class="bg-[#A0B6C3] hover:bg-[#8fa5b2] text-white btn-in-table rounded">
                                         修改
-                                    </button>
-                                </form>
-                            </td>
-                            <td class="px-4 py-2">
-                                <form th:action="@{/meal/delete}" method="post" style="display:inline;" onsubmit="return confirm('確定要刪除這筆資料嗎？');">
-                                    <input type="hidden" name="mealId" th:value="${mealItem.mealId}" />
-                                    <button type="submit" class="bg-[#E9967A] hover:bg-[#d88267] text-white btn-in-table rounded">
-                                        刪除
                                     </button>
                                 </form>
                             </td>
