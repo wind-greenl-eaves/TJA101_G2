@@ -123,4 +123,9 @@ public class StoreServiceImpl implements StoreService {
                 .map(storeMapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<StoreEntity> getAllStores() {
+        return List.of();
+    }
 }

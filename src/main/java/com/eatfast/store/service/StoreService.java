@@ -31,4 +31,6 @@ import java.util.stream.Collectors; // 引入 Collectors
 	    // 確保這裡的 searchStores 方法簽名與 StoreServiceImpl 中的實作完全一致
 	    // 參數 storeStatus 應該是 StoreStatus 枚舉類型
 	    List<StoreDto> searchStores(String storeName, String storeLoc, String storeTime, StoreStatus storeStatus);
-	}
+
+        List<StoreEntity> getAllStores();
+    }
