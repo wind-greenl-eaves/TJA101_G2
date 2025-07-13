@@ -10,6 +10,7 @@
     <span>訂單狀態:</span><span th:text="${orderListVO.orderStatus.displayName}"></span><br/>
     <span>取餐號:</span><span th:text="${orderListVO.mealPickupNumber}"></span><br/>
     <span>訂單日期:</span><span th:text="${#temporals.format(orderListVO.orderDate, 'yyyy-MM-dd HH:mm:ss')}"></span><br/>
+    <span>取餐時間:</span><span th:text="${orderListVO.pickupTime != null ? #temporals.format(orderListVO.pickupTime, 'yyyy-MM-dd HH:mm:ss') : '尚未設定'}"></span><br/>
 </div>
 </body>
 </html>
