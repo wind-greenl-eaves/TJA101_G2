@@ -33,4 +33,14 @@ import java.util.stream.Collectors; // 引入 Collectors
 	    // 確保這裡的 searchStores 方法簽名與 StoreServiceImpl 中的實作完全一致
 	    // 參數 storeStatus 應該是 StoreStatus 枚舉類型
 	    List<StoreDto> searchStores(String storeName, String storeLoc, String storeTime, StoreStatus storeStatus);
+
+	    
+	    //  前端客戶用方法	    
+	    //查詢所有可顯示的「分店」門市列表。
+	    //這個方法會自動過濾掉類型為 HEADQUARTERS 的總部資料。
+	    List<StoreDto> findAllPublicStores();
+	    
+	    //根據條件搜尋可顯示的「分店」門市。
+	    //這個方法會自動過濾掉類型為 HEADQUARTERS 的總部資料。
+	    List<StoreDto> searchPublicStores(String storeName, String storeLoc, String storeTime, StoreStatus storeStatus);
 	}
