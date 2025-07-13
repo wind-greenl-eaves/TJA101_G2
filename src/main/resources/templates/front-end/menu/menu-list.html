@@ -220,26 +220,23 @@
 	<!-- 主內容區 -->
 	<div class="max-w-7xl mx-auto py-8 flex flex-col md:flex-row gap-6">
 
-		<!-- 門市下拉選單 -->
-		<div class="mb-6 text-right">
-			<label for="storeSelector"
-				class="text-milktea-dark font-semibold mr-2">選擇門市：</label> <select
-				id="storeSelector" name="storeId" class="border rounded px-3 py-2"
-				onchange="handleStoreChange(this)">
-				<option value="" disabled selected>請選擇門市</option>
-				<option th:each="store : ${storeList}" th:value="${store.storeId}"
-					th:text="${store.storeName}"
-					th:selected="${store.storeId == session.selectedStoreId}">
-				</option>
-			</select>
-		</div>
-
-
-
-
 		<!-- 左側分類區 -->
 		<aside
 			class="w-1/5 min-w-[180px] bg-card rounded-2xl shadow-lg border border-milktea mr-8 p-6 h-fit">
+			<!-- 門市下拉選單 -->
+			<div class="mb-6 flex flex-col justify-start gap-2">
+				<label for="storeSelector"
+					class="text-milktea-dark font-semibold">選擇門市：</label> <select
+					id="storeSelector" name="storeId" class="border rounded px-3 py-2 border-milktea focus:ring-milktea-dark focus:border-milktea-dark text-[#A67B5B] bg-white shadow-sm"
+					onchange="handleStoreChange(this)">
+					<option value="" disabled selected>請選擇門市</option>
+					<option th:each="store : ${storeList}" th:value="${store.storeId}"
+						th:text="${store.storeName}"
+						th:selected="${store.storeId == session.selectedStoreId}">
+					</option>
+				</select>
+			</div>
+			<!-- 餐點種類列表 -->
 			<h2 class="text-lg font-bold text-milktea-dark mb-4">餐點種類</h2>
 			<ul class="space-y-2">
 				<li><a th:href="@{/menu}"
@@ -290,19 +287,16 @@
 					</div>
 
 					<div class="flex items-center justify-center gap-2 mb-3">
-						<span class="star-display" data-meal-id="[[${meal.mealId}]]">
-							<span th:with="stars=${meal.avgStars}"> <th:block
-									th:each="i : ${#numbers.sequence(1, 5)}">
-									<i th:if="${i <= T(java.lang.Math).floor(stars)}"
-										class="fas fa-star text-yellow-400"></i>
-									<i
-										th:if="${i > T(java.lang.Math).floor(stars)} and ${i - stars <= 1}"
-										class="fas fa-star-half-alt text-yellow-400"></i>
-									<i th:if="${i - stars > 1}" class="far fa-star text-[#DED0B6]"></i>
-								</th:block> <span th:text="${stars} + ' / 5'"
-								class="ml-1 text-sm text-[#A67B5B]"></span>
-						</span>
-						</span>
+					    <span class="star-display" data-meal-id="[[${meal.mealId}]]">
+					      <span th:with="stars=${meal.avgStars}">
+					        <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+					          <i th:if="${i <= T(java.lang.Math).floor(stars)}" class="fas fa-star text-yellow-400"></i>
+					          <i th:if="${i == T(java.lang.Math).ceil(stars)} and ${stars > 0} and ${(stars - T(java.lang.Math).floor(stars)) >= 0.5}" class="fas fa-star-half-alt text-yellow-400"></i>
+					          <i th:if="${(i > stars) and (i > T(java.lang.Math).ceil(stars) or (stars - T(java.lang.Math).floor(stars)) < 0.5)}" class="far fa-star text-[#DED0B6]"></i>
+					        </th:block>
+					        <span th:text="${stars} + ' / 5'" class="ml-1 text-sm text-[#A67B5B]"></span>
+					      </span>
+					    </span>
 					</div>
 
 					<div class="flex gap-2 w-full mt-auto">
@@ -561,20 +555,25 @@ async function clearCartForStoreChange(newStoreId) {
       document.getElementById('modalMealFormQty').value = val;
   }
 
-  function renderStars(score, max = 5) {
-      let html = '';
-      for (let i = 1; i <= max; i++) {
-          if (score >= i) {
-              html += '<i class="fas fa-star text-yellow-400"></i>';
-          } else if (score > i - 1 && score < i) {
-              html += '<i class="fas fa-star-half-alt text-yellow-400"></i>';
-          } else {
-              html += '<i class="far fa-star text-[#DED0B6]"></i>';
-          }
-      }
-      html += ` <span class="ml-1 text-sm text-[#9D7C64]">${score.toFixed(1)} / 5</span>`;
-      return html;
-  }
+  function renderStars(score, max=5) {
+	  if (score == null || isNaN(score)) score = 0; // 預設 0 分
+	  let html = '';
+	  for(let i = 1; i <= max; i++) {
+	    if (score >= i) { // 全星
+	      html += '<i class="fas fa-star text-yellow-400"></i>';
+	    } else if (score > i-1 && score < i) { // 半星
+	      html += '<i class="fas fa-star-half-alt text-yellow-400"></i>';
+	    } else { // 空星
+	      html += '<i class="far fa-star text-[#DED0B6]"></i>';
+	    }
+	  }
+	  if (score === 0) {
+		    html += ` <span class="ml-1 text-sm text-[#9D7C64]">尚無評分</span>`;
+		  } else {
+		    html += ` <span class="ml-1 text-sm text-[#9D7C64]">${score.toFixed(1)} / 5</span>`;
+		  }
+	  return html;
+	}
   
 	//✅ 新增：顯示提示訊息的函式 (置中 + 可靠的自動關閉)
     function showToast(message, isSuccess = true) {
