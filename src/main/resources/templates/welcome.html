@@ -963,7 +963,7 @@
                    th:href="@{/api/v1/auth/member-login}" class="nav-link">會員專區</a>
                 <a href="/contact" class="nav-link">聯繫我們</a>
                 <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
-                   th:href="@{/cart/test}" class="nav-link">購物車</a>
+                   th:href="@{/cart}" class="nav-link">購物車</a>
                 <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
                    th:href="@{/api/v1/auth/member-login}" class="nav-link">購物車</a>
                 
@@ -1156,7 +1156,7 @@
                             瀏覽菜單
                         </a>
                         <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
-		                   th:href="@{/cart/test}" class="btn btn-outline">
+		                   th:href="@{/cart}" class="btn btn-outline">
                             <i class="fas fa-shopping-cart"></i>購物車</a>
 		                <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
 		                   th:href="@{/api/v1/auth/member-login}" class="btn btn-outline">
