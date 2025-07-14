@@ -90,28 +90,31 @@ document.addEventListener('DOMContentLoaded', function () {
             if (phoneInput) phoneInput.value = `${randomPhoneType}-${randomPhoneNum.substring(0,3)}-${randomPhoneNum.substring(3,6)}`;
             if (nationalIdInput) nationalIdInput.value = `${randomLetter}${genderDigit}${randomIdSuffix}`;
             
-            // 設定性別 - 修復性別值映射問題
+            // 設定性別 - 完全修復性別值映射問題
             const genderSelect = document.getElementById('gender');
             if (genderSelect && genderSelect.tagName === 'SELECT') {
                 try {
                     // 確保 options 存在且有內容
                     const options = genderSelect.options;
                     if (options && typeof options === 'object' && options.length > 0) {
-                        // 將 'M', 'F' 映射到正確的枚舉值
-                        const genderMapping = {
-                            'M': 'MALE',
-                            'F': 'FEMALE'
-                        };
-                        const targetGender = genderMapping[randomGender] || randomGender;
+                        // 調試：先顯示所有可用的選項值
+                        console.log('可用的性別選項值:', Array.from(options).map(opt => `"${opt.value}"`));
+                        console.log('目標性別值:', `"${randomGender}"`);
+                        
+                        // 直接使用後端枚舉值 M, F, O（不進行任何轉換）
+                        const targetGender = randomGender; // randomGender 已經是 'M' 或 'F'
                         
                         // 安全地尋找對應的選項
                         let foundMatch = false;
                         for (let i = 0; i < options.length; i++) {
                             try {
                                 const option = options[i];
+                                console.log(`檢查選項 ${i}: value="${option.value}", text="${option.text}"`);
+                                
                                 if (option && option.value === targetGender) {
                                     genderSelect.selectedIndex = i;
                                     foundMatch = true;
+                                    console.log(`✅ 成功設定性別: ${targetGender} (索引: ${i})`);
                                     break;
                                 }
                             } catch (innerError) {
@@ -121,7 +124,18 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         
                         if (!foundMatch) {
-                            console.warn('未找到匹配的性別選項:', targetGender);
+                            console.warn(`❌ 未找到匹配的性別選項: "${targetGender}"`);
+                            console.log('所有選項詳細信息:');
+                            for (let i = 0; i < options.length; i++) {
+                                const opt = options[i];
+                                console.log(`  選項 ${i}: value="${opt.value}" text="${opt.text}" selected=${opt.selected}`);
+                            }
+                            
+                            // 嘗試使用索引1作為備選（通常是第一個實際選項）
+                            if (options.length > 1) {
+                                genderSelect.selectedIndex = 1;
+                                console.log(`⚠️ 使用備選選項: 索引 1, value="${options[1].value}"`);
+                            }
                         }
                     } else {
                         console.warn('性別選擇框的選項不可用或為空');
