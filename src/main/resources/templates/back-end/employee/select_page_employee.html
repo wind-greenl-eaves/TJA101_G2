@@ -143,9 +143,9 @@
 
         /* 新增左側導航區塊樣式 */
         .left-nav-panel {
-            width: 200px;  /* 左側導航寬度 */
+            width: 320px;  /* 左側導航寬度 */
             position: fixed;
-            left: calc((100% - 1200px) / 2 + 0.75rem); /* 配合最大寬度調整 */
+            left: calc((100% - 1200px) / 2 + 0.75rem - 120px); /* 配合最大寬度調整 */
             top: 0.75rem;
             bottom: 0.75rem;
             overflow-y: auto;
@@ -158,8 +158,8 @@
 
         .main-content {
             flex: 1;
-            margin-left: 220px;  /* 為左側導航留出空間 */
-            max-width: calc(100% - 540px);  /* 調整主內容寬度 */
+            margin-left: 340px;  /* 為左側導航留出空間 */
+            max-width: calc(100% - 510px);  /* 調整主內容寬度 */
         }
 
         .detail-panel {
@@ -324,6 +324,18 @@
                 <span>新增會員</span>
             </a>
         </div>
+            
+        <!-- 門市管理區塊 (僅總部管理員可見) -->
+        <div class="mb-6" th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
+            <div class="nav-section-title">門市管理</div>
+            <a th:href="@{/store/select_page}" class="nav-item">
+                <i class="fas fa-users"></i>
+                <span>門市資料管理</span>
+            </a>
+
+        </div>
+        
+        
         <div class="mb-6">
             <div class="nav-section-title">內容管理</div>
             <!-- 最新消息管理 -->
