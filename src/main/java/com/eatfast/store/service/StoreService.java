@@ -35,9 +35,6 @@ import java.util.stream.Collectors; // 引入 Collectors
 	    List<StoreDto> searchStores(String storeName, String storeLoc, String storeTime, StoreStatus storeStatus);
 
 	    
-        List<StoreEntity> getAllStores();
-    	
-
 	    
 	    //  前端客戶用方法	    
 	    //查詢所有可顯示的「分店」門市列表。

@@ -181,4 +181,5 @@ public class StoreServiceImpl implements StoreService {
         List<StoreEntity> entities = storeRepository.searchPublicStores(storeName, storeLoc, storeTime, storeStatus);
         return storeMapper.toDtoList(entities);
     }
+
 }
