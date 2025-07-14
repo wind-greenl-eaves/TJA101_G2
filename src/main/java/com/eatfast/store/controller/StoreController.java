@@ -5,6 +5,7 @@
 // =================================================================================
 package com.eatfast.store.controller;
 
+import com.eatfast.common.enums.StoreStatus;
 import com.eatfast.store.dto.CreateStoreRequest;
 import com.eatfast.store.dto.StoreDto;
 import com.eatfast.store.dto.UpdateStoreRequest;
@@ -13,12 +14,15 @@ import com.eatfast.store.mapper.StoreMapper;
 import com.eatfast.store.service.StoreService;
 
 import jakarta.validation.Valid;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -102,28 +106,58 @@ public class StoreController {
         }
         return "redirect:/store/listAll";
     }
- // 請將此方法新增到您現有的 StoreController.java 中
+    
+    /* 處理前端使用者瀏覽「門市據點」頁面的請求。
+    * @param model Spring MVC 模型，用於將資料傳遞給 Thymeleaf 視圖。
+    * @return 視圖的路徑 "store/view"。
+    */
+   @GetMapping("/storelist") // 這個路徑對應前端頁面的 URL
+   public String showStoreViewPage(Model model) {
+       
+       // 1. 【核心修改】呼叫新的 Service 方法，只取得「公開」的門市列表(已過濾總部)
+       // findAllPublicStores 是我們之前定義好的自定義方法名稱
+       List<StoreDto> publicStores = storeService.findAllPublicStores();
 
-    @GetMapping("/storelist")
-    public String showStoreListView(Model model) {
-        
-        // 1. 從 Service 取得所有門市的列表
-        List<StoreDto> allStores = storeService.findAllStores();
-
-        // 2. 檢查列表是否為空
-        if (allStores == null || allStores.isEmpty()) {
-            // 如果沒有任何門市資料，可以設定一個提示訊息
-            model.addAttribute("errorMessage", "目前沒有任何門市資訊。");
-        } else {
-            // 3. 將【所有門市的列表】放進 Model，供左側選單使用
-            model.addAttribute("storeList", allStores);
-            
-            // 4. 將【列表中的第一個門市】設為預設選中項，放進 Model，供中間區塊初次載入時顯示
-            model.addAttribute("currentStore", allStores.get(0));
-        }
-        
-        // 5. 指定要去渲染的 HTML 樣板檔案
-        return "front-end/store/storelist"; // 假設我們將新頁面放在這個路徑
+       // 2. 增加防呆機制，處理沒有任何公開門市的狀況
+       if (publicStores == null || publicStores.isEmpty()) {
+           // 如果沒有任何門市，我們仍然需要給前端一個空的列表和一個預設的物件，避免 Thymeleaf 出錯
+           model.addAttribute("storeList", new ArrayList<>());
+           model.addAttribute("currentStore", new StoreDto()); // 傳一個空的 DTO，避免 th:text 取值時報錯
+       } else {
+           // 3. 如果有門市，將「已過濾」的列表和列表中的第一家門市設為預設顯示
+           model.addAttribute("storeList", publicStores);
+           model.addAttribute("currentStore", publicStores.get(0));
+       }
+       
+       // 4. 指向你的 Thymeleaf 模板檔案，路徑為 src/main/resources/templates/store/view.html
+       return "front-end/store/storelist"; 
+   }
+    
+    
+    
+    // 【★★ 新增 ★★】 給前端客戶「查詢所有門市」用的新端點
+    // 這個方法會被前端頁面初次載入時呼叫
+    @GetMapping("/search/All") // 我們約定 /public 路徑代表給客戶看的
+    public ResponseEntity<List<StoreDto>> getAllPublicStores() {
+        // 呼叫我們在 Service 層新增的 public 方法
+        List<StoreDto> stores = storeService.findAllPublicStores();
+        return ResponseEntity.ok(stores);
     }
+
+    // 【★★ 新增 ★★】 給前端客戶「搜尋門市」用的新端點
+    // 這個方法會被前端的搜尋表單呼叫
+    @GetMapping("/search/store") // 我們約定 /public/search 是給客戶的搜尋功能
+    public ResponseEntity<List<StoreDto>> searchPublicStores(
+            @RequestParam(required = false) String storeName,
+            @RequestParam(required = false) String storeLoc,
+            @RequestParam(required = false) String storeTime,
+            @RequestParam(required = false) StoreStatus storeStatus) {
+        // 呼叫我們在 Service 層新增的 public 搜尋方法
+        List<StoreDto> stores = storeService.searchPublicStores(storeName, storeLoc, storeTime, storeStatus);
+        return ResponseEntity.ok(stores);
+    }
+
+    
+    
 
 }

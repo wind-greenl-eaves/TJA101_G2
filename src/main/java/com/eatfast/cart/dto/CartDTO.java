@@ -4,7 +4,6 @@ import com.eatfast.common.enums.StoreStatus; // 確保引入 StoreStatus，即�
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
 import java.time.LocalDateTime;
 
 /**
@@ -70,11 +69,12 @@ public class CartDTO { // 主類別名稱
      * 用於表示購物車項目的響應 DTO。
      */
     public static class CartItemDto {
-        private Long cartId;
+        private String cartId;
         private Long memberId;
         private String memberUsername;
         private Long mealId;
         private String mealName;
+        private Long mealPrice;
         private Long storeId;
         private String storeName;
         private Long quantity;
@@ -82,11 +82,13 @@ public class CartDTO { // 主類別名稱
         private LocalDateTime createdAt;
         private String mealPicUrl;
         
+        
+        
         //空的建構子
         public CartItemDto() {}
 
-        public Long getCartId() { return cartId; }
-        public void setCartId(Long cartId) { this.cartId = cartId; }
+        public String getCartId() { return cartId; }
+        public void setCartId(String cartId) { this.cartId = cartId; }
         public Long getMemberId() { return memberId; }
         public void setMemberId(Long memberId) { this.memberId = memberId; }
         public String getMemberUsername() { return memberUsername; }
@@ -95,6 +97,8 @@ public class CartDTO { // 主類別名稱
         public void setMealId(Long mealId) { this.mealId = mealId; }
         public String getMealName() { return mealName; }
         public void setMealName(String mealName) { this.mealName = mealName; }
+        public Long getMealPrice() { return mealPrice; }
+        public void setMealPrice(Long mealPrice) { this.mealPrice = mealPrice; }
         public Long getStoreId() { return storeId; }
         public void setStoreId(Long storeId) { this.storeId = storeId; }
         public String getStoreName() { return storeName; }
@@ -113,11 +117,13 @@ public class CartDTO { // 主類別名稱
      * Redis 中購物車 Hash 的 Value 結構。
      * 【關鍵修正】: 此類別已移至 CartDTO 的第一層靜態內部類，與其他 DTOs 平級。
      */
-    public static class CartItemRedisData {
+    public static class CartItemRedisData implements java.io.Serializable {
+    	private static final long serialVersionUID = 1L;
         private Long quantity;
         private String mealCustomization;
 
         public CartItemRedisData() {}
+        
         public CartItemRedisData(Long quantity, String mealCustomization) {
             this.quantity = quantity;
             this.mealCustomization = mealCustomization;
@@ -127,5 +133,39 @@ public class CartDTO { // 主類別名稱
         public void setQuantity(Long quantity) { this.quantity = quantity; }
         public String getMealCustomization() { return mealCustomization; }
         public void setMealCustomization(String mealCustomization) { this.mealCustomization = mealCustomization; }
+    }
+    
+    
+ // 【新增這個類別】用於接收前端「更新數量」的請求
+    public static class CartUpdateRequest {
+        private Long memberId;
+        private Long mealId;
+        private Long storeId;
+        private Long quantity;
+        
+        // Getters and Setters...
+        public Long getMemberId() { return memberId; }
+        public void setMemberId(Long memberId) { this.memberId = memberId; }
+        public Long getMealId() { return mealId; }
+        public void setMealId(Long mealId) { this.mealId = mealId; }
+        public Long getStoreId() { return storeId; }
+        public void setStoreId(Long storeId) { this.storeId = storeId; }
+        public Long getQuantity() { return quantity; }
+        public void setQuantity(Long quantity) { this.quantity = quantity; }
+    }
+
+    // 【新增這個類別】用於接收前端「刪除項目」的請求
+    public static class CartRemoveRequest {
+        private Long memberId;
+        private Long mealId;
+        private Long storeId;
+
+        // Getters and Setters...
+        public Long getMemberId() { return memberId; }
+        public void setMemberId(Long memberId) { this.memberId = memberId; }
+        public Long getMealId() { return mealId; }
+        public void setMealId(Long mealId) { this.mealId = mealId; }
+        public Long getStoreId() { return storeId; }
+        public void setStoreId(Long storeId) { this.storeId = storeId; }
     }
 }
