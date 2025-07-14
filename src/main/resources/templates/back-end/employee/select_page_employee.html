@@ -132,20 +132,20 @@
         /* 添加新的固定右側面板樣式 */
         .page-container {
             display: flex;
-            gap: 0.75rem;  /* 縮小間距 */
+            gap: 0.75rem;
             position: relative;
             min-height: 100vh;
             padding: 0.75rem;
-            max-width: 1200px; /* 從 1600px 縮小到 1200px */
+            max-width: 1400px; /* 增加最大寬度從 1200px 到 1400px */
             margin: 0 auto;
-            width: 90%;      /* 增加寬度限制 */
+            width: 90%;
         }
 
         /* 新增左側導航區塊樣式 */
         .left-nav-panel {
-            width: 320px;  /* 左側導航寬度 */
+            width: 280px;  /* 縮小左側導航寬度從 320px 到 280px */
             position: fixed;
-            left: calc((100% - 1200px) / 2 + 0.75rem - 120px); /* 配合最大寬度調整 */
+            left: calc((100% - 1400px) / 2 + 0.75rem - 100px); /* 配合新的最大寬度調整 */
             top: 0.75rem;
             bottom: 0.75rem;
             overflow-y: auto;
@@ -158,29 +158,40 @@
 
         .main-content {
             flex: 1;
-            margin-left: 340px;  /* 為左側導航留出空間 */
-            max-width: calc(100% - 510px);  /* 調整主內容寬度 */
+            margin-left: 300px;  /* 調整主內容左邊距從 340px 到 300px */
+            margin-right: 280px; /* 為右側詳細資訊面板預留空間 */
+            max-width: calc(100% - 600px);  /* 調整主內容最大寬度 */
         }
 
         .detail-panel {
-            width: 300px;  /* 從 340px 縮小到 300px */
+            width: 260px;  /* 縮小詳細資訊面板寬度從 300px 到 260px */
             position: fixed;
-            right: calc((100% - 1200px) / 2 + 0.75rem); /* 配合新的最大寬度調整 */
+            right: calc((100% - 1400px) / 2 + 0.75rem); /* 配合新的最大寬度調整 */
             top: 0.75rem;
             bottom: 0.75rem;
             overflow-y: auto;
             background-color: white;
-            border-radius: 0.5rem;  /* 縮小圓角 */
+            border-radius: 0.5rem;
             border: 1px solid var(--border-color);
             box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1);
+            z-index: 10; /* 確保詳細資訊面板在適當的層級 */
         }
 
-        @media (max-width: 1200px) {
+        @media (max-width: 1400px) {
             .left-nav-panel {
                 left: 0.75rem;
             }
             .detail-panel {
                 right: 0.75rem;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                margin-right: 0; /* 在中等螢幕上移除右邊距 */
+            }
+            .detail-panel {
+                width: 240px; /* 進一步縮小詳細資訊面板 */
             }
         }
 
@@ -197,10 +208,12 @@
             .main-content {
                 max-width: 100%;
                 margin-left: 0;
+                margin-right: 0;
             }
             .detail-panel {
                 position: static;
                 width: 100%;
+                margin-top: 1rem;
             }
         }
 
