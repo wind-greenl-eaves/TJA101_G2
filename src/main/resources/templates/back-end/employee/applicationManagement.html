@@ -247,6 +247,35 @@
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
 
+        /* 照片預覽樣式 */
+        .photo-preview {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 0.5rem;
+            border: 2px solid var(--border-color);
+            object-fit: cover;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .photo-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .photo-placeholder {
+            width: 150px;
+            height: 150px;
+            border: 2px dashed var(--border-color);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+            font-size: 0.875rem;
+            background-color: #f9f9f9;
+        }
+
         /* 響應式設計 */
         @media (max-width: 1200px) {
             .left-nav-panel {
@@ -488,8 +517,8 @@
 </div>
 
 <!-- 申請詳細資訊 Modal -->
-<div id="applicationModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-    <div class="bg-white p-8 rounded-lg shadow-2xl max-w-2xl mx-auto max-h-[80vh] overflow-y-auto">
+<div id="applicationModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-lg shadow-2xl max-w-4xl w-full mx-auto max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-xl font-bold">申請詳細資訊</h3>
             <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700">
@@ -776,7 +805,18 @@
         }
 
         function formatDateTime(dateTimeStr) {
+            // 檢查是否為null、undefined或空字符串
+            if (!dateTimeStr || dateTimeStr === null || dateTimeStr === undefined || dateTimeStr === '') {
+                return '尚未更新';
+            }
+            
             const dt = new Date(dateTimeStr);
+            
+            // 檢查日期是否有效
+            if (isNaN(dt.getTime())) {
+                return '尚未更新';
+            }
+            
             return dt.toLocaleString('zh-TW', {
                 year: 'numeric',
                 month: '2-digit',
@@ -835,68 +875,120 @@
                 
                 // 填充申請詳細資訊Modal
                 document.getElementById('applicationDetails').innerHTML = `
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">申請人姓名</label>
-                            <p class="mt-1">${application.applicantName}</p>
+                    <!-- 基本資訊區塊 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- 左側：申請人資訊 -->
+                        <div class="lg:col-span-2">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-lg mb-4 text-gray-800">
+                                    <i class="fas fa-user mr-2"></i>申請人資訊
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">申請人姓名</label>
+                                        <p class="mt-1 text-gray-900">${application.applicantName}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">所屬門市</label>
+                                        <p class="mt-1 text-gray-900">${application.storeName}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">申請狀態</label>
+                                        <p class="mt-1">
+                                            <span class="status-${application.status.toLowerCase()}">${getStatusText(application.status)}</span>
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">申請時間</label>
+                                        <p class="mt-1 text-gray-900">${formatDateTime(application.createdAt)}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">最後更新</label>
+                                        <p class="mt-1 text-gray-900">${formatDateTime(application.updatedAt)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 員工詳細資訊 -->
+                            <div class="bg-blue-50 p-4 rounded-lg mt-4">
+                                <h4 class="font-semibold text-lg mb-4 text-gray-800">
+                                    <i class="fas fa-id-card mr-2"></i>員工詳細資訊
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">員工姓名</label>
+                                        <p class="mt-1 text-gray-900">${application.username}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">員工帳號</label>
+                                        <p class="mt-1 text-gray-900">${application.account}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">電子郵件</label>
+                                        <p class="mt-1 text-gray-900">${application.email}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">聯絡電話</label>
+                                        <p class="mt-1 text-gray-900">${application.phone}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">身分證字號</label>
+                                        <p class="mt-1 text-gray-900">${application.nationalId}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">申請職位</label>
+                                        <p class="mt-1 text-gray-900">${getRoleText(application.role)}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">性別</label>
+                                        <p class="mt-1 text-gray-900">${getGenderText(application.gender)}</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">所屬門市</label>
-                            <p class="mt-1">${application.storeName}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">員工姓名</label>
-                            <p class="mt-1">${application.username}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">員工帳號</label>
-                            <p class="mt-1">${application.account}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">電子郵件</label>
-                            <p class="mt-1">${application.email}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">聯絡電話</label>
-                            <p class="mt-1">${application.phone}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">身分證字號</label>
-                            <p class="mt-1">${application.nationalId}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">申請職位</label>
-                            <p class="mt-1">${getRoleText(application.role)}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">性別</label>
-                            <p class="mt-1">${getGenderText(application.gender)}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">申請狀態</label>
-                            <p class="mt-1">
-                                <span class="status-${application.status.toLowerCase()}">${getStatusText(application.status)}</span>
-                            </p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">申請時間</label>
-                            <p class="mt-1">${formatDateTime(application.createdAt)}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">最後更新</label>
-                            <p class="mt-1">${formatDateTime(application.updatedAt)}</p>
+                        
+                        <!-- 右側：員工照片 -->
+                        <div class="lg:col-span-1">
+                            <div class="bg-green-50 p-4 rounded-lg h-fit">
+                                <h4 class="font-semibold text-lg mb-4 text-gray-800">
+                                    <i class="fas fa-image mr-2"></i>員工照片
+                                </h4>
+                                <div class="flex justify-center">
+                                    ${application.photoUrl ? `
+                                        <img src="${application.photoUrl}" 
+                                             alt="員工照片" 
+                                             class="w-48 h-48 object-cover rounded-lg border-2 border-gray-300 shadow-md"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="w-48 h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-100" style="display: none;">
+                                            <div class="text-center">
+                                                <i class="fas fa-image text-gray-400 text-3xl mb-2"></i>
+                                                <p class="text-gray-500 text-sm">照片載入失敗</p>
+                                            </div>
+                                        </div>
+                                    ` : `
+                                        <div class="w-48 h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-100">
+                                            <div class="text-center">
+                                                <i class="fas fa-user text-gray-400 text-3xl mb-2"></i>
+                                                <p class="text-gray-500 text-sm">未上傳照片</p>
+                                            </div>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
                     ${application.reviewComment ? `
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium text-gray-700">審核備註</label>
-                            <p class="mt-1 p-3 bg-gray-100 border rounded-lg">${application.reviewComment}</p>
+                        <div class="mt-6 bg-yellow-50 p-4 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-comment-dots mr-1"></i>審核備註
+                            </label>
+                            <p class="text-gray-900 bg-white p-3 border rounded-lg">${application.reviewComment}</p>
                         </div>
                     ` : ''}
                     
                     ${application.status === 'PENDING' && isHeadquartersAdmin ? `
-                        <div class="mt-6 border-t pt-4">
+                        <div class="mt-6 bg-red-50 p-4 rounded-lg border-t-4 border-red-400">
                             <label for="reviewComment" class="block text-sm font-medium text-gray-700 mb-2">
                                 <i class="fas fa-comment-alt mr-1"></i>審核備註 <span class="text-red-500">*</span>
                             </label>
