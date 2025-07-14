@@ -64,32 +64,139 @@
             margin-bottom: 1.5rem;
             border-radius: 0.25rem;
         }
+                /* Navigation Bar */
+        .nav-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px; /* 固定導航欄高度 */
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.5rem 0;
+            box-shadow: 0 2px 10px var(--shadow-light);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: var(--primary-color);
+        }
+
+        .nav-logo-icon {
+            width: 35px; /* 調整 logo 大小 */
+            height: 35px;
+            object-fit: contain;
+        }
+
+        .nav-logo-text {
+            font-size: 1.2rem; /* 調整導航欄文字大小 */
+            font-weight: 700;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-login {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .nav-login:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 
 <body class="bg-brand-bg text-brand-text antialiased">
 
-    <header class="bg-white shadow-md fixed top-0 left-0 w-full z-50 transition-all duration-300">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex-shrink-0">
-                <a th:href="@{/welcome}" class="flex items-center">
-                    <img th:src="@{/images/123.png}" alt="Logo" class="w-12 h-12 rounded-full mr-2">
-                    <span class="text-xl font-bold text-brand-deep">EatFast 早安！</span>
-                </a>
+    <!-- Navigation Bar -->
+    <nav class="nav-fixed">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="images/123.png" alt="EatFast Logo" class="nav-logo-icon">
+                <span class="nav-logo-text">EatFast 早餐店</span>
+            </a>
+            
+            <div class="nav-menu">
+            	<a href="/news/list" class="nav-link">最新消息</a>
+                <a href="/store/storelist" class="nav-link">門市據點</a>
+                <a href="/menu" class="nav-link">餐點菜單</a>
+                <!-- 根據登入狀態顯示不同內容 -->
+                <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                   th:href="@{/member/dashboard}" class="nav-link">會員專區</a>
+                <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                   th:href="@{/api/v1/auth/member-login}" class="nav-link">會員專區</a>
+                <a href="/feedback/form" class="nav-link">聯繫我們</a>
+                <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                    class="nav-link">購物車</a>
+                <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                   th:href="@{/api/v1/auth/member-login}" class="nav-link">購物車</a>
+                
             </div>
-            <div class="hidden md:flex space-x-8">
-                <a href="/welcome" class="text-brand-text hover:text-brand-primary font-medium text-lg">關於我們</a>
-                <a href="/welcome" class="text-brand-text hover:text-brand-primary font-medium text-lg">最新消息</a>
-                <a th:href="@{/store/select_page_store}" class="text-brand-primary font-bold text-lg">門市據點</a>
-                <a th:href="@{/menu}" class="text-brand-text hover:text-brand-primary font-medium text-lg">我要訂餐</a>
-                <a th:href="@{/cart}" class="text-brand-primary font-bold text-lg">購物車</a>
+            
+            <!-- 登入按鈕根據登入狀態變化 -->
+            <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                 class="nav-user-info" style="display: flex; align-items: center; gap: 1rem;">
+                <span style="color: var(--primary-color);">歡迎, <span th:text="${session.memberName}"></span></span>
+                <button type="button" class="nav-login" style="background-color: #dc3545; border: none; cursor: pointer;" 
+                        onclick="confirmLogout()">
+                    <i class="fas fa-sign-out-alt"></i> 登出
+                </button>
+                <!-- 隱藏的登出表單 -->
+                <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display: none;">
+                    <input type="hidden" name="_method" value="POST">
+                </form>
             </div>
-            <div class="hidden md:flex items-center space-x-4">
-                <a href="/api/v1/auth/member-login" class="bg-brand-accent text-brand-deep font-bold px-5 py-2 rounded-full hover:bg-orange-400 transition-colors shadow-sm">
-                    登入/註冊
-                </a>
-            </div>
-        </nav>
+            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+               th:href="@{/api/v1/auth/member-login}" class="nav-login">
+                <i class="fas fa-sign-in-alt"></i> 會員登入
+            </a>
+        </div>
+    </nav>
     </header>
 
     <main class="container mx-auto p-4 md:p-8 pt-28 md:pt-32">
