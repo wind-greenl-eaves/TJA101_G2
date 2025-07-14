@@ -1,143 +1,1151 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8">
-<title>所有門市資料</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>門市資料管理 - EatFast</title>
 
-<link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}"/>
+    <!-- 引入 Tailwind CSS 框架 -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" th:href="@{/css/member/style.css}" /> 
+    <!-- 引入 Google Fonts (思源黑體) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap4.min.css" />
+    <!-- 引入 Font Awesome 圖示庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
 
-<style>
-    body {
-        font-family: 'Noto Sans TC', sans-serif;
-        background-color: var(--milk-tea-page-bg, #fcfaf7);
-        padding: 80px 2rem 2rem 2rem;
-    }
-    /* 自定義狀態徽章樣式，與您的前端 CSS 保持一致 */
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.25rem 0.75rem;
-        border-radius: 1rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-    }
-    .status-operating { /* 對應 OPERATING */
-        background-color: rgba(76, 175, 80, 0.1); /* 綠色背景 */
-        color: #4CAF50; /* 綠色文字 */
-    }
-    .status-resting { /* 對應 RESTING */
-        background-color: rgba(255, 193, 7, 0.1); /* 黃色背景 */
-        color: #FFC107; /* 黃色文字 */
-    }
-    .status-ended { /* 對應 ENDED */
-        background-color: rgba(244, 67, 54, 0.1); /* 紅色背景 */
-        color: #F44336; /* 紅色文字 */
-    }
-    .status-headquarters { /* 對應 HEADQUARTERS */
-        background-color: rgba(0, 123, 255, 0.1); /* 藍色背景 */
-        color: #007BFF; /* 藍色文字 */
-    }
-    /* 您也可以添加一個通用的或未知狀態的樣式 */
-    .status-unknown {
-        background-color: rgba(108, 117, 125, 0.1);
-        color: #6C757D;
-    }
-</style>
+    <!-- 引入 DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap4.min.css" />
 
+    <style>
+        /* 自定義 CSS 變數，實現奶茶色主題 */
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #F5EFE6;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --error-color: #D9534F;
+            --success-color: #5CB85C;
+            --warning-color: #F0AD4E;
+        }
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 14px;
+            background-image: url('/images/eatfast4.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        /* 在 body 後添加一個半透明的覆蓋層，增強文字可讀性 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(253, 251, 246, 0.85);
+            z-index: -1;
+        }
+
+        /* 頁面容器 */
+        .page-container {
+            display: flex;
+            gap: 0.75rem;
+            position: relative;
+            min-height: 100vh;
+            padding: 0.75rem;
+            max-width: 1500px;
+            margin: 0 auto;
+            width: 90%;
+        }
+
+        /* 左側導航區塊 */
+        .left-nav-panel {
+            width: 280px;
+            position: fixed;
+            left: calc((100% - 1200px) / 2 + 0.75rem - 120px);
+            top: 0.75rem;
+            bottom: 0.75rem;
+            overflow-y: auto;
+            background-color: white;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1);
+            padding: 1rem;
+        }
+
+        /* 主要內容區 */
+        .main-content {
+            flex: 1;
+            margin-left: 310px;
+            max-width: calc(100% - 340px);
+        }
+
+        /* 基礎元素調整 */
+        .form-container {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-label {
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.375rem 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            --tw-ring-color: var(--primary-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px var(--tw-ring-color);
+        }
+
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            padding: 0.375rem 1rem;
+            font-size: 0.875rem;
+            border-radius: 0.5rem;
+            white-space: nowrap;
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .section-title-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .marquee-text {
+            animation: marquee-animation 20s linear infinite;
+            font-size: 0.875rem;
+            padding: 0.5rem;
+        }
+
+        @keyframes marquee-animation {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-150%); }
+        }
+
+        /* 左側導航區塊內的按鈕樣式 */
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background-color: var(--container-bg);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .nav-item i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* 狀態徽章樣式 */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            justify-content: center;
+            min-width: 80px;
+        }
+
+        .status-operating {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+        }
+
+        .status-resting {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #FFC107;
+        }
+
+        .status-ended {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: #F44336;
+        }
+
+        .status-headquarters {
+            background-color: rgba(0, 123, 255, 0.1);
+            color: #007BFF;
+        }
+
+        .status-unknown {
+            background-color: rgba(108, 117, 125, 0.1);
+            color: #6C757D;
+        }
+
+        /* 表格容器樣式 */
+        .table-container {
+            background-color: white;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+        }
+
+        /* DataTables 樣式覆蓋 */
+        .dataTables_wrapper {
+            padding: 1.5rem;
+        }
+
+        .dataTables_filter {
+            margin-bottom: 1rem;
+        }
+
+        .dataTables_filter label {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .dataTables_filter input {
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        .dataTables_length select {
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            margin: 0 0.5rem;
+        }
+
+        /* 表格樣式 */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .table tbody td {
+            padding: 0.75rem;
+            vertical-align: middle;
+            border-color: var(--border-color);
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(166, 123, 91, 0.05);
+        }
+
+        /* 門市項目樣式 */
+        .store-item {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            transition: all 0.2s;
+        }
+
+        .store-item:hover {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        /* 訊息提示樣式 */
+        .alert {
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid transparent;
+        }
+
+        .alert-success {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border-color: rgba(76, 175, 80, 0.2);
+        }
+
+        .alert-danger {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: #F44336;
+            border-color: rgba(244, 67, 54, 0.2);
+        }
+
+        /* 按鈕樣式 */
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+            font-weight: 500;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-success:hover {
+            background-color: #45a049;
+            text-decoration: none;
+            color: white;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 1200px) {
+            .left-nav-panel {
+                left: 0.75rem;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .page-container {
+                flex-direction: column;
+                width: 95%;
+            }
+            .left-nav-panel {
+                position: static;
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+            .main-content {
+                max-width: 100%;
+                margin-left: 0;
+            }
+        }
+
+        /* 網頁比例提示樣式 */
+        .scale-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(166, 123, 91, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .scale-indicator:hover {
+            background: rgba(166, 123, 91, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .scale-controls {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .scale-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: 12px;
+        }
+
+        .scale-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .scale-percentage {
+            font-weight: 600;
+            min-width: 35px;
+            text-align: center;
+        }
+
+        /* 頁面縮放容器 */
+        .page-scale-container {
+            transform-origin: top left;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 當縮放時調整 body 的尺寸 */
+        body.scaled {
+            overflow-x: auto;
+            overflow-y: auto;
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 768px) {
+            .scale-indicator {
+                bottom: 15px;
+                right: 15px;
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+            
+            .scale-btn {
+                width: 20px;
+                height: 20px;
+                font-size: 10px;
+            }
+        }
+    </style>
 </head>
-<body>
+<body class="antialiased">
+    <div class="page-scale-container" id="pageScaleContainer">
+        <div class="page-container">
+            <!-- 左側導航區塊 -->
+            <aside class="left-nav-panel">
+                <div class="nav-section-title">
+                    <i class="fas fa-compass mr-2"></i>系統導航
+                </div>
 
-<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top justify-content-center">
-    <div class="d-flex align-items-center">
-        <h2 class="text-white mb-0">所有門市資料</h2>
-        <a class="navbar-brand ml-4 d-flex align-items-center" th:href="@{/store/select_page}">
-            <img th:src="@{/images/123.png}" alt="Icon" width="30" height="30" class="mr-2">
-            回查詢頁
-        </a>
-        <label th:if="${successMessage}" class="badge badge-success ml-2" th:text="${successMessage}"></label>
-        <label th:if="${errorMessage}" class="badge badge-danger ml-2" th:text="${errorMessage}"></label>
+                <!-- 員工管理區塊 -->
+                <div class="mb-6">
+                    <div class="nav-section-title">員工管理</div>
+                    <a th:href="@{/employee/add}" class="nav-item">
+                        <i class="fas fa-user-plus"></i>
+                        <span>新增員工</span>
+                    </a>
+                    <a th:href="@{/employee/listAll}" class="nav-item"
+                       th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN' or session.loggedInEmployee?.role?.name() == 'MANAGER'}">
+                        <i class="fas fa-list"></i>
+                        <span>員工列表</span>
+                    </a>
+                    
+                    <!-- 員工申請管理 -->
+                    <a th:href="@{/employee/applications}" class="nav-item"
+                       th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span>員工申請管理</span>
+                    </a>
+                    
+                    <!-- 門市經理查看申請狀態 -->
+                    <a th:href="@{/employee/applications}" class="nav-item"
+                       th:if="${session.loggedInEmployee?.role?.name() == 'MANAGER'}">
+                        <i class="fas fa-eye"></i>
+                        <span>查看申請狀態</span>
+                    </a>
+                </div>
+
+                <!-- 門市管理區塊 -->
+                <div class="mb-6">
+                    <div class="nav-section-title">門市管理</div>
+                    <!-- 門市資料管理 (當前頁面) -->
+                    <div class="nav-item active">
+                        <i class="fas fa-store"></i>
+                        <span>門市資料管理</span>
+                    </div>
+                    <a th:href="@{/store/add}" class="nav-item"
+                       th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
+                        <i class="fas fa-plus"></i>
+                        <span>新增門市</span>
+                    </a>
+                </div>
+
+                <!-- 快速操作區塊 -->
+                <div class="mb-6">
+                    <div class="nav-section-title">快速操作</div>
+                    <a th:href="@{/employee/select_page}" class="nav-item">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>返回管理首頁</span>
+                    </a>
+                </div>
+            </aside>
+
+            <!-- 主要內容區域 -->
+            <div class="main-content">
+                <!-- Header 區塊 -->
+                <header class="flex items-center justify-between p-4 bg-[var(--container-bg)] border border-[var(--border-color)] rounded-xl shadow-sm mb-6">
+                    <div class="flex items-center">
+                        <img src="/images/123.png" alt="Logo" class="w-12 h-12 rounded-full mr-2">
+                        <div class="ml-4">
+                            <h1 class="text-xl font-bold">早餐店後台</h1>
+                            <h2 class="text-xl font-bold">門市資料管理</h2>
+                            <p class="text-sm text-gray-500">查看與管理所有門市資訊</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <!-- 登入員工資訊顯示 -->
+                        <div class="flex items-center bg-opacity-50 px-4 py-2 rounded-lg border border-[var(--border-color)] shadow-sm" th:if="${session.loggedInEmployee}">
+                            <i class="fas fa-user-circle text-2xl text-[var(--primary-color)] mr-3"></i>
+                            <div class="text-right">
+                                <p class="text-sm font-semibold text-[var(--text-color)]" th:text="${session.employeeName}">員工姓名</p>
+                                <p class="text-xs text-gray-500">
+                                    <span th:text="${session.loggedInEmployee.role?.displayName}">職位</span>
+                                    <span class="mx-1">|</span>
+                                    <span th:text="'ID: ' + ${session.employeeId}">ID: 001</span>
+                                </p>
+                            </div>
+                        </div>
+                        <!-- 登出按鈕 -->
+                        <button id="logoutBtn" class="submit-btn">
+                            <i class="fas fa-sign-out-alt mr-2"></i>登出系統
+                        </button>
+                    </div>
+                </header>
+
+                <!-- 跑馬燈訊息 -->
+                <div class="bg-white p-3 rounded-lg border border-[var(--border-color)] shadow-sm overflow-hidden whitespace-nowrap mb-8">
+                    <p class="inline-block marquee-text text-[var(--primary-color)] font-medium">
+                        門市資料管理系統 - 全面掌握門市營運狀況，提升管理效率！
+                    </p>
+                </div>
+
+                <!-- 錯誤訊息提示區塊 -->
+                <div id="error-messages" class="hidden bg-red-100 border border-[var(--error-color)] text-[var(--error-color)] px-4 py-3 rounded-lg mb-6"></div>
+
+                <!-- 訊息提示區塊 -->
+                <div th:if="${successMessage}" class="alert alert-success">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- 篩選器區塊 -->
+                <section class="mb-6">
+                    <div class="section-title-container">
+                        <h2 class="section-title">篩選與搜尋</h2>
+                    </div>
+                    <div class="form-container">
+                        <div class="flex items-center gap-4">
+                            <div>
+                                <label for="statusFilter" class="form-label">狀態篩選：</label>
+                                <select id="statusFilter" class="form-input w-32">
+                                    <option value="">全部狀態</option>
+                                    <option value="OPERATING">營運中</option>
+                                    <option value="RESTING">休息中</option>
+                                    <option value="ENDED">已結束</option>
+                                    <option value="HEADQUARTERS">總部</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="nameFilter" class="form-label">名稱搜尋：</label>
+                                <input type="text" id="nameFilter" placeholder="門市名稱" class="form-input w-40">
+                            </div>
+                        </div>
+                        <button id="refreshBtn" class="submit-btn">
+                            <i class="fas fa-sync-alt mr-2"></i>重新載入
+                        </button>
+                    </div>
+                </section>
+
+                <!-- 統計資訊區塊 -->
+                <section class="mb-6">
+                    <div class="section-title-container">
+                        <h2 class="section-title">統計資訊</h2>
+                        <div class="text-xs text-gray-500">
+                            <i class="fas fa-info-circle mr-1"></i>點擊統計卡片可快速篩選
+                        </div>
+                    </div>
+                    <div id="statisticsContainer" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="form-container cursor-pointer hover:shadow-lg transition-all duration-200 hover:bg-green-50 border-l-4 border-green-500" 
+                             onclick="filterByStatus('OPERATING')" 
+                             id="operatingCard">
+                            <div class="flex items-center">
+                                <i class="fas fa-store text-green-600 mr-2"></i>
+                                <span class="form-label">營運中：</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="operatingCount" class="text-lg font-bold text-green-600">0</span>
+                                <i class="fas fa-filter text-green-600 text-sm opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="form-container cursor-pointer hover:shadow-lg transition-all duration-200 hover:bg-yellow-50 border-l-4 border-yellow-500" 
+                             onclick="filterByStatus('RESTING')" 
+                             id="restingCard">
+                            <div class="flex items-center">
+                                <i class="fas fa-pause-circle text-yellow-600 mr-2"></i>
+                                <span class="form-label">休息中：</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="restingCount" class="text-lg font-bold text-yellow-600">0</span>
+                                <i class="fas fa-filter text-yellow-600 text-sm opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="form-container cursor-pointer hover:shadow-lg transition-all duration-200 hover:bg-red-50 border-l-4 border-red-500" 
+                             onclick="filterByStatus('ENDED')" 
+                             id="endedCard">
+                            <div class="flex items-center">
+                                <i class="fas fa-times-circle text-red-600 mr-2"></i>
+                                <span class="form-label">已結束：</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="endedCount" class="text-lg font-bold text-red-600">0</span>
+                                <i class="fas fa-filter text-red-600 text-sm opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="form-container cursor-pointer hover:shadow-lg transition-all duration-200 hover:bg-blue-50 border-l-4 border-blue-500" 
+                             onclick="filterByStatus('HEADQUARTERS')" 
+                             id="headquartersCard">
+                            <div class="flex items-center">
+                                <i class="fas fa-building text-blue-600 mr-2"></i>
+                                <span class="form-label">總部：</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="headquartersCount" class="text-lg font-bold text-blue-600">0</span>
+                                <i class="fas fa-filter text-blue-600 text-sm opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 門市列表區塊 -->
+                <section>
+                    <div class="section-title-container">
+                        <h2 class="section-title">門市列表</h2>
+                        <div class="flex items-center gap-2">
+                            <span id="totalCount" class="text-sm text-gray-500">總計：<span th:text="${#lists.size(storeList)}">0</span> 筆</span>
+                            <a th:href="@{/store/add}" class="submit-btn text-sm"
+                               th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
+                                <i class="fas fa-plus mr-1"></i>新增門市
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- 表格容器 -->
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table id="storeTable" class="table table-striped table-hover" style="width: 100%">
+                                <thead>
+                                    <tr>
+                                        <th width="8%">計數</th>
+                                        <th width="10%">門市編號</th>
+                                        <th width="15%">門市名稱</th>
+                                        <th width="20%">門市地點</th>
+                                        <th width="12%">門市電話</th>
+                                        <th width="12%">營業時間</th>
+                                        <th width="10%">營業狀態</th>
+                                        <th width="13%">建立時間</th>
+                                        <th width="10%">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="storeVO, iterStat : ${storeList}">
+                                        <td class="text-center" th:text="${iterStat.count}"></td>
+                                        <td class="text-center font-semibold" th:text="${storeVO.storeId}"></td>
+                                        <td class="font-semibold" th:text="${storeVO.storeName}"></td>
+                                        <td th:text="${storeVO.storeLoc}"></td>
+                                        <td th:text="${storeVO.storePhone}"></td>
+                                        <td th:text="${storeVO.storeTime}"></td>
+                                        
+                                        <td class="text-center">
+                                            <span class="status-badge" 
+                                                  th:classappend="${storeVO.storeStatus.name() == 'OPERATING'} ? 'status-operating' : 
+                                                                 (${storeVO.storeStatus.name() == 'RESTING'} ? 'status-resting' : 
+                                                                 (${storeVO.storeStatus.name() == 'ENDED'} ? 'status-ended' : 
+                                                                 (${storeVO.storeStatus.name() == 'HEADQUARTERS'} ? 'status-headquarters' : 'status-unknown')))">
+                                                <i class="fas fa-circle mr-1" style="font-size: 0.5rem;"></i>
+                                                <span th:text="${storeVO.storeStatus.description}"></span>
+                                            </span>
+                                        </td>
+                                        
+                                        <td class="text-center" th:text="${#temporals.format(storeVO.createTime, 'yyyy-MM-dd HH:mm')}"></td>
+                                        
+                                        <td class="text-center">
+                                            <form method="get" th:action="@{/store/edit/{id}(id=${storeVO.storeId})}" class="d-inline">
+                                                <input type="hidden" name="storeId" th:value="${storeVO.storeId}">
+                                                <button type="submit" class="btn-success" title="修改門市資料">
+                                                    <i class="fas fa-edit"></i>
+                                                    修改
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
     </div>
-</nav>
 
-<table id="storeTable" class="table table-striped table-hover" style="width: 100%">
-    <thead>
-        <tr>
-            <th>計數</th>
-            <th>門市編號</th>
-            <th>門市名稱</th>
-            <th>門市地點</th>
-            <th>門市電話</th>
-            <th>營業時間</th>
-            <th>營業狀態</th>
-            <th>建立時間</th>
-            <th>操作</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr th:each="storeVO, iterStat : ${storeList}">
-            <td th:text="${iterStat.count}"></td>
-            <td th:text="${storeVO.storeId}"></td>
-            <td th:text="${storeVO.storeName}"></td>
-            <td th:text="${storeVO.storeLoc}"></td>
-            <td th:text="${storeVO.storePhone}"></td>
-            <td th:text="${storeVO.storeTime}"></td>
-            
-            <td>
-                <span class="status-badge" 
-                      th:classappend="${storeVO.storeStatus.name() == 'OPERATING'} ? 'status-operating' : 
-                                     (${storeVO.storeStatus.name() == 'RESTING'} ? 'status-resting' : 
-                                     (${storeVO.storeStatus.name() == 'ENDED'} ? 'status-ended' : 
-                                     (${storeVO.storeStatus.name() == 'HEADQUARTERS'} ? 'status-headquarters' : 'status-unknown')))">
-                    <span th:text="${storeVO.storeStatus.description}"></span>
-                </span>
-            </td>
-            
-            <td th:text="${#temporals.format(storeVO.createTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
-            
-            <td class="text-nowrap">
-                <form method="get" th:action="@{/store/edit/{id}(id=${storeVO.storeId})}" class="d-inline">
-                    <input type="hidden" name="storeId" th:value="${storeVO.storeId}">
-                    <button type="submit" class="btn btn-sm btn-success">
-                        <i class="fas fa-edit"></i> 修改
-                    </button>
-                </form>
+    <!-- 登出確認 Modal -->
+    <div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-2xl text-center max-w-sm mx-auto">
+            <h3 class="text-xl font-bold mb-4">確認登出</h3>
+            <p class="mb-6">您確定要登出系統嗎？</p>
+            <div class="flex justify-center gap-4">
+                <button id="cancelLogoutBtn" class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors">取消</button>
+                <button id="confirmLogoutBtn" class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors">確認登出</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 網頁比例提示 -->
+<!--     <div class="scale-indicator" id="scaleIndicator"> -->
+<!--         <i class="fas fa-search-plus"></i> -->
+<!--         <span class="scale-text">比例</span> -->
+<!--         <div class="scale-controls"> -->
+<!--             <button class="scale-btn" id="scaleDownBtn" title="縮小">−</button> -->
+<!--             <span class="scale-percentage" id="scalePercentage">100%</span> -->
+<!--             <button class="scale-btn" id="scaleUpBtn" title="放大">+</button> -->
+<!--         </div> -->
+<!--     </div> -->
+
+    <!-- 引入 JavaScript 庫 -->
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap4.min.js"></script>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // 獲取上下文路徑
+            const contextPath = /*[[@{/}]]*/ '/eatfast/';
+
+            // 元素選擇
+            const errorMessagesDiv = document.getElementById('error-messages');
+            const statusFilter = document.getElementById('statusFilter');
+            const nameFilter = document.getElementById('nameFilter');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const logoutModal = document.getElementById('logoutModal');
+            const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+            const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+
+            // 統計計數器
+            const operatingCount = document.getElementById('operatingCount');
+            const restingCount = document.getElementById('restingCount');
+            const endedCount = document.getElementById('endedCount');
+            const headquartersCount = document.getElementById('headquartersCount');
+            const totalCount = document.getElementById('totalCount');
+
+            // 初始化 DataTables
+            const table = $('#storeTable').DataTable({
+                "lengthMenu": [5, 10, 20, 50],
+                "pageLength": 10,
+                "language": {
+                    "url": "https://cdn.datatables.net/plug-ins/1.13.5/i18n/zh-HANT.json"
+                },
+                "dom": "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                       "<'row'<'col-sm-12'tr>>" +
+                       "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                "order": [[1, 'asc']], // 預設按門市編號排序
+                "columnDefs": [
+                    { "orderable": false, "targets": [8] } // 操作欄不可排序
+                ]
+            });
+
+            // 錯誤訊息顯示函數
+            function showError(message) {
+                errorMessagesDiv.innerHTML = `<div>${message}</div>`;
+                errorMessagesDiv.classList.remove('hidden');
+            }
+
+            function clearError() {
+                errorMessagesDiv.innerHTML = '';
+                errorMessagesDiv.classList.add('hidden');
+            }
+
+            // 更新統計資訊
+            function updateStatistics() {
+                const table = $('#storeTable').DataTable();
+                const data = table.rows({ search: 'applied' }).data();
                 
+                let operating = 0, resting = 0, ended = 0, headquarters = 0;
+                
+                for (let i = 0; i < data.length; i++) {
+                    const row = data[i];
+                    const statusCell = $(table.row(i).node()).find('td:eq(6)');
+                    const statusText = statusCell.text().trim();
+                    
+                    if (statusText.includes('營運中')) operating++;
+                    else if (statusText.includes('休息中')) resting++;
+                    else if (statusText.includes('已結束')) ended++;
+                    else if (statusText.includes('總部')) headquarters++;
+                }
 
-            </td>
-        </tr>
-    </tbody>
-</table>
+                operatingCount.textContent = operating;
+                restingCount.textContent = resting;
+                endedCount.textContent = ended;
+                headquartersCount.textContent = headquarters;
+                totalCount.innerHTML = `總計：${data.length} 筆`;
+            }
 
-<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-<script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+            // 統計卡片篩選功能
+            window.filterByStatus = function(status) {
+                // 清除名稱篩選
+                nameFilter.value = '';
+                
+                // 設置狀態篩選
+                statusFilter.value = status;
+                
+                // 更新卡片的視覺狀態
+                updateStatisticsCardState(status);
+                
+                // 應用篩選
+                applyFilters();
+            };
 
-<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap4.min.js"></script>
+            // 更新統計卡片的視覺狀態
+            function updateStatisticsCardState(activeStatus) {
+                const cards = ['operatingCard', 'restingCard', 'endedCard', 'headquartersCard'];
+                const statusMap = {
+                    'OPERATING': 'operatingCard',
+                    'RESTING': 'restingCard', 
+                    'ENDED': 'endedCard',
+                    'HEADQUARTERS': 'headquartersCard'
+                };
 
-<script>
-    $(document).ready(function() {
-        $('#storeTable').DataTable({
-            "lengthMenu": [5, 10, 20, 50], // 每頁顯示數量選項
-            "language": {
-                "url": "https://cdn.datatables.net/plug-ins/1.13.5/i18n/zh-HANT.json" // 中文語系檔案
-            },
-            // 定義 DataTables 佈局: l (length changing input), f (filtering input), t (table), i (information), p (pagination)
-            "dom": "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-                   "<'row'<'col-sm-12'tr>>" +
-                   "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            "renderer": "bootstrap" // 使用 Bootstrap 樣式渲染 DataTables
+                cards.forEach(cardId => {
+                    const card = document.getElementById(cardId);
+                    if (card) {
+                        if (statusMap[activeStatus] === cardId) {
+                            // 啟用狀態 - 增強視覺效果
+                            card.classList.add('ring-2', 'ring-offset-2');
+                            if (cardId === 'operatingCard') {
+                                card.classList.add('ring-green-400', 'bg-green-50');
+                            } else if (cardId === 'restingCard') {
+                                card.classList.add('ring-yellow-400', 'bg-yellow-50');
+                            } else if (cardId === 'endedCard') {
+                                card.classList.add('ring-red-400', 'bg-red-50');
+                            } else if (cardId === 'headquartersCard') {
+                                card.classList.add('ring-blue-400', 'bg-blue-50');
+                            }
+                        } else {
+                            // 非啟用狀態 - 移除強調效果
+                            card.classList.remove('ring-2', 'ring-offset-2', 'ring-green-400', 'ring-yellow-400', 'ring-red-400', 'ring-blue-400', 'bg-green-50', 'bg-yellow-50', 'bg-red-50', 'bg-blue-50');
+                        }
+                    }
+                });
+            }
+
+            // 清除統計卡片選中狀態
+            function clearStatisticsCardState() {
+                const cards = ['operatingCard', 'restingCard', 'endedCard', 'headquartersCard'];
+                cards.forEach(cardId => {
+                    const card = document.getElementById(cardId);
+                    if (card) {
+                        card.classList.remove('ring-2', 'ring-offset-2', 'ring-green-400', 'ring-yellow-400', 'ring-red-400', 'ring-blue-400', 'bg-green-50', 'bg-yellow-50', 'bg-red-50', 'bg-blue-50');
+                    }
+                });
+            }
+
+            // 應用篩選條件
+            function applyFilters() {
+                const statusFilterValue = statusFilter.value;
+                const nameFilterValue = nameFilter.value.toLowerCase().trim();
+
+                // 狀態篩選
+                let statusSearchTerm = '';
+                switch(statusFilterValue) {
+                    case 'OPERATING':
+                        statusSearchTerm = '營運中';
+                        break;
+                    case 'RESTING':
+                        statusSearchTerm = '休息中';
+                        break;
+                    case 'ENDED':
+                        statusSearchTerm = '已結束';
+                        break;
+                    case 'HEADQUARTERS':
+                        statusSearchTerm = '總部';
+                        break;
+                    default:
+                        statusSearchTerm = '';
+                }
+
+                // 清除舊的搜尋
+                table.search('').columns().search('').draw();
+
+                // 應用狀態篩選
+                if (statusSearchTerm) {
+                    table.column(6).search(statusSearchTerm, false, false);
+                }
+
+                // 應用名稱篩選
+                if (nameFilterValue) {
+                    table.column(2).search(nameFilterValue, false, false);
+                }
+
+                table.draw();
+                updateStatistics();
+            }
+
+            // 篩選事件監聽器
+            statusFilter.addEventListener('change', applyFilters);
+            
+            // 門市名稱篩選支援即時搜尋
+            nameFilter.addEventListener('input', function() {
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = setTimeout(() => {
+                    clearStatisticsCardState(); // 清除卡片選中狀態
+                    applyFilters();
+                }, 300);
+            });
+
+            // 重新載入按鈕
+            refreshBtn.addEventListener('click', function() {
+                location.reload();
+            });
+
+            // 登出功能
+            logoutBtn.addEventListener('click', function() {
+                logoutModal.classList.remove('hidden');
+                logoutModal.classList.add('flex');
+            });
+
+            cancelLogoutBtn.addEventListener('click', function() {
+                logoutModal.classList.add('hidden');
+                logoutModal.classList.remove('flex');
+            });
+
+            confirmLogoutBtn.addEventListener('click', async function() {
+                try {
+                    const response = await fetch('/employee/logout', {
+                        method: 'GET',
+                        credentials: 'same-origin'
+                    });
+
+                    if (response.ok) {
+                        window.location.href = '/employee/login?logout=success';
+                    } else {
+                        throw new Error('登出請求失敗');
+                    }
+                } catch (error) {
+                    console.error('登出錯誤:', error);
+                    window.location.href = '/employee/login?logout=success';
+                } finally {
+                    logoutModal.classList.add('hidden');
+                    logoutModal.classList.remove('flex');
+                }
+            });
+
+            // 點擊背景關閉 Modal
+            logoutModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    logoutModal.classList.add('hidden');
+                    logoutModal.classList.remove('flex');
+                }
+            });
+
+            // 頁面縮放功能
+            const scaleIndicator = document.getElementById('scaleIndicator');
+            const scaleUpBtn = document.getElementById('scaleUpBtn');
+            const scaleDownBtn = document.getElementById('scaleDownBtn');
+            const scalePercentage = document.getElementById('scalePercentage');
+            const pageScaleContainer = document.getElementById('pageScaleContainer');
+            
+            // 縮放設定
+            let currentScale = 1.0;
+            const scaleStep = 0.1;
+            const minScale = 0.5;
+            const maxScale = 2.0;
+            
+            // 更新縮放顯示
+            function updateScaleDisplay() {
+                const percentage = Math.round(currentScale * 100);
+                scalePercentage.textContent = `${percentage}%`;
+                
+                // 根據縮放比例調整提示文字顏色
+                if (percentage === 100) {
+                    scaleIndicator.style.background = 'rgba(166, 123, 91, 0.9)';
+                } else if (percentage === 80) {
+                    scaleIndicator.style.background = 'rgba(76, 175, 80, 0.9)';
+                } else {
+                    scaleIndicator.style.background = 'rgba(255, 152, 0, 0.9)';
+                }
+                
+                // 更新按鈕狀態
+                scaleUpBtn.disabled = currentScale >= maxScale;
+                scaleDownBtn.disabled = currentScale <= minScale;
+                
+                // 更新按鈕樣式
+                scaleUpBtn.style.opacity = currentScale >= maxScale ? '0.5' : '1';
+                scaleDownBtn.style.opacity = currentScale <= minScale ? '0.5' : '1';
+            }
+            
+            // 應用縮放變換
+            function applyScale() {
+                if (pageScaleContainer) {
+                    pageScaleContainer.style.transform = `scale(${currentScale})`;
+                    
+                    // 調整 body 的尺寸以適應縮放
+                    if (currentScale !== 1.0) {
+                        document.body.classList.add('scaled');
+                        // 計算縮放後的實際尺寸
+                        const scaledWidth = window.innerWidth / currentScale;
+                        const scaledHeight = window.innerHeight / currentScale;
+                        pageScaleContainer.style.width = `${scaledWidth}px`;
+                        pageScaleContainer.style.height = `${scaledHeight}px`;
+                    } else {
+                        document.body.classList.remove('scaled');
+                        pageScaleContainer.style.width = '100%';
+                        pageScaleContainer.style.height = '100%';
+                    }
+                    
+                    updateScaleDisplay();
+                }
+            }
+            
+            // 放大按鈕
+            scaleUpBtn.addEventListener('click', function() {
+                if (currentScale < maxScale) {
+                    currentScale = Math.min(currentScale + scaleStep, maxScale);
+                    applyScale();
+                }
+            });
+            
+            // 縮小按鈕
+            scaleDownBtn.addEventListener('click', function() {
+                if (currentScale > minScale) {
+                    currentScale = Math.max(currentScale - scaleStep, minScale);
+                    applyScale();
+                }
+            });
+            
+            // 點擊比例指示器重置為 100%
+            scaleIndicator.addEventListener('click', function() {
+                currentScale = 1.0;
+                applyScale();
+            });
+            
+            // 鍵盤快捷鍵
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && (e.key === '+' || e.key === '=')) {
+                    e.preventDefault();
+                    scaleUpBtn.click();
+                } else if (e.ctrlKey && e.key === '-') {
+                    e.preventDefault();
+                    scaleDownBtn.click();
+                } else if (e.ctrlKey && e.key === '0') {
+                    e.preventDefault();
+                    currentScale = 1.0;
+                    applyScale();
+                }
+            });
+            
+            // 滑鼠滾輪縮放（按住 Ctrl 鍵時）
+            document.addEventListener('wheel', function(e) {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    
+                    if (e.deltaY < 0) {
+                        scaleUpBtn.click();
+                    } else if (e.deltaY > 0) {
+                        scaleDownBtn.click();
+                    }
+                }
+            }, { passive: false });
+            
+            // 初始化縮放顯示
+            updateScaleDisplay();
+            
+            // 設置推薦的 80% 縮放比例
+            setTimeout(() => {
+                currentScale = 0.8;
+                applyScale();
+            }, 500);
+
+            // 初始化統計資訊
+            updateStatistics();
+
+            // 當 DataTables 重新繪製時更新統計
+            table.on('draw', function() {
+                updateStatistics();
+            });
         });
-    });
-</script>
+    </script>
 
+    <!-- 引入Session警告系統 -->
+    <script th:src="@{/js/common/sessionWarning.js}"></script>
 </body>
 </html>
