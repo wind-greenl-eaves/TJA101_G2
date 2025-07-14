@@ -1,9 +1,12 @@
 package com.eatfast.store.repository;
 
 import com.eatfast.common.enums.StoreStatus;
+import com.eatfast.common.enums.StoreType;
 import com.eatfast.store.model.StoreEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor; // 1. 引入 JpaSpecificationExecutor
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -38,4 +41,23 @@ public interface StoreRepository extends JpaRepository<StoreEntity, Long>, JpaSp
     
     // 查詢門市名稱資料時，會按照中文字的排序
     List<StoreEntity> findAllByOrderByStoreNameAsc();
+    
+    
+ // 【新增方法 1】查詢所有「非總部」的門市，並按名稱排序
+    // Spring Data JPA 會自動解析方法名稱，產生對應的 JPQL
+    List<StoreEntity> findAllByStoreTypeNotOrderByStoreNameAsc(StoreType storeType);
+
+    // 【新增方法 2】提供給前端的複雜搜尋，自動排除總部
+    // 使用 @Query 讓我們可以撰寫更複雜的 JPQL
+    @Query("SELECT s FROM StoreEntity s WHERE " +
+           "(:storeName IS NULL OR s.storeName LIKE %:storeName%) AND " +
+           "(:storeLoc IS NULL OR s.storeLoc LIKE %:storeLoc%) AND " +
+           "(:storeTime IS NULL OR s.storeTime LIKE %:storeTime%) AND " +
+           "(:storeStatus IS NULL OR s.storeStatus = :storeStatus) AND " +
+           "s.storeType != 'HEADQUARTERS'") // 核心過濾條件，排除總部可以被前端查詢
+    List<StoreEntity> searchPublicStores(
+            @Param("storeName") String storeName,
+            @Param("storeLoc") String storeLoc,
+            @Param("storeTime") String storeTime,
+            @Param("storeStatus") StoreStatus storeStatus);
 }

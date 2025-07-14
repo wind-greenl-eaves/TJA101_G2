@@ -46,7 +46,7 @@ public class SecurityConfig {
                 // 允許對靜態資源 (css, js 等) 的公開存取
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                 // 允許對測試控制器、會員相關功能、首頁的公開存取
-                .requestMatchers("/", "/testMember1", "/testEmployee", "/member/**").permitAll()
+                .requestMatchers("/", "/testMember1", "/testEmployee", "/member/**","/cart").permitAll()
                 // 【新增】允許登出路徑的公開存取
                 .requestMatchers("/logout", "/api/v1/auth/**").permitAll()
                 // 【開發階段設定】暫時允許所有其他未明確指定的請求。

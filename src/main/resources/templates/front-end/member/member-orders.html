@@ -361,9 +361,15 @@
                     </div>
                     
                     <!-- 取餐號碼 -->
-                    <div th:if="${order.mealPickupNumber != null}" style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
+                    <div th:if="${order.mealPickupNumber != null and order.orderStatus != T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}" style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
                         <strong>取餐號碼：</strong>
                         <span style="font-size: 18px; color: #A67B5B; font-weight: bold;" th:text="${order.mealPickupNumber}"></span>
+                    </div>
+                    
+                    <!-- 【新增】取餐時間 -->
+                    <div th:if="${order.pickupTime != null and order.orderStatus != T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}" style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
+                        <strong>取餐時間：</strong>
+                        <span style="font-size: 16px; color: #A67B5B; font-weight: bold;" th:text="${#temporals.format(order.pickupTime, 'yyyy年MM月dd日 HH:mm')}"></span>
                     </div>
                     
                     <!-- 訂單操作 -->
