@@ -7,6 +7,7 @@ import com.eatfast.member.repository.MemberRepository;
 import com.eatfast.store.model.StoreEntity;
 import com.eatfast.store.repository.StoreRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.eatfast.feedback.repository.FeedbackRepository;
@@ -88,10 +89,15 @@ public class FeedbackService {
         return feedbackRepository.save(feedback);
     }
 
-    public List<FeedbackEntity> findAll() {
-        return feedbackRepository.findAll();
-    }
+    @Transactional(readOnly = true)
 
+        // ... 其他程式碼 ...
+
+        // ✅ 我們需要的就是這個方法
+        public List<FeedbackEntity> findAll() {
+            // 加上排序，讓最新的意見顯示在最前面
+            return feedbackRepository.findAll(Sort.by(Sort.Direction.DESC, "feedbackId"));
+        }
     public Optional<FeedbackEntity> findById(Long id) {
         return feedbackRepository.findById(id);
     }

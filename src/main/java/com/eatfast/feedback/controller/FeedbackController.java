@@ -61,7 +61,19 @@ public class FeedbackController {
             return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN + "?error=invalid_user";
         }
     }
+    // 在 FeedbackController.java 中
 
+    @GetMapping("/list")
+    public String showFeedbackList(Model model) {
+        // 1. 從 Service 獲取所有的意見回饋資料
+        List<FeedbackEntity> feedbackList = feedbackService.findAll();
+
+        // 2. 將獲取到的清單資料加入到 Model 中
+        model.addAttribute("feedbackList", feedbackList);
+
+        // ✅ 修正：將路徑指向 back-end 目錄下
+        return "back-end/feedback/feedback_list";
+    }
     // ✅ 這是唯一且合併修正後的 submitFeedback 方法
     // 在 FeedbackController.java 中
 
