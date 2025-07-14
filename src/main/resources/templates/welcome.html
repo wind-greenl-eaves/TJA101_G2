@@ -82,10 +82,39 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .admin-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-right: auto; /* 推到最左邊 */
+        }
+        
+        .admin-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
         
         .logo-section {
             margin-bottom: 2rem;
+            flex: 1;
+            text-align: center;
         }
         
         .logo {
@@ -247,6 +276,28 @@
         .nav-login:hover {
             background: var(--primary-hover);
             transform: translateY(-2px);
+        }
+        
+        /* 導航欄後台管理按鈕樣式 */
+        .admin-button-nav {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-right: 1rem;
+        }
+        
+        .admin-button-nav:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(166, 123, 91, 0.3);
         }
         
         /* Hero Carousel */
@@ -920,18 +971,17 @@
 <body>
     <!-- Header 區域 -->
     <header class="header">
-        <div class="header-content">
+<!--         <div class="header-content"> -->
+<!--             <a href="http://localhost:8080/employee/login" class="admin-button"> -->
+<!--                 <i class="fas fa-cogs"></i> -->
+<!--                 後台管理 -->
+<!--             </a> -->
             <div class="logo-section">
-                <div class="logo"></div>
-                <h1 class="brand-title"> EatFast 早餐店</h1>
+                <div class="logo">🍳</div>
+                <h1 class="brand-title">EatFast 早餐店</h1>
                 <p class="brand-subtitle">新鮮美味，快速便利 · 您的美好一天從這裡開始</p>
             </div>
-            
             <div class="quick-actions">
-<!--                 <a th:href="@{/api/v1/auth/member-login}" class="cta-button primary"> -->
-<!--                     <i class="fas fa-sign-in-alt"></i> -->
-<!--                     會員登入 -->
-<!--                 </a> -->
                 <a th:href="@{/member/register}" class="cta-button">
                     <i class="fas fa-user-plus"></i>
                     立即註冊
@@ -947,6 +997,10 @@
     <!-- Navigation Bar -->
     <nav class="nav-fixed">
         <div class="nav-container">
+            <a href="http://localhost:8080/employee/login" class="admin-button-nav">
+                <i class="fas fa-cogs"></i>
+                後台管理
+            </a>
             <a href="/" class="nav-logo">
                 <img src="images/123.png" alt="EatFast Logo" class="nav-logo-icon">
                 <span class="nav-logo-text">EatFast 早餐店</span>
@@ -1333,7 +1387,7 @@
             }
         });
 
-        // 平滑滾動效果
+        // 平滑滾动效果
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
