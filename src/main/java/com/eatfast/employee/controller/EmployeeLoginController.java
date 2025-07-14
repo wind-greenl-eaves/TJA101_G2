@@ -55,6 +55,7 @@ public class EmployeeLoginController {
     /**
      * 顯示員工登入頁面
      * 路徑: GET /employee/login
+     * @RequestParam : 用於處理登出、超時、訊息和返回URL等參數
      */
     @GetMapping("/login")
     public String showLoginPage(@RequestParam(value = "logout", required = false) String logout, 
