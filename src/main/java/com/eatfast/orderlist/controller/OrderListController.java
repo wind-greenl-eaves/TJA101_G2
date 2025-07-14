@@ -18,6 +18,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.eatfast.orderlist.model.OrderListEntity;
 import com.eatfast.orderlist.model.OrderStatus;
 import com.eatfast.orderlist.service.OrderListService;
+import com.eatfast.employee.service.EmployeeService; // 【新增】引入員工服務
+import com.eatfast.employee.dto.EmployeeDTO; // 【修正】引入員工DTO而非實體
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -28,19 +30,27 @@ public class OrderListController {
 
 	@Autowired
 	OrderListService orderSvc;
-
-	// 為了在表單中顯示會員和門市的選項，我們需要它們的 Service (此處為示意)
-	// @Autowired
-	// MemberService memberSvc;
-	// @Autowired
-	// StoreService storeSvc;
+	
+	@Autowired // 【新增】注入員工服務
+	EmployeeService employeeService;
 
 	/*
-	 * 此方法將返回一個包含所有訂單資料的 List
+	 * 此方法將根據當前登入員工的門市權限返回相應的訂單資料
 	 */
 	@ModelAttribute("orderListData")
-	protected List<OrderListEntity> referenceListData() {
-		return orderSvc.findAll();
+	protected List<OrderListEntity> referenceListData(HttpSession session) {
+		// 【修改】檢查當前登入員工的門市權限
+		Long employeeId = (Long) session.getAttribute("employeeId");
+		if (employeeId != null) {
+			// 獲取員工信息
+			EmployeeDTO employee = employeeService.findEmployeeById(employeeId);
+			if (employee != null && employee.getStoreId() != null) {
+				// 只返回該員工所屬門市的訂單
+				return orderSvc.findByStoreId(employee.getStoreId());
+			}
+		}
+		// 如果沒有登入或沒有門市信息，返回空列表
+		return List.of();
 	}
 
 	// (此處為示意，您需要提供對應的 Service 方法來獲取)
@@ -69,15 +79,29 @@ public class OrderListController {
 	@PostMapping("/getOne_For_Display")
 	public String getOne_For_Display(@RequestParam("orderListId") String orderListId, ModelMap model, HttpSession session) {
 	    
-	    // 【修復】確保員工資訊也被傳遞到查詢結果頁面 - 修復所有類型轉換問題
+	    // 【新增】門市權限檢查
+	    Long employeeId = (Long) session.getAttribute("employeeId");
+	    if (employeeId == null) {
+	        model.addAttribute("errorMessage", "請先登入系統");
+	        return "redirect:/employee/login";
+	    }
+
+	    // 獲取員工信息
+	    EmployeeDTO employee = employeeService.findEmployeeById(employeeId);
+	    if (employee == null || employee.getStoreId() == null) {
+	        model.addAttribute("errorMessage", "員工信息不存在或未分配門市");
+	        return "back-end/orderlist/select_page_OrderList";
+	    }
+
+	    // 【修復】確保員工資訊也被傳遞到查詢結果頁面
 	    String employeeName = (String) session.getAttribute("employeeName");
 	    Object employeeIdObj = session.getAttribute("employeeId");
 	    Object employeeRoleObj = session.getAttribute("employeeRole");
 	    
 	    // 【修復】安全地轉換employeeId
-	    String employeeId = null;
+	    String employeeIdStr = null;
 	    if (employeeIdObj != null) {
-	        employeeId = employeeIdObj.toString();
+	        employeeIdStr = employeeIdObj.toString();
 	    }
 	    
 	    // 【修復】安全地轉換employeeRole
@@ -88,7 +112,7 @@ public class OrderListController {
 	    
 	    if (employeeName != null) {
 	        model.addAttribute("currentEmployeeName", employeeName);
-	        model.addAttribute("currentEmployeeId", employeeId);
+	        model.addAttribute("currentEmployeeId", employeeIdStr);
 	        model.addAttribute("currentEmployeeRole", employeeRole);
 	    }
 	    
@@ -97,6 +121,12 @@ public class OrderListController {
 	    if (orderListVO == null) {
 	        model.addAttribute("errorMessage", "查無資料");
 	    } else {
+	        // 【新增】檢查訂單是否屬於該員工的門市
+	        if (!orderListVO.getStore().getStoreId().equals(employee.getStoreId())) {
+	            model.addAttribute("errorMessage", "您無權限查看此訂單，該訂單屬於其他門市");
+	            return "back-end/orderlist/select_page_OrderList";
+	        }
+	        
 	        // 【關鍵修改】如果找到了，將訂單物件放入 model 中
 	        model.addAttribute("orderListVO", orderListVO);
 	    }
@@ -106,14 +136,40 @@ public class OrderListController {
 	}
 
 	/**
-	 * 導向至修改訂單的頁面
+	 * 導向至修改訂單的頁面 - 【修改】添加門市權限檢查
 	 */
 	@PostMapping("/getOne_For_Update")
-	public String getOne_For_Update(@RequestParam("orderListId") String orderListId, ModelMap model) {
-		OrderListEntity orderListVO = orderSvc.getOrderById(orderListId).orElse(null);
-		model.addAttribute("orderListVO", orderListVO);
-		model.addAttribute("orderStatusOptions", OrderStatus.values());
-		return "back-end/orderlist/update_orderlist_input";
+	public String getOne_For_Update(@RequestParam("orderListId") String orderListId, ModelMap model, HttpSession session) {
+	    // 【新增】門市權限檢查
+	    Long employeeId = (Long) session.getAttribute("employeeId");
+	    if (employeeId == null) {
+	        model.addAttribute("errorMessage", "請先登入系統");
+	        return "redirect:/employee/login";
+	    }
+
+	    // 獲取員工信息
+	    EmployeeDTO employee = employeeService.findEmployeeById(employeeId);
+	    if (employee == null || employee.getStoreId() == null) {
+	        model.addAttribute("errorMessage", "員工信息不存在或未分配門市");
+	        return "redirect:/orderlist/listAllOrderList";
+	    }
+
+	    OrderListEntity orderListVO = orderSvc.getOrderById(orderListId).orElse(null);
+	    
+	    if (orderListVO == null) {
+	        model.addAttribute("errorMessage", "訂單不存在");
+	        return "redirect:/orderlist/listAllOrderList";
+	    }
+
+	    // 【新增】檢查訂單是否屬於該員工的門市
+	    if (!orderListVO.getStore().getStoreId().equals(employee.getStoreId())) {
+	        model.addAttribute("errorMessage", "您無權限修改此訂單，該訂單屬於其他門市");
+	        return "redirect:/orderlist/listAllOrderList";
+	    }
+
+	    model.addAttribute("orderListVO", orderListVO);
+	    model.addAttribute("orderStatusOptions", OrderStatus.values());
+	    return "back-end/orderlist/update_orderlist_input";
 	}
 
 	/**
@@ -164,28 +220,49 @@ public class OrderListController {
 	}
 
 	/**
-	 * 刪除(取消)訂單的請求處理 實務上通常是更新狀態為 CANCELLED，而非真的刪除
+	 * 刪除(取消)訂單的請求處理 - 【修改】添加門市權限檢查
 	 */
 	@PostMapping("/delete")
-	public String delete(@RequestParam("orderListId") String orderListId, RedirectAttributes redirectAttributes) {
+	public String delete(@RequestParam("orderListId") String orderListId, RedirectAttributes redirectAttributes, HttpSession session) {
 	    
+	    // 【新增】門市權限檢查
+	    Long employeeId = (Long) session.getAttribute("employeeId");
+	    if (employeeId == null) {
+	        redirectAttributes.addFlashAttribute("errorMessage", "請先登入系統");
+	        return "redirect:/employee/login";
+	    }
+
+	    // 獲取員工信息
+	    EmployeeDTO employee = employeeService.findEmployeeById(employeeId);
+	    if (employee == null || employee.getStoreId() == null) {
+	        redirectAttributes.addFlashAttribute("errorMessage", "員工信息不存在或未分配門市");
+	        return "redirect:/orderlist/listAllOrderList";
+	    }
+
 	    // 1. 先從資料庫取得訂單
 	    OrderListEntity order = orderSvc.getOrderById(orderListId).orElse(null);
 
+	    if (order == null) {
+	        redirectAttributes.addFlashAttribute("errorMessage", "操作失敗：找不到訂單 " + orderListId);
+	        return "redirect:/orderlist/listAllOrderList";
+	    }
+
+	    // 【新增】檢查訂單是否屬於該員工的門市
+	    if (!order.getStore().getStoreId().equals(employee.getStoreId())) {
+	        redirectAttributes.addFlashAttribute("errorMessage", "您無權限操作此訂單，該訂單屬於其他門市");
+	        return "redirect:/orderlist/listAllOrderList";
+	    }
+
 	    // 2. 檢查訂單狀態
-	    if (order != null && order.getOrderStatus() == OrderStatus.COMPLETED) {
+	    if (order.getOrderStatus() == OrderStatus.COMPLETED) {
 	        // 如果訂單已完成，設定錯誤訊息並返回，不執行更新
 	        redirectAttributes.addFlashAttribute("errorMessage", "操作失敗：訂單 " + orderListId + " 已完成，無法取消！");
 	        return "redirect:/orderlist/listAllOrderList";
 	    }
 	    
-	    // 3. 只有在訂單存在且狀態不是 COMPLETED 時，才執行更新
-	    if (order != null) {
-	        orderSvc.updateOrderStatus(orderListId, OrderStatus.CANCELLED);
-	        redirectAttributes.addFlashAttribute("success", "-(訂單編號: " + orderListId + " 已取消)");
-	    } else {
-	        redirectAttributes.addFlashAttribute("errorMessage", "操作失敗：找不到訂單 " + orderListId);
-	    }
+	    // 3. 執行更新
+	    orderSvc.updateOrderStatus(orderListId, OrderStatus.CANCELLED);
+	    redirectAttributes.addFlashAttribute("success", "-(訂單編號: " + orderListId + " 已取消)");
 	    
 	    return "redirect:/orderlist/listAllOrderList";
 	}
@@ -302,20 +379,73 @@ public class OrderListController {
 	}
 
 	/**
-	 * 顯示所有訂單列表
+	 * 顯示所有訂單列表 - 【修改】添加門市權限檢查
 	 */
 	@GetMapping("/listAllOrderList")
-	public String listAllOrderList(Model model) {
-		// @ModelAttribute("orderListData") 已經提供了資料
+	public String listAllOrderList(Model model, HttpSession session) {
+		// 檢查員工登入狀態
+		Long employeeId = (Long) session.getAttribute("employeeId");
+		if (employeeId == null) {
+			model.addAttribute("errorMessage", "請先登入系統");
+			return "redirect:/employee/login";
+		}
+
+		// 獲取員工信息
+		EmployeeDTO employee = employeeService.findEmployeeById(employeeId);
+		if (employee == null) {
+			model.addAttribute("errorMessage", "員工信息不存在");
+			return "redirect:/employee/login";
+		}
+
+		// 確保員工有所屬門市
+		if (employee.getStoreId() == null) {
+			model.addAttribute("errorMessage", "您尚未分配到任何門市，請聯繫管理員");
+			return "back-end/error";
+		}
+
+		// 獲取該門市的所有訂單
+		List<OrderListEntity> storeOrders = orderSvc.findByStoreId(employee.getStoreId());
+		model.addAttribute("orderListData", storeOrders);
+
+		// 添加當前員工和門市信息到模型
+		model.addAttribute("currentEmployee", employee);
+		model.addAttribute("currentStoreName", employee.getStoreName());
+
 		return "back-end/orderlist/listAllOrderList";
 	}
 	
 	
 	@PostMapping("/markAsCompleted")
-	public String markAsCompleted(@RequestParam("orderListId") String orderListId, RedirectAttributes redirectAttributes) {
+	public String markAsCompleted(@RequestParam("orderListId") String orderListId, RedirectAttributes redirectAttributes, HttpSession session) {
 	    
-	    // 我們可以重複使用之前在 delete 方法中用過的 updateOrderStatus 服務
-	    // 直接將狀態更新為 COMPLETED
+	    // 【新增】門市權限檢查
+	    Long employeeId = (Long) session.getAttribute("employeeId");
+	    if (employeeId == null) {
+	        redirectAttributes.addFlashAttribute("errorMessage", "請先登入系統");
+	        return "redirect:/employee/login";
+	    }
+
+	    // 獲取員工信息
+	    EmployeeDTO employee = employeeService.findEmployeeById(employeeId);
+	    if (employee == null || employee.getStoreId() == null) {
+	        redirectAttributes.addFlashAttribute("errorMessage", "員工信息不存在或未分配門市");
+	        return "redirect:/orderlist/listAllOrderList";
+	    }
+
+	    // 檢查訂單是否存在
+	    OrderListEntity order = orderSvc.getOrderById(orderListId).orElse(null);
+	    if (order == null) {
+	        redirectAttributes.addFlashAttribute("errorMessage", "操作失敗：找不到訂單 " + orderListId);
+	        return "redirect:/orderlist/listAllOrderList";
+	    }
+
+	    // 【新增】檢查訂單是否屬於該員工的門市
+	    if (!order.getStore().getStoreId().equals(employee.getStoreId())) {
+	        redirectAttributes.addFlashAttribute("errorMessage", "您無權限操作此訂單，該訂單屬於其他門市");
+	        return "redirect:/orderlist/listAllOrderList";
+	    }
+
+	    // 執行狀態更新
 	    orderSvc.updateOrderStatus(orderListId, OrderStatus.COMPLETED);
 	    
 	    // 設定成功訊息並重導向

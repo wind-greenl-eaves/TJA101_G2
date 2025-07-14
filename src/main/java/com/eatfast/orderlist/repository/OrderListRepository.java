@@ -9,6 +9,7 @@ package com.eatfast.orderlist.repository;
 import com.eatfast.member.model.MemberEntity;
 import com.eatfast.orderlist.model.OrderListEntity;
 import com.eatfast.orderlist.model.OrderStatus; // 【新】引入 OrderStatus Enum
+import com.eatfast.store.model.StoreEntity; // 【新增】引入 StoreEntity
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -24,4 +25,13 @@ public interface OrderListRepository extends JpaRepository<OrderListEntity, Stri
 
     // 【修正】: 參數型別從 Long 改為 OrderStatus Enum。
     List<OrderListEntity> findByMemberAndOrderStatus(MemberEntity member, OrderStatus orderStatus);
+    
+    // 【新增】按門市過濾訂單的方法
+    List<OrderListEntity> findByStoreOrderByOrderDateDesc(StoreEntity store);
+    
+    // 【新增】按門市ID過濾訂單的方法
+    List<OrderListEntity> findByStore_StoreIdOrderByOrderDateDesc(Long storeId);
+    
+    // 【新增】按門市和訂單狀態過濾的方法
+    List<OrderListEntity> findByStoreAndOrderStatus(StoreEntity store, OrderStatus orderStatus);
 }
