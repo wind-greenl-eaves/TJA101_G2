@@ -641,10 +641,12 @@
                     storeTimeEl.textContent = data.time;
                     storeMapIframeEl.src = data.mapUrl;
                     
-                    // 更新 "前往點餐" 按鈕的連結
-                    // const orderUrl = `[[@{/meal/list/}]]${data.id}`;
-                    // const orderUrl = `[@{/menu}]`;
-                    // orderNowButtonEl.href = orderUrl;
+                    // 更新 "前往點餐" 按鈕的連結，讓原先頁面剛載入時寫入的 storeId 變成當前被點擊的門市 ID
+                 	// 讀取被點擊按鈕的 data-id 屬性，並組合出新的 URL
+                    const orderUrl = `/menu?storeId=${data.id}`;
+                    
+                 	// 將 "前往點餐" 按鈕的 href 屬性更新為新的 URL
+                    orderNowButtonEl.href = orderUrl;
 
                     // --- 更新按鈕的啟用狀態樣式 ---
                     // 1. 先移除所有按鈕的 'active' class
