@@ -250,7 +250,143 @@
             opacity: 0.8;
             font-size: 0.9rem;
         }
+/* 登出確認模態框樣式 */
+        .logout-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.logout-modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+}
+.logout-modal-content {
+    background: var(--container-bg);
+    border-radius: 20px;
+    padding: 2.5rem;
+    max-width: 450px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    transform: scale(0.7);
+    transition: transform 0.3s;
+    border: 1px solid var(--border-color);
+}
+.logout-modal.show .logout-modal-content {
+    transform: scale(1);
+}
+.logout-modal-icon {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white; font-size: 2.5rem;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% {transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);}
+    70% {transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255,107,107,0);}
+    100% {transform: scale(1); box-shadow: 0 0 0 0 rgba(255,107,107,0);}
+}
+.logout-modal-title { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); margin-bottom: 1rem; }
+.logout-modal-message { font-size: 1.1rem; color: var(--text-color); margin-bottom: 2rem; line-height: 1.6; }
+.logout-modal-actions { display: flex; gap: 1rem; justify-content: center; }
+.logout-btn {
+    padding: 0.8rem 2rem; border: none; border-radius: 50px;
+    font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.3s;
+    display: flex; align-items: center; gap: 0.5rem; min-width: 120px; justify-content: center;
+}
+.logout-btn-confirm {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+.logout-btn-confirm:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+.logout-btn-cancel {
+    background: var(--container-bg);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+}
+.logout-btn-cancel:hover {
+    background: var(--header-bg);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-2px);
+}
+.logout-loading {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+.logout-spinner {
+    width: 20px; height: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: #c82333;
+    animation: spin 1s ease-in-out infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
+        /* 響應式模態框 */
+        @media (max-width: 480px) {
+            .logout-modal-content {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .logout-modal-actions {
+                flex-direction: column;
+            }
+
+            .logout-btn {
+                width: 100%;
+            }
+        }
+        
+        /* 動畫效果 */
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
 
 </style>
 </head>
@@ -287,31 +423,40 @@
                    th:href="@{/api/v1/auth/member-login}" class="nav-link">購物車</a>
 			</div>
 
-			<!-- 登入狀態區塊 -->
-			<div class="flex items-center gap-2">
-				<!-- 已登入 -->
-				<div
-					th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
-					class="flex items-center gap-2">
-					<span class="text-milktea-dark font-semibold">歡迎, <span
-						th:text="${session.memberName}">會員名稱</span></span>
-					<form id="logoutForm" th:action="@{/api/v1/auth/logout}"
-						method="post" class="inline">
-						<button type="button" id="logoutBtn"
-							class="px-4 py-2 rounded-full btn-outline font-semibold bg-[#fff4e6] hover:bg-[#F3E5D6] transition">
-							<i class="fas fa-sign-out-alt"></i> 登出
-						</button>
-					</form>
+			<!-- 登入狀態區塊（navbar） -->
+<div class="flex items-center gap-2">
+    <!-- 已登入 -->
+    <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" class="flex items-center gap-2">
+        <span class="text-milktea-dark font-semibold">歡迎, <span th:text="${session.memberName}">會員名稱</span></span>
+        <button type="button" class="px-4 py-2 rounded-full btn-outline font-semibold bg-[#fff4e6] hover:bg-[#F3E5D6] transition" onclick="confirmLogout()">
+            <i class="fas fa-sign-out-alt"></i> 登出
+        </button>
+        <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display:none;"></form>
+    </div>
+    <!-- 未登入 -->
+    <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" th:href="@{/api/v1/auth/member-login}" class="px-4 py-2 rounded-full btn-outline font-semibold hover:bg-[#F3E5D6] transition">
+        <i class="fas fa-sign-in-alt"></i> 登入/註冊
+    </a>
+</div>
 
-				</div>
-				<!-- 未登入 -->
-				<a
-					th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
-					th:href="@{/api/v1/auth/member-login}"
-					class="px-4 py-2 rounded-full btn-outline font-semibold hover:bg-[#F3E5D6] transition">
-					<i class="fas fa-sign-in-alt"></i> 登入/註冊
-				</a>
-			</div>
+<!-- 登出 Modal（新版） -->
+<div class="logout-modal" id="logoutModal">
+    <div class="logout-modal-content">
+        <div class="logout-modal-icon">
+            <i class="fas fa-sign-out-alt"></i>
+        </div>
+        <h3 class="logout-modal-title">登出確認</h3>
+        <p class="logout-modal-message">您確定要登出系統嗎？</p>
+        <div class="logout-modal-actions">
+            <button class="logout-btn logout-btn-confirm" onclick="logout()">確定登出</button>
+            <button class="logout-btn logout-btn-cancel" onclick="closeLogoutModal()">取消</button>
+        </div>
+        <div class="logout-loading" id="logoutLoading" style="display:none;">
+            <div class="logout-spinner"></div>
+            <span>登出中...</span>
+        </div>
+    </div>
+</div>
 		</div>
 	</nav>
 
@@ -855,6 +1000,51 @@ async function clearCartForStoreChange(newStoreId) {
       }
   });
       
+</script>
+<script>
+// 登出 Modal 控制
+function confirmLogout() {
+    document.getElementById('logoutModal').classList.add('show');
+}
+function closeLogoutModal() {
+    document.getElementById('logoutModal').classList.remove('show');
+}
+function logout() {
+    document.getElementById('logoutLoading').style.display = 'flex';
+    // fetch 登出
+    fetch('/api/v1/auth/logout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('登出失敗，請稍後再試');
+            closeLogoutModal();
+            document.getElementById('logoutLoading').style.display = 'none';
+        }
+    })
+    .catch(error => {
+        alert('登出失敗，請稍後再試');
+        closeLogoutModal();
+        document.getElementById('logoutLoading').style.display = 'none';
+    });
+}
+
+// 點擊 modal 背景自動關閉
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutModal = document.getElementById('logoutModal');
+    if (logoutModal) {
+        logoutModal.addEventListener('click', function(e) {
+            if (e.target === logoutModal) closeLogoutModal();
+        });
+    }
+});
 </script>
 
 
