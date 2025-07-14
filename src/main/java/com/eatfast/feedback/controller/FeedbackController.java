@@ -63,9 +63,10 @@ public class FeedbackController {
     }
 
     // ✅ 這是唯一且合併修正後的 submitFeedback 方法
+    // 在 FeedbackController.java 中
+
     @PostMapping("/submit")
     public String submitFeedback(@ModelAttribute("feedback") FeedbackEntity feedback,
-                                 // ✅ 將 storeId 設為非必要參數，這樣即使前端沒傳，程式也不會出錯
                                  @RequestParam(name = "store.storeId", required = false) Long storeId,
                                  HttpSession session,
                                  RedirectAttributes redirectAttributes) {
@@ -75,11 +76,11 @@ public class FeedbackController {
             return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
         }
 
+        // ✅ 將 catch 的範圍擴大為 Exception
         try {
-            // ✅ 呼叫最新版本的 service 方法，包含所有欄位
             feedbackService.createFeedback(
                     memberId,
-                    storeId, // 如果前端沒傳 storeId，這裡會是 null
+                    storeId,
                     feedback.getPhone(),
                     feedback.getContent(),
                     feedback.getDiningTime(),
@@ -89,8 +90,14 @@ public class FeedbackController {
             redirectAttributes.addFlashAttribute("successMessage", "您的意見已成功送出，感謝您的回饋！");
             return "redirect:/feedback/save";
 
-        } catch (EntityNotFoundException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "提交失敗：" + e.getMessage());
+        } catch (Exception e) { // <--- 已修改為 Exception
+            // 捕獲到任何錯誤時，都將錯誤訊息加入重定向屬性中
+            redirectAttributes.addFlashAttribute("errorMessage", "提交失敗，請檢查您的輸入或稍後再試。");
+
+            // 在後台印出詳細的錯誤日誌，方便您自己除錯
+            e.printStackTrace();
+
+            // 重定向回表單頁面
             return "redirect:/feedback/form";
         }
     }
