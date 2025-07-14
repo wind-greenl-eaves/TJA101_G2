@@ -182,4 +182,8 @@ public class StoreServiceImpl implements StoreService {
         return storeMapper.toDtoList(entities);
     }
 
+     @Override //會員拉取這方法可以先不用到了 前端不另外抓
+       public List<StoreEntity> getAllStores() {
+           return List.of();
+     }
 }
