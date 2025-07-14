@@ -20,7 +20,7 @@
 </head>
 <body>
 
-<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top justify-content-center">
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top justify-content-between">
     <div class="d-flex align-items-center">
         <h2 class="text-white mb-0">所有訂單資料</h2>
         <a class="navbar-brand ml-4 d-flex align-items-center" th:href="@{/orderlist/select_page_OrderList}">
@@ -28,6 +28,38 @@
             回查詢頁
         </a>
         <label th:if="${success}" class="badge badge-success ml-2" th:text="${success}"></label>
+    </div>
+    
+    <!-- 右側員工資訊顯示 -->
+    <div class="d-flex align-items-center">
+        <!-- 登入員工資訊顯示 -->
+        <div class="d-flex align-items-center text-dark mr-3" th:if="${session.loggedInEmployee}">
+            <i class="fas fa-user-circle text-warning mr-2" style="font-size: 1.2rem;"></i>
+            <div class="text-right">
+                <small class="d-block font-weight-bold text-dark" th:text="${session.employeeName}">員工姓名</small>
+                <small class="d-block text-dark" style="font-size: 0.75rem;">
+                    <span th:text="${session.loggedInEmployee.role?.displayName}">職位</span>
+                    <span class="mx-1">|</span>
+                    <span th:text="'ID: ' + ${session.employeeId}">ID: 001</span>
+                </small>
+            </div>
+        </div>
+        
+        <!-- 未登入顯示 -->
+        <div class="d-flex align-items-center text-dark mr-3" th:unless="${session.loggedInEmployee}">
+            <i class="fas fa-user-circle text-muted mr-2" style="font-size: 1.2rem;"></i>
+            <div class="text-right">
+                <small class="d-block text-muted">未登入</small>
+                <small class="d-block">
+                    <a th:href="@{/employee/login}" class="text-warning" style="font-size: 0.75rem;">請登入</a>
+                </small>
+            </div>
+        </div>
+        
+<!--         登出按鈕 -->
+<!--         <button id="logoutBtn" class="btn btn-outline-light btn-sm" th:if="${session.loggedInEmployee}"> -->
+<!--             <i class="fas fa-sign-out-alt mr-1"></i>登出 -->
+<!--         </button> -->
     </div>
 </nav>
 

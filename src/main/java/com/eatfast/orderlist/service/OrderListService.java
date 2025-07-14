@@ -16,6 +16,7 @@ import com.eatfast.member.repository.MemberRepository;
 import com.eatfast.orderlist.model.OrderListEntity;
 import com.eatfast.orderlist.model.OrderStatus;
 import com.eatfast.orderlist.repository.OrderListRepository;
+import com.eatfast.store.model.StoreEntity; // 【新增】引入 StoreEntity
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,6 +85,16 @@ public class OrderListService {
 
 	public List<OrderListEntity> findAll() {
 		return orderListRepository.findAll();
+	}
+
+	// 【新增】按門市過濾訂單的方法
+	public List<OrderListEntity> findByStore(StoreEntity store) {
+		return orderListRepository.findByStoreOrderByOrderDateDesc(store);
+	}
+
+	// 【新增】按門市ID過濾訂單的方法
+	public List<OrderListEntity> findByStoreId(Long storeId) {
+		return orderListRepository.findByStore_StoreIdOrderByOrderDateDesc(storeId);
 	}
 
 	@Transactional
