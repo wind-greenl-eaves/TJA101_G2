@@ -31,6 +31,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             display: flex;
+            flex-direction: column; /* 改為垂直排列 */
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -39,6 +40,32 @@
             background-size: cover; /* 讓圖片覆蓋整個背景 */
             background-position: center; /* 置中顯示 */
             background-repeat: no-repeat; /* 不重複 */
+        }
+        
+        /* 主標題樣式 */
+        .main-header {
+            width: 100%;
+            text-align: center;
+            padding: 1rem 0 0.5rem 0; /* 縮小上下邊框間距 */
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 1.1rem; /* 也縮小與下方內容的間距 */
+        }
+        
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 2px;
+        }
+        
+        .main-subtitle {
+            font-size: 1.1rem;
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+            font-weight: 400;
         }
         
         .page-wrapper {
@@ -329,6 +356,15 @@
             .forgot-password-link {
                 font-size: 13px;
             }
+            
+            /* 響應式下的首頁按鈕 */
+            .home-button {
+                bottom: 15px !important;
+                right: 15px !important;
+                width: 50px !important;
+                height: 50px !important;
+                font-size: 20px !important;
+            }
         }
 
         @media (max-width: 480px) {
@@ -340,9 +376,71 @@
                 height: auto;
             }
         }
+        
+        /* 右下角首頁按鈕樣式 */
+        .home-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: #28a745; /* 改為亮綠色 */
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        
+        .home-button:hover {
+            background-color: #1e7e34; /* 懸停時使用深綠色 */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+        
+        .home-button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 添加按鈕提示文字 */
+        .home-button::before {
+            content: '返回首頁';
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .home-button:hover::before {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 </head>
 <body>
+    <!-- 主標題區塊 -->
+    <div class="main-header">
+        <h1 class="main-title">EATFAST集團-員工管理系統</h1>
+        <p class="main-subtitle">員工登入與系統管理</p>
+    </div>
+
     <div class="page-wrapper">
         <!-- 登入表單區塊 -->
         <div class="login-container">
@@ -565,6 +663,11 @@
             </div>
         </div>
     </div>
+
+    <!-- 右下角返回首頁按鈕 -->
+    <a href="http://localhost:8080/welcome" class="home-button" title="返回首頁">
+        <i class="fas fa-home"></i>
+    </a>
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
