@@ -2,83 +2,131 @@
 <html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>顧客意見表單</title>
+    <title>顧客意見表單 - 溫馨奶茶風</title>
 
-    <!-- Bootstrap -->
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
 
-    <!-- Font Awesome 圖示 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-    <!-- Google 字體 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
-    <!-- 自訂樣式（選填） -->
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #fffaf0;
-            padding: 20px;
+            background-color: #f8f0e3; /* 更柔和的米白 */
+            padding-top: 40px;
+            padding-bottom: 40px;
         }
 
         .feedback-container {
             max-width: 600px;
             margin: auto;
-            background-color: #fffefb;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 0 15px rgba(204, 170, 130, 0.2);
+            background-color: #fffaf0; /* 象牙白背景 */
+            padding: 40px;
+            border-radius: 15px; /* 更大的圓角 */
+            box-shadow: 0 8px 16px rgba(160, 82, 45, 0.1); /* 柔和的棕色陰影 */
+            border: 1px solid #e0d8c4;
         }
 
-        .btn-primary {
-            background-color: #d8a07f;
-            border-color: #d8a07f;
+        .feedback-container h3 {
+            color: #8B4513; /* 鞍褐色 (SaddleBrown) */
+            text-align: center;
+            margin-bottom: 35px;
+            font-weight: 700;
         }
 
-        .btn-primary:hover {
-            background-color: #c88b6e;
-            border-color: #c88b6e;
+        .form-group {
+            margin-bottom: 25px;
         }
 
-        label {
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
             font-weight: 500;
+            color: #776e65; /* 溫和的灰褐色 */
+        }
+
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .form-control:focus {
+            color: #495057;
+            background-color: #fff;
+            border-color: #d2b48c; /* 奶茶色邊框 */
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(210, 180, 140, 0.4); /* 奶茶色光暈 */
+        }
+
+        /* 唯讀欄位的樣式 */
+        .form-control:read-only {
+            background-color: #f5f5f5; /* 淺灰色背景 */
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+
+        /* 送出按鈕 */
+        .btn-submit {
+            background: linear-gradient(145deg, #d2b48c, #b5987d); /* 漸層奶茶色 */
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+            width: 100%;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-submit:hover {
+            color: white;
+            transform: translateY(-2px); /* 輕微上浮效果 */
+            box-shadow: 0 6px 12px rgba(139, 69, 19, 0.2);
         }
     </style>
 </head>
 <body>
 
 <div class="feedback-container">
-    <h3 class="text-center mb-4"><i class="fas fa-comment-dots"></i> 意見回饋</h3>
+    <h3><i class="fas fa-comment-dots"></i> 意見回饋</h3>
 
     <form th:action="@{/feedback/submit}" method="post" th:object="${feedback}">
-        <!-- 電話 -->
+
+        <div class="form-group">
+            <label for="memberName">會員姓名</label>
+            <input type="text" class="form-control" id="memberName" th:value="*{member.username}" readonly>
+        </div>
+
         <div class="form-group">
             <label for="phone">連絡電話</label>
-            <input type="text" class="form-control" id="phone" th:field="*{phone}" maxlength="20" required>
+            <input type="text" class="form-control" id="phone" th:field="*{phone}" readonly>
         </div>
 
-        <!-- 意見 -->
         <div class="form-group">
             <label for="content">您的意見</label>
-            <textarea class="form-control" id="content" rows="5" th:field="*{content}" required></textarea>
+            <textarea class="form-control" id="content" rows="5" th:field="*{content}" required placeholder="請在此輸入您的寶貴意見..."></textarea>
         </div>
-
-        <!-- 門市選單（暫註解） -->
-
+<!--
         <div class="form-group">
-            <label for="store">門市</label>
-            <select class="form-control" id="store" th:field="*{store.storeId}">
-                <option th:each="store : ${storeList}" th:value="${store.storeId}" th:text="${store.storeName}">門市名稱</option>
+            <label for="store">相關門市</label>
+            <select class="form-control" id="store" th:field="*{store.storeId}" required>
+                <option value="">-- 請選擇門市 --</option>
+                <option th:each="store : ${storeList}" th:value="${store.storeId}" th:text="${store.storeName}"></option>
             </select>
         </div>
-
-
-        <!-- 隱藏欄位會員（暫註解） -->
-
-        <input type="hidden" th:field="*{member.memberId}" th:value="${memberId}" />
-
-
-        <button type="submit" class="btn btn-primary btn-block">送出意見</button>
+-->
+        <button type="submit" class="btn btn-submit">送出意見</button>
     </form>
 </div>
 

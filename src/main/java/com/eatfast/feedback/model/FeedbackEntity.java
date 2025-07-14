@@ -161,4 +161,10 @@ public class FeedbackEntity {
     public int hashCode() {
         return feedbackId != null ? Objects.hash(feedbackId) : super.hashCode();
     }
+
+    public void setSubmissionDate(LocalDateTime now) {
+    }
+
+    public void setStatus(String 待處理) {
+    }
 }
