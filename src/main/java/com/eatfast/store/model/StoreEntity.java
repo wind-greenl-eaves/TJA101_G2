@@ -9,7 +9,7 @@ package com.eatfast.store.model;
 
 // 【檔案路徑配對 - 新增】: 引入新建立的共享 Enum
 import com.eatfast.common.enums.StoreStatus;
-
+import com.eatfast.common.enums.StoreType;
 // 【檔案路徑配對】: 引入所有相關的子實體
 import com.eatfast.employee.model.EmployeeEntity;
 import com.eatfast.orderlist.model.OrderListEntity;
@@ -50,6 +50,10 @@ public class StoreEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "store_id")
     private Long storeId;
+    
+    @Enumerated(EnumType.STRING) // 建議將 Enum 以字串形式存入資料庫，可讀性較高
+    @Column(name = "store_type", nullable = false)
+    private StoreType storeType = StoreType.BRANCH;
 
     @NotBlank(message = "門市名稱不可為空")
     @Size(max = 10, message = "門市名稱長度不可超過 10 個字元")
