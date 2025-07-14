@@ -90,29 +90,92 @@ document.addEventListener('DOMContentLoaded', function () {
             if (phoneInput) phoneInput.value = `${randomPhoneType}-${randomPhoneNum.substring(0,3)}-${randomPhoneNum.substring(3,6)}`;
             if (nationalIdInput) nationalIdInput.value = `${randomLetter}${genderDigit}${randomIdSuffix}`;
             
-            // 設定性別
+            // 設定性別 - 修復性別值映射問題
             const genderSelect = document.getElementById('gender');
-            if (genderSelect && genderSelect.options.length > 1) {
-                genderSelect.value = randomGender;
+            if (genderSelect && genderSelect.tagName === 'SELECT') {
+                try {
+                    // 確保 options 存在且有內容
+                    const options = genderSelect.options;
+                    if (options && typeof options === 'object' && options.length > 0) {
+                        // 將 'M', 'F' 映射到正確的枚舉值
+                        const genderMapping = {
+                            'M': 'MALE',
+                            'F': 'FEMALE'
+                        };
+                        const targetGender = genderMapping[randomGender] || randomGender;
+                        
+                        // 安全地尋找對應的選項
+                        let foundMatch = false;
+                        for (let i = 0; i < options.length; i++) {
+                            try {
+                                const option = options[i];
+                                if (option && option.value === targetGender) {
+                                    genderSelect.selectedIndex = i;
+                                    foundMatch = true;
+                                    break;
+                                }
+                            } catch (innerError) {
+                                console.warn('處理選項時發生錯誤:', innerError);
+                                continue;
+                            }
+                        }
+                        
+                        if (!foundMatch) {
+                            console.warn('未找到匹配的性別選項:', targetGender);
+                        }
+                    } else {
+                        console.warn('性別選擇框的選項不可用或為空');
+                    }
+                } catch (error) {
+                    console.warn('設定性別時發生錯誤:', error);
+                }
+            } else {
+                console.warn('找不到性別選擇框或元素類型不正確');
             }
             
-            // 隨機選擇角色（如果是總部管理員）
+            // 隨機選擇角色（如果是總部管理員且有選擇框）
             const roleSelect = document.getElementById('role');
-            if (roleSelect && roleSelect.options.length > 1 && roleSelect.type !== 'hidden') {
-                const availableRoles = Array.from(roleSelect.options).slice(1);
-                if (availableRoles.length > 0) {
-                    const randomRole = availableRoles[Math.floor(Math.random() * availableRoles.length)];
-                    roleSelect.value = randomRole.value;
+            if (roleSelect && roleSelect.tagName === 'SELECT') {
+                try {
+                    const roleOptions = roleSelect.options;
+                    if (roleOptions && typeof roleOptions === 'object' && roleOptions.length > 0) {
+                        const availableRoles = [];
+                        for (let i = 0; i < roleOptions.length; i++) {
+                            const option = roleOptions[i];
+                            if (option && option.value && option.value !== '') {
+                                availableRoles.push(option);
+                            }
+                        }
+                        if (availableRoles.length > 0) {
+                            const randomRole = availableRoles[Math.floor(Math.random() * availableRoles.length)];
+                            roleSelect.value = randomRole.value;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('設定角色時發生錯誤:', error);
                 }
             }
             
-            // 隨機選擇門市（如果是總部管理員）
+            // 隨機選擇門市（如果是總部管理員且有選擇框）
             const storeSelect = document.getElementById('storeId');
-            if (storeSelect && storeSelect.options.length > 1 && storeSelect.type !== 'hidden') {
-                const availableStores = Array.from(storeSelect.options).slice(1);
-                if (availableStores.length > 0) {
-                    const randomStore = availableStores[Math.floor(Math.random() * availableStores.length)];
-                    storeSelect.value = randomStore.value;
+            if (storeSelect && storeSelect.tagName === 'SELECT') {
+                try {
+                    const storeOptions = storeSelect.options;
+                    if (storeOptions && typeof storeOptions === 'object' && storeOptions.length > 0) {
+                        const availableStores = [];
+                        for (let i = 0; i < storeOptions.length; i++) {
+                            const option = storeOptions[i];
+                            if (option && option.value && option.value !== '') {
+                                availableStores.push(option);
+                            }
+                        }
+                        if (availableStores.length > 0) {
+                            const randomStore = availableStores[Math.floor(Math.random() * availableStores.length)];
+                            storeSelect.value = randomStore.value;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('設定門市時發生錯誤:', error);
                 }
             }
             
@@ -122,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
         } catch (error) {
             console.error('❌ 填入測試資料時發生錯誤:', error);
-            showMessage('❌ 填入測試資料失敗', 'error');
+            showMessage('❌ 填入測試資料失敗: ' + error.message, 'error');
         }
     }
 
@@ -212,7 +275,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (response.ok) {
-                showSuccessModal(`員工 "${responseData.username}" 已成功新增！`);
+                // 檢查回應類型：申請 or 直接創建員工
+                if (responseData.type === 'application') {
+                    // 門市經理提交申請的情況
+                    showSuccessModal(
+                        responseData.message + `\n申請編號：#${responseData.applicationId}`,
+                        'application'
+                    );
+                } else {
+                    // 總部管理員直接創建員工的情況
+                    showSuccessModal(`員工 "${responseData.username}" 已成功新增！`, 'employee');
+                }
             } else {
                 if (response.status === 400 && responseData.errors) {
                     handleValidationErrors(responseData.errors);
@@ -228,13 +301,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // 顯示成功模態框
-    function showSuccessModal(message) {
+    function showSuccessModal(message, type) {
         if (successModalMessage && successModal && successModalConfirm) {
             successModalMessage.textContent = message;
             successModal.classList.remove('hidden');
             successModal.classList.add('flex');
             successModalConfirm.onclick = function() {
-                window.location.href = '/employee/listAll';
+                // 根據類型決定重定向路徑
+                const redirectTo = type === 'application' ? '/employee/select_page' : '/employee/listAll';
+                window.location.href = redirectTo;
             };
         }
     }

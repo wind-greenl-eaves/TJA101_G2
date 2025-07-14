@@ -24,9 +24,11 @@ import com.eatfast.common.enums.AccountStatus;
 import com.eatfast.common.enums.EmployeeRole;
 import com.eatfast.employee.dto.CreateEmployeeRequest;
 import com.eatfast.employee.dto.EmployeeDTO;
+import com.eatfast.employee.dto.EmployeeApplicationDTO;
 import com.eatfast.employee.dto.UpdateEmployeeRequest;
 import com.eatfast.employee.service.EmployeeService;
 import com.eatfast.employee.service.EmployeePermissionService;
+import com.eatfast.employee.service.EmployeeApplicationService;
 import com.eatfast.employee.util.EmployeeLogger;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -51,18 +53,23 @@ public class EmployeeController {
     private static final Logger logger = LoggerFactory.getLogger(EmployeeController.class);
     
     private final EmployeeService employeeService;
-    private final EmployeePermissionService permissionService; // 新增權限服務
-    private final EmployeeLogger employeeLogger; // 新增員工專用日誌記錄器
+    private final EmployeePermissionService permissionService;
+    private final EmployeeLogger employeeLogger;
+    private final EmployeeApplicationService employeeApplicationService;
 
     @Autowired
-    public EmployeeController(EmployeeService employeeService, EmployeePermissionService permissionService, EmployeeLogger employeeLogger) {
+    public EmployeeController(EmployeeService employeeService, 
+                             EmployeePermissionService permissionService, 
+                             EmployeeLogger employeeLogger,
+                             EmployeeApplicationService employeeApplicationService) {
         this.employeeService = employeeService;
         this.permissionService = permissionService;
         this.employeeLogger = employeeLogger;
+        this.employeeApplicationService = employeeApplicationService;
     }
 
     // ========================
-    // 1. 新增員工（Create）
+    // 1. 新增員工（Create）- 修改為支援申請流程
     // ========================
     // 這個方法負責處理「新增員工」的請求。
     // 前端會送出一個表單（multipart/form-data），包含員工資料。
@@ -84,7 +91,7 @@ public class EmployeeController {
             employeeLogger.logDebug("當前登入用戶: ID={}, username={}, role={}", 
                         currentEmployee.getEmployeeId(), currentEmployee.getUsername(), currentEmployee.getRole());
 
-            // 【修正】使用統一權限服務檢查
+            // 檢查基本權限
             if (!permissionService.canCreateEmployee(currentEmployee)) {
                 employeeLogger.logWarn("用戶 {} (ID: {}) 嘗試新增員工但權限不足", 
                            currentEmployee.getUsername(), currentEmployee.getEmployeeId());
@@ -93,22 +100,42 @@ public class EmployeeController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
             }
 
-            // 【修正】門市經理強制設定門市ID
+            // 【核心修改】根據角色決定是直接創建還是提交申請
             if (currentEmployee.getRole() == EmployeeRole.MANAGER) {
+                // 門市經理：提交申請單
                 request.setStoreId(currentEmployee.getStoreId());
-                employeeLogger.logDebug("門市經理強制設定門市ID: {}", currentEmployee.getStoreId());
+                employeeLogger.logInfo("門市經理提交新增員工申請: username={}", request.getUsername());
+                
+                EmployeeApplicationDTO application = employeeApplicationService.submitApplication(
+                    request, currentEmployee.getEmployeeId());
+                
+                employeeLogger.logInfo("【成功】提交員工申請: applicationId={}, username={}", 
+                           application.getApplicationId(), request.getUsername());
+                
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "員工申請已提交，等待總部管理員審核");
+                response.put("applicationId", application.getApplicationId());
+                response.put("type", "application");
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+                
+            } else if (currentEmployee.getRole() == EmployeeRole.HEADQUARTERS_ADMIN) {
+                // 總部管理員：直接創建員工
+                employeeLogger.logInfo("總部管理員直接創建新員工: username={}", request.getUsername());
+                EmployeeDTO createdEmployee = employeeService.createEmployee(request);
+                
+                employeeLogger.logInfo("【成功】創建員工: ID={}, username={}, role={}, storeId={}", 
+                           createdEmployee.getEmployeeId(), createdEmployee.getUsername(), 
+                           createdEmployee.getRole(), createdEmployee.getStoreId());
+                
+                return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
+            } else {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "權限不足：只有門市經理和總部管理員可以新增員工");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
             }
-
-            employeeLogger.logInfo("開始創建新員工: username={}", request.getUsername());
-            EmployeeDTO createdEmployee = employeeService.createEmployee(request);
             
-            employeeLogger.logInfo("【成功】創建員工: ID={}, username={}, role={}, storeId={}", 
-                       createdEmployee.getEmployeeId(), createdEmployee.getUsername(), 
-                       createdEmployee.getRole(), createdEmployee.getStoreId());
-            
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
         } catch (Exception e) {
-            employeeLogger.logError("【失敗】創建員工失敗: username={}, error={}", request.getUsername(), e.getMessage());
+            employeeLogger.logError("【失敗】處理員工請求失敗: username={}, error={}", request.getUsername(), e.getMessage());
             Map<String, String> response = new HashMap<>();
             response.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(response);
