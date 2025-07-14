@@ -36,9 +36,45 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
 
     <style>
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #FFFFFF;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --header-bg: #F5EFE6;
+            --accent-color: #E1A87A;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --info-color: #2196F3;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
         }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: linear-gradient(135deg, var(--bg-color) 0%, var(--header-bg) 100%);
+            min-height: 100vh;
+        }
+        
+		        /* 【新增】主內容容器樣式 */
+		.main-container {
+		    max-width: 1200px;      /* 限制內容最大寬度，避免在寬螢幕上過寬 */
+		    margin-left: auto;      /* 左右 margin 設為 auto 來達成水平置中 */
+		    margin-right: auto;
+		    padding-top: 100px;     /* 關鍵：留出足夠空間給上方固定的導覽列 (60px) + 額外間距 */
+		    padding-left: 2rem;     /* 在小螢幕時，左右保留一些邊距，避免內容貼邊 */
+		    padding-right: 2rem;
+		}
 
         /* Style for dynamically added message container */
         .message-success {
@@ -148,6 +184,250 @@
             background: var(--primary-hover);
             transform: translateY(-2px);
         }
+        
+        /* 登出確認模態框樣式 */
+        .logout-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .logout-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+        }
+
+        .logout-modal-content {
+            background: var(--container-bg);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .logout-modal.show .logout-modal-content {
+            transform: scale(1);
+        }
+
+        .logout-modal-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+            }
+        }
+
+        .logout-modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .logout-modal-message {
+            font-size: 1.1rem;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .logout-modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .logout-btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .logout-btn-confirm {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .logout-btn-confirm:hover {
+            background: linear-gradient(135deg, #c82333, #bd2130);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .logout-btn-cancel {
+            background: var(--container-bg);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+        }
+
+        .logout-btn-cancel:hover {
+            background: var(--header-bg);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* 載入動畫樣式 */
+        .logout-loading {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logout-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+                /* 響應式模態框 */
+        @media (max-width: 480px) {
+            .logout-modal-content {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .logout-modal-actions {
+                flex-direction: column;
+            }
+
+            .logout-btn {
+                width: 100%;
+            }
+        }
+        
+        /* 動畫效果 */
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+                /* Footer 區域 */
+        .footer {
+            background: var(--primary-hover);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-link:hover {
+            color: var(--accent-color);
+        }
+        
+        .copyright {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+		/* 【新增】隱藏數量輸入框的上下箭頭 */
+		.quantity-input {
+		 /* 針對 Firefox 瀏覽器 */
+		  -moz-appearance: textfield;
+		}
+		
+		.quantity-input::-webkit-outer-spin-button,
+		.quantity-input::-webkit-inner-spin-button {
+		  /* 針對 Chrome, Safari, Edge, Opera 等 WebKit 核心的瀏覽器 */
+		  -webkit-appearance: none;
+		  margin: 0;
+		}
     </style>
 </head>
 
@@ -175,7 +455,6 @@
                     class="nav-link">購物車</a>
                 <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
                    th:href="@{/api/v1/auth/member-login}" class="nav-link">購物車</a>
-                
             </div>
             
             <!-- 登入按鈕根據登入狀態變化 -->
@@ -197,23 +476,9 @@
             </a>
         </div>
     </nav>
-    </header>
 
-    <main class="container mx-auto p-4 md:p-8 pt-28 md:pt-32">
-        <div class="flex flex-col md:flex-row gap-8">
-            <aside class="w-full md:w-64 flex-shrink-0">
-                <div class="bg-brand-container p-4 rounded-lg shadow-md h-full">
-                    <h2 class="text-xl font-bold text-brand-deep mb-4 border-b-2 border-gray-300 pb-2">餐點分類</h2>
-                    <nav class="space-y-2">
-                        <a th:href="@{/meal/list(type='漢堡')}" class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">漢堡</a>
-                        <a th:href="@{/meal/list(type='吐司')}" class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">吐司</a>
-                        <a th:href="@{/meal/list(type='麵類')}" class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">麵類</a>
-                        <a th:href="@{/meal/list(type='蛋餅')}" class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">蛋餅</a>
-                        <a th:href="@{/meal/list(type='飲品')}" class="block w-full text-left px-4 py-2 rounded-md transition-colors duration-200 hover:bg-brand-primary hover:text-white">飲品</a>
-                    </nav>
-                </div>
-            </aside>
-
+	    <!-- 購物車內容區塊 -->	
+	    <main class="main-container">
             <section class="flex-grow">
                 <div class="bg-white p-6 md:p-8 rounded-lg shadow-md border border-gray-200">
                     <h1 class="text-2xl font-bold text-brand-primary mb-6 text-center">我的購物車</h1>
@@ -266,7 +531,7 @@
                             </div>
                             <div class="flex items-start">
                                 <label for="notes" class="w-24 font-semibold mt-2 flex-shrink-0">備註</label>
-                                <textarea id="notes" rows="3" class="flex-grow p-2 border rounded-md" placeholder="例如：不加生菜、飲料去冰等..."></textarea>
+                                <textarea id="notes" rows="3" class="flex-grow p-2 border rounded-md" placeholder="餐點：客製化內容。例如：鮮奶茶：少冰、漢堡：不要洋蔥..."></textarea>
                             </div>
                         </div>
 
@@ -297,317 +562,330 @@
                     </div>
                 </div>
             </section>
-        </div>
-    </main>
+            
+</main>
 
-    <footer class="bg-brand-deep text-brand-container text-center p-6 mt-16">
-        <p>&copy; 2025 EatFast 早餐店 - 版權所有</p>
+    <!-- Footer 區域 -->
+    <footer class="footer">
+            <div class="copyright">
+                © 2025 EatFast 早餐店 - 版權所有 | 為您提供最優質的早餐服務
+            </div>
     </footer>
+    
 
-    <script th:inline="javascript">
-        document.addEventListener('DOMContentLoaded', function() {
+    
+    <div class="logout-modal" id="logoutModal">
+    <div class="logout-modal-content">
+        <div class="logout-modal-icon">
+            <i class="fas fa-sign-out-alt"></i>
+        </div>
+        <h3 class="logout-modal-title">登出確認</h3>
+        <p class="logout-modal-message">您確定要登出系統嗎？</p>
+        <div class="logout-modal-actions">
+            <button class="logout-btn logout-btn-confirm" onclick="logout()">確定登出</button>
+            <button class="logout-btn logout-btn-cancel" onclick="closeLogoutModal()">取消</button>
+        </div>
+        <div class="logout-loading" id="logoutLoading" style="display: none;">
+            <div class="logout-spinner"></div>
+            <span>登出中...</span>
+        </div>
+    </div>
+</div>
 
-            // --- 元素選擇 (DOM Elements) ---
-            const messageContainer = document.getElementById('message-container');
-            const cartItemsBody = document.getElementById('cart-items-body');
-            const cartTotalAmountSpan = document.getElementById('cart-total-amount');
-            const emptyCartMessageDiv = document.getElementById('empty-cart-message');
-            const cartContentDiv = document.getElementById('cart-content');
-            const notLoggedInMessageDiv = document.getElementById('not-logged-in-message');
-            const clearCartBtn = document.getElementById('clear-cart-btn');
-            const checkoutBtn = document.getElementById('checkout-btn');
-            const pickupTimeSelect = document.getElementById('pickup-time');
+<script th:inline="javascript">
+    // =================================================================
+    // 【修正】將登出相關的函式移至全域作用域，使其可被 onclick 調用
+    // =================================================================
+    function confirmLogout() {
+        const modal = document.getElementById('logoutModal');
+        if (modal) {
+            modal.classList.add('show');
+        }
+    }
 
-            // --- 後端資料與設定 (Configuration) ---
-            const IS_LOGGED_IN = /*[[${session.loggedInMemberId != null}]]*/ false;
-            const MEMBER_ID = /*[[${session.loggedInMemberId}]]*/ null;
-            const contextPath = /*[[@{/}]]*/ '/';
-            const API_CART_BASE_URL = contextPath + 'cart';
+    function closeLogoutModal() {
+        const modal = document.getElementById('logoutModal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+    }
 
-            // --- 核心功能函式 (Core Functions) ---
+    function logout() {
+        const loading = document.getElementById('logoutLoading');
+        if(loading) loading.style.display = 'flex';
 
-            // 載入購物車
-            async function loadCart() {
-                cartItemsBody.innerHTML = '<tr id="loading-row"><td colspan="5" class="text-center py-4">載入中...</td></tr>';
-                if (messageContainer) {
-                    messageContainer.classList.add('hidden');
-                    messageContainer.textContent = '';
-                }
+        fetch('/api/v1/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('登出失敗，請稍後再試');
+                closeLogoutModal();
+            }
+        })
+        .catch(error => {
+            console.error('登出錯誤:', error);
+            alert('登出失敗，請稍後再試');
+            closeLogoutModal();
+        });
+    }
 
-                if (!IS_LOGGED_IN || MEMBER_ID === null) {
-                    displayNotLoggedIn();
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // --- 元素選擇 (DOM Elements) ---
+        const messageContainer = document.getElementById('message-container');
+        const cartItemsBody = document.getElementById('cart-items-body');
+        const cartTotalAmountSpan = document.getElementById('cart-total-amount');
+        const emptyCartMessageDiv = document.getElementById('empty-cart-message');
+        const cartContentDiv = document.getElementById('cart-content');
+        const notLoggedInMessageDiv = document.getElementById('not-logged-in-message');
+        const clearCartBtn = document.getElementById('clear-cart-btn');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        const pickupTimeSelect = document.getElementById('pickup-time');
+
+        // --- 後端資料與設定 (Configuration) ---
+        const IS_LOGGED_IN = /*[[${session.loggedInMemberId != null}]]*/ false;
+        const MEMBER_ID = /*[[${session.loggedInMemberId}]]*/ null;
+        const contextPath = /*[[@{/}]]*/ '/';
+        const API_CART_BASE_URL = contextPath + 'cart';
+
+        // --- 核心功能函式 (Core Functions) ---
+
+        // 載入購物車
+        async function loadCart() {
+            cartItemsBody.innerHTML = '<tr id="loading-row"><td colspan="5" class="text-center py-4">載入中...</td></tr>';
+            if (messageContainer) {
+                messageContainer.classList.add('hidden');
+                messageContainer.textContent = '';
+            }
+
+            if (!IS_LOGGED_IN || MEMBER_ID === null) {
+                displayNotLoggedIn();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}`);
+                if (response.status === 204) {
+                    displayEmptyCart();
                     return;
                 }
-
-                try {
-                    const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}`);
-
-                    if (response.status === 204) {
-                        displayEmptyCart();
-                        return;
-                    }
-
-                    if (!response.ok) {
-                        throw new Error(`伺服器錯誤 (狀態碼: ${response.status})`);
-                    }
-
-                    const cartItems = await response.json();
-                    if (cartItems && cartItems.length > 0) {
-                        renderCartItems(cartItems);
-                    } else {
-                        displayEmptyCart();
-                    }
-
-                } catch (error) {
-                    console.error('載入購物車時發生錯誤:', error);
-                    showMessage('error', '無法載入購物車，請稍後再試。');
+                if (!response.ok) {
+                    throw new Error(`伺服器錯誤 (狀態碼: ${response.status})`);
+                }
+                const cartItems = await response.json();
+                if (cartItems && cartItems.length > 0) {
+                    renderCartItems(cartItems);
+                } else {
                     displayEmptyCart();
                 }
+            } catch (error) {
+                console.error('載入購物車時發生錯誤:', error);
+                showMessage('error', '無法載入購物車，請稍後再試。');
+                displayEmptyCart();
             }
+        }
 
-            // 渲染購物車列表
-            function renderCartItems(items) {
-                cartItemsBody.innerHTML = '';
-                let totalAmount = 0;
-                items.forEach(item => {
-                    const mealPrice = parseFloat(item.mealPrice) || 0;
-                    const quantity = parseInt(item.quantity) || 0;
-                    const subtotal = mealPrice * quantity;
-                    totalAmount += subtotal;
-                    const row = document.createElement('tr');
-                    row.className = 'border-b';
-
-                    row.innerHTML = `
-                        <td class="py-4 flex items-center">
-                            <img src="${item.mealPicUrl || contextPath + 'images/meal_default.png'}" alt="${item.mealName}" class="w-16 h-16 rounded-md mr-4 object-cover">
-                            <div>
-                                <span class="font-medium">${item.mealName || '未知餐點'}</span>
-                                <p class="text-sm text-gray-500">
-                                    ${item.mealCustomization ? `<br>備註: ${item.mealCustomization}` : ''}
-                                </p>
-                            </div>
-                        </td>
-                        <td class="py-4 align-middle text-right">
-                            NT$ ${mealPrice}
-                        </td>
-                        <td class="py-4 align-middle">
-                            <div class="flex items-center justify-center">
-                                <button class="px-2 py-1 border rounded-l-md minus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">-</button>
-                                <input type="number" value="${quantity}" min="1" class="w-12 text-center border-t border-b quantity-input" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">
-                                <button class="px-2 py-1 border rounded-r-md plus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">+</button>
-                            </div>
-                        </td>
-                        <td class="py-4 align-middle text-right font-medium">
-                            NT$ ${subtotal}
-                        </td>
-                        <td class="py-4 align-middle text-center">
-                            <button class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors shadow-sm delete-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">刪除</button>
-                        </td>
-                    `;
-                    cartItemsBody.appendChild(row);
-                });
-
-                if (items && items.length > 0 && items[0].storeName) {
-                    const pickupStoreInput = document.getElementById('pickup-store');
-                    if (pickupStoreInput) {
-                        pickupStoreInput.value = items[0].storeName;
-                    }
+        // 渲染購物車列表
+        function renderCartItems(items) {
+            cartItemsBody.innerHTML = '';
+            let totalAmount = 0;
+            items.forEach(item => {
+                const mealPrice = parseFloat(item.mealPrice) || 0;
+                const quantity = parseInt(item.quantity) || 0;
+                const subtotal = mealPrice * quantity;
+                totalAmount += subtotal;
+                const row = document.createElement('tr');
+                row.className = 'border-b';
+                row.innerHTML = `
+                    <td class="py-4 flex items-center">
+                        <img src="${item.mealPicUrl || contextPath + 'images/meal_default.png'}" alt="${item.mealName}" class="w-16 h-16 rounded-md mr-4 object-cover">
+                        <div><span class="font-medium">${item.mealName || '未知餐點'}</span><p class="text-sm text-gray-500">${item.mealCustomization ? `<br>備註: ${item.mealCustomization}` : ''}</p></div>
+                    </td>
+                    <td class="py-4 align-middle text-right">NT$ ${mealPrice}</td>
+                    <td class="py-4 align-middle"><div class="flex items-center justify-center"><button class="px-2 py-1 border rounded-l-md minus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">-</button><input type="number" value="${quantity}" min="1" class="w-12 text-center border-t border-b quantity-input" data-meal-id="${item.mealId}" data-store-id="${item.storeId}"><button class="px-2 py-1 border rounded-r-md plus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">+</button></div></td>
+                    <td class="py-4 align-middle text-right font-medium">NT$ ${subtotal}</td>
+                    <td class="py-4 align-middle text-center"><button class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors shadow-sm delete-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">刪除</button></td>
+                `;
+                cartItemsBody.appendChild(row);
+            });
+            if (items && items.length > 0 && items[0].storeName) {
+                const pickupStoreInput = document.getElementById('pickup-store');
+                if (pickupStoreInput) {
+                    pickupStoreInput.value = items[0].storeName;
                 }
-
-                cartTotalAmountSpan.textContent = `NT$ ${totalAmount}`;
-                displayCartContent();
-                attachItemEventListeners();
             }
+            cartTotalAmountSpan.textContent = `NT$ ${totalAmount}`;
+            displayCartContent();
+            attachItemEventListeners();
+        }
 
-            // 更新商品數量
-            async function updateQuantity(element, change) {
-                const mealId = element.dataset.mealId;
-                const storeId = element.dataset.storeId;
-
-                if (!storeId) {
-                    showMessage('error', '操作失敗：缺少門市資訊。');
-                    return;
-                }
-
-                const quantityInput = element.closest('td').querySelector('.quantity-input');
-                let newQuantity;
-
-                if (change === 0) {
-                    newQuantity = parseInt(quantityInput.value, 10);
-                    if (isNaN(newQuantity) || newQuantity < 0) {
-                        showMessage('error', '數量必須是有效的正整數。');
-                        loadCart();
-                        return;
-                    }
-                } else {
-                    newQuantity = parseInt(quantityInput.value, 10) + change;
-                }
-
-                if (newQuantity <= 0) {
-                    deleteCartItem(element);
-                    return;
-                }
-
-                try {
-                    const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}/store/${storeId}/meal/${mealId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ quantity: newQuantity })
-                    });
-
-                    if (!response.ok) throw new Error('更新失敗');
+        // 更新商品數量
+        async function updateQuantity(element, change) {
+            const mealId = element.dataset.mealId;
+            const storeId = element.dataset.storeId;
+            if (!storeId) {
+                showMessage('error', '操作失敗：缺少門市資訊。');
+                return;
+            }
+            const quantityInput = element.closest('td').querySelector('.quantity-input');
+            let newQuantity;
+            if (change === 0) {
+                newQuantity = parseInt(quantityInput.value, 10);
+                if (isNaN(newQuantity) || newQuantity < 0) {
+                    showMessage('error', '數量必須是有效的正整數。');
                     loadCart();
-                } catch (error) {
-                    console.error('更新數量失敗:', error);
-                    showMessage('error', '更新購物車失敗，請稍後再試。');
-                    loadCart();
-                }
-            }
-
-            // 刪除單一品項
-            async function deleteCartItem(element) {
-                if (!confirm('確定要從購物車中移除此項商品嗎？')) {
                     return;
                 }
-
-                const mealId = element.dataset.mealId;
-                const storeId = element.dataset.storeId;
-
-                if (!storeId) {
-                    showMessage('error', '操作失敗：缺少門市資訊。');
-                    return;
-                }
-                try {
-                    const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}/store/${storeId}/meal/${mealId}`, {
-                        method: 'DELETE'
-                    });
-
-                    if (!response.ok) throw new Error('刪除失敗');
-                    showMessage('success', '商品已成功移除！');
-                    loadCart();
-                } catch (error) {
-                    console.error('刪除商品失敗:', error);
-                    showMessage('error', '移除商品失敗，請稍後再試。');
-                }
+            } else {
+                newQuantity = parseInt(quantityInput.value, 10) + change;
             }
-
-            // 清空整個購物車
-            async function clearCart() {
-                if (!confirm('您確定要清空整個購物車嗎？此操作無法復原。')) {
-                    return;
-                }
-                try {
-                    const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}`, {
-                        method: 'DELETE'
-                    });
-
-                    if (!response.ok) throw new Error('清空失敗');
-                    showMessage('success', '購物車已成功清空！');
-                    loadCart();
-                } catch (error) {
-                    console.error('清空購物車失敗:', error);
-                    showMessage('error', '清空購物車時發生錯誤，請稍後再試。');
-                }
+            if (newQuantity <= 0) {
+                deleteCartItem(element);
+                return;
             }
-
-            // 處理結帳
-            function handleCheckout() {
-                const pickupStore = document.getElementById('pickup-store').value;
-                const pickupTime = document.getElementById('pickup-time').value;
-                const notes = document.getElementById('notes').value;
-                alert(`準備結帳！\n取餐門市: ${pickupStore}\n取餐時間: ${pickupTime}\n備註: ${notes}\n(此功能尚未完全實作)`);
-            }
-
-            // --- 畫面顯示控制 ---
-            function displayNotLoggedIn() {
-                cartContentDiv.classList.add('hidden');
-                emptyCartMessageDiv.classList.add('hidden');
-                notLoggedInMessageDiv.classList.remove('hidden');
-            }
-
-            function displayEmptyCart() {
-                cartContentDiv.classList.add('hidden');
-                notLoggedInMessageDiv.classList.add('hidden');
-                emptyCartMessageDiv.classList.remove('hidden');
-            }
-
-            function displayCartContent() {
-                notLoggedInMessageDiv.classList.add('hidden');
-                emptyCartMessageDiv.classList.add('hidden');
-                cartContentDiv.classList.remove('hidden');
-            }
-
-            function showMessage(type, message) {
-                if (!messageContainer) return;
-                messageContainer.className = `message-${type}`;
-                messageContainer.textContent = message;
-                messageContainer.classList.remove('hidden');
-
-                setTimeout(() => {
-                    messageContainer.classList.add('hidden');
-                }, 5000);
-            }
-
-            // --- 事件綁定 ---
-            function attachItemEventListeners() {
-                cartItemsBody.querySelectorAll('.plus-btn').forEach(button => {
-                    button.addEventListener('click', (e) => updateQuantity(e.currentTarget, 1));
+            try {
+                const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}/store/${storeId}/meal/${mealId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quantity: newQuantity })
                 });
-                cartItemsBody.querySelectorAll('.minus-btn').forEach(button => {
-                    button.addEventListener('click', (e) => updateQuantity(e.currentTarget, -1));
-                });
-                cartItemsBody.querySelectorAll('.quantity-input').forEach(input => {
-                    input.addEventListener('change', (e) => updateQuantity(e.currentTarget, 0));
-                });
-                cartItemsBody.querySelectorAll('.delete-btn').forEach(button => {
-                    button.addEventListener('click', (e) => deleteCartItem(e.currentTarget));
-                });
-            }
-
-            function attachGlobalEventListeners() {
-                clearCartBtn.addEventListener('click', clearCart);
-                checkoutBtn.addEventListener('click', handleCheckout);
-            }
-
-            // --- 初始化功能 ---
-            function generatePickupTimes() {
-                if (!pickupTimeSelect) return;
-
-                const now = new Date();
-                // 預留 20 分鐘準備時間
-                now.setMinutes(now.getMinutes() + 20);
-
-                // 將分鐘數無條件進位到最近的 15 分鐘
-                const minutes = now.getMinutes();
-                const roundedMinutes = Math.ceil(minutes / 15) * 15;
-                now.setMinutes(roundedMinutes, 0, 0);
-
-                // 設定營業結束時間為當天 24:00 (技術上是隔天 00:00)
-                const closingTime = new Date(now);
-                closingTime.setHours(24, 0, 0, 0);
-
-                while (now < closingTime) {
-                    const option = document.createElement('option');
-                    const hours = String(now.getHours()).padStart(2, '0');
-                    const mins = String(now.getMinutes()).padStart(2, '0');
-                    const timeString = `${hours}:${mins}`;
-                    option.value = timeString;
-                    option.textContent = timeString;
-                    pickupTimeSelect.appendChild(option);
-                    // 增加 15 分鐘
-                    now.setMinutes(now.getMinutes() + 15);
-                }
-            }
-
-            function initializePage() {
-                generatePickupTimes();
-                attachGlobalEventListeners();
+                if (!response.ok) throw new Error('更新失敗');
+                loadCart();
+            } catch (error) {
+                console.error('更新數量失敗:', error);
+                showMessage('error', '更新購物車失敗，請稍後再試。');
                 loadCart();
             }
+        }
 
-            // --- 執行初始化 ---
-            initializePage();
-        });
+        // 刪除單一品項
+        async function deleteCartItem(element) {
+            if (!confirm('確定要從購物車中移除此項商品嗎？')) {
+                return;
+            }
+            const mealId = element.dataset.mealId;
+            const storeId = element.dataset.storeId;
+            if (!storeId) {
+                showMessage('error', '操作失敗：缺少門市資訊。');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}/store/${storeId}/meal/${mealId}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) throw new Error('刪除失敗');
+                showMessage('success', '商品已成功移除！');
+                loadCart();
+            } catch (error) {
+                console.error('刪除商品失敗:', error);
+                showMessage('error', '移除商品失敗，請稍後再試。');
+            }
+        }
+
+        // 清空整個購物車
+        async function clearCart() {
+            if (!confirm('您確定要清空整個購物車嗎？此操作無法復原。')) {
+                return;
+            }
+            try {
+                const response = await fetch(`${API_CART_BASE_URL}/member/${MEMBER_ID}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) throw new Error('清空失敗');
+                showMessage('success', '購物車已成功清空！');
+                loadCart();
+            } catch (error) {
+                console.error('清空購物車失敗:', error);
+                showMessage('error', '清空購物車時發生錯誤，請稍後再試。');
+            }
+        }
+
+        // 處理結帳
+        function handleCheckout() {
+            const pickupStore = document.getElementById('pickup-store').value;
+            const pickupTime = document.getElementById('pickup-time').value;
+            const notes = document.getElementById('notes').value;
+            alert(`準備結帳！\n取餐門市: ${pickupStore}\n取餐時間: ${pickupTime}\n備註: ${notes}\n(此功能尚未完全實作)`);
+        }
+
+        // --- 畫面顯示控制 ---
+        function displayNotLoggedIn() {
+            cartContentDiv.classList.add('hidden');
+            emptyCartMessageDiv.classList.add('hidden');
+            notLoggedInMessageDiv.classList.remove('hidden');
+        }
+        function displayEmptyCart() {
+            cartContentDiv.classList.add('hidden');
+            notLoggedInMessageDiv.classList.add('hidden');
+            emptyCartMessageDiv.classList.remove('hidden');
+        }
+        function displayCartContent() {
+            notLoggedInMessageDiv.classList.add('hidden');
+            emptyCartMessageDiv.classList.add('hidden');
+            cartContentDiv.classList.remove('hidden');
+        }
+        function showMessage(type, message) {
+            if (!messageContainer) return;
+            messageContainer.className = `message-${type}`;
+            messageContainer.textContent = message;
+            messageContainer.classList.remove('hidden');
+            setTimeout(() => {
+                messageContainer.classList.add('hidden');
+            }, 5000);
+        }
+
+        // --- 事件綁定 ---
+        function attachItemEventListeners() {
+            cartItemsBody.querySelectorAll('.plus-btn').forEach(button => button.addEventListener('click', (e) => updateQuantity(e.currentTarget, 1)));
+            cartItemsBody.querySelectorAll('.minus-btn').forEach(button => button.addEventListener('click', (e) => updateQuantity(e.currentTarget, -1)));
+            cartItemsBody.querySelectorAll('.quantity-input').forEach(input => input.addEventListener('change', (e) => updateQuantity(e.currentTarget, 0)));
+            cartItemsBody.querySelectorAll('.delete-btn').forEach(button => button.addEventListener('click', (e) => deleteCartItem(e.currentTarget)));
+        }
+        function attachGlobalEventListeners() {
+            if(clearCartBtn) clearCartBtn.addEventListener('click', clearCart);
+            if(checkoutBtn) checkoutBtn.addEventListener('click', handleCheckout);
+        }
+
+        // --- 初始化功能 ---
+        function generatePickupTimes() {
+            if (!pickupTimeSelect) return;
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 20);
+            const minutes = now.getMinutes();
+            const roundedMinutes = Math.ceil(minutes / 15) * 15;
+            now.setMinutes(roundedMinutes, 0, 0);
+            const closingTime = new Date(now);
+            closingTime.setHours(24, 0, 0, 0);
+            while (now < closingTime) {
+                const option = document.createElement('option');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const mins = String(now.getMinutes()).padStart(2, '0');
+                const timeString = `${hours}:${mins}`;
+                option.value = timeString;
+                option.textContent = timeString;
+                pickupTimeSelect.appendChild(option);
+                now.setMinutes(now.getMinutes() + 15);
+            }
+        }
+        
+        function initializePage() {
+            generatePickupTimes();
+            attachGlobalEventListeners();
+            loadCart();
+        }
+
+        // --- 執行初始化 ---
+        initializePage();
+    });
     </script>
 </body>
 </html>
