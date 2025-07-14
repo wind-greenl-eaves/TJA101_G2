@@ -1,7 +1,18 @@
 <!-- =======================================================================================
-     檔案: addEmployee.html (後端驗證版)
-     說明: 核心修改 -> 已移除所有 HTML5 前端驗證屬性 (如 required, pattern)。
-           現在所有驗證將完全依賴後端 Spring Boot 的 @Valid 註解。
+     檔案: addEmployee.html (完全後端驗證版)
+     說明: 【核心修改 - 2025/01/14】
+           1. 完全移除所有 HTML5 前端驗證屬性 (required, pattern, minlength, maxlength)
+           2. 移除所有前端 JavaScript 驗證邏輯
+           3. 所有驗證完全依賴後端 Spring Boot 的 @Valid 註解和自定義驗證器
+           4. 前端只負責顯示後端回傳的驗證錯誤訊息
+           5. 保留必要的 UI 互動功能（檔案上傳、密碼顯示切換等）
+     修改項目:
+           - 移除 input 標籤的 required 屬性
+           - 移除 input 標籤的 pattern 屬性  
+           - 移除 input 標籤的 minlength/maxlength 屬性
+           - 移除 select 標籤的 required 屬性
+           - 保留 placeholder 提示文字供使用者參考
+           - 保留錯誤訊息顯示區域供後端錯誤顯示
      ======================================================================================= -->
 <!DOCTYPE html>
 <html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
@@ -26,7 +37,7 @@
             <img th:src="@{/images/123.png}" alt="Icon" class="w-10 h-10 mr-2">
             <div>
                 <h1 class="text-xl font-bold">新增員工資料</h1>
-                <p class="text-sm text-gray-500">請填寫所有必填欄位</p>
+                <p class="text-sm text-gray-500">請填寫員工資料，必填欄位由後端驗證</p>
             </div>
         </div>
         <a th:href="@{/employee/select_page}" class="cancel-button">
@@ -38,52 +49,85 @@
     
     <form id="add-form"
           th:action="@{/api/v1/employees}"
-          class="p-8 space-y-6">
+          method="post"
+          enctype="multipart/form-data"
+          class="p-8 space-y-6"
+          novalidate>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
             <!-- 員工姓名 -->
             <div>
                 <label for="username" class="form-label">員工姓名</label>
-                <!-- 【修正】: 移除 required, minlength, maxlength, title -->
-                <input type="text" id="username" name="username" class="form-input" placeholder="例如: 王大明" />
+                <input type="text" 
+                       id="username" 
+                       name="username" 
+                       class="form-input" 
+                       placeholder="例如: 王大明" 
+                       autocomplete="name" />
                 <div id="error-username" class="error-message"></div>
             </div>
+            
             <!-- 登入帳號 -->
             <div>
                 <label for="account" class="form-label">登入帳號</label>
-                <!-- 【修正】: 移除 required, maxlength, pattern, title -->
-                <input type="text" id="account" name="account" class="form-input" placeholder="限英數、底線、點、連字號" />
+                <input type="text" 
+                       id="account" 
+                       name="account" 
+                       class="form-input" 
+                       placeholder="限英數、底線、點、連字號" 
+                       autocomplete="username" />
                 <div id="error-account" class="error-message"></div>
             </div>
+            
             <!-- 電子郵件 -->
             <div class="sm:col-span-2">
                 <label for="email" class="form-label">電子郵件</label>
-                <!-- 【修正】: 移除 required, title -->
-                <input type="email" id="email" name="email" class="form-input" placeholder="例如: david.wang@example.com" />
+                <input type="email" 
+                       id="email" 
+                       name="email" 
+                       class="form-input" 
+                       placeholder="例如: david.wang@example.com" 
+                       autocomplete="email" />
                 <div id="error-email" class="error-message"></div>
             </div>
+            
             <!-- 聯絡電話 -->
             <div class="sm:col-span-2">
                 <label for="phone" class="form-label">聯絡電話</label>
-                <!-- 【修正】: 移除 required, pattern, title -->
-                <input type="tel" id="phone" name="phone" class="form-input" placeholder="例如: 0912-345-678" />
+                <input type="tel" 
+                       id="phone" 
+                       name="phone" 
+                       class="form-input" 
+                       placeholder="例如: 0912-345-678" 
+                       autocomplete="tel" />
                 <div id="error-phone" class="error-message"></div>
             </div>
-             <!-- 身分證字號 -->
+            
+            <!-- 身分證字號 -->
             <div>
                 <label for="nationalId" class="form-label">身分證字號</label>
-                <!-- 【修正】: 移除 required, pattern, title -->
-                <input type="text" id="nationalId" name="nationalId" class="form-input" placeholder="例如: A123456789" />
+                <input type="text" 
+                       id="nationalId" 
+                       name="nationalId" 
+                       class="form-input" 
+                       placeholder="例如: A123456789" 
+                       autocomplete="off" />
                 <div id="error-nationalId" class="error-message"></div>
             </div>
-             <!-- 密碼 -->
+            
+            <!-- 密碼 -->
             <div class="password-wrapper">
                 <label for="password" class="form-label">登入密碼</label>
-                <!-- 【修正】: 移除 required, pattern, title -->
-                <input type="password" id="password" name="password" class="form-input" placeholder="至少8碼，英數混合" />
+                <input type="password" 
+                       id="password" 
+                       name="password" 
+                       class="form-input" 
+                       placeholder="至少8碼，英數混合" 
+                       autocomplete="new-password" />
                 <i class="fas fa-eye password-toggle-icon" id="password-toggle"></i>
                 <div id="error-password" class="error-message"></div>
             </div>
+            
             <!-- 員工角色 -->
             <div>
                 <label for="role" class="form-label">員工角色</label>
@@ -107,7 +151,7 @@
                     </div>
                 </div>
                 
-                <!-- 一般員工：不應該能進入新增頁面，但如果進入就顯示錯誤 -->
+                <!-- 一般員工：不應該能進入新增頁面 -->
                 <div th:if="${session.loggedInEmployee?.role?.name() == 'STAFF'}">
                     <div class="form-input bg-red-100 text-red-600 cursor-not-allowed flex items-center">
                         <i class="fas fa-exclamation-triangle mr-2"></i>
@@ -117,10 +161,10 @@
                 
                 <div id="error-role" class="error-message"></div>
             </div>
+            
             <!-- 員工性別 -->
             <div>
                 <label for="gender" class="form-label">員工性別</label>
-                 <!-- 【修正】: 移除 required -->
                 <select id="gender" name="gender" class="form-input">
                     <option value="" disabled selected>-- 請選擇性別 --</option>
                     <option th:each="genderOpt : ${T(com.eatfast.common.enums.Gender).values()}"
@@ -129,6 +173,7 @@
                 </select>
                 <div id="error-gender" class="error-message"></div>
             </div>
+            
             <!-- 所屬門市 -->
             <div class="sm:col-span-2">
                 <label for="storeId" class="form-label">所屬門市</label>
@@ -153,7 +198,7 @@
                     </div>
                 </div>
                 
-                <!-- 一般員工：不應該能進入新增頁面，但如果進入就顯示錯誤 -->
+                <!-- 一般員工：不應該能進入新增頁面 -->
                 <div th:if="${session.loggedInEmployee?.role?.name() == 'STAFF'}">
                     <div class="form-input bg-red-100 text-red-600 cursor-not-allowed">
                         <i class="fas fa-exclamation-triangle mr-2"></i>
@@ -167,57 +212,64 @@
 
         <!-- 員工照片上傳 -->
         <div class="mt-8 border-t border-[var(--border-color)] pt-8">
-            <label for="photo" class="form-label block mb-4">員工照片</label>
+            <label for="photo" class="form-label block mb-4">員工照片 <span class="text-sm text-gray-500">(選填)</span></label>
             <div class="mt-2 flex justify-center rounded-lg border border-dashed border-[var(--border-color)] px-6 py-10 transition-colors hover:border-[var(--primary-color)]" id="drop-zone">
                 <div class="text-center">
-                    <img id="preview-image" class="mx-auto h-32 w-32 object-cover rounded-full hidden mb-4">
+                    <img id="preview-image" class="mx-auto h-32 w-32 object-cover rounded-full hidden mb-4" alt="預覽圖片">
                     <div id="upload-placeholder" class="flex flex-col items-center">
                         <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
                         <div class="flex text-sm leading-6 text-gray-600">
                             <label for="photo" class="relative cursor-pointer rounded-md font-semibold text-[var(--primary-color)] hover:text-[var(--primary-hover)] focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--primary-color)] focus-within:ring-offset-2">
                                 <span>上傳照片</span>
-                                <input id="photo" name="photo" type="file" class="sr-only" accept="image/jpeg,image/png,image/gif">
+                                <input id="photo" 
+                                       name="photo" 
+                                       type="file" 
+                                       class="sr-only" 
+                                       accept="image/jpeg,image/png,image/gif,image/webp">
                             </label>
                             <p class="pl-1">或將檔案拖曳至此處</p>
                         </div>
-                        <p class="text-xs leading-5 text-gray-600 mt-1">PNG, JPG, JPEG, GIF 最大 5MB</p>
+                        <p class="text-xs leading-5 text-gray-600 mt-1">PNG, JPG, JPEG 最大 5MB</p>
                     </div>
                 </div>
             </div>
             <div id="error-photo" class="error-message mt-2"></div>
         </div>
 
-        <div class="flex items-center justify-end pt-6 border-t border-[var(--border-color)]">
-            <!-- 新增隨機填入資料按鈕 -->
-            <button type="button" id="random-fill-btn" class="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors mr-4">
+        <div class="flex items-center justify-end pt-6 border-t border-[var(--border-color)] space-x-4">
+            <!-- 隨機填入測試資料按鈕 -->
+            <button type="button" 
+                    id="random-fill-btn" 
+                    class="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
                 <i class="fas fa-dice mr-2"></i>隨機填入測試資料
             </button>
-            <button type="submit" class="submit-button">
+            
+            <button type="submit" 
+                    class="submit-button"
+                    id="submit-btn">
                 <i class="fas fa-plus mr-2"></i>確認新增
             </button>
         </div>
     </form>
 </div>
 
-<!-- 成功提示 Modal (維持不變) -->
-<div id="success-modal" class="fixed inset-0 z-50 hidden">
-    <div class="fixed inset-0 bg-black bg-opacity-50"></div>
-    <div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 shadow-xl w-96">
-        <div class="text-center">
-            <div class="w-16 h-16 rounded-full bg-green-100 p-2 flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-check text-3xl text-green-500"></i>
-            </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-4" id="success-modal-message"></h3>
-            <button id="success-modal-confirm" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
-                返回列表
+<!-- 成功提示模態框 -->
+<div id="success-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 m-4 max-w-md w-full">
+        <div class="flex items-center mb-4">
+            <i class="fas fa-check-circle text-green-500 text-2xl mr-3"></i>
+            <h3 class="text-lg font-semibold text-gray-900">新增成功</h3>
+        </div>
+        <p id="success-modal-message" class="text-gray-700 mb-6"></p>
+        <div class="flex justify-end">
+            <button id="success-modal-confirm" 
+                    class="bg-[var(--primary-color)] text-white px-4 py-2 rounded-lg hover:bg-[var(--primary-hover)] transition-colors">
+                確定
             </button>
         </div>
     </div>
 </div>
 
-<!-- 引入Session警告系統 -->
-<script th:src="@{/js/common/sessionWarning.js}"></script>
 <script th:src="@{/js/employee/add.js}"></script>
-
 </body>
 </html>
