@@ -174,7 +174,7 @@
             border-radius: 0.5rem;
             border: 1px solid var(--border-color);
             box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1);
-            z-index: 10; /* 確保詳細資訊面板在適當的層級 */
+            z-index: 1001; /* 確保詳細資訊面板在比例提示之上 */
         }
 
         @media (max-width: 1400px) {
@@ -311,6 +311,131 @@
         .status-inactive {
             background-color: rgba(244, 67, 54, 0.1);
             color: #F44336;
+        }
+
+        /* 切換動畫樣式 */
+        .query-section {
+            transition: all 0.3s ease-in-out;
+            opacity: 1;
+            transform: translateY(0);
+            min-height: 400px; /* 設定最小高度確保一致性 */
+        }
+
+        .query-section.hidden {
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+            position: absolute;
+            width: 100%;
+            min-height: 400px; /* 保持相同的最小高度 */
+        }
+
+        /* 查詢區塊容器，使用相對定位 */
+        .query-sections-container {
+            position: relative;
+            min-height: 400px; /* 確保容器有固定的最小高度 */
+        }
+
+        /* 網頁比例提示樣式 */
+        .scale-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(166, 123, 91, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+            /* 添加縮放相關樣式 */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .scale-indicator:hover {
+            background: rgba(166, 123, 91, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .scale-indicator:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .scale-indicator i {
+            margin-right: 6px;
+        }
+
+        /* 縮放控制按鈕 */
+        .scale-controls {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .scale-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: 12px;
+        }
+
+        .scale-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .scale-percentage {
+            font-weight: 600;
+            min-width: 35px;
+            text-align: center;
+        }
+
+        /* 頁面縮放容器 */
+        .page-scale-container {
+            transform-origin: top left;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 當縮放時調整 body 的尺寸 */
+        body.scaled {
+            overflow-x: auto;
+            overflow-y: auto;
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 768px) {
+            .scale-indicator {
+                bottom: 15px;
+                right: 15px;
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+            
+            .scale-btn {
+                width: 20px;
+                height: 20px;
+                font-size: 10px;
+            }
         }
     </style>
 </head>
@@ -488,102 +613,105 @@
                 </button>
             </div>
 
-            <!-- 員工查詢區塊 -->
-            <div id="employee-query-section">
-                <!-- 單一查詢區塊 -->
-                <div id="single-query-section" class="space-y-6">
-                    <!-- 查詢所有員工資料 - 根據權限顯示 -->
-                    <div th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}"
-                         class="form-container hover:shadow-md transition-shadow cursor-pointer"
-                         onclick="window.location.href='/employee/listAll'">
-                        <span class="font-semibold text-lg">查詢所有員工資料 (總部管理員專用)</span>
-                        <span class="text-lg text-[var(--primary-color)]">➔</span>
-                    </div>
+            <!-- 查詢區塊容器，確保固定高度 -->
+            <div class="query-sections-container">
+                <!-- 員工查詢區塊 -->
+                <div id="employee-query-section" class="query-section">
+                    <!-- 單一查詢區塊 -->
+                    <div id="single-query-section" class="space-y-6">
+                        <!-- 查詢所有員工資料 - 根據權限顯示 -->
+                        <div th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}"
+                             class="form-container hover:shadow-md transition-shadow cursor-pointer"
+                             onclick="window.location.href='/employee/listAll'">
+                            <span class="font-semibold text-lg">查詢所有員工資料 (總部管理員專用)</span>
+                            <span class="text-lg text-[var(--primary-color)]">➔</span>
+                        </div>
 
-                    <!-- 門市經理的查詢功能 -->
-                    <div th:if="${session.loggedInEmployee?.role?.name() == 'MANAGER'}"
-                         class="form-container hover:shadow-md transition-shadow cursor-pointer"
-                         onclick="window.location.href='/employee/listAll'">
-                        <span class="font-semibold text-lg">查詢本門市員工資料 (門市經理專用)</span>
-                        <span class="text-lg text-[var(--primary-color)]">➔</span>
-                    </div>
+                        <!-- 門市經理的查詢功能 -->
+                        <div th:if="${session.loggedInEmployee?.role?.name() == 'MANAGER'}"
+                             class="form-container hover:shadow-md transition-shadow cursor-pointer"
+                             onclick="window.location.href='/employee/listAll'">
+                            <span class="font-semibold text-lg">查詢本門市員工資料 (門市經理專用)</span>
+                            <span class="text-lg text-[var(--primary-color)]">➔</span>
+                        </div>
 
-                    <!-- 一般員工的提示訊息 -->
-                    <div th:if="${session.loggedInEmployee?.role?.name() == 'STAFF'}"
-                         class="form-container bg-gray-100 cursor-not-allowed opacity-60">
-                        <span class="font-semibold text-lg text-gray-500">員工資料查詢 (權限不足)</span>
-                        <span class="text-lg text-gray-400">✗</span>
-                    </div>
+                        <!-- 一般員工的提示訊息 -->
+                        <div th:if="${session.loggedInEmployee?.role?.name() == 'STAFF'}"
+                             class="form-container bg-gray-100 cursor-not-allowed opacity-60">
+                            <span class="font-semibold text-lg text-gray-500">員工資料查詢 (權限不足)</span>
+                            <span class="text-lg text-gray-400">✗</span>
+                        </div>
 
-                    <!-- 原有的查詢功能 - 根據權限控制 -->
-                    <div th:if="${session.loggedInEmployee?.role?.name() != 'STAFF'}">
-                        <form id="query-by-id-input-form" class="form-container">
-                            <label for="employee-id-input" class="form-label text-lg">輸入員工編號：</label>
-                            <input type="text" id="employee-id-input" name="employeeId" placeholder="例如: 1" class="form-input text-lg">
-                            <button type="submit" class="submit-btn text-lg">送出查詢</button>
-                        </form>
-                        <form id="query-by-id-select-form" class="form-container">
-                            <label for="employee-id-select" class="form-label text-lg">選擇員工編號：</label>
-                            <select id="employee-id-select" name="employeeId" class="form-input text-lg">
-                                <option value="">-- 載入中... --</option>
-                            </select>
-                            <button type="submit" class="submit-btn text-lg">送出查詢</button>
-                        </form>
-                        <form id="query-by-name-select-form" class="form-container">
-                            <label for="employee-name-select" class="form-label text-lg">選擇員工姓名：</label>
-                            <select id="employee-name-select" name="employeeId" class="form-input text-lg">
-                                <option value="">-- 載入中... --</option>
-                            </select>
-                            <button type="submit" class="submit-btn text-lg">送出查詢</button>
-                        </form>
+                        <!-- 原有的查詢功能 - 根據權限控制 -->
+                        <div th:if="${session.loggedInEmployee?.role?.name() != 'STAFF'}">
+                            <form id="query-by-id-input-form" class="form-container">
+                                <label for="employee-id-input" class="form-label text-lg">輸入員工編號：</label>
+                                <input type="text" id="employee-id-input" name="employeeId" placeholder="例如: 1" class="form-input text-lg">
+                                <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                            </form>
+                            <form id="query-by-id-select-form" class="form-container">
+                                <label for="employee-id-select" class="form-label text-lg">選擇員工編號：</label>
+                                <select id="employee-id-select" name="employeeId" class="form-input text-lg">
+                                    <option value="">-- 載入中... --</option>
+                                </select>
+                                <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                            </form>
+                            <form id="query-by-name-select-form" class="form-container">
+                                <label for="employee-name-select" class="form-label text-lg">選擇員工姓名：</label>
+                                <select id="employee-name-select" name="employeeId" class="form-input text-lg">
+                                    <option value="">-- 載入中... --</option>
+                                </select>
+                                <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 門市查詢區塊 (初始隱藏) -->
-            <div id="store-query-section" class="hidden">
-                <div class="space-y-6">
-                    <!-- 查詢所有門市資料 - 僅總部管理員可見 -->
-                    <div th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}"
-                         class="form-container hover:shadow-md transition-shadow cursor-pointer"
-                         onclick="window.location.href='/store/listAll'">
-                        <span class="font-semibold text-lg">查詢所有門市資料</span>
-                        <span class="text-lg text-[var(--primary-color)]">➔</span>
-                    </div>
+                <!-- 門市查詢區塊 (初始隱藏) -->
+                <div id="store-query-section" class="hidden query-section">
+                    <div class="space-y-6">
+                        <!-- 查詢所有門市資料 - 僅總部管理員可見 -->
+                        <div th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}"
+                             class="form-container hover:shadow-md transition-shadow cursor-pointer"
+                             onclick="window.location.href='/store/listAll'">
+                            <span class="font-semibold text-lg">查詢所有門市資料</span>
+                            <span class="text-lg text-[var(--primary-color)]">➔</span>
+                        </div>
 
-                    <!-- 非總部管理員的提示訊息 -->
-                    <div th:if="${session.loggedInEmployee?.role?.name() != 'HEADQUARTERS_ADMIN'}"
-                         class="form-container bg-gray-100 cursor-not-allowed opacity-60">
-                        <span class="font-semibold text-lg text-gray-500">門市資料查詢 (權限不足)</span>
-                        <span class="text-lg text-gray-400">✗</span>
-                    </div>
+                        <!-- 非總部管理員的提示訊息 -->
+                        <div th:if="${session.loggedInEmployee?.role?.name() != 'HEADQUARTERS_ADMIN'}"
+                             class="form-container bg-gray-100 cursor-not-allowed opacity-60">
+                            <span class="font-semibold text-lg text-gray-500">門市資料查詢 (權限不足)</span>
+                            <span class="text-lg text-gray-400">✗</span>
+                        </div>
 
-                    <!-- 門市查詢功能 - 僅總部管理員可見 -->
-                    <div th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
-                        <form id="store-query-by-id-input-form" class="form-container">
-                            <label for="store-id-input" class="form-label text-lg">輸入門市編號：</label>
-                            <input type="text" id="store-id-input" name="storeId" placeholder="例如: 1" class="form-input text-lg">
-                            <button type="submit" class="submit-btn text-lg">送出查詢</button>
-                        </form>
-                        <form id="store-query-by-name-input-form" class="form-container">
-                            <label for="store-name-input" class="form-label text-lg">輸入門市名稱：</label>
-                            <input type="text" id="store-name-input" name="storeName" placeholder="例如: 一號店" class="form-input text-lg">
-                            <button type="submit" class="submit-btn text-lg">送出查詢</button>
-                        </form>
-                        <form id="store-query-by-id-select-form" class="form-container">
-                            <label for="store-id-select" class="form-label text-lg">選擇門市編號：</label>
-                            <select id="store-id-select" name="storeId" class="form-input text-lg">
-                                <option value="">-- 載入中... --</option>
-                            </select>
-                            <button type="submit" class="submit-btn text-lg">送出查詢</button>
-                        </form>
-                        <form id="store-query-by-name-select-form" class="form-container">
-                            <label for="store-name-select" class="form-label text-lg">選擇門市名稱：</label>
-                            <select id="store-name-select" name="storeId" class="form-input text-lg">
-                                <option value="">-- 載入中... --</option>
-                            </select>
-                            <button type="submit" class="submit-btn text-lg">送出查詢</button>
-                        </form>
+                        <!-- 門市查詢功能 - 僅總部管理員可見 -->
+                        <div th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
+                            <form id="store-query-by-id-input-form" class="form-container">
+                                <label for="store-id-input" class="form-label text-lg">輸入門市編號：</label>
+                                <input type="text" id="store-id-input" name="storeId" placeholder="例如: 1" class="form-input text-lg">
+                                <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                            </form>
+                            <form id="store-query-by-name-input-form" class="form-container">
+                                <label for="store-name-input" class="form-label text-lg">輸入門市名稱：</label>
+                                <input type="text" id="store-name-input" name="storeName" placeholder="例如: 一號店" class="form-input text-lg">
+                                <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                            </form>
+                            <form id="store-query-by-id-select-form" class="form-container">
+                                <label for="store-id-select" class="form-label text-lg">選擇門市編號：</label>
+                                <select id="store-id-select" name="storeId" class="form-input text-lg">
+                                    <option value="">-- 載入中... --</option>
+                                </select>
+                                <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                            </form>
+                            <form id="store-query-by-name-select-form" class="form-container">
+                                <label for="store-name-select" class="form-label text-lg">選擇門市名稱：</label>
+                                <select id="store-name-select" name="storeId" class="form-input text-lg">
+                                    <option value="">-- 載入中... --</option>
+                                </select>
+                                <button type="submit" class="submit-btn text-lg">送出查詢</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -592,10 +720,10 @@
         <!-- 員工管理區塊 -->
         <section>
             <div class="section-title-container">
-                <h2 class="section-title">員工管理</h2>
+                <h2 class="section-title" id="management-section-title">員工管理</h2>
             </div>
-            <a th:href="@{/employee/add}" class="form-container hover:shadow-md transition-shadow cursor-pointer">
-                <span class="font-semibold text-lg">新增員工資料</span>
+            <a href="#" id="add-data-link" class="form-container hover:shadow-md transition-shadow cursor-pointer">
+                <span class="font-semibold text-lg" id="add-data-text">新增員工資料</span>
                 <span class="text-lg text-[var(--primary-color)]">➔</span>
             </a>
         </section>
@@ -606,6 +734,9 @@
         <div class="p-6">
             <div class="section-title-container mb-6">
                 <h2 class="section-title">員工詳細資訊</h2>
+                <button id="close-employee-detail-btn" class="text-gray-500 hover:text-gray-700 transition-colors ml-2">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
             </div>
             <div class="space-y-6">
                 <!-- 基本資料區塊 -->
@@ -648,6 +779,9 @@
         <div class="p-6">
             <div class="section-title-container mb-6">
                 <h2 class="section-title">門市詳細資訊</h2>
+                <button id="close-store-detail-btn" class="text-gray-500 hover:text-gray-700 transition-colors ml-2">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
             </div>
             <div class="space-y-6">
                 <div>
@@ -698,6 +832,11 @@
     </div>
 </div>
 
+<!-- 網頁比例提示 -->
+<div class="scale-indicator">
+    <i class="fas fa-search-plus"></i>
+    網頁比例80%為最佳操作視覺
+</div>
 
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function() {
@@ -1106,6 +1245,24 @@
         // --- 頁面初始化 ---
         populateEmployeeSelects();
 
+        // --- 關閉按鈕事件監聽器 ---
+        const closeEmployeeDetailBtn = document.getElementById('close-employee-detail-btn');
+        const closeStoreDetailBtn = document.getElementById('close-store-detail-btn');
+
+        // 員工詳細資訊關閉按鈕
+        if (closeEmployeeDetailBtn) {
+            closeEmployeeDetailBtn.addEventListener('click', function() {
+                document.getElementById('employee-detail-section').classList.add('hidden');
+            });
+        }
+
+        // 門市詳細資訊關閉按鈕
+        if (closeStoreDetailBtn) {
+            closeStoreDetailBtn.addEventListener('click', function() {
+                document.getElementById('store-detail-section').classList.add('hidden');
+            });
+        }
+
         // --- 查詢類型切換邏輯 ---
         const toggleQueryTypeBtn = document.getElementById('toggle-query-type-btn');
         const employeeQuerySection = document.getElementById('employee-query-section');
@@ -1123,6 +1280,11 @@
                 querySectionTitle.innerHTML = '門市資料查詢';
                 toggleQueryTypeBtn.innerHTML = '<i class="fas fa-user mr-2"></i>切換為員工查詢';
                 
+                // 更新管理區塊標題和新增連結
+                document.getElementById('management-section-title').innerHTML = '門市管理';
+                document.getElementById('add-data-text').innerHTML = '新增門市資料';
+                document.getElementById('add-data-link').href = '/store/add';
+                
                 // 隱藏員工詳細資訊，顯示門市詳細資訊
                 document.getElementById('employee-detail-section').classList.add('hidden');
                 
@@ -1134,6 +1296,11 @@
                 storeQuerySection.classList.add('hidden');
                 querySectionTitle.innerHTML = '員工資料查詢';
                 toggleQueryTypeBtn.innerHTML = '<i class="fas fa-store mr-2"></i>切換為門市查詢';
+                
+                // 恢復管理區塊標題和新增連結
+                document.getElementById('management-section-title').innerHTML = '員工管理';
+                document.getElementById('add-data-text').innerHTML = '新增員工資料';
+                document.getElementById('add-data-link').href = '/employee/add';
                 
                 // 隱藏門市詳細資訊
                 document.getElementById('store-detail-section').classList.add('hidden');
