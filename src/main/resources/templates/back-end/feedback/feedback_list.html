@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>意見回饋清單 - 後台管理</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8f0e3;
+            padding: 30px;
+        }
+        .list-container {
+            max-width: 1200px;
+            margin: auto;
+            background-color: #fffaf0;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(160, 82, 45, 0.1);
+        }
+        .list-container h2 {
+            color: #8B4513;
+            text-align: center;
+            margin-bottom: 35px;
+            font-weight: 700;
+        }
+        .table {
+            background-color: #fff;
+        }
+        .table thead {
+            background-color: #e0d8c4;
+            color: #8B4513;
+        }
+        .table th, .table td {
+            vertical-align: middle;
+            text-align: center;
+        }
+        .content-cell {
+            max-width: 300px;
+            white-space: pre-wrap; /* 讓內容可以自動換行 */
+            text-align: left !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="list-container">
+    <h2><i class="fas fa-list-alt"></i> 顧客意見回饋清單</h2>
+
+    <div class="table-responsive" th:if="${not #lists.isEmpty(feedbackList)}">
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>編號</th>
+                <th>會員姓名</th>
+                <th>連絡電話</th>
+                <th style="width: 30%;">意見內容</th>
+                <th>用餐時間</th>
+                <th>用餐門市</th>
+                <th>提交時間</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="fb : ${feedbackList}">
+                <td th:text="${fb.feedbackId}"></td>
+                <td th:text="${fb.member.username}"></td>
+                <td th:text="${fb.phone}"></td>
+                <td class="content-cell" th:text="${fb.content}"></td>
+                <td th:text="${fb.diningTime}"></td>
+                <td th:text="${fb.diningStore}"></td>
+                <td th:text="${#temporals.format(fb.createTime, 'yyyy-MM-dd HH:mm')}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${#lists.isEmpty(feedbackList)}" class="text-center text-muted mt-5">
+        <h4><i class="fas fa-info-circle"></i> 目前尚無任何意見回饋</h4>
+    </div>
+</div>
+
+</body>
+</html>

@@ -7,6 +7,7 @@ import com.eatfast.member.repository.MemberRepository;
 import com.eatfast.store.model.StoreEntity;
 import com.eatfast.store.repository.StoreRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.eatfast.feedback.repository.FeedbackRepository;
@@ -59,12 +60,44 @@ public class FeedbackService {
 
         return feedbackRepository.save(feedback);
     }
+// 在 FeedbackService.java 的 createFeedback 方法中
 
-    // --- 您其他的優秀方法 (維持不變) ---
-    public List<FeedbackEntity> findAll() {
-        return feedbackRepository.findAll();
+    // ...
+    @Transactional
+    public FeedbackEntity createFeedback(Long memberId, Long storeId, String phone, String content, String diningTime, String diningStore) { // <-- 增加參數
+        MemberEntity member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("找不到會員 ID: " + memberId));
+
+        // 如果您的下拉選單是註解掉的，storeId 可能會是 null，需要處理這種情況
+        // 這裡暫時假設 storeId 不會被用到，或者您之後會恢復下拉選單
+        // StoreEntity store = storeRepository.findById(storeId)
+        //         .orElseThrow(() -> new EntityNotFoundException("找不到門市 ID: " + storeId));
+
+        FeedbackEntity feedback = new FeedbackEntity();
+        feedback.setPhone(phone);
+        feedback.setContent(content);
+        feedback.setMember(member);
+        // feedback.setStore(store); // 暫時註解
+
+        // ★★★ 設定新欄位的資料 ★★★
+        feedback.setDiningTime(diningTime);
+        feedback.setDiningStore(diningStore);
+
+        feedback.setSubmissionDate(LocalDateTime.now());
+        feedback.setStatus("待處理");
+
+        return feedbackRepository.save(feedback);
     }
 
+    @Transactional(readOnly = true)
+
+        // ... 其他程式碼 ...
+
+        // ✅ 我們需要的就是這個方法
+        public List<FeedbackEntity> findAll() {
+            // 加上排序，讓最新的意見顯示在最前面
+            return feedbackRepository.findAll(Sort.by(Sort.Direction.DESC, "feedbackId"));
+        }
     public Optional<FeedbackEntity> findById(Long id) {
         return feedbackRepository.findById(id);
     }

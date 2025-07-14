@@ -167,4 +167,30 @@ public class FeedbackEntity {
 
     public void setStatus(String 待處理) {
     }
+    // 在 FeedbackEntity.java 中
+
+    // ... 其他屬性 ...
+    @Column(name = "dining_time")
+    private String diningTime;
+
+    @Column(name = "dining_store")
+    private String diningStore;
+
+// ... 其他 getter 和 setter ...
+
+    public String getDiningTime() {
+        return diningTime;
+    }
+
+    public void setDiningTime(String diningTime) {
+        this.diningTime = diningTime;
+    }
+
+    public String getDiningStore() {
+        return diningStore;
+    }
+
+    public void setDiningStore(String diningStore) {
+        this.diningStore = diningStore;
+    }
 }
