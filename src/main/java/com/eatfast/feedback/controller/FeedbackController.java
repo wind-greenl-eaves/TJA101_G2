@@ -77,6 +77,9 @@ public class FeedbackController {
     // ✅ 這是唯一且合併修正後的 submitFeedback 方法
     // 在 FeedbackController.java 中
 
+    // ✅ 這是唯一且合併修正後的 submitFeedback 方法
+    // 在 FeedbackController.java 中
+
     @PostMapping("/submit")
     public String submitFeedback(@ModelAttribute("feedback") FeedbackEntity feedback,
                                  @RequestParam(name = "store.storeId", required = false) Long storeId,
