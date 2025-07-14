@@ -54,13 +54,14 @@ public class FrontMealController {
     	        mealDTOList = mealService.getAllAvailableWithFavored(memberId);
     	    }
 
-    	    // 取得所有門市（for 下拉選單）
-    	    List<StoreDto> storeList = storeService.getAllStoreDTOs();
-    	    model.addAttribute("storeList", storeList);
-
+    	    // 取得所有門市，過濾掉總部（for 下拉選單）
+    	    List<StoreDto> publicStores = storeService.findAllPublicStores();
+    	    
+    	    // 將已過濾的門市列表加到 Model 中，供前端 Thymeleaf 產生下拉選單
+    	    model.addAttribute("storeList", publicStores);
+    	    
     	    model.addAttribute("mealListData", mealDTOList);
     	    model.addAttribute("currentMealTypeName", currentMealTypeName);
-    	    model.addAttribute("storeList", storeList);
     	    model.addAttribute("selectedStoreId", storeId);
 
     	    return "front-end/menu/menu-list";
