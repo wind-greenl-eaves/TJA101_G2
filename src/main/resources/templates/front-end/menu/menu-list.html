@@ -57,103 +57,159 @@
 }
 
 :root {
-	--primary-color: #A67B5B; /* 奶茶深 */
-	--primary-hover: #8B5A3C; /* 奶茶hover */
-	--shadow-light: #E5D0B6; /* 奶茶陰影 */
-	--text-color: #7a6451; /* 莫蘭迪深文字 */
+    --bg-color: #FDFBF6;
+    --container-bg: #FFFFFF;
+    --primary-color: #A67B5B;
+    --primary-hover: #8C684A;
+    --text-color: #5D534A;
+    --border-color: #DED0B6;
+    --header-bg: #F5EFE6;
+    --accent-color: #E1A87A;
+    --shadow-light: rgba(0, 0, 0, 0.1);
+    --shadow-medium: rgba(0, 0, 0, 0.15);
 }
+/* Navigation Bar */
+        .nav-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px; /* 固定導航欄高度 */
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.5rem 0;
+            box-shadow: 0 2px 10px var(--shadow-light);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
 
-.nav-fixed {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 60px;
-	background: rgba(255, 255, 255, 0.95);
-	box-shadow: 0 2px 10px var(--shadow-light);
-	z-index: 1000;
-	backdrop-filter: blur(10px);
-}
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
 
-.nav-container {
-	max-width: 1200px;
-	margin: 0 auto;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 0 2rem;
-}
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: var(--primary-color);
+        }
 
-.nav-logo {
-	display: flex;
-	align-items: center;
-	gap: 1rem;
-	text-decoration: none;
-	color: var(--primary-color);
-}
+        .nav-logo-icon {
+            width: 35px; /* 調整 logo 大小 */
+            height: 35px;
+            object-fit: contain;
+        }
 
-.nav-logo-icon {
-	width: 40px;
-	height: 40px;
-	object-fit: contain;
-}
+        .nav-logo-text {
+            font-size: 1.2rem; /* 調整導航欄文字大小 */
+            font-weight: 700;
+        }
 
-.nav-logo-text {
-	font-size: 1.25rem;
-	font-weight: 700;
-	color: var(--primary-color);
-}
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
 
-.nav-menu {
-	display: flex;
-	gap: 2rem;
-	align-items: center;
-}
+        .nav-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.3s ease;
+            position: relative;
+        }
 
-.nav-link {
-	color: var(--text-color);
-	text-decoration: none;
-	font-weight: 500;
-	transition: color 0.3s;
-	position: relative;
-	padding: 2px 0;
-}
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
 
-.nav-link.active, .nav-link:hover {
-	color: var(--primary-color);
-}
+        .nav-link:hover::after {
+            width: 100%;
+        }
 
-.nav-link::after {
-	content: '';
-	position: absolute;
-	bottom: -5px;
-	left: 0;
-	width: 0;
-	height: 2px;
-	background: var(--primary-color);
-	transition: width 0.3s;
-}
+        .nav-login {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
 
-.nav-link:hover::after, .nav-link.active::after {
-	width: 100%;
-}
+        .nav-login:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+		/* 響應式設計 */
+        @media (max-width: 768px) {
+            .header {
+                padding: 4rem 0 3rem;
+            }
+            
+            .brand-title {
+                font-size: 2.5rem;
+            }
+            
+            .brand-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .nav-logo-text {
+                font-size: 1rem;
+            }
+            
+            .nav-fixed {
+                height: 50px;
+            }
+            
+            .nav-logo-icon {
+                width: 30px;
+                height: 30px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 2rem 1rem;
+            }
+            
+            .header-content {
+                padding: 0 1rem;
+            }
+            
+            .feature-card {
+                padding: 1.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-actions {
+                flex-direction: column;
+            }
+            
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
-.nav-login {
-	background: var(--primary-color);
-	color: white;
-	padding: 0.5rem 1.5rem;
-	border-radius: 50px;
-	text-decoration: none;
-	transition: all 0.3s;
-	font-weight: 600;
-	border: none;
-	outline: none;
-}
 
-.nav-login:hover {
-	background: var(--primary-hover);
-	transform: translateY(-2px);
-}
 </style>
 </head>
 <body class="bg-milktea min-h-screen">
@@ -167,26 +223,27 @@
 	    </script>
 
 	<!-- Navbar -->
-	<header class="w-full shadow bg-white/70 sticky top-0 z-10">
-		<div
-			class="max-w-7xl mx-auto flex items-center justify-between py-2 px-5">
-			<div class="flex items-center gap-3">
-				<img src="images/123.png" alt="EatFast早餐店 Logo"
-					class="nav-logo-icon" /> <span class="nav-logo-text">
-					EatFast 早餐店</span>
+	<nav class="nav-fixed">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="images/123.png" alt="EatFast Logo" class="nav-logo-icon">
+                <span class="nav-logo-text">EatFast 早餐店</span>
+            </a>
+            
+            <div class="nav-menu">
+            	<a href="/store/storelist" class="nav-link">門市據點</a>
+                <a href="/menu" class="nav-link">餐點菜單</a>
+                <!-- 根據登入狀態顯示不同內容 -->
+                <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                   th:href="@{/member/dashboard}" class="nav-link">會員專區</a>
+                <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                   th:href="@{/api/v1/auth/member-login}" class="nav-link">會員專區</a>
+                <a href="/feedback/form" class="nav-link">聯繫我們</a>
+                <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                   th:href="@{/cart}" class="nav-link">購物車</a>
+                <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                   th:href="@{/api/v1/auth/member-login}" class="nav-link">購物車</a>
 			</div>
-			<nav class="flex gap-8">
-				<a href="/welcome"
-					class="text-[#7a6451] hover:text-milktea-dark font-semibold">回到首頁</a>
-				<a href="/about"
-					class="text-[#7a6451] hover:text-milktea-dark font-semibold">關於我們</a>
-				<a href="/store/storelist"
-					class="text-[#7a6451] hover:text-milktea-dark font-semibold">門市據點</a>
-				<a href="/member/dashboard"
-					class="text-[#7a6451] hover:text-milktea-dark font-semibold">會員專區</a>
-				<a href="/cart"
-					class="text-[#7a6451] hover:text-milktea-dark font-semibold">購物車</a>
-			</nav>
 
 			<!-- 登入狀態區塊 -->
 			<div class="flex items-center gap-2">
@@ -214,11 +271,11 @@
 				</a>
 			</div>
 		</div>
-	</header>
+	</nav>
 
 
 	<!-- 主內容區 -->
-	<div class="max-w-7xl mx-auto py-8 flex flex-col md:flex-row gap-6">
+	<div class="max-w-7xl mx-auto py-8 flex flex-col md:flex-row gap-6 pt-24">
 
 		<!-- 左側分類區 -->
 		<aside
