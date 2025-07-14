@@ -36,6 +36,8 @@
 	<properties>
 		<!-- 指定專案使用的 Java 版本 -->
 		<java.version>17</java.version>
+		<!-- 修復 Hibernate Validator 與 Java 17 兼容性問題 -->
+		<hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
 	</properties>
 
 	<!--
@@ -185,6 +187,13 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+		<!-- 顯式添加 Hibernate Validator 以解決 Java 17 兼容性問題 -->
+		<dependency>
+			<groupId>org.hibernate.validator</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>${hibernate-validator.version}</version>
 		</dependency>
 
 		<!--
