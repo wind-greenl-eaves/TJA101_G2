@@ -106,9 +106,13 @@
         }
 
         .nav-logo-text {
-            font-size: 1.2rem; /* 調整導航欄文字大小 */
-            font-weight: 700;
-        }
+    font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+    font-size: 1.2rem;     /* 依需求可拉大或拉小 */
+    font-weight: 700;      /* 跟 .brand-title 一致 */
+    letter-spacing: 0.04em;/* 字距建議跟首頁一樣 */
+    line-height: 1.1;
+}
+
 
         .nav-menu {
             display: flex;
@@ -208,6 +212,44 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+        /* Footer 區域 */
+        .footer {
+            background: var(--primary-hover);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-link:hover {
+            color: var(--accent-color);
+        }
+        
+        .copyright {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
 
 
 </style>
@@ -225,7 +267,7 @@
 	<!-- Navbar -->
 	<nav class="nav-fixed">
         <div class="nav-container">
-            <a href="/" class="nav-logo">
+            <a href="/welcome" class="nav-logo">
                 <img src="images/123.png" alt="EatFast Logo" class="nav-logo-icon">
                 <span class="nav-logo-text">EatFast 早餐店</span>
             </a>
@@ -817,10 +859,11 @@ async function clearCartForStoreChange(newStoreId) {
 
 
 
-	<footer
-		class="bg-brand-deep text-brand-container text-center p-6 mt-16">
-		<p>&copy; © 2025 EatFast 早餐店 - 版權所有 | 為您提供最優質的早餐服務</p>
-	</footer>
+	<footer class="footer">
+            <div class="copyright">
+                © 2025 EatFast 早餐店 - 版權所有 | 為您提供最優質的早餐服務
+            </div>
+    </footer>
 
 
 </body>
