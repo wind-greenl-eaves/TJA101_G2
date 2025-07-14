@@ -24,16 +24,17 @@ public class FeedbackController {
     private final MemberService memberService;
     private final StoreService storeService;
 
+    // 建構子 (維持不變)
     public FeedbackController(FeedbackService feedbackService, MemberService memberService, StoreService storeService) {
         this.feedbackService = feedbackService;
         this.memberService = memberService;
         this.storeService = storeService;
     }
 
+    // 顯示表單的方法 (維持不變)
     @GetMapping("/form")
     public String showFeedbackForm(Model model, HttpSession session) {
         Long memberId = (Long) session.getAttribute("loggedInMemberId");
-
 
         if (memberId == null) {
             return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
@@ -43,6 +44,7 @@ public class FeedbackController {
             MemberEntity loggedInMember = memberService.getMemberById(memberId)
                     .orElseThrow(() -> new EntityNotFoundException("登入的會員不存在，ID: " + memberId));
 
+            // 即使前端沒用到，後端還是可以先準備好
             List<StoreEntity> storeList = storeService.getAllStores();
 
             FeedbackEntity feedback = new FeedbackEntity();
@@ -50,40 +52,42 @@ public class FeedbackController {
             feedback.setPhone(loggedInMember.getPhone());
 
             model.addAttribute("feedback", feedback);
-            model.addAttribute("storeList", storeList);
+            model.addAttribute("storeList", storeList); // 將 storeList 傳遞給前端
 
             return "front-end/feedback/form";
 
         } catch (EntityNotFoundException e) {
             session.invalidate();
-            // ✅ 這裡現在可以安全地執行了
             return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN + "?error=invalid_user";
         }
     }
 
+    // ✅ 這是唯一且合併修正後的 submitFeedback 方法
     @PostMapping("/submit")
     public String submitFeedback(@ModelAttribute("feedback") FeedbackEntity feedback,
-                                 // 這個 @RequestParam 寫法是正確的，它會去抓取名為 "store.storeId" 的參數
-                                 @RequestParam("store.storeId") Long storeId,
+                                 // ✅ 將 storeId 設為非必要參數，這樣即使前端沒傳，程式也不會出錯
+                                 @RequestParam(name = "store.storeId", required = false) Long storeId,
                                  HttpSession session,
                                  RedirectAttributes redirectAttributes) {
 
         Long memberId = (Long) session.getAttribute("loggedInMemberId");
         if (memberId == null) {
-            // ✅ 簡化寫法
             return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN;
         }
 
         try {
+            // ✅ 呼叫最新版本的 service 方法，包含所有欄位
             feedbackService.createFeedback(
                     memberId,
-                    storeId,
+                    storeId, // 如果前端沒傳 storeId，這裡會是 null
                     feedback.getPhone(),
-                    feedback.getContent()
+                    feedback.getContent(),
+                    feedback.getDiningTime(),
+                    feedback.getDiningStore()
             );
 
             redirectAttributes.addFlashAttribute("successMessage", "您的意見已成功送出，感謝您的回饋！");
-            return "redirect:/feedback/thanks";
+            return "redirect:/feedback/save";
 
         } catch (EntityNotFoundException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "提交失敗：" + e.getMessage());
@@ -91,8 +95,9 @@ public class FeedbackController {
         }
     }
 
-    @GetMapping("/thanks")
-    public String showThankYouPage() {
-        return "front-end/feedback/thanks";
+    // 顯示感謝頁面的方法 (維持不變)
+    @GetMapping("/save")
+    public String showSavePage() {
+        return "front-end/feedback/save"; // 指向您 save.html 的實際路徑
     }
 }

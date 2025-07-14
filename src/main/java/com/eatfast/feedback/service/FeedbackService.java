@@ -59,8 +59,35 @@ public class FeedbackService {
 
         return feedbackRepository.save(feedback);
     }
+// 在 FeedbackService.java 的 createFeedback 方法中
 
-    // --- 您其他的優秀方法 (維持不變) ---
+    // ...
+    @Transactional
+    public FeedbackEntity createFeedback(Long memberId, Long storeId, String phone, String content, String diningTime, String diningStore) { // <-- 增加參數
+        MemberEntity member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("找不到會員 ID: " + memberId));
+
+        // 如果您的下拉選單是註解掉的，storeId 可能會是 null，需要處理這種情況
+        // 這裡暫時假設 storeId 不會被用到，或者您之後會恢復下拉選單
+        // StoreEntity store = storeRepository.findById(storeId)
+        //         .orElseThrow(() -> new EntityNotFoundException("找不到門市 ID: " + storeId));
+
+        FeedbackEntity feedback = new FeedbackEntity();
+        feedback.setPhone(phone);
+        feedback.setContent(content);
+        feedback.setMember(member);
+        // feedback.setStore(store); // 暫時註解
+
+        // ★★★ 設定新欄位的資料 ★★★
+        feedback.setDiningTime(diningTime);
+        feedback.setDiningStore(diningStore);
+
+        feedback.setSubmissionDate(LocalDateTime.now());
+        feedback.setStatus("待處理");
+
+        return feedbackRepository.save(feedback);
+    }
+
     public List<FeedbackEntity> findAll() {
         return feedbackRepository.findAll();
     }

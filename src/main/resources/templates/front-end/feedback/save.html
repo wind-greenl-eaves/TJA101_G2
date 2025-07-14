@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>感謝您的回饋 - 溫馨奶茶風</title>
+
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8f0e3; /* 柔和的米白 */
+            padding-top: 60px;
+            padding-bottom: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .save-container {
+            max-width: 550px;
+            text-align: center;
+            background-color: #fffaf0; /* 象牙白背景 */
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(160, 82, 45, 0.1);
+            border: 1px solid #e0d8c4;
+        }
+
+        .icon-success {
+            font-size: 5rem; /* 放大圖示 */
+            color: #8B4513; /* 鞍褐色 */
+            margin-bottom: 25px;
+            /* 動畫效果 */
+            animation: pop-in 0.6s ease-out;
+        }
+
+        .save-container h3 {
+            color: #8B4513;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .save-container p {
+            color: #776e65; /* 溫和的灰褐色 */
+            font-size: 1.1rem;
+            margin-bottom: 35px;
+        }
+
+        .btn-home {
+            background: linear-gradient(145deg, #d2b48c, #b5987d); /* 漸層奶茶色 */
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-decoration: none; /* 如果使用 <a> 標籤 */
+        }
+
+        .btn-home:hover {
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(139, 69, 19, 0.2);
+            text-decoration: none;
+        }
+
+        /* 圖示彈出動畫 */
+        @keyframes pop-in {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            70% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="save-container">
+    <div class="icon-success">
+        <i class="fas fa-check-circle"></i>
+    </div>
+
+    <h3>意見已成功儲存！</h3>
+
+    <p>
+        非常感謝您抽出寶貴的時間提供意見，<br>
+        您的回饋是我們進步的最大動力。
+    </p>
+
+    <a th:href="@{/}" class="btn btn-home">
+        <i class="fas fa-home"></i> 返回首頁
+    </a>
+</div>
+
+</body>
+</html>
