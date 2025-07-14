@@ -629,7 +629,7 @@
     </div>
 </div>
 
-<script th:src="@{/js/employee/add.js}"></script>
+<script th:src="@{/js/employee/add.js(v=${#temporals.format(#temporals.createNow(), 'yyyyMMddHHmmss')})}"></script>
 
 <!-- 登出功能 JavaScript -->
 <script>

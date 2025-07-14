@@ -49,9 +49,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const emailAccount = `${randomEmailPrefix}${randomNum}`;
         const emailAddress = `${emailAccount}@eatfast.com`;
         
-        // 隨機性別
-        const genders = ['M', 'F'];
+        // 隨機性別 - 確保使用正確的後端枚舉值
+        const genders = ['M', 'F']; // 只使用後端 Gender 枚舉的實際值
         const randomGender = genders[Math.floor(Math.random() * genders.length)];
+        
+        // 調試：確認生成的性別值
+        console.log(`🔍 生成的隨機性別值: "${randomGender}" (應該是 M 或 F)`);
         
         // 根據性別生成身分證字號
         const genderDigit = randomGender === 'M' ? '1' : '2';
