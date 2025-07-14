@@ -178,4 +178,35 @@ public class EmployeeViewController {
         model.addAttribute("storeList", storeList);
         return "back-end/employee/update_employee_input";
     }
+
+    /**
+     * 員工申請管理頁面（總部管理員和門市經理可用）
+     */
+    @GetMapping("/applications")
+    public String showApplicationManagement(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+        
+        if (currentEmployee == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "請重新登入");
+            return "redirect:/employee/login";
+        }
+        
+        // 只有總部管理員和門市經理可以訪問申請頁面
+        if (currentEmployee.getRole() != EmployeeRole.HEADQUARTERS_ADMIN && 
+            currentEmployee.getRole() != EmployeeRole.MANAGER) {
+            redirectAttributes.addFlashAttribute("errorMessage", "權限不足：只有總部管理員和門市經理可以查看員工申請");
+            return "redirect:/employee/select_page";
+        }
+        
+        model.addAttribute("currentEmployee", currentEmployee);
+        
+        // 根據角色設置不同的頁面標題
+        if (currentEmployee.getRole() == EmployeeRole.HEADQUARTERS_ADMIN) {
+            model.addAttribute("pageTitle", "員工申請管理");
+        } else {
+            model.addAttribute("pageTitle", "我的申請狀態");
+        }
+        
+        return "back-end/employee/applicationManagement";
+    }
 }
