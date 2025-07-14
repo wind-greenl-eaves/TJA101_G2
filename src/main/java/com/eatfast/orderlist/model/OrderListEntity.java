@@ -49,6 +49,10 @@ public class OrderListEntity {
     @Column(name = "pickup_time")
     private LocalDateTime pickupTime;
 
+    // 【新增】客製化備註欄位
+    @Column(name = "meal_customization", length = 255)
+    private String mealCustomization;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private MemberEntity member;
@@ -88,6 +92,15 @@ public class OrderListEntity {
     public void setPickupTime(LocalDateTime pickupTime) { 
         this.pickupTime = pickupTime; 
     }
+    // 【新增】mealCustomization 的 getter 和 setter 方法
+    public String getMealCustomization() {
+        return mealCustomization;
+    }
+
+    public void setMealCustomization(String mealCustomization) {
+        this.mealCustomization = mealCustomization;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

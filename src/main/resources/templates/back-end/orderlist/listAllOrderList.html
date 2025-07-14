@@ -78,6 +78,7 @@
             <th>取餐號</th>
             <th>訂單日期</th>
             <th>取餐時間</th>
+            <th>客製化備註</th>
             <th>操作</th>
         </tr>
     </thead>
@@ -105,6 +106,7 @@
             <td th:text="${orderListVO.mealPickupNumber}"></td>
             <td th:text="${#temporals.format(orderListVO.orderDate, 'yyyy-MM-dd HH:mm')}"></td>
             <td th:text="${orderListVO.pickupTime != null ? #temporals.format(orderListVO.pickupTime, 'yyyy-MM-dd HH:mm') : '尚未設定'}"></td>
+            <td th:text="${orderListVO.mealCustomization != null ? orderListVO.mealCustomization : '無'}"></td>
             <td class="text-nowrap">
                 <button type="button" class="btn btn-sm btn-info view-details-btn" 
                         th:data-order-id="${orderListVO.orderListId}">
@@ -265,7 +267,7 @@ $(document).ready(function() {
                 // 5. 請求成功後，建立 HTML 表格來顯示明細
                 if (details && details.length > 0) {
                     var tableHtml = '<table class="table table-bordered">';
-                    tableHtml += '<thead><tr><th>餐點名稱</th><th>數量</th><th>單價</th><th>評論星數</th><th>客製化</th></tr></thead>';
+                    tableHtml += '<thead><tr><th>餐點名稱</th><th>數量</th><th>單價</th><th>評論星數</th></tr></thead>';
                     tableHtml += '<tbody>';
                     
                     // 遍歷回傳的 JSON 陣列，產生每一筆明細的資料列
@@ -274,7 +276,7 @@ $(document).ready(function() {
                         tableHtml += '<td>' + item.mealName + '</td>';
                         tableHtml += '<td>' + item.quantity + '</td>';
                         tableHtml += '<td> NT$ ' + item.mealPrice + '</td>';
-                        // 如果客製化備註是 null 或空字串，就顯示 "無"
+                        // 評論星數顯示
                         var starsHtml = '';
                         if (item.reviewStars && item.reviewStars > 0) {
                             // 使用 text-warning 讓星星變黃色
@@ -286,7 +288,6 @@ $(document).ready(function() {
                             starsHtml = '<span class="text-muted">尚未評論</span>';
                         }
                         tableHtml += '<td>' + starsHtml + '</td>';
-                        tableHtml += '<td>' + (item.mealCustomization || '無') + '</td>';
                         tableHtml += '</tr>';
                     });
                     
