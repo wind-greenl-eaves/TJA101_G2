@@ -404,28 +404,46 @@
         <section class="mb-6">
             <div class="section-title-container">
                 <h2 class="section-title">統計資訊</h2>
+                <div class="text-xs text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>點擊統計卡片可快速篩選
+                </div>
             </div>
             <div id="statisticsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="form-container">
+                <div class="form-container cursor-pointer hover:shadow-lg transition-all duration-200 hover:bg-yellow-50 border-l-4 border-yellow-500" 
+                     onclick="filterByStatus('PENDING')" 
+                     id="pendingCard">
                     <div class="flex items-center">
                         <i class="fas fa-clock text-yellow-600 mr-2"></i>
                         <span class="form-label">待審核：</span>
                     </div>
-                    <span id="pendingCount" class="text-lg font-bold text-yellow-600">0</span>
+                    <div class="flex items-center gap-2">
+                        <span id="pendingCount" class="text-lg font-bold text-yellow-600">0</span>
+                        <i class="fas fa-filter text-yellow-600 text-sm opacity-50"></i>
+                    </div>
                 </div>
-                <div class="form-container">
+                <div class="form-container cursor-pointer hover:shadow-lg transition-all duration-200 hover:bg-green-50 border-l-4 border-green-500" 
+                     onclick="filterByStatus('APPROVED')" 
+                     id="approvedCard">
                     <div class="flex items-center">
                         <i class="fas fa-check-circle text-green-600 mr-2"></i>
                         <span class="form-label">已核准：</span>
                     </div>
-                    <span id="approvedCount" class="text-lg font-bold text-green-600">0</span>
+                    <div class="flex items-center gap-2">
+                        <span id="approvedCount" class="text-lg font-bold text-green-600">0</span>
+                        <i class="fas fa-filter text-green-600 text-sm opacity-50"></i>
+                    </div>
                 </div>
-                <div class="form-container">
+                <div class="form-container cursor-pointer hover:shadow-lg transition-all duration-200 hover:bg-red-50 border-l-4 border-red-500" 
+                     onclick="filterByStatus('REJECTED')" 
+                     id="rejectedCard">
                     <div class="flex items-center">
                         <i class="fas fa-times-circle text-red-600 mr-2"></i>
                         <span class="form-label">已拒絕：</span>
                     </div>
-                    <span id="rejectedCount" class="text-lg font-bold text-red-600">0</span>
+                    <div class="flex items-center gap-2">
+                        <span id="rejectedCount" class="text-lg font-bold text-red-600">0</span>
+                        <i class="fas fa-filter text-red-600 text-sm opacity-50"></i>
+                    </div>
                 </div>
             </div>
         </section>
@@ -528,6 +546,9 @@
             errorMessagesDiv.classList.add('hidden');
         }
 
+        // 篩選功能
+        let allApplications = []; // 儲存所有申請資料
+
         // 載入申請資料
         async function loadApplications() {
             try {
@@ -547,8 +568,8 @@
                 }
 
                 const applications = await response.json();
-                displayApplications(applications);
-                updateStatistics(applications);
+                allApplications = applications; // 儲存所有資料供篩選使用
+                applyFilters(); // 應用目前的篩選條件
 
             } catch (error) {
                 showError(error.message);
@@ -561,6 +582,122 @@
                     </div>
                 `;
             }
+        }
+
+        // 應用篩選條件
+        function applyFilters() {
+            const statusFilterValue = statusFilter.value;
+            const storeFilterValue = storeFilter ? storeFilter.value.toLowerCase().trim() : '';
+
+            let filteredApplications = allApplications;
+
+            // 狀態篩選
+            if (statusFilterValue) {
+                filteredApplications = filteredApplications.filter(app => app.status === statusFilterValue);
+            }
+
+            // 門市篩選（僅總部管理員可用）
+            if (storeFilterValue && isHeadquartersAdmin) {
+                filteredApplications = filteredApplications.filter(app => 
+                    app.storeName.toLowerCase().includes(storeFilterValue)
+                );
+            }
+
+            // 顯示篩選後的結果
+            displayApplications(filteredApplications);
+            updateStatistics(filteredApplications);
+        }
+
+        // 統計卡片篩選功能
+        window.filterByStatus = function(status) {
+            // 清除門市篩選
+            if (storeFilter) {
+                storeFilter.value = '';
+            }
+            
+            // 設置狀態篩選
+            statusFilter.value = status;
+            
+            // 更新卡片的視覺狀態
+            updateStatisticsCardState(status);
+            
+            // 應用篩選
+            applyFilters();
+        };
+
+        // 更新統計卡片的視覺狀態
+        function updateStatisticsCardState(activeStatus) {
+            const cards = ['pendingCard', 'approvedCard', 'rejectedCard'];
+            const statusMap = {
+                'PENDING': 'pendingCard',
+                'APPROVED': 'approvedCard', 
+                'REJECTED': 'rejectedCard'
+            };
+
+            cards.forEach(cardId => {
+                const card = document.getElementById(cardId);
+                if (card) {
+                    if (statusMap[activeStatus] === cardId) {
+                        // 啟用狀態 - 增強視覺效果
+                        card.classList.add('ring-2', 'ring-offset-2');
+                        if (cardId === 'pendingCard') {
+                            card.classList.add('ring-yellow-400', 'bg-yellow-50');
+                        } else if (cardId === 'approvedCard') {
+                            card.classList.add('ring-green-400', 'bg-green-50');
+                        } else if (cardId === 'rejectedCard') {
+                            card.classList.add('ring-red-400', 'bg-red-50');
+                        }
+                    } else {
+                        // 非啟用狀態 - 移除強調效果
+                        card.classList.remove('ring-2', 'ring-offset-2', 'ring-yellow-400', 'ring-green-400', 'ring-red-400', 'bg-yellow-50', 'bg-green-50', 'bg-red-50');
+                    }
+                }
+            });
+        }
+
+        // 清除統計卡片選中狀態
+        function clearStatisticsCardState() {
+            const cards = ['pendingCard', 'approvedCard', 'rejectedCard'];
+            cards.forEach(cardId => {
+                const card = document.getElementById(cardId);
+                if (card) {
+                    card.classList.remove('ring-2', 'ring-offset-2', 'ring-yellow-400', 'ring-green-400', 'ring-red-400', 'bg-yellow-50', 'bg-green-50', 'bg-red-50');
+                }
+            });
+        }
+
+        // 清除所有篩選條件
+        function clearFilters() {
+            statusFilter.value = '';
+            if (storeFilter) {
+                storeFilter.value = '';
+            }
+            clearStatisticsCardState(); // 清除卡片選中狀態
+            applyFilters();
+        }
+
+        // 篩選事件監聽器
+        statusFilter.addEventListener('change', applyFilters);
+        
+        if (storeFilter) {
+            // 門市名稱篩選支援即時搜尋
+            storeFilter.addEventListener('input', function() {
+                // 延遲執行篩選，避免頻繁操作
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = setTimeout(applyFilters, 300);
+            });
+        }
+
+        // 更新統計資訊
+        function updateStatistics(applications) {
+            const pending = applications.filter(app => app.status === 'PENDING').length;
+            const approved = applications.filter(app => app.status === 'APPROVED').length;
+            const rejected = applications.filter(app => app.status === 'REJECTED').length;
+
+            pendingCount.textContent = pending;
+            approvedCount.textContent = approved;
+            rejectedCount.textContent = rejected;
+            totalCount.textContent = `總計：${applications.length} 筆`;
         }
 
         // 顯示申請列表
@@ -578,7 +715,7 @@
             }
 
             applicationsContainer.innerHTML = applications.map(app => `
-                <div class="application-item" onclick="showApplicationDetails(${app.id})">
+                <div class="application-item" onclick="showApplicationDetails(${app.applicationId})">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-2">
@@ -589,34 +726,26 @@
                                 <div><i class="fas fa-user mr-1"></i>申請人：${app.applicantName}</div>
                                 <div><i class="fas fa-store mr-1"></i>門市：${app.storeName}</div>
                                 <div><i class="fas fa-calendar mr-1"></i>申請時間：${formatDateTime(app.createdAt)}</div>
-                                <div><i class="fas fa-user-tag mr-1"></i>申請職位：${getRoleText(app.requestedRole)}</div>
+                                <div><i class="fas fa-user-tag mr-1"></i>申請職位：${getRoleText(app.role)}</div>
                             </div>
                         </div>
-                        <div class="flex items-center">
+                        <div class="flex items-center gap-2">
+                            ${app.status === 'PENDING' && isHeadquartersAdmin ? `
+                                <button onclick="event.stopPropagation(); reviewApplication(${app.applicationId}, 'APPROVED')" 
+                                        class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm">
+                                    <i class="fas fa-check mr-1"></i>核准
+                                </button>
+                                <button onclick="event.stopPropagation(); reviewApplication(${app.applicationId}, 'REJECTED')" 
+                                        class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm">
+                                    <i class="fas fa-times mr-1"></i>拒絕
+                                </button>
+                            ` : ''}
                             <i class="fas fa-chevron-right text-gray-400"></i>
                         </div>
                     </div>
                 </div>
             `).join('');
         }
-
-        // 更新統計資訊
-        function updateStatistics(applications) {
-            const pending = applications.filter(app => app.status === 'PENDING').length;
-            const approved = applications.filter(app => app.status === 'APPROVED').length;
-            const rejected = applications.filter(app => app.status === 'REJECTED').length;
-
-            pendingCount.textContent = pending;
-            approvedCount.textContent = approved;
-            rejectedCount.textContent = rejected;
-            totalCount.textContent = `總計：${applications.length} 筆`;
-        }
-
-        // 顯示申請詳細資訊
-        window.showApplicationDetails = function(applicationId) {
-            // 這裡實現申請詳細資訊的顯示邏輯
-            console.log('顯示申請詳細資訊:', applicationId);
-        };
 
         // 工具函數
         function getStatusText(status) {
@@ -637,6 +766,15 @@
             return roleMap[role] || role;
         }
 
+        function getGenderText(gender) {
+            const genderMap = {
+                'M': '男性',
+                'F': '女性',
+                'O': '其他'
+            };
+            return genderMap[gender] || gender;
+        }
+
         function formatDateTime(dateTimeStr) {
             const dt = new Date(dateTimeStr);
             return dt.toLocaleString('zh-TW', {
@@ -648,6 +786,222 @@
                 hour12: false
             });
         }
+
+        // 審核申請功能
+        window.reviewApplication = async function(applicationId, status) {
+            const action = status === 'APPROVED' ? '核准' : '拒絕';
+            
+            if (!confirm(`確定要${action}這個申請嗎？`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/review`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        applicationId: applicationId,
+                        status: status,
+                        reviewComment: status === 'REJECTED' ? '不符合要求' : '申請通過'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(`申請${action}成功！`);
+                    // 重新載入申請列表
+                    loadApplications();
+                } else {
+                    throw new Error(result.message || `${action}申請失敗`);
+                }
+            } catch (error) {
+                console.error('審核申請錯誤:', error);
+                alert(`${action}申請失敗：${error.message}`);
+            }
+        };
+
+        // 顯示申請詳細資訊
+        window.showApplicationDetails = async function(applicationId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/${applicationId}`);
+                if (!response.ok) {
+                    throw new Error('無法載入申請詳細資訊');
+                }
+
+                const application = await response.json();
+                
+                // 填充申請詳細資訊Modal
+                document.getElementById('applicationDetails').innerHTML = `
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">申請人姓名</label>
+                            <p class="mt-1">${application.applicantName}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">所屬門市</label>
+                            <p class="mt-1">${application.storeName}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">員工姓名</label>
+                            <p class="mt-1">${application.username}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">員工帳號</label>
+                            <p class="mt-1">${application.account}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">電子郵件</label>
+                            <p class="mt-1">${application.email}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">聯絡電話</label>
+                            <p class="mt-1">${application.phone}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">身分證字號</label>
+                            <p class="mt-1">${application.nationalId}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">申請職位</label>
+                            <p class="mt-1">${getRoleText(application.role)}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">性別</label>
+                            <p class="mt-1">${getGenderText(application.gender)}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">申請狀態</label>
+                            <p class="mt-1">
+                                <span class="status-${application.status.toLowerCase()}">${getStatusText(application.status)}</span>
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">申請時間</label>
+                            <p class="mt-1">${formatDateTime(application.createdAt)}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">最後更新</label>
+                            <p class="mt-1">${formatDateTime(application.updatedAt)}</p>
+                        </div>
+                    </div>
+                    
+                    ${application.reviewComment ? `
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700">審核備註</label>
+                            <p class="mt-1 p-3 bg-gray-100 border rounded-lg">${application.reviewComment}</p>
+                        </div>
+                    ` : ''}
+                    
+                    ${application.status === 'PENDING' && isHeadquartersAdmin ? `
+                        <div class="mt-6 border-t pt-4">
+                            <label for="reviewComment" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-comment-alt mr-1"></i>審核備註 <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="reviewComment" rows="4" 
+                                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] resize-none"
+                                      placeholder="請填入審核意見或備註資訊..."></textarea>
+                            <div class="text-xs text-gray-500 mt-1">
+                                <i class="fas fa-info-circle mr-1"></i>請詳細說明審核結果的原因，以便申請人了解
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+
+                // 顯示審核按鈕（僅待審核狀態且為總部管理員）
+                const modalActions = document.getElementById('modalActions');
+                if (application.status === 'PENDING' && isHeadquartersAdmin) {
+                    modalActions.innerHTML = `
+                        <button onclick="reviewApplicationFromModal(${application.applicationId}, 'REJECTED')" 
+                                class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors">
+                            <i class="fas fa-times mr-2"></i>拒絕申請
+                        </button>
+                        <button onclick="reviewApplicationFromModal(${application.applicationId}, 'APPROVED')" 
+                                class="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors">
+                            <i class="fas fa-check mr-2"></i>核准申請
+                        </button>
+                    `;
+                } else {
+                    modalActions.innerHTML = '';
+                }
+
+                // 顯示Modal
+                applicationModal.classList.remove('hidden');
+                applicationModal.classList.add('flex');
+
+            } catch (error) {
+                console.error('載入申請詳細資訊錯誤:', error);
+                alert('載入申請詳細資訊失敗');
+            }
+        };
+
+        // 從Modal中審核申請
+        window.reviewApplicationFromModal = async function(applicationId, status) {
+            const action = status === 'APPROVED' ? '核准' : '拒絕';
+            
+            // 獲取用戶填入的備註
+            const reviewCommentElement = document.getElementById('reviewComment');
+            const reviewComment = reviewCommentElement ? reviewCommentElement.value.trim() : '';
+            
+            // 檢查是否填入備註
+            if (!reviewComment) {
+                alert('請填入審核備註後再進行審核');
+                if (reviewCommentElement) {
+                    reviewCommentElement.focus();
+                }
+                return;
+            }
+            
+            if (!confirm(`確定要${action}這個申請嗎？\n\n審核備註：${reviewComment}`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/review`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        applicationId: applicationId,
+                        status: status,
+                        reviewComment: reviewComment
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(`申請${action}成功！`);
+                    // 關閉Modal
+                    applicationModal.classList.add('hidden');
+                    applicationModal.classList.remove('flex');
+                    // 重新載入申請列表
+                    loadApplications();
+                } else {
+                    throw new Error(result.message || `${action}申請失敗`);
+                }
+            } catch (error) {
+                console.error('審核申請錯誤:', error);
+                alert(`${action}申請失敗：${error.message}`);
+            }
+        };
+
+        // 關閉申請詳細資訊Modal
+        closeModalBtn.addEventListener('click', function() {
+            applicationModal.classList.add('hidden');
+            applicationModal.classList.remove('flex');
+        });
+
+        // 點擊背景關閉Modal
+        applicationModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                applicationModal.classList.add('hidden');
+                applicationModal.classList.remove('flex');
+            }
+        });
 
         // 事件監聽器
         refreshBtn.addEventListener('click', loadApplications);
