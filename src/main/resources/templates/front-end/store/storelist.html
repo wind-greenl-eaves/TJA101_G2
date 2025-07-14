@@ -57,7 +57,7 @@
             <div class="hidden md:flex space-x-8"> 
                 <a th:href="@{/welcome}" class="text-brand-text hover:text-brand-primary font-medium text-lg">關於我們</a>
                 <a th:href="@{/welcome}" class="text-brand-text hover:text-brand-primary font-medium text-lg">最新消息</a>
-                <a th:href="@{/store/view}" class="text-brand-primary font-bold text-lg">門市據點</a> 
+                <a  class="text-brand-primary font-bold text-lg">門市據點</a> 
                 <a th:href="@{/menu}" class="text-brand-text hover:text-brand-primary font-medium text-lg">我要訂餐</a> 
                 <a th:href="@{/cart}" class="text-brand-text hover:text-brand-primary font-medium text-lg">購物車</a>
             </div>
@@ -130,7 +130,7 @@
                     
                     <div class="mt-8 text-center">
                          <a id="order-now-button"
-                           th:href="@{/meal/{storeId}(storeId=${currentStore.storeId})}"
+                           th:href="@{/menu}"
                            class="bg-brand-accent text-brand-deep font-bold py-3 px-8 rounded-full shadow-lg hover:bg-orange-400 transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
                            前往點餐
                         </a>
@@ -174,7 +174,8 @@
                     storeMapIframeEl.src = data.mapUrl;
                     
                     // 更新 "前往點餐" 按鈕的連結
-                    const orderUrl = `[[@{/meal/list/}]]${data.id}`;
+                    //const orderUrl = `[[@{/meal/list/}]]${data.id}`;
+                    const orderUrl = `[@{/menu}]`;
                     orderNowButtonEl.href = orderUrl;
 
                     // --- 更新按鈕的啟用狀態樣式 ---

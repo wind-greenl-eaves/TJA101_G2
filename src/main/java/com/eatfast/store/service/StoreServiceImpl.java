@@ -138,36 +138,52 @@ public class StoreServiceImpl implements StoreService {
 //     }
     
     
-//     //  前端客戶用方法 (Customer-facing methods) - 【★★ 本次新增 ★★】
-//     // =================================================================================
-
-//     /**
-//      * 【新增】提供給前端客戶頁面，查詢所有可顯示的「分店」門市列表。
-//      * 這個方法會自動過濾掉類型為 HEADQUARTERS 的總部資料。
-//      * findAllPublicStores 這個方法名稱是可以自定義的。
-//      * @return 不包含總部的門市 DTO 列表
-//      */
-//     @Override
-//     public List<StoreDto> findAllPublicStores() {
-//         // 2. 呼叫我們在 Repository 新增的方法，傳入要排除的類型
-//         // StoreType.HEADQUARTERS 是 Enum 的值，為不可變的語法結構
-//         List<StoreEntity> publicStores = storeRepository.findAllByStoreTypeNotOrderByStoreNameAsc(StoreType.HEADQUARTERS);
-//         return storeMapper.toDtoList(publicStores);
-//     }
 
     
-// //  前端客戶用方法
-//     /**
-//      * 【新增】提供給前端客戶頁面，根據條件搜尋可顯示的「分店」門市。
-//      * 這個方法會自動過濾掉類型為 HEADQUARTERS 的總部資料。
-//      * searchPublicStores 這個方法名稱是可以自定義的。
-//      * @return 不包含總部的符合條件門市 DTO 列表
-//      */
-//     @Override
-//     public List<StoreDto> searchPublicStores(String storeName, String storeLoc, String storeTime, StoreStatus storeStatus) {
-//         // 3. 呼叫我們在 Repository 中使用 @Query 定義的新方法
-//         List<StoreEntity> entities = storeRepository.searchPublicStores(storeName, storeLoc, storeTime, storeStatus);
-//         return storeMapper.toDtoList(entities);
-// >>>>>>> master
-//     }
+    
+    @Override
+    public List<StoreDto> getAllStoreDTOs() {
+        List<StoreEntity> stores = storeRepository.findAll();
+        return stores.stream()
+                     .map(store -> new StoreDto(store.getStoreId(), store.getStoreName()))
+                     .toList();
+    }
+    
+    
+    //  前端客戶用方法 (Customer-facing methods) - 【★★ 本次新增 ★★】
+    // =================================================================================
+
+    /**
+     * 【新增】提供給前端客戶頁面，查詢所有可顯示的「分店」門市列表。
+     * 這個方法會自動過濾掉類型為 HEADQUARTERS 的總部資料。
+     * findAllPublicStores 這個方法名稱是可以自定義的。
+     * @return 不包含總部的門市 DTO 列表
+     */
+    @Override
+    public List<StoreDto> findAllPublicStores() {
+        // 2. 呼叫我們在 Repository 新增的方法，傳入要排除的類型
+        // StoreType.HEADQUARTERS 是 Enum 的值，為不可變的語法結構
+        List<StoreEntity> publicStores = storeRepository.findAllByStoreTypeNotOrderByStoreNameAsc(StoreType.HEADQUARTERS);
+        return storeMapper.toDtoList(publicStores);
+    }
+
+    
+//  前端客戶用方法
+    /**
+     * 【新增】提供給前端客戶頁面，根據條件搜尋可顯示的「分店」門市。
+     * 這個方法會自動過濾掉類型為 HEADQUARTERS 的總部資料。
+     * searchPublicStores 這個方法名稱是可以自定義的。
+     * @return 不包含總部的符合條件門市 DTO 列表
+     */
+    @Override
+    public List<StoreDto> searchPublicStores(String storeName, String storeLoc, String storeTime, StoreStatus storeStatus) {
+        // 3. 呼叫我們在 Repository 中使用 @Query 定義的新方法
+        List<StoreEntity> entities = storeRepository.searchPublicStores(storeName, storeLoc, storeTime, storeStatus);
+        return storeMapper.toDtoList(entities);
+    }
+
+     @Override //會員拉取這方法可以先不用到了 前端不另外抓
+       public List<StoreEntity> getAllStores() {
+           return List.of();
+     }
 }

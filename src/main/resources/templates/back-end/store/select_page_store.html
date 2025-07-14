@@ -98,15 +98,47 @@
         .toggle-btn:hover {
             background-color: var(--container-bg);
         }
-        .marquee-text {
-            animation: marquee-animation 20s linear infinite;
-            font-size: 0.875rem;
-            padding: 0.5rem;
-        }
-        @keyframes marquee-animation {
-            0%   { transform: translateX(100%); }
-            100% { transform: translateX(-150%); }
-        }
+
+		/* 跑馬燈 CSS 樣式 */
+		.marquee-container {
+		    background-color: white;
+		    padding: 0.75rem 0; /* 垂直內距，水平交給子元素 */
+		    border-radius: 0.5rem;
+		    border: 1px solid var(--border-color);
+		    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+		    overflow: hidden; /* 隱藏超出容器的內容 */
+		    white-space: nowrap; /* 強制不換行 */
+		    margin-bottom: 2rem; /* 原本的 mb-8 */
+		}
+		
+		.marquee-content {
+		    display: inline-block; /* 讓容器寬度由內容決定 */
+		    color: var(--primary-color);
+		    font-weight: 500;
+		    /* 動畫：名稱、時長、線性、無限循環 */
+		    animation: marquee-scroll 25s linear infinite;
+		}
+		
+		/* 為重複的文字之間添加一些間距 */
+		.marquee-content span {
+		    padding: 0 20rem; /* 左右各 20rem 的間距 */
+		}
+		
+		/* 滑鼠懸停時暫停動畫，提升使用者體驗 */
+		.marquee-container:hover .marquee-content {
+		    animation-play-state: paused;
+		}
+		
+		/* 【新增】真正的無縫滾動動畫 */
+		@keyframes marquee-scroll {
+		    from {
+		        transform: translateX(0%);
+		    }
+		    to {
+		        /* 關鍵：移動距離剛好是一份內容的寬度 (50%) */
+		        transform: translateX(-50%);
+		    }
+		}
         
         /* 添加新的固定右側面板樣式 */
         .page-container {
@@ -254,20 +286,22 @@
     <div class="main-content">
         <header class="flex items-center p-4 bg-[var(--container-bg)] border border-[var(--border-color)] rounded-xl shadow-sm mb-6">
             <div class="flex items-center">
-                <img th:src="@{/images/123.png}" alt="Logo" class="w-12 h-12 rounded-full mr-2">
+                <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-3">
                 <div class="ml-4">
                     <h1 class="text-xl font-bold">早餐店後台 - 門市資料管理系統</h1>
                     <p class="text-sm text-gray-500">Thymeleaf 現代化版本</p>
-                	<a class="btn btn-outline-light" th:href="@{/}">
-                		<i class="fas fa-home"></i> 回首頁
+                	<a class="btn btn-outline-light" th:href="@{/employee/select_page}">
+                		<i class="fas fa-home"></i> 返回管理首頁
             		</a>
                 </div>
             </div>
 
         </header>
         
-        <div class="bg-white p-3 rounded-lg border border-[var(--border-color)] shadow-sm overflow-hidden whitespace-nowrap mb-8">
-            <p class="inline-block marquee-text text-[var(--primary-color)] font-medium" id="marquee-content"></p> </div>
+		<div class="marquee-container">
+		    <div class="marquee-content" id="marquee-content-wrapper">
+		        </div>
+		</div>
         
         <div id="error-messages" class="hidden bg-red-100 border border-[var(--error-color)] text-[var(--error-color)] px-4 py-3 rounded-lg mb-6"></div>
 
@@ -349,29 +383,31 @@
 
 
 <script th:inline="javascript">
-document.addEventListener('DOMContentLoaded', function() {
-    // 獲取上下文路徑
-    const contextPath = /*[[@{/}]]*/ '/eatfast/';
-    const API_BASE_URL = contextPath + 'api/store';
-    
-
-    // --- 跑馬燈功能 ---
-    const marqueeContent = document.getElementById('marquee-content'); // 獲取跑馬燈 P 元素
-
-    const marqueeTexts = [
-        "歡迎使用門市資料管理系統~邁向月月擴店，5 人團隊賺大錢！",
-        "門市管理讓您輕鬆管理每家門市，大幅提升效率！",
-        "最新公告：系統將於今晚進行維護，請提前備份資料！",
-        "績效獎勵辦法將於7月底推出，讓你35歲財富自由",
-        "美好的一天從早餐通開始，吃得好睡得好，天天沒煩惱",
-        "您的成功是我們的動力，您的笑容是我們最大的鼓勵！",
-        "今天吃早餐了嗎？來早餐通吃飽飽^O^"
-    ];
-
-    // 隨機選擇一條跑馬燈內容
-    const randomIndex = Math.floor(Math.random() * marqueeTexts.length);
-    marqueeContent.textContent = marqueeTexts[randomIndex];
-
+	document.addEventListener('DOMContentLoaded', function() {
+	    // 獲取上下文路徑
+	    const contextPath = /*[[@{/}]]*/ '/eatfast/';
+	    const API_BASE_URL = contextPath + 'api/store';
+	    
+	
+	    // --- 跑馬燈功能 ---
+	const marqueeWrapper = document.getElementById('marquee-content-wrapper'); // 獲取新的內層 div
+	
+	const marqueeTexts = [
+	    "歡迎使用門市資料管理系統~邁向月月擴店，5 人團隊賺大錢！",
+	    "門市管理讓您輕鬆管理每家門市，大幅提升效率！",
+	    "最新公告：系統將於今晚進行維護，請提前備份資料！",
+	    "績效獎勵辦法將於7月底推出，讓你35歲財富自由",
+	    "美好的一天從早餐通開始，吃得好睡得好，天天沒煩惱",
+	    "您的成功是我們的動力，您的笑容是我們最大的鼓勵！",
+	    "今天吃早餐了嗎？來早餐通吃飽飽^O^"
+	];
+	
+	// 隨機選擇一條跑馬燈內容
+	const randomIndex = Math.floor(Math.random() * marqueeTexts.length);
+	const selectedText = marqueeTexts[randomIndex];
+	
+	// 產生兩份內容，並用 span 包裹以方便添加間距
+	marqueeWrapper.innerHTML = `<span>${selectedText}</span><span>${selectedText}</span>`;
 
     // --- 元素選擇 ---
     const errorMessagesDiv = document.getElementById('error-messages');
