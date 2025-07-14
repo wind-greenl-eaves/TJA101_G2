@@ -442,6 +442,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     /**
      * 【修改方法實作】- 處理忘記密碼請求並發送郵件
      * 根據帳號或郵件查找員工，生成臨時密碼，並發送郵件通知
+     * hasText() 方法用於檢查字串是否為空
+     * StringUtils.hasText() 方法確保輸入不為空或僅包含空白字元
      */
     @Override
     @Transactional
@@ -664,6 +666,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
         
         // 隨機打亂字符順序
+        // 使用 Fisher-Yates 洗牌演算法
+        //toCharArray() 方法將字串轉換為字符陣列
         char[] passwordArray = password.toString().toCharArray();
         for (int i = passwordArray.length - 1; i > 0; i--) {
             int j = (int) (Math.random() * (i + 1));
@@ -678,6 +682,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     /**
      * 遮罩電子郵件地址以保護隱私
      * 例如: john.doe@example.com -> j***@example.com
+     * StringUtils.hasText() 方法用於檢查字串是否為空
      */
     private String maskEmail(String email) {
         if (!StringUtils.hasText(email) || !email.contains("@")) {
