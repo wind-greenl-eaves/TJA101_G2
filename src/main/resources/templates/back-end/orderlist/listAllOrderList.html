@@ -301,24 +301,8 @@ $(document).ready(function() {
                     // 獲取客製化備註（從第一個明細項目中取得，因為整個訂單共用同一個備註）
                     var mealCustomization = details[0].mealCustomization;
                     
-                    // 上方：客製化備註表格
+                    // 上方：餐點明細表格
                     htmlContent += '<div class="mb-4">';
-                    htmlContent += '<h6 class="font-weight-bold text-primary mb-2">';
-                    htmlContent += '<i class="fas fa-sticky-note mr-2"></i>客製化備註';
-                    htmlContent += '</h6>';
-                    htmlContent += '<div class="card">';
-                    htmlContent += '<div class="card-body">';
-                    if (mealCustomization && mealCustomization.trim() !== '') {
-                        htmlContent += '<p class="mb-0 text-dark">' + mealCustomization + '</p>';
-                    } else {
-                        htmlContent += '<p class="mb-0 text-muted font-italic">無特殊要求</p>';
-                    }
-                    htmlContent += '</div>';
-                    htmlContent += '</div>';
-                    htmlContent += '</div>';
-                    
-                    // 下方：餐點明細表格
-                    htmlContent += '<div>';
                     htmlContent += '<h6 class="font-weight-bold text-success mb-2">';
                     htmlContent += '<i class="fas fa-utensils mr-2"></i>餐點明細';
                     htmlContent += '</h6>';
@@ -358,6 +342,22 @@ $(document).ready(function() {
                     
                     htmlContent += '</tbody>';
                     htmlContent += '</table>';
+                    htmlContent += '</div>';
+                    
+                    // 下方：客製化備註表格
+                    htmlContent += '<div>';
+                    htmlContent += '<h6 class="font-weight-bold text-primary mb-2">';
+                    htmlContent += '<i class="fas fa-sticky-note mr-2"></i>客製化備註';
+                    htmlContent += '</h6>';
+                    htmlContent += '<div class="card">';
+                    htmlContent += '<div class="card-body">';
+                    if (mealCustomization && mealCustomization.trim() !== '') {
+                        htmlContent += '<p class="mb-0 text-dark">' + mealCustomization + '</p>';
+                    } else {
+                        htmlContent += '<p class="mb-0 text-muted font-italic">無特殊要求</p>';
+                    }
+                    htmlContent += '</div>';
+                    htmlContent += '</div>';
                     htmlContent += '</div>';
                     
                     modalBody.html(htmlContent); // 將產生的內容填入 Modal Body
