@@ -711,7 +711,7 @@
                         <div><span class="font-medium">${item.mealName || '未知餐點'}</span><p class="text-sm text-gray-500">${item.mealCustomization ? `<br>備註: ${item.mealCustomization}` : ''}</p></div>
                     </td>
                     <td class="py-4 align-middle text-right">NT$ ${mealPrice}</td>
-                    <td class="py-4 align-middle"><div class="flex items-center justify-center"><button class="px-2 py-1 border rounded-l-md minus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">-</button><input type="number" value="${quantity}" min="1" class="w-12 text-center border-t border-b quantity-input" data-meal-id="${item.mealId}" data-store-id="${item.storeId}"><button class="px-2 py-1 border rounded-r-md plus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">+</button></div></td>
+                    <td class="py-4 align-middle text-center"><div class="flex items-center justify-center"><button class="px-2 py-1 border rounded-l-md minus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">-</button><input type="number" value="${quantity}" min="1" class="w-12 text-center border-t border-b quantity-input" data-meal-id="${item.mealId}" data-store-id="${item.storeId}"><button class="px-2 py-1 border rounded-r-md plus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">+</button></div></td>
                     <td class="py-4 align-middle text-right font-medium">NT$ ${subtotal}</td>
                     <td class="py-4 align-middle text-center"><button class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors shadow-sm delete-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">刪除</button></td>
                 `;
@@ -814,7 +814,36 @@
             const pickupStore = document.getElementById('pickup-store').value;
             const pickupTime = document.getElementById('pickup-time').value;
             const notes = document.getElementById('notes').value;
-            alert(`準備結帳！\n取餐門市: ${pickupStore}\n取餐時間: ${pickupTime}\n備註: ${notes}\n(此功能尚未完全實作)`);
+            
+            // 檢查是否選擇了取餐時間
+            if (!pickupTime) {
+                alert('請選擇取餐時間');
+                return;
+            }
+            
+            // 將取餐時間儲存到session
+            fetch('/cart/set-pickup-time', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    pickupTime: pickupTime,
+                    notes: notes
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    // 導向 pay.html 頁面
+                    window.location.href = contextPath + 'orders/pay';
+                } else {
+                    alert('儲存取餐時間失敗，請稍後再試');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('發生錯誤，請稍後再試');
+            });
         }
 
         // --- 畫面顯示控制 ---

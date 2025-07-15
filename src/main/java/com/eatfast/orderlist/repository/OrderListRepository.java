@@ -14,6 +14,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderListRepository extends JpaRepository<OrderListEntity, String> {
@@ -40,4 +41,7 @@ public interface OrderListRepository extends JpaRepository<OrderListEntity, Stri
     
     // 【新增】按門市和訂單狀態過濾的方法
     List<OrderListEntity> findByStoreAndOrderStatus(StoreEntity store, OrderStatus orderStatus);
+    
+    // 【新增】根據訂單編號前綴查詢最大訂單編號
+    Optional<OrderListEntity> findTopByOrderListIdStartingWithOrderByOrderListIdDesc(String prefix);
 }

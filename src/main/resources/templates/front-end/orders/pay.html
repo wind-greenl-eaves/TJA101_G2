@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>訂單付款</title>
+    <style>
+        body { 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            background-color: #f4f4f4; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .checkout-container { 
+            background-color: #fff; 
+            padding: 30px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 480px; 
+            border-top: 4px solid #f0ad4e; 
+        }
+        .section { 
+            border-top: 1px solid #eee; 
+            padding-top: 20px; 
+            margin-top: 20px; 
+        }
+        .order-details div { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 10px; 
+            color: #555; 
+        }
+        .order-details span:first-child { 
+            color: #333; 
+            font-weight: 500; 
+        }
+        .form-label { 
+            margin-bottom: 8px; 
+            font-weight: 500; 
+            color: #333;
+            display: block;
+        }
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        input[type="text"], input[type="tel"], select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        input[type="text"]:focus, input[type="tel"]:focus, select:focus {
+            outline: none;
+            border-color: #f0ad4e;
+            box-shadow: 0 0 0 2px rgba(240, 173, 78, 0.2);
+        }
+        .card-number-group { 
+            display: flex; 
+            gap: 10px; 
+        }
+        .card-number-input {
+            flex: 1;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+        .expiry-cvv-group { 
+            display: flex; 
+            gap: 15px; 
+        }
+        .expiry-group {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+        }
+        .cvv-group {
+            flex: 1;
+        }
+        .year-month-input {
+            flex: 1;
+            text-align: center;
+        }
+        .cvv-input {
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        .confirm-button { 
+            width: 100%; 
+            padding: 15px; 
+            background-color: #f0ad4e; 
+            border: none; 
+            color: white; 
+            font-size: 1.2em; 
+            font-weight: bold; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin-top: 20px; 
+            transition: background-color 0.3s ease;
+        }
+        .confirm-button:hover {
+            background-color: #ec971f;
+        }
+        .confirm-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .card-type-indicator {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .input-error {
+            border-color: #d9534f !important;
+            box-shadow: 0 0 0 2px rgba(217, 83, 79, 0.2) !important;
+        }
+        .error-message {
+            color: #d9534f;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        .security-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .security-icon {
+            width: 16px;
+            height: 16px;
+            background-color: #5cb85c;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+        }
+        .order-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="checkout-container">
+    <h2 class="order-title">訂單付款</h2>
+    
+    <div class="order-details" th:object="${orderToPay}">
+        <div>
+            <span>取餐門市</span>
+            <span th:text="*{storeName}"></span>
+        </div>
+        <div>
+            <span>訂單編號</span>
+            <span th:text="*{orderListId}"></span>
+        </div>
+        <div>
+            <span>訂單時間</span>
+            <span th:text="${#temporals.format(orderToPay.orderDate, 'yyyy-MM-dd HH:mm')}"></span>
+        </div>
+        <div>
+            <span>取餐時間</span>
+            <span th:text="${orderToPay.pickupTime != null ? orderToPay.pickupTime : '未設定'}"></span>
+        </div>
+        <div>
+            <span>總金額</span>
+            <span th:text="'NT$ ' + ${orderToPay.totalAmount}"></span>
+        </div>
+    </div>
+
+    <form class="section" th:action="@{/orders/process-payment}" method="post" id="paymentForm">
+        <h4>信用卡資料 (Credit Card Information)</h4>
+        <input type="hidden" name="orderId" th:value="${orderToPay.orderListId}" />
+
+        <!-- 信用卡號碼 -->
+        <div class="form-group">
+            <label class="form-label">信用卡號碼 <span class="card-type-indicator" id="cardType"></span></label>
+            <div class="card-number-group">
+                <input type="tel" id="cardNumber1" name="cardNumber1" maxlength="4" placeholder="1234" class="card-number-input" required>
+                <input type="tel" id="cardNumber2" name="cardNumber2" maxlength="4" placeholder="5678" class="card-number-input" required>
+                <input type="tel" id="cardNumber3" name="cardNumber3" maxlength="4" placeholder="9012" class="card-number-input" required>
+                <input type="tel" id="cardNumber4" name="cardNumber4" maxlength="4" placeholder="3456" class="card-number-input" required>
+            </div>
+            <div class="error-message" id="cardNumberError">請輸入有效的信用卡號碼</div>
+            <div class="security-info">
+                <span class="security-icon">🔒</span>
+                您的信用卡資訊採用SSL加密保護
+            </div>
+        </div>
+        
+        <!-- 有效期限和安全碼 -->
+        <div class="form-group">
+            <div class="expiry-cvv-group">
+                <div class="expiry-group">
+                    <div>
+                        <label class="form-label">有效期限</label>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="expiryMonth" name="expiryMonth" class="year-month-input" required>
+                                <option value="">月</option>
+                                <option value="01">01</option>
+                                <option value="02">02</option>
+                                <option value="03">03</option>
+                                <option value="04">04</option>
+                                <option value="05">05</option>
+                                <option value="06">06</option>
+                                <option value="07">07</option>
+                                <option value="08">08</option>
+                                <option value="09">09</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                            <select id="expiryYear" name="expiryYear" class="year-month-input" required>
+                                <option value="">年</option>
+                                <!-- 年份選項將由JavaScript動態生成 -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="cvv-group">
+                    <label class="form-label">安全碼 (CVV)</label>
+                    <input type="tel" id="cvv" name="cvv" maxlength="3" placeholder="123" class="cvv-input" required>
+                    <div class="security-info">
+                        <span style="font-size: 10px;">卡片背面3位數字</span>
+                    </div>
+                </div>
+            </div>
+            <div class="error-message" id="expiryError">請選擇有效的到期日</div>
+            <div class="error-message" id="cvvError">請輸入3位安全碼</div>
+        </div>
+
+        <button type="submit" class="confirm-button" id="payButton">確認付款</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 生成年份選項
+    const currentYear = new Date().getFullYear();
+    const expiryYearSelect = document.getElementById('expiryYear');
+    for (let i = 0; i < 15; i++) {
+        const year = currentYear + i;
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        expiryYearSelect.appendChild(option);
+    }
+
+    // 信用卡號碼自動跳轉
+    const cardInputs = ['cardNumber1', 'cardNumber2', 'cardNumber3', 'cardNumber4'];
+    cardInputs.forEach((id, index) => {
+        const input = document.getElementById(id);
+        
+        input.addEventListener('input', function(e) {
+            // 只允許數字
+            this.value = this.value.replace(/\D/g, '');
+            
+            // 自動跳轉到下一個輸入框
+            if (this.value.length === 4 && index < cardInputs.length - 1) {
+                document.getElementById(cardInputs[index + 1]).focus();
+            }
+            
+            // 檢測信用卡類型
+            if (index === 0) {
+                detectCardType(this.value);
+            }
+        });
+
+        // 處理退格鍵
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
+                document.getElementById(cardInputs[index - 1]).focus();
+            }
+        });
+    });
+
+    // CVV只允許數字
+    document.getElementById('cvv').addEventListener('input', function(e) {
+        this.value = this.value.replace(/\D/g, '');
+    });
+
+    // 信用卡類型檢測
+    function detectCardType(firstFour) {
+        const cardTypeIndicator = document.getElementById('cardType');
+        
+        if (firstFour.startsWith('4')) {
+            cardTypeIndicator.textContent = '(VISA)';
+        } else if (firstFour.startsWith('5') || firstFour.startsWith('2')) {
+            cardTypeIndicator.textContent = '(MasterCard)';
+        } else if (firstFour.startsWith('3')) {
+            cardTypeIndicator.textContent = '(American Express)';
+        } else if (firstFour.startsWith('6')) {
+            cardTypeIndicator.textContent = '(UnionPay)';
+        } else {
+            cardTypeIndicator.textContent = '';
+        }
+    }
+
+    // 表單驗證
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let isValid = true;
+        
+        // 驗證信用卡號碼
+        const cardNumber = cardInputs.map(id => document.getElementById(id).value).join('');
+        if (cardNumber.length !== 16 || !/^\d{16}$/.test(cardNumber)) {
+            showError('cardNumberError', 'cardNumber1');
+            isValid = false;
+        } else {
+            hideError('cardNumberError', 'cardNumber1');
+        }
+        
+        // 驗證有效期限
+        const expiryMonth = document.getElementById('expiryMonth').value;
+        const expiryYear = document.getElementById('expiryYear').value;
+        if (!expiryMonth || !expiryYear) {
+            showError('expiryError', 'expiryMonth');
+            isValid = false;
+        } else {
+            const now = new Date();
+            const expiry = new Date(expiryYear, expiryMonth - 1);
+            if (expiry <= now) {
+                showError('expiryError', 'expiryMonth');
+                isValid = false;
+            } else {
+                hideError('expiryError', 'expiryMonth');
+            }
+        }
+        
+        // 驗證CVV
+        const cvv = document.getElementById('cvv').value;
+        if (!/^\d{3}$/.test(cvv)) {
+            showError('cvvError', 'cvv');
+            isValid = false;
+        } else {
+            hideError('cvvError', 'cvv');
+        }
+        
+        if (isValid) {
+            // 顯示處理中狀態
+            const payButton = document.getElementById('payButton');
+            payButton.disabled = true;
+            payButton.textContent = '處理中...';
+            
+            // 創建隱藏的完整信用卡號碼輸入
+            const fullCardNumber = document.createElement('input');
+            fullCardNumber.type = 'hidden';
+            fullCardNumber.name = 'cardNumber';
+            fullCardNumber.value = cardNumber;
+            this.appendChild(fullCardNumber);
+            
+            // 提交表單
+            this.submit();
+        }
+    });
+
+    function showError(errorId, inputId) {
+        document.getElementById(errorId).style.display = 'block';
+        document.getElementById(inputId).classList.add('input-error');
+    }
+
+    function hideError(errorId, inputId) {
+        document.getElementById(errorId).style.display = 'none';
+        document.getElementById(inputId).classList.remove('input-error');
+    }
+});
+</script>
+
+</body>
+</html>
