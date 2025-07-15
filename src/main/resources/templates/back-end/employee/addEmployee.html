@@ -612,6 +612,45 @@
     </div>
 </div>
 
+<!-- 二次確認 Modal -->
+<div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 m-4 max-w-md w-full">
+        <div class="flex items-center mb-4">
+            <i class="fas fa-question-circle text-yellow-500 text-2xl mr-3"></i>
+            <h3 class="text-lg font-semibold text-gray-900">確認新增員工</h3>
+        </div>
+        
+        <!-- 顯示即將新增的員工資訊 -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+            <h4 class="font-semibold mb-2 text-gray-700">即將新增以下員工資訊：</h4>
+            <div class="space-y-1 text-sm text-gray-600">
+                <p><span class="font-medium">姓名：</span><span id="confirm-username">-</span></p>
+                <p><span class="font-medium">帳號：</span><span id="confirm-account">-</span></p>
+                <p><span class="font-medium">信箱：</span><span id="confirm-email">-</span></p>
+                <p><span class="font-medium">電話：</span><span id="confirm-phone">-</span></p>
+                <p><span class="font-medium">角色：</span><span id="confirm-role">-</span></p>
+                <p><span class="font-medium">門市：</span><span id="confirm-store">-</span></p>
+            </div>
+        </div>
+        
+        <p class="text-gray-600 mb-6">確定要新增這位員工嗎？此操作將會：</p>
+        <ul class="text-sm text-gray-600 mb-6 space-y-1">
+            <li>• 建立新的員工帳號</li>
+            
+            <li>• 無法復原此操作</li>
+        </ul>
+        
+        <div class="flex justify-end space-x-3">
+            <button id="confirm-cancel-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                <i class="fas fa-times mr-2"></i>取消
+            </button>
+            <button id="confirm-submit-btn" class="px-4 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-[var(--primary-hover)] transition-colors">
+                <i class="fas fa-check mr-2"></i>確認新增
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- 成功提示模態框 -->
 <div id="success-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white rounded-lg p-6 m-4 max-w-md w-full">
