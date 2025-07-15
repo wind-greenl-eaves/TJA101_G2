@@ -6,14 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
-/**
- * ✅ 這是一個全新的、乾淨的 NewsController
- * 它的唯一職責就是提供跟「前台新聞」相關的頁面或資料
- */
 @Controller
+@RequestMapping("/news") // 👈 關鍵一：確保有這個，代表這個 Controller 負責處理 /news 開頭的所有路徑
 public class NewsController {
 
     private final NewsService newsService;
@@ -24,21 +23,22 @@ public class NewsController {
     }
 
     /**
-     * 處理來自首頁 JavaScript 的非同步請求，只回傳「最新消息」的 HTML 片段。
-     * @param model - 用來將資料傳遞給 Thymeleaf 模板
-     * @return Thymeleaf 片段的路徑
+     * 處理對 /news 的 GET 請求
      */
-    @GetMapping("/news/latest-fragment")
-    public String getLatestNewsFragment(Model model) {
-        // 1. 從 Service 取得要顯示的公開消息
-        List<NewsEntity> newsList = newsService.getActivePublishedNews();
-
-        // 2. 將消息列表放進 Model，取名為 "publicNewsList"測試
-        model.addAttribute("publicNewsList", newsList);
-
-        // 3. 回傳到我們建立的片段檔案，並指定只渲染 news_section 這個區塊
-        return "front-end/fragments/latest_news :: news_section";
+    @GetMapping // 👈 關鍵二：確保是 @GetMapping，不是 @GetMapping("/") 或 @GetMapping("/list")
+    public String showPublicNewsList(Model model) {
+        List<NewsEntity> publicNews = newsService.getActivePublishedNews();
+        model.addAttribute("publicNewsList", publicNews);
+        return "front-end/news/public-list";
     }
 
-    // 備註：你之前處理 "/" 的 showHomePage 方法已被移除，因為它的功能和 IndexController 重複了。
+    /**
+     * 處理對 /news/{id} 的請求，顯示單一消息詳情
+     */
+    @GetMapping("/{id}")
+    public String showPublicNewsDetail(@PathVariable("id") Long newsId, Model model) {
+        NewsEntity news = newsService.findById(newsId);
+        model.addAttribute("newsDetail", news);
+        return "front-end/news/public-detail";
+    }
 }

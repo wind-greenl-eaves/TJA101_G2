@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>編輯最新消息 - 後台系統</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+	<!-- 沿用奶茶風樣式 -->
+	<style>
+		:root {
+			--milk-tea-bg: #FAF0E6; --milk-tea-text: #5D4037; --milk-tea-primary: #A0522D;
+			--milk-tea-primary-hover: #8B4513; --milk-tea-secondary: #D2B48C;
+		}
+		body { background-color: var(--milk-tea-bg); color: var(--milk-tea-text); }
+		.card { border-color: var(--milk-tea-secondary); }
+		.card-header { background-color: var(--milk-tea-secondary); color: white; font-weight: 600; }
+		.btn-primary { background-color: var(--milk-tea-primary); border-color: var(--milk-tea-primary); }
+		.btn-primary:hover { background-color: var(--milk-tea-primary-hover); border-color: var(--milk-tea-primary-hover); }
+	</style>
+</head>
+<body>
+
+<div class="container mt-5 mb-5">
+	<div class="row justify-content-center">
+		<div class="col-md-8">
+			<div class="card shadow-sm">
+				<div class="card-header text-center">
+					<i class="bi bi-pencil-fill"></i> 編輯最新消息
+				</div>
+				<div class="card-body p-4">
+					<!-- ✅ 關鍵修改：th:action 和 th:object -->
+					<!-- 1. th:action 指向一個新的 /update 路徑 -->
+					<!-- 2. th:object="${news}" 會將 Controller 傳來的舊資料，綁定到整個表單 -->
+					<form th:action="@{/admin/news/update}" th:object="${news}" method="post" enctype="multipart/form-data">
+
+						<!-- ✅ 新增一個隱藏欄位，用來把 newsId 一起送回後端，這樣後端才知道要更新哪一筆資料 -->
+						<input type="hidden" th:field="*{newsId}" />
+						<input type="hidden" th:field="*{employee}" /> <!-- 如果需要保留原始員工資訊 -->
+
+
+						<!-- 標題 -->
+						<div class="mb-3">
+							<label for="title" class="form-label fw-bold">標題</label>
+							<!-- th:field 會自動填入 ${news.title} 的值 -->
+							<input type="text" class="form-control" id="title" th:field="*{title}" required>
+						</div>
+
+						<!-- 內容 -->
+						<div class="mb-3">
+							<label for="content" class="form-label fw-bold">內容</label>
+							<textarea class="form-control" id="content" th:field="*{content}" rows="5"></textarea>
+						</div>
+
+						<!-- 上傳圖片 -->
+						<div class="mb-3">
+							<label for="imageFile" class="form-label fw-bold">更換圖片 (可選)</label>
+							<input type="file" class="form-control" id="imageFile" name="imageFile" accept="image/png, image/jpeg, image/gif">
+							<!-- 顯示當前圖片 -->
+							<div th:if="*{imageUrl != null}" class="mt-2">
+								<small>當前圖片:</small><br>
+								<img th:src="@{*{imageUrl}}" alt="當前圖片" style="max-width: 200px; max-height: 200px;" class="img-thumbnail">
+							</div>
+						</div>
+
+						<!-- 發布狀態 -->
+						<div class="mb-3">
+							<label for="status" class="form-label fw-bold">發布狀態</label>
+							<select class="form-select" id="status" th:field="*{status}">
+								<option th:each="s : ${T(com.eatfast.common.enums.NewsStatus).values()}"
+										th:value="${s}"
+										th:text="${s.displayName}">
+								</option>
+							</select>
+						</div>
+
+						<!-- 開始/結束時間 -->
+						<div class="row">
+							<div class="col-md-6 mb-3">
+								<label for="startTime" class="form-label fw-bold">開始時間</label>
+								<!-- ✅ 需要把 LocalDateTime 轉成 HTML datetime-local input 能接受的格式 -->
+								<input type="datetime-local" class="form-control" id="startTime" th:value="${#temporals.format(news.startTime, 'yyyy-MM-dd''T''HH:mm')}" name="startTime" required>
+							</div>
+							<div class="col-md-6 mb-3">
+								<label for="endTime" class="form-label fw-bold">結束時間 (可選)</label>
+								<input type="datetime-local" class="form-control" id="endTime" th:value="${news.endTime != null ? #temporals.format(news.endTime, 'yyyy-MM-dd''T''HH:mm') : ''}" name="endTime">
+							</div>
+						</div>
+
+						<!-- 按鈕 -->
+						<div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+							<a th:href="@{/admin/news/list}" class="btn btn-outline-secondary">取消</a>
+							<button type="submit" class="btn btn-primary">
+								<i class="bi bi-check-circle"></i> 儲存更新
+							</button>
+						</div>
+
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+</body>
+</html>
