@@ -5,20 +5,18 @@ package com.eatfast.common.enums;
  */
 public enum NewsStatus {
 
-    // 1. 為每個枚舉值，在括號中加上它的中文顯示名稱
-    PUBLISHED("已發布"),
-    DRAFT("草稿"),
-    ARCHIVED("已封存");
+    // ✅【已修正】調整順序，讓它符合資料庫的定義 (0=草稿, 1=已發布)
+    DRAFT("草稿"),         // 現在這個是第 0 位 (ordinal = 0)
+    PUBLISHED("已發布"),   // 現在這個是第 1 位 (ordinal = 1)
+    ARCHIVED("已封存");    // 這個是第 2 位 (ordinal = 2)
 
-    // 2. 新增一個 final 欄位來儲存這個中文名稱
+    // 底下的邏輯完全不需要變動
     private final String displayName;
 
-    // 3. 建立建構子，讓枚舉在建立時能把中文名稱存到欄位裡
     NewsStatus(String displayName) {
         this.displayName = displayName;
     }
 
-    // 4. 提供一個 public 的 getter 方法，讓 Thymeleaf 可以透過這個方法取得中文名稱
     public String getDisplayName() {
         return displayName;
     }
