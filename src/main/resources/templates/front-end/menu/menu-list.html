@@ -695,13 +695,8 @@ function handleStoreChange(selectEl) {
             return;
         }
     } else {
-        // 如果購物車是空的，或選擇的門市與原來相同，直接更新 sessionStorage
-        sessionStorage.setItem("selectedStoreId", newStoreId);
-        // 如果購物車本來是空的，現在把新選擇的門市也存入 cartStoreId
-        if(!currentCartStoreId) {
-            sessionStorage.setItem("cartStoreId", newStoreId);
-        }
-        window.location.reload(); // 重新載入頁面以應用新的門市
+    	//直接導向帶有 storeId 參數的新 URL
+    	window.location.href = `/menu?storeId=${newStoreId}`;
     }
 }
 
@@ -716,10 +711,8 @@ async function clearCartForStoreChange(newStoreId) {
         const response = await fetch(`/cart/member/${memberId}`, { method: 'DELETE' });
         if (!response.ok) throw new Error('清空購物車失敗');
 
-        // 清空成功後，更新 sessionStorage 並刷新頁面
-        sessionStorage.setItem("selectedStoreId", newStoreId);
-        sessionStorage.setItem("cartStoreId", newStoreId);
-        window.location.reload();
+      	//直接導向帶有 storeId 參數的新 URL
+        window.location.href = `/menu?storeId=${newStoreId}`;
         
     } catch(error) {
         alert("清空購物車時發生錯誤，請稍後再試。");
@@ -878,6 +871,17 @@ async function clearCartForStoreChange(newStoreId) {
 
   // ✅ 整合所有 DOMContentLoaded 邏輯
   document.addEventListener('DOMContentLoaded', function () {
+	  
+	//優先從 URL 同步 storeId 到 sessionStorage
+      const urlParams = new URLSearchParams(window.location.search);
+      const storeIdFromUrl = urlParams.get('storeId');
+
+      if (storeIdFromUrl) {
+          // 如果 URL 中有 storeId，將它設定為 sessionStorage 的值，確保它是最新的
+          sessionStorage.setItem("selectedStoreId", storeIdFromUrl);
+          sessionStorage.setItem("cartStoreId", storeIdFromUrl); // 同時也更新購物車門市ID
+      }
+	  
       // 1. 套用 sessionStorage 中的 storeId
       const selectedStoreId = sessionStorage.getItem("selectedStoreId");
       if (selectedStoreId) {

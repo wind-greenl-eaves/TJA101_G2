@@ -436,15 +436,15 @@
     <!-- Navigation Bar -->
     <nav class="nav-fixed">
         <div class="nav-container">
-            <a href="/" class="nav-logo">
-                <img src="images/123.png" alt="EatFast Logo" class="nav-logo-icon">
+            <a th:href="@{/welcome}" class="nav-logo">
+                <img th:src="@{/images/123.png}" alt="EatFast Logo" class="nav-logo-icon">
                 <span class="nav-logo-text">EatFast 早餐店</span>
             </a>
             
             <div class="nav-menu">
-            	<a href="/news/list" class="nav-link">最新消息</a>
-                <a href="/store/storelist" class="nav-link">門市據點</a>
-                <a href="/menu" class="nav-link">餐點菜單</a>
+            	<a th:href="@{/news/list}" class="nav-link">最新消息</a>
+                <a th:href="@{/store/storelist}" class="nav-link">門市據點</a>
+                <a th:href="@{/menu}" class="nav-link">餐點菜單</a>
                 <!-- 根據登入狀態顯示不同內容 -->
                 <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
                    th:href="@{/member/dashboard}" class="nav-link">會員專區</a>

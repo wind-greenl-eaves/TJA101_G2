@@ -53,6 +53,18 @@ public class FrontMealController {
     	    } else {
     	        mealDTOList = mealService.getAllAvailableWithFavored(memberId);
     	    }
+    	    
+    	 // 【新增邏輯】處理傳入的 storeId
+            if (storeId != null) {
+                // 如果 URL 提供了 storeId，就將它存入 session，作為當前選擇的門市
+                session.setAttribute("selectedStoreId", storeId);
+            } else {
+                // 如果 URL 沒有提供 storeId，嘗試從 session 中獲取
+                Object sessionStoreId = session.getAttribute("selectedStoreId");
+                if (sessionStoreId != null) {
+                    storeId = (Long) sessionStoreId;
+                }
+            }
 
     	    // 取得所有門市，過濾掉總部（for 下拉選單）
     	    List<StoreDto> publicStores = storeService.findAllPublicStores();
