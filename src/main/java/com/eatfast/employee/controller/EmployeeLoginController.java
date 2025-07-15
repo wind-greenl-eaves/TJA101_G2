@@ -38,17 +38,17 @@ public class EmployeeLoginController {
     
     private final EmployeeService employeeService;
     private final EmployeeAuthService employeeAuthService;
-    private final ForgotPasswordRateLimitService rateLimitService; // 新增
+    private final ForgotPasswordRateLimitService rateLimitService;
     private final EmployeeLogger employeeLogger;
 
     @Autowired
     public EmployeeLoginController(EmployeeService employeeService, 
                                   EmployeeAuthService employeeAuthService,
-                                  ForgotPasswordRateLimitService rateLimitService, // 新增
+                                  ForgotPasswordRateLimitService rateLimitService,
                                   EmployeeLogger employeeLogger) {
         this.employeeService = employeeService;
         this.employeeAuthService = employeeAuthService;
-        this.rateLimitService = rateLimitService; // 新增
+        this.rateLimitService = rateLimitService;
         this.employeeLogger = employeeLogger;
     }
 

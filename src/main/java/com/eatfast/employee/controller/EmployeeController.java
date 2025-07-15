@@ -83,9 +83,8 @@ public class EmployeeController {
             EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
             if (currentEmployee == null) {
                 employeeLogger.logWarn("未登入用戶嘗試新增員工");
-                Map<String, String> response = new HashMap<>();
-                response.put("message", "請重新登入");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "請重新登入"));
             }
 
             employeeLogger.logDebug("當前登入用戶: ID={}, username={}, role={}", 
@@ -95,9 +94,8 @@ public class EmployeeController {
             if (!permissionService.canCreateEmployee(currentEmployee)) {
                 employeeLogger.logWarn("用戶 {} (ID: {}) 嘗試新增員工但權限不足", 
                            currentEmployee.getUsername(), currentEmployee.getEmployeeId());
-                Map<String, String> response = new HashMap<>();
-                response.put("message", "權限不足：您無法新增員工");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "權限不足：您無法新增員工"));
             }
 
             // 【核心修改】根據角色決定是直接創建還是提交申請
@@ -112,11 +110,12 @@ public class EmployeeController {
                 employeeLogger.logInfo("【成功】提交員工申請: applicationId={}, username={}", 
                            application.getApplicationId(), request.getUsername());
                 
-                Map<String, Object> response = new HashMap<>();
-                response.put("message", "員工申請已提交，等待總部管理員審核");
-                response.put("applicationId", application.getApplicationId());
-                response.put("type", "application");
-                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(Map.of(
+                            "message", "員工申請已提交，等待總部管理員審核",
+                            "applicationId", application.getApplicationId(),
+                            "type", "application"
+                        ));
                 
             } else if (currentEmployee.getRole() == EmployeeRole.HEADQUARTERS_ADMIN) {
                 // 總部管理員：直接創建員工
@@ -129,16 +128,15 @@ public class EmployeeController {
                 
                 return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
             } else {
-                Map<String, String> response = new HashMap<>();
-                response.put("message", "權限不足：只有門市經理和總部管理員可以新增員工");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "權限不足：只有門市經理和總部管理員可以新增員工"));
             }
             
         } catch (Exception e) {
-            employeeLogger.logError("【失敗】處理員工請求失敗: username={}, error={}", request.getUsername(), e.getMessage());
-            Map<String, String> response = new HashMap<>();
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            employeeLogger.logError("【失敗】處理員工請求失敗: username={}, error={}", 
+                    request.getUsername(), e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", e.getMessage()));
         }
     }
 
