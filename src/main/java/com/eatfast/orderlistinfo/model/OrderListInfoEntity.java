@@ -7,7 +7,6 @@ import com.eatfast.meal.model.MealEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 import java.util.Objects;
 
@@ -49,10 +48,6 @@ public class OrderListInfoEntity {
     @Min(value = 1, message = "數量至少為 1")
     @Column(name = "quantity", nullable = false)
     private Long quantity;
-
-    @Size(max = 255, message = "客製化備註長度不可超過 255 字元")
-    @Column(name = "meal_customization", length = 255)
-    private String mealCustomization;
 
 
     //================================================================
@@ -115,14 +110,6 @@ public class OrderListInfoEntity {
 
     public void setQuantity(Long quantity) {
         this.quantity = quantity;
-    }
-
-    public String getMealCustomization() {
-        return mealCustomization;
-    }
-
-    public void setMealCustomization(String mealCustomization) {
-        this.mealCustomization = mealCustomization;
     }
 
     public OrderListEntity getOrderList() {

@@ -101,8 +101,7 @@ public class OrderListInfoService {
                         entity.getMeal().getMealName(),
                         entity.getQuantity(),
                         entity.getMealPrice(),
-                        entity.getMealCustomization(),
-                        entity.getReviewStars() // ⭐【修改】將 reviewStars 傳入 DTO 建構子
+                        entity.getReviewStars() // ⭐【修改】移除 mealCustomization 參數
                 ))
                 .collect(Collectors.toList());
     }
