@@ -55,28 +55,47 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     // 【新增】注入郵件服務和驗證碼服務
     private final EmailService emailService;
-    private final VerificationCodeService verificationCodeService;
+    // 【修正】統一驗證碼服務接口
+    private final VerificationCodeServiceInterface verificationCodeService;
 
     // 依賴注入的標準建構子模式
     public MemberService(MemberRepository memberRepository, OrderListRepository orderListRepository,
                         PasswordEncoder passwordEncoder, EmailService emailService, 
-                        VerificationCodeService verificationCodeService) {
+                        VerificationCodeService redisVerificationCodeService) {
         this.memberRepository = memberRepository;
         this.orderListRepository = orderListRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
-        this.verificationCodeService = verificationCodeService;
+        
+        // 【修正】根據配置選擇驗證碼服務實現
+        this.verificationCodeService = new VerificationCodeServiceInterface() {
+            @Override
+            public String generateVerificationCode() {
+                return redisVerificationCodeService.generateVerificationCode();
+            }
+            
+            @Override
+            public void storeVerificationCode(String email, String code) {
+                redisVerificationCodeService.storeVerificationCode(email, code);
+            }
+            
+            @Override
+            public boolean verifyCode(String email, String inputCode) {
+                return redisVerificationCodeService.verifyCode(email, inputCode);
+            }
+            
+            @Override
+            public boolean hasVerificationCode(String email) {
+                return redisVerificationCodeService.hasVerificationCode(email);
+            }
+            
+            @Override
+            public void deleteVerificationCode(String email) {
+                redisVerificationCodeService.deleteVerificationCode(email);
+            }
+        };
     }
 
-    // 【新增】內存版驗證碼服務（可選注入）
-    private InMemoryVerificationCodeService inMemoryVerificationCodeService;
-    
-    // 【新增】配置注入內存版驗證碼服務
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
-    public void setInMemoryVerificationCodeService(InMemoryVerificationCodeService inMemoryVerificationCodeService) {
-        this.inMemoryVerificationCodeService = inMemoryVerificationCodeService;
-    }
-    
     // ================================================================
     // 					密碼管理功能 (Password Management)
     // ================================================================
@@ -301,9 +320,8 @@ public class MemberService {
      */
     private void sendVerificationEmail(MemberEntity member) {
         try {
-            VerificationCodeServiceInterface service = getCurrentVerificationService();
-            String verificationCode = service.generateVerificationCode();
-            service.storeVerificationCode(member.getEmail(), verificationCode);
+            String verificationCode = verificationCodeService.generateVerificationCode();
+            verificationCodeService.storeVerificationCode(member.getEmail(), verificationCode);
             
             String targetEmail = "young19960127@gmail.com";
             String subject = "【早餐店會員系統】會員註冊驗證碼";
@@ -311,9 +329,8 @@ public class MemberService {
             
             emailService.sendSimpleEmail(targetEmail, subject, content);
             
-            log.info("已發送驗證郵件 - 會員: {} -> 驗證碼: {} -> 目標信箱: {} -> 使用存儲: {}", 
-                     member.getAccount(), verificationCode, targetEmail, 
-                     (inMemoryVerificationCodeService != null ? "內存" : "Redis"));
+            log.info("已發送驗證郵件 - 會員: {} -> 驗證碼: {} -> 目標信箱: {} -> 使用存儲: Redis", 
+                     member.getAccount(), verificationCode, targetEmail);
             
         } catch (Exception e) {
             log.error("發送驗證郵件失敗 - 會員: {}, 錯誤: {}", member.getAccount(), e.getMessage());
@@ -857,63 +874,9 @@ public class MemberService {
      * 【新增】獲取當前使用的驗證碼服務
      */
     private VerificationCodeServiceInterface getCurrentVerificationService() {
-        if (inMemoryVerificationCodeService != null) {
-            log.info("使用內存版驗證碼服務");
-            return new VerificationCodeServiceInterface() {
-                @Override
-                public String generateVerificationCode() {
-                    return inMemoryVerificationCodeService.generateVerificationCode();
-                }
-                
-                @Override
-                public void storeVerificationCode(String email, String code) {
-                    inMemoryVerificationCodeService.storeVerificationCode(email, code);
-                }
-                
-                @Override
-                public boolean verifyCode(String email, String inputCode) {
-                    return inMemoryVerificationCodeService.verifyCode(email, inputCode);
-                }
-                
-                @Override
-                public boolean hasVerificationCode(String email) {
-                    return inMemoryVerificationCodeService.hasVerificationCode(email);
-                }
-                
-                @Override
-                public void deleteVerificationCode(String email) {
-                    inMemoryVerificationCodeService.deleteVerificationCode(email);
-                }
-            };
-        } else {
-            log.info("使用 Redis 版驗證碼服務");
-            return new VerificationCodeServiceInterface() {
-                @Override
-                public String generateVerificationCode() {
-                    return verificationCodeService.generateVerificationCode();
-                }
-                
-                @Override
-                public void storeVerificationCode(String email, String code) {
-                    verificationCodeService.storeVerificationCode(email, code);
-                }
-                
-                @Override
-                public boolean verifyCode(String email, String inputCode) {
-                    return verificationCodeService.verifyCode(email, inputCode);
-                }
-                
-                @Override
-                public boolean hasVerificationCode(String email) {
-                    return verificationCodeService.hasVerificationCode(email);
-                }
-                
-                @Override
-                public void deleteVerificationCode(String email) {
-                    verificationCodeService.deleteVerificationCode(email);
-                }
-            };
-        }
+        // 直接使用 Redis 版驗證碼服務
+        log.info("使用 Redis 版驗證碼服務");
+        return verificationCodeService;
     }
     
     /**
