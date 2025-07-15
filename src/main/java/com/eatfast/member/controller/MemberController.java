@@ -560,9 +560,8 @@ public class MemberController {
                 return MemberViewConstants.REDIRECT_TO_MEMBER_LOGIN + "?error=account_disabled";
             }
             
-            // 【獲取會員訂單】從 member 的關聯中獲取訂單列表
-            Set<OrderListEntity> memberOrders = member.getOrders();
-            List<OrderListEntity> orders = new ArrayList<>(memberOrders);
+            // 【獲取會員訂單】使用 Service 層方法來確保正確載入訂單明細
+            List<OrderListEntity> orders = memberService.getMemberOrdersWithDetails(memberId);
             
             // 【過濾條件處理】根據篩選條件過濾訂單
             if (status != null && !status.trim().isEmpty()) {

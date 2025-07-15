@@ -8,11 +8,16 @@ import com.eatfast.member.dto.ForgotPasswordRequest;
 import com.eatfast.member.dto.ResetPasswordRequest;
 import com.eatfast.member.dto.MemberVerificationRequest;
 import com.eatfast.member.mapper.MemberMapper;
-// 【新增】引入郵件服務
+// 【修正】引入郵件服務和驗證碼服務
 import com.eatfast.common.service.EmailService;
+import com.eatfast.member.service.VerificationCodeService;
+import com.eatfast.member.service.InMemoryVerificationCodeService;
 // (既有 import)
 import com.eatfast.member.model.MemberEntity;
 import com.eatfast.member.repository.MemberRepository;
+import com.eatfast.orderlist.model.OrderListEntity;
+import com.eatfast.orderlist.repository.OrderListRepository;
+import com.eatfast.orderlistinfo.model.OrderListInfoEntity;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
@@ -23,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -45,15 +51,18 @@ public class MemberService {
 	
     // 不可變動的 final 宣告，確保依賴在建構後不被修改。
     private final MemberRepository memberRepository;
+    private final OrderListRepository orderListRepository;
     private final PasswordEncoder passwordEncoder;
     // 【新增】注入郵件服務和驗證碼服務
     private final EmailService emailService;
     private final VerificationCodeService verificationCodeService;
 
     // 依賴注入的標準建構子模式
-    public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder, 
-                        EmailService emailService, VerificationCodeService verificationCodeService) {
+    public MemberService(MemberRepository memberRepository, OrderListRepository orderListRepository,
+                        PasswordEncoder passwordEncoder, EmailService emailService, 
+                        VerificationCodeService verificationCodeService) {
         this.memberRepository = memberRepository;
+        this.orderListRepository = orderListRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.verificationCodeService = verificationCodeService;
@@ -1076,6 +1085,62 @@ public class MemberService {
         } catch (Exception e) {
             log.error("停用會員時發生未預期錯誤: {}", e.getMessage(), e);
             throw new RuntimeException("停用會員失敗：" + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 【修正】獲取會員訂單並確保載入明細 - 簡化版本避免複雜的關聯載入
+     * 
+     * @param memberId 會員ID
+     * @return 包含完整明細的訂單列表
+     */
+    @Transactional(readOnly = true)
+    public List<OrderListEntity> getMemberOrdersWithDetails(Long memberId) {
+        log.info("開始獲取會員訂單詳細資料 - 會員ID: {}", memberId);
+        
+        try {
+            // 1. 驗證會員是否存在
+            if (!memberRepository.existsById(memberId)) {
+                log.warn("會員不存在 - ID: {}", memberId);
+                return new ArrayList<>();
+            }
+            
+            // 2. 使用 Repository 查詢該會員的所有訂單
+            List<OrderListEntity> orders = orderListRepository.findByMemberMemberIdOrderByOrderDateDesc(memberId);
+            
+            log.info("找到 {} 筆訂單記錄", orders.size());
+            
+            // 3. 確保訂單明細資料被正確載入 (lazy loading)
+            for (OrderListEntity order : orders) {
+                // 強制載入訂單明細資料
+                if (order.getOrderListInfos() != null) {
+                    order.getOrderListInfos().size(); // 觸發 lazy loading
+                    
+                    // 確保餐點資料也被載入
+                    for (OrderListInfoEntity info : order.getOrderListInfos()) {
+                        if (info.getMeal() != null) {
+                            info.getMeal().getMealName(); // 觸發 lazy loading
+                        }
+                    }
+                }
+                
+                // 確保會員資料被載入
+                if (order.getMember() != null) {
+                    order.getMember().getUsername(); // 觸發 lazy loading
+                }
+                
+                // 確保商店資料被載入
+                if (order.getStore() != null) {
+                    order.getStore().getStoreName(); // 觸發 lazy loading
+                }
+            }
+            
+            return orders;
+            
+        } catch (Exception e) {
+            log.error("獲取會員訂單時發生錯誤 - 會員ID: {}, 錯誤: {}", memberId, e.getMessage(), e);
+            // 返回空列表而不是拋出異常，避免頁面崩潰
+            return new ArrayList<>();
         }
     }
 }
