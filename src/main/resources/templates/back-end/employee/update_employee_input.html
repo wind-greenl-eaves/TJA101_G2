@@ -1,5 +1,5 @@
 <!-- =======================================================================================
-     檔案: update_employee_input.html (已復原)
+     檔案: update_employee_input.html (已整合)
      
      ======================================================================================= -->
 <!DOCTYPE html>
@@ -15,7 +15,180 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <link rel="stylesheet" th:href="@{/css/employee/form-styles.css}">
+    <!-- 整合的 CSS 樣式 -->
+    <style>
+        /* =====================================================================================
+         * 檔案: form-styles.css (已整合)
+         * 說明: 已移除照片上傳區塊相關的所有樣式。
+         * ======================================================================================= */
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #FFFFFF;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --header-bg: #F5EFE6;
+            --error-color: #D9534F;
+            --success-color: #4CAF50;
+            --placeholder-color: #B0A495;
+            --input-focus-ring: rgba(166, 123, 91, 0.2);
+            --input-error: #DC2626;
+            --input-success: #059669;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .form-wrapper {
+            width: 100%;
+            max-width: 800px; /* 恢復原來的寬度 */
+            background-color: var(--container-bg);
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background-color: #FFFFFF;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .form-input::placeholder {
+            color: var(--placeholder-color);
+            font-style: italic;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--input-focus-ring);
+        }
+
+        .form-input.border-red-500 {
+            border-color: var(--input-error);
+        }
+
+        .form-input.border-red-500:focus {
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+        }
+
+        .form-input:valid:not([readonly]) {
+            border-color: var(--input-success);
+        }
+
+        .form-input:disabled,
+        .form-input[readonly] {
+            background-color: #F3F4F6;
+            cursor: not-allowed;
+            opacity: 0.75;
+        }
+
+        .submit-button, .cancel-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease-in-out;
+            border: none;
+        }
+
+        .submit-button {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .submit-button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .submit-button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .submit-button:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .cancel-button {
+            background-color: #e5e7eb;
+            color: var(--text-color);
+        }
+
+        .cancel-button:hover {
+            background-color: #d1d5db;
+        }
+
+        .error-message {
+            color: var(--input-error);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            min-height: 1.25rem;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-toggle-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-color);
+            opacity: 0.5;
+            cursor: pointer;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .password-toggle-icon:hover {
+            opacity: 1;
+        }
+
+        #message-container.bg-error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
 </head>
 <body class="antialiased" th:data-has-employee-session="${session.loggedInEmployee != null}">
 
@@ -38,15 +211,15 @@
     <form id="update-form"
           th:action="@{/api/v1/employees/{id}(id=${employee.employeeId})}"
           class="p-8 space-y-6"
-          enctype="multipart/form-data">
+          enctype="multipart/form-data"
+          novalidate>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
             <!-- 員工姓名 -->
             <div>
                 <label for="username" class="form-label">員工姓名</label>
                 <input type="text" id="username" name="username" th:value="${employee.username}" 
-                       class="form-input" required minlength="2" maxlength="50" pattern="[^\s].*" 
-                       title="姓名不能以空格開頭且至少需要2個字" />
+                       class="form-input" />
                 <div id="error-username" class="error-message"></div>
             </div>
             <!-- 登入帳號 (唯讀) -->
@@ -58,18 +231,14 @@
             <div class="sm:col-span-2">
                 <label for="email" class="form-label">電子郵件</label>
                 <input type="email" id="email" name="email" th:value="${employee.email}" 
-                       class="form-input" required 
-                       pattern="[a-zA-Z0-9._\+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}" 
-                       title="請輸入有效的電子郵件地址" />
+                       class="form-input" />
                 <div id="error-email" class="error-message"></div>
             </div>
             <!-- 聯絡電話 -->
             <div class="sm:col-span-2">
                 <label for="phone" class="form-label">聯絡電話</label>
                 <input type="tel" id="phone" name="phone" th:value="${employee.phone}" 
-                       class="form-input" required 
-                       pattern="^(09\d{2}(-?\d{3}){2}|0[2-8]\d{1,2}(-?\d{3,4}){1,2})$" 
-                       title="請輸入有效的台灣手機或市話號碼 (可包含橫線)" />
+                       class="form-input" />
                 <div id="error-phone" class="error-message"></div>
             </div>
             <!-- 員工角色 -->
@@ -132,9 +301,7 @@
             <div class="sm:col-span-2 password-wrapper">
                 <label for="password" class="form-label">設定新密碼 (可選)</label>
                 <input type="password" id="password" name="password" 
-                       placeholder="若不修改請留空" class="form-input" 
-                       pattern="^$|^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"
-                       title="密碼需至少8個字元，且包含至少一個字母和一個數字" />
+                       placeholder="若不修改請留空" class="form-input" />
                 <i class="fas fa-eye password-toggle-icon" id="password-toggle"></i>
                 <div id="error-password" class="error-message"></div>
             </div>
@@ -172,8 +339,7 @@
                                    id="photo"
                                    name="photo"
                                    accept="image/jpeg,image/png,image/gif"
-                                   class="hidden"
-                                   data-max-size="5242880">
+                                   class="hidden">
                             <button type="button"
                                     id="photo-upload-btn"
                                     class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
@@ -220,9 +386,874 @@
     </div>
 </div>
 
-<!-- 引入Session警告系統 -->
-<script th:src="@{/js/common/sessionWarning.js}"></script>
-<script th:src="@{/js/employee/update.js}"></script>
+<!-- 整合的 JavaScript 代碼 -->
+<script>
+/**
+ * Session 警告管理系統
+ * 功能：30秒無動作後彈出警告，60秒後自動登出
+ */
+class SessionWarningManager {
+    constructor() {
+        this.warningTime = 30000; // 30秒警告
+        this.logoutTime = 60000;  // 60秒登出
+        this.warningTimer = null;
+        this.logoutTimer = null;
+        this.isWarningShown = false;
+        this.lastActivityTime = Date.now();
+        
+        this.init();
+    }
+
+    init() {
+        this.createWarningModal();
+        this.bindEvents();
+        this.startTimers();
+        console.log('🔒 Session警告系統已啟動 - 30秒警告，60秒自動登出');
+    }
+
+    /**
+     * 創建警告彈窗
+     */
+    createWarningModal() {
+        // 檢查是否已存在警告彈窗
+        if (document.getElementById('session-warning-modal')) {
+            return;
+        }
+
+        const modalHtml = `
+            <div id="session-warning-modal" class="fixed inset-0 z-[9999] hidden">
+                <!-- 背景遮罩 -->
+                <div class="fixed inset-0 bg-black bg-opacity-70"></div>
+                
+                <!-- Modal 內容 -->
+                <div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-2xl w-96 max-w-[90vw]">
+                    <div class="p-6 text-center">
+                        <!-- 警告圖示 -->
+                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-4">
+                            <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
+                        </div>
+                        
+                        <!-- 標題 -->
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">⚠️ Session 即將過期</h3>
+                        
+                        <!-- 警告訊息 -->
+                        <p class="text-gray-600 mb-4">
+                            您已經 <span class="font-semibold text-orange-600">30 秒</span> 沒有操作了<br>
+                            系統將在 <span id="countdown-timer" class="font-bold text-red-600">30</span> 秒後自動登出
+                        </p>
+                        
+                        <!-- 進度條 -->
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-6">
+                            <div id="countdown-progress" class="bg-gradient-to-r from-yellow-400 to-red-500 h-2 rounded-full transition-all duration-1000" style="width: 100%"></div>
+                        </div>
+                        
+                        <!-- 按鈕區域 -->
+                        <div class="flex space-x-3">
+                            <button id="session-continue-btn" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
+                                <i class="fas fa-hand-sparkles mr-2"></i>繼續工作
+                            </button>
+                            <button id="session-logout-btn" class="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors">
+                                <i class="fas fa-sign-out-alt mr-2"></i>立即登出
+                            </button>
+                        </div>
+                        
+                        <p class="text-xs text-gray-500 mt-3">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            請點擊「繼續工作」按鈕以繼續操作
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        this.bindModalEvents();
+    }
+
+    /**
+     * 綁定彈窗事件
+     */
+    bindModalEvents() {
+        const modal = document.getElementById('session-warning-modal');
+        const continueBtn = document.getElementById('session-continue-btn');
+        const logoutBtn = document.getElementById('session-logout-btn');
+
+        // 繼續工作按鈕
+        continueBtn?.addEventListener('click', () => {
+            this.resetActivity();
+            this.hideWarning();
+        });
+
+        // 立即登出按鈕
+        logoutBtn?.addEventListener('click', () => {
+            this.performLogout();
+        });
+
+        // 完全阻止點擊背景關閉（強制用戶選擇按鈕）
+        modal?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+        });
+    }
+
+    /**
+     * 綁定用戶活動事件
+     */
+    bindEvents() {
+        // 【修改】移除 mousemove 事件，防止滑鼠移動干擾警告
+        const events = [
+            'mousedown', 'keypress', 'scroll', 
+            'touchstart', 'click', 'focus', 'blur'
+        ];
+
+        events.forEach(event => {
+            document.addEventListener(event, this.handleUserActivity.bind(this), true);
+        });
+
+        // 特別處理表單提交和AJAX請求
+        this.interceptAjaxRequests();
+        this.interceptFormSubmissions();
+    }
+
+    /**
+     * 處理用戶活動
+     */
+    handleUserActivity(event) {
+        // 【新增】如果警告已顯示，忽略所有活動事件，強制用戶點擊按鈕
+        if (this.isWarningShown) {
+            console.log('🚫 警告已顯示，忽略用戶活動事件:', event.type);
+            return;
+        }
+
+        // 排除某些不重要的事件
+        if (this.shouldIgnoreEvent(event)) {
+            return;
+        }
+
+        const now = Date.now();
+        const timeSinceLastActivity = now - this.lastActivityTime;
+
+        // 避免過於頻繁的重置（500ms內的活動視為同一次）
+        if (timeSinceLastActivity < 500) {
+            return;
+        }
+
+        this.resetActivity();
+        
+        console.log('🔄 檢測到有效用戶活動:', event.type);
+    }
+
+    /**
+     * 判斷是否應該忽略某些事件
+     */
+    shouldIgnoreEvent(event) {
+        // 【新增】在警告顯示期間，除了點擊繼續按鈕外，忽略所有事件
+        if (this.isWarningShown) {
+            const target = event.target;
+            const continueBtn = document.getElementById('session-continue-btn');
+            const logoutBtn = document.getElementById('session-logout-btn');
+            
+            // 只允許點擊警告彈窗內的按鈕
+            if (target === continueBtn || target === logoutBtn) {
+                return false; // 不忽略這些按鈕的點擊
+            }
+            return true; // 忽略其他所有事件
+        }
+
+        // 忽略警告彈窗內的其他事件（除了按鈕）
+        const target = event.target;
+        const modal = document.getElementById('session-warning-modal');
+        if (modal && modal.contains(target)) {
+            const continueBtn = document.getElementById('session-continue-btn');
+            const logoutBtn = document.getElementById('session-logout-btn');
+            if (target !== continueBtn && target !== logoutBtn) {
+                return true; // 忽略彈窗內除按鈕外的其他事件
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 攔截 AJAX 諭請求
+     */
+    interceptAjaxRequests() {
+        const originalFetch = window.fetch;
+        window.fetch = (...args) => {
+            this.resetActivity();
+            return originalFetch.apply(window, args);
+        };
+
+        // 攔截 XMLHttpRequest
+        const originalOpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function() {
+            this.addEventListener('loadstart', () => {
+                if (window.sessionWarningManager) {
+                    window.sessionWarningManager.resetActivity();
+                }
+            });
+            return originalOpen.apply(this, arguments);
+        };
+    }
+
+    /**
+     * 攔截表單提交
+     */
+    interceptFormSubmissions() {
+        document.addEventListener('submit', () => {
+            this.resetActivity();
+        }, true);
+    }
+
+    /**
+     * 重置活動時間並重啟計時器
+     */
+    resetActivity() {
+        // 【新增】如果警告已顯示，不允許重置活動時間
+        if (this.isWarningShown) {
+            console.log('🚫 警告顯示中，拒絕重置活動時間');
+            return;
+        }
+
+        this.lastActivityTime = Date.now();
+        this.clearTimers();
+        this.startTimers();
+        
+        console.log('🔄 用戶活動檢測 - 重置Session計時器');
+    }
+
+    /**
+     * 開始計時器
+     */
+    startTimers() {
+        // 30秒後顯示警告
+        this.warningTimer = setTimeout(() => {
+            this.showWarning();
+        }, this.warningTime);
+
+        // 60秒後自動登出
+        this.logoutTimer = setTimeout(() => {
+            this.performLogout();
+        }, this.logoutTime);
+    }
+
+    /**
+     * 清除所有計時器
+     */
+    clearTimers() {
+        if (this.warningTimer) {
+            clearTimeout(this.warningTimer);
+            this.warningTimer = null;
+        }
+        if (this.logoutTimer) {
+            clearTimeout(this.logoutTimer);
+            this.logoutTimer = null;
+        }
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+        }
+    }
+
+    /**
+     * 顯示警告彈窗
+     */
+    showWarning() {
+        if (this.isWarningShown) return;
+
+        const modal = document.getElementById('session-warning-modal');
+        if (!modal) return;
+
+        this.isWarningShown = true;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // 【新增】禁用頁面滾動和其他交互
+        document.body.style.overflow = 'hidden';
+        
+        // 開始倒數計時
+        this.startCountdown();
+
+        console.log('⚠️  Session警告 - 顯示30秒警告彈窗，用戶必須點擊按鈕');
+    }
+
+    /**
+     * 隱藏警告彈窗
+     */
+    hideWarning() {
+        const modal = document.getElementById('session-warning-modal');
+        if (!modal) return;
+
+        this.isWarningShown = false;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+
+        // 【新增】恢復頁面滾動和交互
+        document.body.style.overflow = '';
+
+        // 停止倒數計時
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+        }
+
+        console.log('✅ Session警告 - 隱藏警告彈窗，恢復正常操作');
+    }
+
+    /**
+     * 開始倒數計時
+     */
+    startCountdown() {
+        let remainingSeconds = 30;
+        const timerElement = document.getElementById('countdown-timer');
+        const progressElement = document.getElementById('countdown-progress');
+
+        this.countdownInterval = setInterval(() => {
+            remainingSeconds--;
+            
+            if (timerElement) {
+                timerElement.textContent = remainingSeconds;
+            }
+            
+            if (progressElement) {
+                const percentage = (remainingSeconds / 30) * 100;
+                progressElement.style.width = percentage + '%';
+            }
+
+            if (remainingSeconds <= 0) {
+                clearInterval(this.countdownInterval);
+                this.performLogout();
+            }
+        }, 1000);
+    }
+
+    /**
+     * 執行登出操作
+     */
+    performLogout() {
+        console.log('🚪 Session超時 - 執行自動登出');
+        
+        this.clearTimers();
+        
+        // 顯示登出訊息
+        if (this.isWarningShown) {
+            this.hideWarning();
+        }
+
+        // 執行登出
+        try {
+            // 嘗試發送登出請求到後端
+            fetch('/employee/logout', {
+                method: 'GET',
+                credentials: 'same-origin'
+            }).finally(() => {
+                // 無論請求成功與否，都重定向到登入頁面
+                window.location.href = '/employee/login?timeout=true';
+            });
+        } catch (error) {
+            // 如果請求失敗，直接重定向
+            console.error('登出請求失敗:', error);
+            window.location.href = '/employee/login?timeout=true';
+        }
+    }
+
+    /**
+     * 銷毀警告管理器
+     */
+    destroy() {
+        this.clearTimers();
+        
+        // 【新增】恢復頁面狀態
+        document.body.style.overflow = '';
+        
+        const modal = document.getElementById('session-warning-modal');
+        if (modal) {
+            modal.remove();
+        }
+        console.log('🔒 Session警告系統已銷毀');
+    }
+}
+
+// 自動初始化（僅在員工相關頁面）
+document.addEventListener('DOMContentLoaded', function() {
+    // 檢查是否在員工相關頁面
+    const currentPath = window.location.pathname;
+    const isEmployeePage = currentPath.includes('/employee') || 
+                          currentPath.includes('/back-end/employee') ||
+                          currentPath.includes('/member') ||
+                          currentPath.includes('/orderlist');
+
+    // 檢查是否已登入（存在員工Session資訊）
+    const hasEmployeeSession = document.querySelector('body').dataset.hasEmployeeSession !== 'false';
+
+    if (isEmployeePage && hasEmployeeSession) {
+        // 延遲初始化，確保頁面完全載入
+        setTimeout(() => {
+            if (!window.sessionWarningManager) {
+                window.sessionWarningManager = new SessionWarningManager();
+            }
+        }, 1000);
+    }
+});
+
+// 頁面卸載時清理
+window.addEventListener('beforeunload', function() {
+    if (window.sessionWarningManager) {
+        window.sessionWarningManager.destroy();
+    }
+});
+
+// 導出供手動使用
+window.SessionWarningManager = SessionWarningManager;
+
+/* =======================================================================================
+ * 檔案: update.js (已整合並修改)
+ * 說明: 移除前端 HTML5 驗證，保留後端驗證和即時驗證功能
+ * ======================================================================================= */
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('update-form');
+    const messageContainer = document.getElementById('message-container');
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.getElementById('password-toggle');
+    const successModal = document.getElementById('success-modal');
+    const successModalMessage = document.getElementById('success-modal-message');
+    const successModalConfirm = document.getElementById('success-modal-confirm');
+    
+    // 添加即時驗證（不依賴 HTML5 驗證）
+    const inputs = form.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"]');
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            validateInputCustom(this);
+        });
+        input.addEventListener('blur', function() {
+            validateInputCustom(this);
+        });
+    });
+
+    // 密碼驗證函數
+    function isValidPassword(password) {
+        // 至少8個字元，且包含至少一個字母和一個數字
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+        return passwordRegex.test(password);
+    }
+
+    // 員工姓名驗證函數（修復中文字符問題）
+    function isValidUsername(username) {
+        // 檢查是否包含危險字符
+        const dangerousCharsRegex = /[<>\"'&]/;
+        if (dangerousCharsRegex.test(username)) {
+            return false;
+        }
+        
+        // 檢查是否只包含空格和特殊字符（排除中文和英文字母）
+        const validCharsRegex = /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af\ua-zA-Z]/;
+        return validCharsRegex.test(username);
+    }
+
+    // 電子郵件驗證函數（強化）
+    function isValidEmail(email) {
+        // 基本格式驗證
+        const emailRegex = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) return false;
+        
+        // 檢查是否包含連續的點
+        if (email.includes('..')) return false;
+        
+        // 檢查開頭和結尾不能是點或特殊字符
+        if (email.startsWith('.') || email.endsWith('.')) return false;
+        if (email.startsWith('-') || email.endsWith('-')) return false;
+        
+        // 檢查 @ 符號前後不能是點
+        const parts = email.split('@');
+        if (parts.length !== 2) return false;
+        
+        const localPart = parts[0];
+        const domainPart = parts[1];
+        
+        // 本地部分驗證
+        if (localPart.length === 0 || localPart.length > 64) return false;
+        if (localPart.startsWith('.') || localPart.endsWith('.')) return false;
+        
+        // 域名部分驗證
+        if (domainPart.length === 0 || domainPart.length > 255) return false;
+        if (domainPart.startsWith('.') || domainPart.endsWith('.')) return false;
+        if (domainPart.startsWith('-') || domainPart.endsWith('-')) return false;
+        
+        return true;
+    }
+
+    // 電話號碼驗證函數（強化）
+    function isValidPhone(phone) {
+        // 移除所有空格和連字符
+        const cleanPhone = phone.replace(/[\s-]/g, '');
+        
+        // 台灣手機號碼格式：09開頭，共10位數字
+        const mobileRegex = /^09\d{8}$/;
+        
+        // 台灣市話格式：0X開頭（X為2-8），後面跟著7-8位數字
+        const landlineRegex = /^0[2-8]\d{7,8}$/;
+        
+        return mobileRegex.test(cleanPhone) || landlineRegex.test(cleanPhone);
+    }
+
+    // 防止 XSS 攻擊的輸入過濾函數
+    function preventXSS(input) {
+        if (typeof input !== 'string') return '';
+        
+        // HTML 實體編碼
+        const htmlEntities = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#x27;',
+            '/': '&#x2F;'
+        };
+        
+        return input.replace(/[&<>"'\/]/g, (match) => htmlEntities[match]);
+    }
+
+    // 強化的輸入清理函數
+    function sanitizeInput(input) {
+        if (typeof input !== 'string') return '';
+        
+        // 移除前後空格
+        input = input.trim();
+        
+        // 移除潛在的 HTML 標籤
+        input = input.replace(/<[^>]*>/g, '');
+        
+        // 移除潛在的 JavaScript 代碼
+        input = input.replace(/javascript:/gi, '');
+        
+        return input;
+    }
+
+    // 自定義驗證函數（不依賴 HTML5 驗證）
+    function validateInputCustom(input) {
+        const errorDiv = document.getElementById(`error-${input.name}`);
+        let isValid = true;
+        let errorMessage = '';
+        
+        // 清理輸入值
+        const cleanValue = sanitizeInput(input.value);
+        
+        // 根據欄位名稱進行自定義驗證
+        switch(input.name) {
+            case 'username':
+                if (!cleanValue) {
+                    isValid = false;
+                    errorMessage = '員工姓名為必填欄位';
+                } else if (cleanValue.length < 2) {
+                    isValid = false;
+                    errorMessage = '員工姓名至少需要2個字元';
+                } else if (cleanValue.length > 50) {
+                    isValid = false;
+                    errorMessage = '員工姓名不能超過50個字元';
+                } else if (input.value.startsWith(' ') || input.value.endsWith(' ')) {
+                    isValid = false;
+                    errorMessage = '員工姓名不能以空格開頭或結尾';
+                } else if (!isValidUsername(cleanValue)) {
+                    isValid = false;
+                    errorMessage = '員工姓名格式不正確，不能包含特殊字符';
+                }
+                break;
+                
+            case 'email':
+                if (!cleanValue) {
+                    isValid = false;
+                    errorMessage = '電子郵件為必填欄位';
+                } else if (cleanValue.length > 255) {
+                    isValid = false;
+                    errorMessage = '電子郵件地址過長';
+                } else if (!isValidEmail(cleanValue)) {
+                    isValid = false;
+                    errorMessage = '請輸入有效的電子郵件地址';
+                }
+                break;
+                
+            case 'phone':
+                if (!cleanValue) {
+                    isValid = false;
+                    errorMessage = '聯絡電話為必填欄位';
+                } else if (cleanValue.length > 20) {
+                    isValid = false;
+                    errorMessage = '聯絡電話過長';
+                } else if (!isValidPhone(cleanValue)) {
+                    isValid = false;
+                    errorMessage = '請輸入有效的台灣手機或市話號碼';
+                }
+                break;
+                
+            case 'password':
+                // 密碼是可選的，但如果填寫就要符合規則
+                if (input.value && input.value.length > 0) {
+                    if (input.value.length < 8) {
+                        isValid = false;
+                        errorMessage = '密碼至少需要8個字元';
+                    } else if (input.value.length > 128) {
+                        isValid = false;
+                        errorMessage = '密碼不能超過128個字元';
+                    } else if (!isValidPassword(input.value)) {
+                        isValid = false;
+                        errorMessage = '密碼需包含至少一個字母和一個數字';
+                    }
+                }
+                break;
+        }
+        
+        if (isValid) {
+            errorDiv.textContent = '';
+            input.classList.remove('border-red-500');
+        } else {
+            errorDiv.textContent = errorMessage;
+            input.classList.add('border-red-500');
+        }
+        
+        return isValid;
+    }
+
+    // 自定義表單驗證函數
+    function validateForm() {
+        let isValid = true;
+        
+        // 驗證必填欄位
+        const requiredFields = ['username', 'email', 'phone'];
+        requiredFields.forEach(fieldName => {
+            const input = document.getElementById(fieldName);
+            if (!validateInputCustom(input)) {
+                isValid = false;
+            }
+        });
+        
+        return isValid;
+    }
+
+    // 照片上傳相關元素
+    const photoInput = document.getElementById('photo');
+    const photoUploadBtn = document.getElementById('photo-upload-btn');
+    const photoPreview = document.getElementById('photo-preview');
+    const photoPlaceholder = document.getElementById('photo-placeholder');
+    const photoContainer = photoPreview ? photoPreview.parentElement : document.querySelector('.w-32.h-32');
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+    // 照片上傳按鈕點擊事件
+    if (photoUploadBtn) {
+        photoUploadBtn.addEventListener('click', function() {
+            photoInput.click();
+        });
+    }
+
+    // 拖放上傳支援
+    if (photoContainer) {
+        // 防止默認的拖放行為
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            photoContainer.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        // 拖放視覺效果
+        ['dragenter', 'dragover'].forEach(eventName => {
+            photoContainer.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            photoContainer.addEventListener(eventName, unhighlight, false);
+        });
+
+        // 處理檔案拖放
+        photoContainer.addEventListener('drop', handleDrop, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            photoContainer.classList.add('border-blue-400', 'bg-blue-50');
+        }
+
+        function unhighlight(e) {
+            photoContainer.classList.remove('border-blue-400', 'bg-blue-50');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                photoInput.files = files;
+                handlePhotoSelection(files[0]);
+            }
+        }
+    }
+
+    // 統一的照片處理函數
+    function handlePhotoSelection(file) {
+        const errorDiv = document.getElementById('error-photo');
+        
+        // 清除之前的錯誤訊息
+        errorDiv.textContent = '';
+        
+        if (!file) return;
+
+        // 檢查文件類型
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+            errorDiv.textContent = '只支援 JPG 或 PNG 格式的圖片';
+            photoInput.value = '';
+            return;
+        }
+        
+        // 檢查文件大小
+        if (file.size > MAX_FILE_SIZE) {
+            errorDiv.textContent = '圖片大小不能超過 5MB';
+            photoInput.value = '';
+            return;
+        }
+
+        // 預覽圖片
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // 如果沒有預覽元素，創建一個
+            let preview = photoPreview;
+            if (!preview) {
+                preview = document.createElement('img');
+                preview.id = 'photo-preview';
+                preview.className = 'w-full h-full object-cover';
+                preview.alt = '員工照片預覽';
+                
+                // 清空容器並添加預覽圖片
+                if (photoContainer) {
+                    photoContainer.innerHTML = '';
+                    photoContainer.appendChild(preview);
+                }
+            }
+            
+            // 設置預覽圖片
+            preview.src = e.target.result;
+            preview.classList.remove('hidden');
+            
+            // 隱藏佔位符
+            if (photoPlaceholder) {
+                photoPlaceholder.classList.add('hidden');
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // 照片選擇處理
+    if (photoInput) {
+        photoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            handlePhotoSelection(file);
+        });
+    }
+
+    // 表單提交事件監聽
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        clearAllErrors();
+        messageContainer.classList.add('hidden');
+
+        // 自定義表單驗證（不依賴 HTML5）
+        const isValid = validateForm();
+
+        if (!isValid) {
+            showMessage('請修正表單中的錯誤後再試一次。', 'error');
+            return;
+        }
+
+        const formData = new FormData(form);
+        const url = form.getAttribute('action');
+
+        try {
+            // 如果沒有選擇新照片，則從 FormData 中移除 photo 欄位
+            if (!photoInput.files.length) {
+                formData.delete('photo');
+            }
+
+            const response = await fetch(url, {
+                method: 'PUT',
+                body: formData // 直接發送 FormData，不需要設置 Content-Type
+            });
+
+            const responseData = await response.json();
+
+            if (response.ok) {
+                showSuccessModal(`員工 "${responseData.username}" 的資料已成功更新！`);
+            } else {
+                if (response.status === 400 && responseData.errors) {
+                    handleValidationErrors(responseData.errors);
+                    showMessage('資料驗證失敗，請檢查下方欄位。', 'error');
+                } else {
+                    showMessage(responseData.message || '發生未知錯誤，請稍後再試。', 'error');
+                }
+            }
+        } catch (error) {
+            console.error('Fetch Error:', error);
+            showMessage('無法連接到伺服器，請檢查您的網路連線。', 'error');
+        }
+    });
+
+    // Modal 相關函數
+    function showSuccessModal(message) {
+        successModalMessage.textContent = message;
+        successModal.classList.remove('hidden');
+        
+        // 點擊確認按鈕時的處理
+        successModalConfirm.onclick = function() {
+            window.location.href = '/employee/listAll';
+        };
+        
+        // 點擊背景遮罩時不關閉 Modal
+        successModal.querySelector('.fixed.inset-0.bg-black').onclick = function(e) {
+            e.stopPropagation();
+        };
+    }
+
+    // 錯誤訊息顯示函數
+    function showMessage(message, type) {
+        messageContainer.textContent = message;
+        messageContainer.className = `p-4 mx-8 mt-6 text-sm rounded-lg ${
+            type === 'error' 
+                ? 'bg-red-100 text-red-700 border border-red-400'
+                : 'bg-green-100 text-green-700 border border-green-400'
+        }`;
+        messageContainer.classList.remove('hidden');
+        messageContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    /**
+     * 處理從後端傳來的驗證錯誤，並顯示在對應的欄位下方。
+     * @param {Object} errors - 後端傳來的錯誤物件 { fieldName: errorMessage }。
+     */
+    function handleValidationErrors(errors) {
+        for (const field in errors) {
+            const errorDiv = document.getElementById(`error-${field}`);
+            if (errorDiv) {
+                errorDiv.textContent = errors[field];
+                // 同時為對應的輸入框添加錯誤樣式
+                const input = document.getElementById(field);
+                if (input) {
+                    input.classList.add('border-red-500');
+                }
+            }
+        }
+    }
+
+    /**
+     * 清除所有欄位下方的錯誤訊息。
+     */
+    function clearAllErrors() {
+        const errorDivs = document.querySelectorAll('.error-message');
+        errorDivs.forEach(div => div.textContent = '');
+        
+        // 清除所有輸入框的錯誤樣式
+        const inputs = document.querySelectorAll('.form-input');
+        inputs.forEach(input => input.classList.remove('border-red-500'));
+    }
+});
+</script>
 
 </body>
 </html>

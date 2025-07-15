@@ -47,6 +47,9 @@ public interface EmployeeRepository extends JpaRepository<EmployeeEntity, Long>,
     /** 依電子郵件查詢員工。*/
     Optional<EmployeeEntity> findByEmail(String email);
 
+    /** 依密碼查詢員工（用於密碼升級）。*/
+    Optional<EmployeeEntity> findByPassword(String password);
+
     //================================================================
     // 				      存在性檢查 (高效能)
     //================================================================
