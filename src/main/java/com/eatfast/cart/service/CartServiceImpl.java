@@ -5,6 +5,7 @@ import com.eatfast.cart.dto.CartDTO.CartItemDto;
 import com.eatfast.cart.dto.CartDTO.UpdateCartItemRequest;
 import com.eatfast.cart.dto.CartDTO.CartItemRedisData;
 import com.eatfast.cart.model.CartEntity;
+import com.eatfast.cart.repository.CartRepository;
 import com.eatfast.member.model.MemberEntity;
 import com.eatfast.meal.model.MealEntity;
 import com.eatfast.store.model.StoreEntity;
@@ -12,6 +13,8 @@ import com.eatfast.member.repository.MemberRepository;
 import com.eatfast.meal.model.MealRepository;
 import com.eatfast.store.repository.StoreRepository;
 import jakarta.persistence.EntityNotFoundException;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +34,10 @@ public class CartServiceImpl implements CartService {
    private final RedisTemplate<String, Object> redisTemplate;
    private static final String CART_REDIS_KEY_PREFIX = "cart:";
    private static final long CART_TTL_SECONDS = TimeUnit.DAYS.toSeconds(7);
+   @Autowired
+   private CartRepository cartRepository;
+   
+   
    public CartServiceImpl(
                           MemberRepository memberRepository,
                           MealRepository mealRepository,
@@ -281,6 +288,32 @@ public class CartServiceImpl implements CartService {
            dto.setStoreName(cartEntity.getStore().getStoreName());
        }
        return dto;
+   }
+   
+   
+   /**
+    * 【此處為本次修正重點】
+    * 實作根據會員 ID 獲取購物車商品數量的方法。
+    * 現在這個方法會正確地查詢 Redis。
+    */
+   @Override
+   public long getItemCountByMemberId(Long memberId) {
+       if (memberId == null) {
+           return 0L;
+       }
+       
+       // 1. 產生該會員在 Redis 中的購物車 Key (e.g., "cart:123")
+       //    這會呼叫您已經寫好的 private 方法，確保 Key 的一致性。
+       String cartKey = getCartRedisKey(memberId);
+       
+       // 2. 使用 Redis 的 HLEN 命令來獲取 Hash 中的欄位數量。
+       //    opsForHash().size(key) 會回傳指定 key 的 Hash 中有多少個 field-value 對。
+       //    這正好就是購物車中的商品【種類】數量。
+       Long itemCount = redisTemplate.opsForHash().size(cartKey);
+
+       // 3. 如果 itemCount 是 null (表示這個 key 在 Redis 中不存在)，則回傳 0。
+       //    否則，回傳實際的數量。
+       return itemCount != null ? itemCount : 0L;
    }
 }
 
