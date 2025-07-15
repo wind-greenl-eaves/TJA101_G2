@@ -68,6 +68,15 @@
     --shadow-light: rgba(0, 0, 0, 0.1);
     --shadow-medium: rgba(0, 0, 0, 0.15);
 }
+
+ body {
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: linear-gradient(135deg, var(--bg-color) 0%, var(--header-bg) 100%);
+            min-height: 100vh;
+        }
+        
 /* Navigation Bar */
         .nav-fixed {
             position: fixed;
@@ -105,13 +114,11 @@
             object-fit: contain;
         }
 
-        .nav-logo-text {
-    font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
-    font-size: 1.2rem;     /* 依需求可拉大或拉小 */
-    font-weight: 700;      /* 跟 .brand-title 一致 */
-    letter-spacing: 0.04em;/* 字距建議跟首頁一樣 */
-    line-height: 1.1;
-}
+       .nav-logo-text {
+            font-size: 1.2rem; /* 調整導航欄文字大小 */
+            font-weight: 700;
+        }
+
 
 
         .nav-menu {
@@ -123,7 +130,7 @@
         .nav-link {
             color: var(--text-color);
             text-decoration: none;
-            font-weight: 700;
+            font-weight: 500;
             transition: color 0.3s ease;
             position: relative;
         }
@@ -409,6 +416,7 @@
             </a>
             
             <div class="nav-menu">
+            	<a href="/news/list" class="nav-link">最新消息</a>
             	<a href="/store/storelist" class="nav-link">門市據點</a>
                 <a href="/menu" class="nav-link">餐點菜單</a>
                 <!-- 根據登入狀態顯示不同內容 -->
@@ -423,21 +431,24 @@
                    th:href="@{/api/v1/auth/member-login}" class="nav-link">購物車</a>
 			</div>
 
-			<!-- 登入狀態區塊（navbar） -->
-<div class="flex items-center gap-2">
-    <!-- 已登入 -->
-    <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" class="flex items-center gap-2">
-        <span class="text-milktea-dark font-semibold">歡迎, <span th:text="${session.memberName}">會員名稱</span></span>
-        <button type="button" class="px-4 py-2 rounded-full btn-outline font-semibold bg-[#fff4e6] hover:bg-[#F3E5D6] transition" onclick="confirmLogout()">
-            <i class="fas fa-sign-out-alt"></i> 登出
-        </button>
-        <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display:none;"></form>
-    </div>
-    <!-- 未登入 -->
-    <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" th:href="@{/api/v1/auth/member-login}" class="px-4 py-2 rounded-full btn-outline font-semibold hover:bg-[#F3E5D6] transition">
-        <i class="fas fa-sign-in-alt"></i> 登入/註冊
-    </a>
-</div>
+<!-- 登入按鈕根據登入狀態變化 -->
+            <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                 class="nav-user-info" style="display: flex; align-items: center; gap: 1rem;">
+                <span style="color: var(--primary-color);">歡迎, <span th:text="${session.memberName}"></span></span>
+                <button type="button" class="nav-login" style="background-color: #dc3545; border: none; cursor: pointer;" 
+                        onclick="confirmLogout()">
+                    <i class="fas fa-sign-out-alt"></i> 登出
+                </button>
+                <!-- 隱藏的登出表單 -->
+                <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display: none;">
+                    <input type="hidden" name="_method" value="POST">
+                </form>
+            </div>
+            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+               th:href="@{/api/v1/auth/member-login}" class="nav-login">
+                <i class="fas fa-sign-in-alt"></i> 會員登入
+            </a>
+        </div>
 
 <!-- 登出 Modal（新版） -->
 <div class="logout-modal" id="logoutModal">
