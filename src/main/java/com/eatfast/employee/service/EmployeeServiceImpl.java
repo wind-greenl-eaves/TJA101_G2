@@ -51,37 +51,40 @@ public class EmployeeServiceImpl implements EmployeeService {
     
     private static final Logger log = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
+    // 核心依賴注入
     private final EmployeeRepository employeeRepository;
     private final StoreRepository storeRepository;
     private final EmployeeMapper employeeMapper;
     private final PermissionRepository permissionRepository;
     private final EmployeePermissionRepository employeePermissionRepository;
     private final PermissionService permissionService;
+    private final PasswordEncoder passwordEncoder;
+    private final FileService fileService;
+    private final MailService mailService;
 
     @Value("${app.upload.employee-photos}")
     private String uploadPath;
 
     @Autowired
-    private FileService fileService;
-
-    @Autowired
-    private MailService mailService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder; // 新增密碼加密器
-
-    @Autowired
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, StoreRepository storeRepository,
-                               EmployeeMapper employeeMapper,
-                               PermissionRepository permissionRepository,
-                               EmployeePermissionRepository employeePermissionRepository,
-                               PermissionService permissionService) {
+    public EmployeeServiceImpl(
+            EmployeeRepository employeeRepository, 
+            StoreRepository storeRepository,
+            EmployeeMapper employeeMapper,
+            PermissionRepository permissionRepository,
+            EmployeePermissionRepository employeePermissionRepository,
+            PermissionService permissionService,
+            PasswordEncoder passwordEncoder,
+            FileService fileService,
+            MailService mailService) {
         this.employeeRepository = employeeRepository;
         this.storeRepository = storeRepository;
         this.employeeMapper = employeeMapper;
         this.permissionRepository = permissionRepository;
         this.employeePermissionRepository = employeePermissionRepository;
         this.permissionService = permissionService;
+        this.passwordEncoder = passwordEncoder;
+        this.fileService = fileService;
+        this.mailService = mailService;
     }
 
     @Override
