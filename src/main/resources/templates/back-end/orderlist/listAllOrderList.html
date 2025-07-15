@@ -110,7 +110,6 @@
             <th>取餐號</th>
             <th>訂單日期</th>
             <th>取餐時間</th>
-            <th>客製化備註</th>
             <th>操作</th>
         </tr>
     </thead>
@@ -138,7 +137,6 @@
             <td th:text="${orderListVO.mealPickupNumber}"></td>
             <td th:text="${#temporals.format(orderListVO.orderDate, 'yyyy-MM-dd HH:mm')}"></td>
             <td th:text="${orderListVO.pickupTime != null ? #temporals.format(orderListVO.pickupTime, 'yyyy-MM-dd HH:mm') : '尚未設定'}"></td>
-            <td th:text="${orderListVO.mealCustomization != null ? orderListVO.mealCustomization : '無'}"></td>
             <td class="text-nowrap">
                 <button type="button" class="btn btn-sm btn-info view-details-btn" 
                         th:data-order-id="${orderListVO.orderListId}">
@@ -296,38 +294,76 @@ $(document).ready(function() {
             url: '/api/order-details/by-order/' + orderId, // 呼叫我們在後端建立的 API
             type: 'GET',
             success: function(details) {
-                // 5. 請求成功後，建立 HTML 表格來顯示明細
+                // 5. 請求成功後，建立 HTML 來顯示明細
                 if (details && details.length > 0) {
-                    var tableHtml = '<table class="table table-bordered">';
-                    tableHtml += '<thead><tr><th>餐點名稱</th><th>數量</th><th>單價</th><th>評論星數</th></tr></thead>';
-                    tableHtml += '<tbody>';
+                    var htmlContent = '';
+                    
+                    // 獲取客製化備註（從第一個明細項目中取得，因為整個訂單共用同一個備註）
+                    var mealCustomization = details[0].mealCustomization;
+                    
+                    // 上方：餐點明細表格
+                    htmlContent += '<div class="mb-4">';
+                    htmlContent += '<h6 class="font-weight-bold text-success mb-2">';
+                    htmlContent += '<i class="fas fa-utensils mr-2"></i>餐點明細';
+                    htmlContent += '</h6>';
+                    htmlContent += '<table class="table table-bordered table-hover">';
+                    htmlContent += '<thead class="thead-light">';
+                    htmlContent += '<tr>';
+                    htmlContent += '<th class="text-center">餐點名稱</th>';
+                    htmlContent += '<th class="text-center">數量</th>';
+                    htmlContent += '<th class="text-center">單價</th>';
+                    htmlContent += '<th class="text-center">評論星數</th>';
+                    htmlContent += '</tr>';
+                    htmlContent += '</thead>';
+                    htmlContent += '<tbody>';
                     
                     // 遍歷回傳的 JSON 陣列，產生每一筆明細的資料列
                     $.each(details, function(index, item) {
-                        tableHtml += '<tr>';
-                        tableHtml += '<td>' + item.mealName + '</td>';
-                        tableHtml += '<td>' + item.quantity + '</td>';
-                        tableHtml += '<td> NT$ ' + item.mealPrice + '</td>';
+                        htmlContent += '<tr>';
+                        htmlContent += '<td class="font-weight-medium">' + item.mealName + '</td>';
+                        htmlContent += '<td class="text-center">' + item.quantity + '</td>';
+                        htmlContent += '<td class="text-center text-success font-weight-bold">NT$ ' + item.mealPrice + '</td>';
+                        
                         // 評論星數顯示
                         var starsHtml = '';
                         if (item.reviewStars && item.reviewStars > 0) {
                             // 使用 text-warning 讓星星變黃色
                             for (var i = 0; i < item.reviewStars; i++) {
-                                starsHtml += '<i class="fas fa-star text-warning"></i> ';
+                                starsHtml += '<i class="fas fa-star text-warning"></i>';
                             }
+                            starsHtml = '<div class="text-center">' + starsHtml + '</div>';
                         } else {
                             // 如果星數是 0 或 null，顯示提示文字
-                            starsHtml = '<span class="text-muted">尚未評論</span>';
+                            starsHtml = '<div class="text-center"><span class="text-muted">尚未評論</span></div>';
                         }
-                        tableHtml += '<td>' + starsHtml + '</td>';
-                        tableHtml += '</tr>';
+                        htmlContent += '<td>' + starsHtml + '</td>';
+                        htmlContent += '</tr>';
                     });
                     
-                    tableHtml += '</tbody></table>';
-                    modalBody.html(tableHtml); // 將產生的表格填入 Modal Body
+                    htmlContent += '</tbody>';
+                    htmlContent += '</table>';
+                    htmlContent += '</div>';
+                    
+                    // 下方：客製化備註表格
+                    htmlContent += '<div>';
+                    htmlContent += '<h6 class="font-weight-bold text-primary mb-2">';
+                    htmlContent += '<i class="fas fa-sticky-note mr-2"></i>客製化備註';
+                    htmlContent += '</h6>';
+                    htmlContent += '<div class="card">';
+                    htmlContent += '<div class="card-body">';
+                    if (mealCustomization && mealCustomization.trim() !== '') {
+                        htmlContent += '<p class="mb-0 text-dark">' + mealCustomization + '</p>';
+                    } else {
+                        htmlContent += '<p class="mb-0 text-muted font-italic">無特殊要求</p>';
+                    }
+                    htmlContent += '</div>';
+                    htmlContent += '</div>';
+                    htmlContent += '</div>';
+                    
+                    modalBody.html(htmlContent); // 將產生的內容填入 Modal Body
                 } else {
                     // 如果沒有明細資料
-                    modalBody.html('<p class="text-center text-muted">查無此訂單的詳細項目。</p>');
+                    modalBody.html('<div class="text-center py-4"><i class="fas fa-exclamation-triangle text-warning mr-2"></i><span class="text-muted">查無此訂單的詳細項目。</span></div>');
                 }
             },
             error: function() {
