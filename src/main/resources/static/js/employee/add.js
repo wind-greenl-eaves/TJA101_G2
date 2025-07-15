@@ -273,6 +273,92 @@ document.addEventListener('DOMContentLoaded', function () {
     // 表單提交事件監聽（完全依賴後端驗證）
     form.addEventListener('submit', async function(event) {
         event.preventDefault();
+        
+        // 顯示確認彈窗
+        showConfirmModal();
+    });
+
+    // 顯示確認彈窗函數
+    function showConfirmModal() {
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+        const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
+        
+        // 填入表單資料到確認彈窗
+        fillConfirmModalData();
+        
+        // 顯示彈窗
+        confirmModal.classList.remove('hidden');
+        confirmModal.classList.add('flex');
+        
+        // 取消按鈕事件
+        confirmCancelBtn.onclick = function() {
+            confirmModal.classList.add('hidden');
+            confirmModal.classList.remove('flex');
+        };
+        
+        // 確認提交按鈕事件
+        confirmSubmitBtn.onclick = function() {
+            confirmModal.classList.add('hidden');
+            confirmModal.classList.remove('flex');
+            // 執行實際的表單提交
+            performFormSubmit();
+        };
+        
+        // 點擊背景關閉彈窗
+        confirmModal.addEventListener('click', function(e) {
+            if (e.target === confirmModal) {
+                confirmModal.classList.add('hidden');
+                confirmModal.classList.remove('flex');
+            }
+        });
+    }
+
+    // 填入確認彈窗資料
+    function fillConfirmModalData() {
+        const username = document.getElementById('username').value || '-';
+        const account = document.getElementById('account').value || '-';
+        const email = document.getElementById('email').value || '-';
+        const phone = document.getElementById('phone').value || '-';
+        
+        // 角色處理
+        const roleSelect = document.getElementById('role');
+        let roleText = '-';
+        if (roleSelect) {
+            if (roleSelect.tagName === 'SELECT') {
+                const selectedOption = roleSelect.options[roleSelect.selectedIndex];
+                roleText = selectedOption ? selectedOption.text : '-';
+            } else if (roleSelect.type === 'hidden') {
+                // 門市經理的情況，角色固定為一般員工
+                roleText = '一般員工';
+            }
+        }
+        
+        // 門市處理
+        const storeSelect = document.getElementById('storeId');
+        let storeText = '-';
+        if (storeSelect) {
+            if (storeSelect.tagName === 'SELECT') {
+                const selectedOption = storeSelect.options[storeSelect.selectedIndex];
+                storeText = selectedOption ? selectedOption.text : '-';
+            } else if (storeSelect.type === 'hidden') {
+                // 門市經理的情況，需要從頁面上獲取門市名稱
+                const storeNameSpan = document.querySelector('.nav-item .text-gray-700');
+                storeText = storeNameSpan ? storeNameSpan.textContent : '-';
+            }
+        }
+        
+        // 填入確認彈窗
+        document.getElementById('confirm-username').textContent = username;
+        document.getElementById('confirm-account').textContent = account;
+        document.getElementById('confirm-email').textContent = email;
+        document.getElementById('confirm-phone').textContent = phone;
+        document.getElementById('confirm-role').textContent = roleText;
+        document.getElementById('confirm-store').textContent = storeText;
+    }
+
+    // 執行實際的表單提交
+    async function performFormSubmit() {
         clearAllErrors();
         messageContainer.classList.add('hidden');
 
@@ -315,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Fetch Error:', error);
             showMessage('無法連接到伺服器，請檢查您的網路連線。', 'error');
         }
-    });
+    }
 
     // 顯示成功模態框
     function showSuccessModal(message, type) {

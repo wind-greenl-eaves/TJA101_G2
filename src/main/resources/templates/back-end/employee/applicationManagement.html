@@ -748,7 +748,7 @@
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-2">
-                                <h3 class="font-semibold text-lg">${app.applicantName}</h3>
+                                <h3 class="font-semibold text-lg">${app.username}</h3>
                                 <span class="status-${app.status.toLowerCase()}">${getStatusText(app.status)}</span>
                             </div>
                             <div class="grid grid-cols-2 gap-4 text-sm text-gray-600">
@@ -954,22 +954,22 @@
                                     <i class="fas fa-image mr-2"></i>員工照片
                                 </h4>
                                 <div class="flex justify-center">
-                                    ${application.photoUrl ? `
+                                    ${application.photoUrl && application.photoUrl.trim() !== '' ? `
                                         <img src="${application.photoUrl}" 
                                              alt="員工照片" 
                                              class="w-48 h-48 object-cover rounded-lg border-2 border-gray-300 shadow-md"
                                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="w-48 h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-100" style="display: none;">
                                             <div class="text-center">
-                                                <i class="fas fa-image text-gray-400 text-3xl mb-2"></i>
-                                                <p class="text-gray-500 text-sm">照片載入失敗</p>
+                                                <i class="fas fa-exclamation-triangle text-red-400 text-3xl mb-2"></i>
+                                                <p class="text-red-500 text-sm">照片載入失敗</p>
                                             </div>
                                         </div>
                                     ` : `
                                         <div class="w-48 h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-100">
                                             <div class="text-center">
                                                 <i class="fas fa-user text-gray-400 text-3xl mb-2"></i>
-                                                <p class="text-gray-500 text-sm">未上傳照片</p>
+                                                <p class="text-gray-500 text-sm">照片未上傳</p>
                                             </div>
                                         </div>
                                     `}
@@ -1037,16 +1037,22 @@
             const reviewCommentElement = document.getElementById('reviewComment');
             const reviewComment = reviewCommentElement ? reviewCommentElement.value.trim() : '';
             
-            // 檢查是否填入備註
-            if (!reviewComment) {
-                alert('請填入審核備註後再進行審核');
+            // 【修改】只有拒絕申請時才需要強制填寫審核備註
+            if (status === 'REJECTED' && !reviewComment) {
+                alert('拒絕申請時請填入審核備註說明原因');
                 if (reviewCommentElement) {
                     reviewCommentElement.focus();
                 }
                 return;
             }
             
-            if (!confirm(`確定要${action}這個申請嗎？\n\n審核備註：${reviewComment}`)) {
+            // 確認審核操作
+            let confirmMessage = `確定要${action}這個申請嗎？`;
+            if (reviewComment) {
+                confirmMessage += `\n\n審核備註：${reviewComment}`;
+            }
+            
+            if (!confirm(confirmMessage)) {
                 return;
             }
 
@@ -1059,7 +1065,7 @@
                     body: JSON.stringify({
                         applicationId: applicationId,
                         status: status,
-                        reviewComment: reviewComment
+                        reviewComment: reviewComment || (status === 'APPROVED' ? '申請通過' : '申請被拒絕')
                     })
                 });
 
