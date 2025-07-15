@@ -326,6 +326,11 @@
                     <div>
                         <span class="order-id" th:text="'訂單編號：' + ${order.orderListId}"></span>
                         <div class="order-date" th:text="${#temporals.format(order.orderDate, 'yyyy年MM月dd日 HH:mm')}"></div>
+                        <!-- 添加門市資訊 -->
+                        <div class="store-info" style="color: #A67B5B; font-size: 14px; margin-top: 5px;">
+                            <span style="font-weight: bold;">🏪 門市：</span>
+                            <span th:text="${order.store?.storeName ?: '未知門市'}"></span>
+                        </div>
                     </div>
                     <span class="order-status" 
                           th:classappend="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? 'status-pending' : 

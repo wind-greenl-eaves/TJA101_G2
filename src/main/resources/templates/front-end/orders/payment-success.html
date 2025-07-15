@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>付款成功 - EatFast</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .success-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+            border-top: 4px solid #5cb85c;
+        }
+        .success-icon {
+            font-size: 4rem;
+            color: #5cb85c;
+            margin-bottom: 20px;
+        }
+        .success-title {
+            color: #5cb85c;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .success-message {
+            color: #555;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .order-id {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: #333;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: inline-block;
+        }
+        .btn-primary {
+            background-color: #f0ad4e;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #ec971f;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">✓</div>
+        <h1 class="success-title">付款成功！</h1>
+        <p class="success-message">
+            感謝您的購買！您的訂單已成功付款，我們將儘快為您準備餐點。
+        </p>
+        <div class="order-id">
+            訂單編號：<span th:text="${orderId}">ORD20250715001</span>
+        </div>
+        <p class="success-message">
+            請記住您的訂單編號，並於指定時間前往門市取餐。
+        </p>
+        <div class="action-buttons">
+            <a href="/menu" class="btn btn-primary">繼續購物</a>
+            <a href="/member/orders" class="btn btn-secondary">查看訂單</a>
+        </div>
+    </div>
+</body>
+</html>

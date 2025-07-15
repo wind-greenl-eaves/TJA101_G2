@@ -9,6 +9,7 @@ import com.eatfast.cart.service.CartService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -170,5 +171,34 @@ public class CartController {
 
         // 使用 Map 回傳 JSON 格式的資料
         return Map.of("item_count", count);
+    }
+
+    /**
+     * 儲存取餐時間到session中
+     * 路徑: POST /cart/set-pickup-time
+     */
+    @PostMapping("/set-pickup-time")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> setPickupTime(
+            @RequestBody Map<String, String> requestBody, 
+            HttpSession session) {
+        
+        Long memberId = (Long) session.getAttribute("loggedInMemberId");
+        if (memberId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
+        String pickupTime = requestBody.get("pickupTime");
+        String notes = requestBody.get("notes");
+        
+        // 將取餐時間和備註儲存到session中
+        session.setAttribute("pickupTime", pickupTime);
+        session.setAttribute("orderNotes", notes);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "取餐時間已儲存");
+        
+        return ResponseEntity.ok(response);
     }
 }

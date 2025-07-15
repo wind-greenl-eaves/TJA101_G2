@@ -103,4 +103,24 @@ public class OrderListService {
 		// 如果傳入的物件有主鍵(ID)且該ID存在於資料庫，JPA會執行更新操作。
 		return orderListRepository.save(orderListEntity);
 	}
+
+	/**
+	 * 檢查訂單編號是否已存在
+	 * @param orderListId 訂單編號
+	 * @return 是否存在
+	 */
+	public boolean existsByOrderListId(String orderListId) {
+		return orderListRepository.existsById(orderListId);
+	}
+	
+	/**
+	 * 根據日期前綴查詢當日最大的訂單編號
+	 * @param datePrefix 日期前綴 (YYYYMMDD)
+	 * @return 當日最大的訂單編號，如果沒有則返回null
+	 */
+	public String findMaxOrderIdByDatePrefix(String datePrefix) {
+		return orderListRepository.findTopByOrderListIdStartingWithOrderByOrderListIdDesc(datePrefix)
+				.map(OrderListEntity::getOrderListId)
+				.orElse(null);
+	}
 }
