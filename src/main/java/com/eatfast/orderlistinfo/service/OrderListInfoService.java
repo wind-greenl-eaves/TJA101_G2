@@ -101,7 +101,8 @@ public class OrderListInfoService {
                         entity.getMeal().getMealName(),
                         entity.getQuantity(),
                         entity.getMealPrice(),
-                        entity.getReviewStars() // ⭐【修改】移除 mealCustomization 參數
+                        entity.getReviewStars(), // ⭐【修改】評論星數
+                        entity.getOrderList().getMealCustomization() // ⭐【新增】從主訂單獲取客製化備註
                 ))
                 .collect(Collectors.toList());
     }
