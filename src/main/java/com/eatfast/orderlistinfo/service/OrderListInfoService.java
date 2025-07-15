@@ -89,6 +89,16 @@ public class OrderListInfoService {
     }
 
     /**
+     * 創建新的訂單明細
+     * @param orderListInfoEntity 要創建的訂單明細實體
+     * @return 創建後的訂單明細實體
+     */
+    @Transactional
+    public OrderListInfoEntity createOrderListInfo(OrderListInfoEntity orderListInfoEntity) {
+        return orderListInfoRepository.save(orderListInfoEntity);
+    }
+
+    /**
      * 獲取訂單明細的 DTO 列表
      * @param orderId 訂單 ID
      * @return 訂單明細 DTO 列表
