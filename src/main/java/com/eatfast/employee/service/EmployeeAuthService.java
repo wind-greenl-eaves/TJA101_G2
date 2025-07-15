@@ -57,7 +57,7 @@ public class EmployeeAuthService {
 
     /**
      * 驗證密碼
-     * 支援明文密碼和BCrypt加密密碼的混合驗證
+     * 優先使用BCrypt驗證，向下相容明文密碼
      */
     public boolean validatePassword(String inputPassword, String storedPassword) {
         logger.debug("開始密碼驗證，存儲密碼長度: {}", storedPassword != null ? storedPassword.length() : 0);
@@ -69,21 +69,98 @@ public class EmployeeAuthService {
         
         try {
             // 檢查是否為BCrypt格式
-            if (storedPassword.startsWith("$2a$") || 
-                storedPassword.startsWith("$2b$") || 
-                storedPassword.startsWith("$2y$")) {
+            if (isBCryptFormat(storedPassword)) {
                 // BCrypt格式密碼驗證
                 logger.debug("使用BCrypt格式驗證");
-                return passwordEncoder.matches(inputPassword, storedPassword);
+                boolean matches = passwordEncoder.matches(inputPassword, storedPassword);
+                logger.debug("BCrypt密碼驗證結果: {}", matches);
+                return matches;
             } else {
-                // 明文密碼驗證（向下相容）
-                logger.debug("使用明文密碼驗證");
-                return inputPassword.equals(storedPassword);
+                // 明文密碼驗證（向下相容，但建議升級）
+                logger.warn("檢測到明文密碼，建議升級為BCrypt加密");
+                boolean matches = inputPassword.equals(storedPassword);
+                logger.debug("明文密碼驗證結果: {}", matches);
+                
+                // 如果明文密碼驗證成功，自動升級為BCrypt
+                if (matches) {
+                    logger.info("明文密碼驗證成功，將自動升級為BCrypt加密");
+                    upgradePasswordToBCrypt(inputPassword, storedPassword);
+                }
+                
+                return matches;
             }
         } catch (Exception e) {
-            logger.error("密碼驗證過程中發生錯誤: {}", e.getMessage());
+            logger.error("密碼驗證過程中發生錯誤: {}", e.getMessage(), e);
             return false;
         }
+    }
+
+    /**
+     * 檢查密碼是否為BCrypt格式
+     */
+    private boolean isBCryptFormat(String password) {
+        return password != null && (
+            password.startsWith("$2a$") || 
+            password.startsWith("$2b$") || 
+            password.startsWith("$2y$")
+        );
+    }
+
+    /**
+     * 將明文密碼升級為BCrypt加密
+     */
+    private void upgradePasswordToBCrypt(String plainPassword, String currentStoredPassword) {
+        try {
+            // 查找使用此密碼的員工
+            Optional<EmployeeEntity> employeeOpt = employeeRepository.findByPassword(currentStoredPassword);
+            if (employeeOpt.isPresent()) {
+                EmployeeEntity employee = employeeOpt.get();
+                String encryptedPassword = passwordEncoder.encode(plainPassword);
+                employee.setPassword(encryptedPassword);
+                employeeRepository.save(employee);
+                
+                logger.info("員工 {} (ID: {}) 的密碼已自動升級為BCrypt加密", 
+                          employee.getAccount(), employee.getEmployeeId());
+            }
+        } catch (Exception e) {
+            logger.error("密碼升級過程中發生錯誤: {}", e.getMessage(), e);
+            // 升級失敗不影響登入流程
+        }
+    }
+
+    /**
+     * 加密密碼
+     * 統一的密碼加密方法，供新增和修改員工時使用
+     */
+    public String encryptPassword(String plainPassword) {
+        if (plainPassword == null || plainPassword.trim().isEmpty()) {
+            throw new IllegalArgumentException("密碼不能為空");
+        }
+        
+        try {
+            String encryptedPassword = passwordEncoder.encode(plainPassword);
+            logger.debug("密碼加密成功，加密後長度: {}", encryptedPassword.length());
+            return encryptedPassword;
+        } catch (Exception e) {
+            logger.error("密碼加密失敗: {}", e.getMessage(), e);
+            throw new RuntimeException("密碼加密失敗", e);
+        }
+    }
+
+    /**
+     * 驗證密碼強度
+     * 確保密碼符合安全要求
+     */
+    public boolean isPasswordStrong(String password) {
+        if (password == null || password.length() < 8) {
+            return false;
+        }
+        
+        // 檢查是否包含字母和數字
+        boolean hasLetter = password.matches(".*[A-Za-z].*");
+        boolean hasDigit = password.matches(".*\\d.*");
+        
+        return hasLetter && hasDigit;
     }
 
     /**

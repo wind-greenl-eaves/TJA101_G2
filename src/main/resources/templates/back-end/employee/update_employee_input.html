@@ -575,7 +575,7 @@ class SessionWarningManager {
     }
 
     /**
-     * 攔截 AJAX 請求
+     * 攔截 AJAX 諭請求
      */
     interceptAjaxRequests() {
         const originalFetch = window.fetch;
@@ -830,45 +830,156 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // 密碼驗證函數
+    function isValidPassword(password) {
+        // 至少8個字元，且包含至少一個字母和一個數字
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+        return passwordRegex.test(password);
+    }
+
+    // 員工姓名驗證函數（修復中文字符問題）
+    function isValidUsername(username) {
+        // 檢查是否包含危險字符
+        const dangerousCharsRegex = /[<>\"'&]/;
+        if (dangerousCharsRegex.test(username)) {
+            return false;
+        }
+        
+        // 檢查是否只包含空格和特殊字符（排除中文和英文字母）
+        const validCharsRegex = /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af\ua-zA-Z]/;
+        return validCharsRegex.test(username);
+    }
+
+    // 電子郵件驗證函數（強化）
+    function isValidEmail(email) {
+        // 基本格式驗證
+        const emailRegex = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) return false;
+        
+        // 檢查是否包含連續的點
+        if (email.includes('..')) return false;
+        
+        // 檢查開頭和結尾不能是點或特殊字符
+        if (email.startsWith('.') || email.endsWith('.')) return false;
+        if (email.startsWith('-') || email.endsWith('-')) return false;
+        
+        // 檢查 @ 符號前後不能是點
+        const parts = email.split('@');
+        if (parts.length !== 2) return false;
+        
+        const localPart = parts[0];
+        const domainPart = parts[1];
+        
+        // 本地部分驗證
+        if (localPart.length === 0 || localPart.length > 64) return false;
+        if (localPart.startsWith('.') || localPart.endsWith('.')) return false;
+        
+        // 域名部分驗證
+        if (domainPart.length === 0 || domainPart.length > 255) return false;
+        if (domainPart.startsWith('.') || domainPart.endsWith('.')) return false;
+        if (domainPart.startsWith('-') || domainPart.endsWith('-')) return false;
+        
+        return true;
+    }
+
+    // 電話號碼驗證函數（強化）
+    function isValidPhone(phone) {
+        // 移除所有空格和連字符
+        const cleanPhone = phone.replace(/[\s-]/g, '');
+        
+        // 台灣手機號碼格式：09開頭，共10位數字
+        const mobileRegex = /^09\d{8}$/;
+        
+        // 台灣市話格式：0X開頭（X為2-8），後面跟著7-8位數字
+        const landlineRegex = /^0[2-8]\d{7,8}$/;
+        
+        return mobileRegex.test(cleanPhone) || landlineRegex.test(cleanPhone);
+    }
+
+    // 防止 XSS 攻擊的輸入過濾函數
+    function preventXSS(input) {
+        if (typeof input !== 'string') return '';
+        
+        // HTML 實體編碼
+        const htmlEntities = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#x27;',
+            '/': '&#x2F;'
+        };
+        
+        return input.replace(/[&<>"'\/]/g, (match) => htmlEntities[match]);
+    }
+
+    // 強化的輸入清理函數
+    function sanitizeInput(input) {
+        if (typeof input !== 'string') return '';
+        
+        // 移除前後空格
+        input = input.trim();
+        
+        // 移除潛在的 HTML 標籤
+        input = input.replace(/<[^>]*>/g, '');
+        
+        // 移除潛在的 JavaScript 代碼
+        input = input.replace(/javascript:/gi, '');
+        
+        return input;
+    }
+
     // 自定義驗證函數（不依賴 HTML5 驗證）
     function validateInputCustom(input) {
         const errorDiv = document.getElementById(`error-${input.name}`);
         let isValid = true;
         let errorMessage = '';
         
+        // 清理輸入值
+        const cleanValue = sanitizeInput(input.value);
+        
         // 根據欄位名稱進行自定義驗證
         switch(input.name) {
             case 'username':
-                if (!input.value.trim()) {
+                if (!cleanValue) {
                     isValid = false;
                     errorMessage = '員工姓名為必填欄位';
-                } else if (input.value.trim().length < 2) {
+                } else if (cleanValue.length < 2) {
                     isValid = false;
                     errorMessage = '員工姓名至少需要2個字元';
-                } else if (input.value.trim().length > 50) {
+                } else if (cleanValue.length > 50) {
                     isValid = false;
                     errorMessage = '員工姓名不能超過50個字元';
-                } else if (input.value.startsWith(' ')) {
+                } else if (input.value.startsWith(' ') || input.value.endsWith(' ')) {
                     isValid = false;
-                    errorMessage = '員工姓名不能以空格開頭';
+                    errorMessage = '員工姓名不能以空格開頭或結尾';
+                } else if (!isValidUsername(cleanValue)) {
+                    isValid = false;
+                    errorMessage = '員工姓名格式不正確，不能包含特殊字符';
                 }
                 break;
                 
             case 'email':
-                if (!input.value.trim()) {
+                if (!cleanValue) {
                     isValid = false;
                     errorMessage = '電子郵件為必填欄位';
-                } else if (!isValidEmail(input.value.trim())) {
+                } else if (cleanValue.length > 255) {
+                    isValid = false;
+                    errorMessage = '電子郵件地址過長';
+                } else if (!isValidEmail(cleanValue)) {
                     isValid = false;
                     errorMessage = '請輸入有效的電子郵件地址';
                 }
                 break;
                 
             case 'phone':
-                if (!input.value.trim()) {
+                if (!cleanValue) {
                     isValid = false;
                     errorMessage = '聯絡電話為必填欄位';
-                } else if (!isValidPhone(input.value.trim())) {
+                } else if (cleanValue.length > 20) {
+                    isValid = false;
+                    errorMessage = '聯絡電話過長';
+                } else if (!isValidPhone(cleanValue)) {
                     isValid = false;
                     errorMessage = '請輸入有效的台灣手機或市話號碼';
                 }
@@ -876,9 +987,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 
             case 'password':
                 // 密碼是可選的，但如果填寫就要符合規則
-                if (input.value && !isValidPassword(input.value)) {
-                    isValid = false;
-                    errorMessage = '密碼需至少8個字元，且包含至少一個字母和一個數字';
+                if (input.value && input.value.length > 0) {
+                    if (input.value.length < 8) {
+                        isValid = false;
+                        errorMessage = '密碼至少需要8個字元';
+                    } else if (input.value.length > 128) {
+                        isValid = false;
+                        errorMessage = '密碼不能超過128個字元';
+                    } else if (!isValidPassword(input.value)) {
+                        isValid = false;
+                        errorMessage = '密碼需包含至少一個字母和一個數字';
+                    }
                 }
                 break;
         }
@@ -894,23 +1013,20 @@ document.addEventListener('DOMContentLoaded', function () {
         return isValid;
     }
 
-    // 電子郵件驗證函數
-    function isValidEmail(email) {
-        const emailRegex = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        return emailRegex.test(email);
-    }
-
-    // 電話號碼驗證函數
-    function isValidPhone(phone) {
-        const phoneRegex = /^(09\d{2}(-?\d{3}){2}|0[2-8]\d{1,2}(-?\d{3,4}){1,2})$/;
-        return phoneRegex.test(phone);
-    }
-
-    // 密碼驗證函數
-    function isValidPassword(password) {
-        // 至少8個字元，且包含至少一個字母和一個數字
-        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-ZaZ\d]{8,}$/;
-        return passwordRegex.test(password);
+    // 自定義表單驗證函數
+    function validateForm() {
+        let isValid = true;
+        
+        // 驗證必填欄位
+        const requiredFields = ['username', 'email', 'phone'];
+        requiredFields.forEach(fieldName => {
+            const input = document.getElementById(fieldName);
+            if (!validateInputCustom(input)) {
+                isValid = false;
+            }
+        });
+        
+        return isValid;
     }
 
     // 照片上傳相關元素
@@ -1078,32 +1194,6 @@ document.addEventListener('DOMContentLoaded', function () {
             showMessage('無法連接到伺服器，請檢查您的網路連線。', 'error');
         }
     });
-
-    // 自定義表單驗證函數
-    function validateForm() {
-        let isValid = true;
-        
-        // 驗證必填欄位
-        const requiredFields = ['username', 'email', 'phone'];
-        requiredFields.forEach(fieldName => {
-            const input = document.getElementById(fieldName);
-            if (!validateInputCustom(input)) {
-                isValid = false;
-            }
-        });
-        
-        return isValid;
-    }
-
-    // 密碼可見性切換
-    if(toggleIcon) {
-        toggleIcon.addEventListener('click', function () {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            this.classList.toggle('fa-eye');
-            this.classList.toggle('fa-eye-slash');
-        });
-    }
 
     // Modal 相關函數
     function showSuccessModal(message) {
