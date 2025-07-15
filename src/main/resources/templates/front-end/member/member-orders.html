@@ -341,14 +341,20 @@
                 </div>
                 
                 <div class="order-body">
+                    <!-- 客製化備註區域 -->
+                    <div th:if="${order.mealCustomization != null and order.mealCustomization != ''}" 
+                         class="order-customization" 
+                         style="margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #A67B5B; border-radius: 4px;">
+                        <strong style="color: #A67B5B;">客製化備註：</strong>
+                        <span th:text="${order.mealCustomization}"></span>
+                    </div>
+                    
                     <!-- 訂單項目 -->
                     <div class="order-items">
                         <div th:each="item : ${order.orderListInfos}" class="order-item">
                             <div>
                                 <div class="item-name" th:text="${item.meal?.mealName ?: '未知餐點'}"></div>
                                 <div class="item-details" th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.mealPrice}"></div>
-                                <div th:if="${item.mealCustomization != null and item.mealCustomization != ''}" 
-                                     class="item-details" th:text="'備註：' + ${item.mealCustomization}"></div>
                             </div>
                             <div class="item-price" th:text="'$' + ${item.quantity * item.mealPrice}"></div>
                         </div>
@@ -366,8 +372,8 @@
                         <span style="font-size: 18px; color: #A67B5B; font-weight: bold;" th:text="${order.mealPickupNumber}"></span>
                     </div>
                     
-                    <!-- 【新增】取餐時間 -->
-                    <div th:if="${order.pickupTime != null and order.orderStatus != T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}" style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
+                    <!-- 取餐時間 -->
+                    <div th:if="${order.pickupTime != null}" style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
                         <strong>取餐時間：</strong>
                         <span style="font-size: 16px; color: #A67B5B; font-weight: bold;" th:text="${#temporals.format(order.pickupTime, 'yyyy年MM月dd日 HH:mm')}"></span>
                     </div>
