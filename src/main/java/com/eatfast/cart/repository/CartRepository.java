@@ -13,6 +13,8 @@ package com.eatfast.cart.repository;
 
 import com.eatfast.cart.model.CartEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,4 +69,13 @@ public interface CartRepository extends JpaRepository<CartEntity, Long> {
      */
     @Transactional
     void deleteByMember_MemberIdAndMeal_MealId(Long memberId, Long mealId);
+    
+    
+    /* 【新增方法】
+    * 根據會員 ID (Member ID) 計算其在購物車中的商品項目總數。
+    * @param memberId 要查詢的會員 ID
+    * @return 該會員的購物車商品數量
+    */
+    //從 Cart 表中計算，當 cart 的 member 欄位的 id 等於我們傳入的 memberId 參數時，總共有幾筆資料
+    Long countByMember_MemberId(Long memberId);
 }

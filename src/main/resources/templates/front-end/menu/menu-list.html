@@ -687,18 +687,31 @@
 
 	<script>
   // 全域函式：選擇門市後存入 sessionStorage 並重新載入頁面
-function handleStoreChange(selectEl) {
+async function handleStoreChange(selectEl) {
     const newStoreId = selectEl.value;
     if (!newStoreId) return;
 
-    // 從 sessionStorage 讀取當前購物車所屬的門市ID
-    // 我們假設在成功加入第一個商品時，會用 sessionStorage.setItem("cartStoreId", a_store_id) 來記錄
+    // 先從後端獲取最準確的購物車商品數量
+    let itemCount = 0;
+    try {
+        const response = await fetch('/api/cart/count');
+        if (response.ok) {
+            const data = await response.json();
+            itemCount = data.item_count;
+        }
+    } catch (error) {
+        console.error("查詢購物車數量失敗:", error);
+        // 如果查詢失敗，為安全起見，直接跳轉，不提示
+        window.location.href = `/menu?storeId=${newStoreId}`;
+        return;
+    }
+    
     const currentCartStoreId = sessionStorage.getItem("cartStoreId");
 
-    // 如果購物車中有商品(cartStoreId存在)且使用者選擇了不同的門市
-    if (currentCartStoreId && currentCartStoreId !== newStoreId) {
-        if (confirm("更換門市將會清空您目前的購物車，確定要繼續嗎？")) {
-            // 使用者同意，先呼叫 API 清空購物車
+    // 【核心修正】現在的判斷依據是真實的商品數量 itemCount
+    if (itemCount > 0 && currentCartStoreId && currentCartStoreId !== newStoreId) {
+        if (confirm("您的購物車內尚有商品，更換門市將會清空購物車，確定要繼續嗎？")) {
+            // 使用者同意，呼叫後端 API 清空購物車
             clearCartForStoreChange(newStoreId);
         } else {
             // 使用者取消，將下拉選單恢復原狀
@@ -706,8 +719,8 @@ function handleStoreChange(selectEl) {
             return;
         }
     } else {
-    	//直接導向帶有 storeId 參數的新 URL
-    	window.location.href = `/menu?storeId=${newStoreId}`;
+        // 如果購物車是空的，或選擇的門市與原來相同，直接導向新頁面
+        window.location.href = `/menu?storeId=${newStoreId}`;
     }
 }
 

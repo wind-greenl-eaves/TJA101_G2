@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -150,5 +151,24 @@ public class CartController {
             redirectAttributes.addFlashAttribute("errorMessage", "發生未知錯誤，加入購物車失敗，請稍後再試");
             return "redirect:/menu";
         }
+    }
+    
+    /**
+     * 查詢當前登入會員的購物車商品總數
+     * @param session HttpSession 用於獲取會員ID
+     * @return 一個包含 item_count 的 Map，如果未登入則回傳 0
+     */
+    @GetMapping("/api/cart/count")
+    public Map<String, Long> getCartItemCount(HttpSession session) {
+    	Long memberId = (Long) session.getAttribute("loggedInMemberId");
+    	long count = (long) 0;
+
+        if (memberId != null) {
+            // 從您的 Service 層獲取購物車商品數量
+            count = cartService.getItemCountByMemberId(memberId);
+        }
+
+        // 使用 Map 回傳 JSON 格式的資料
+        return Map.of("item_count", count);
     }
 }

@@ -48,5 +48,12 @@ public interface CartService {
 	 * @return 包含餐點價格與圖片資訊的 DTO
 	 */
 	CartItemDto prepareItemForCart(Long mealId);
+	
+	
+	/**
+     * 【新增方法規格】
+     * 根據會員 ID 獲取購物車商品數量。
+     */
+    long getItemCountByMemberId(Long memberId);
 
 }
