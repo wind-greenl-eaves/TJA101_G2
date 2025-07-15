@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -317,5 +318,56 @@ public class EmployeeApplicationServiceImpl implements EmployeeApplicationServic
         }
         
         return dto;
+    }
+
+    @Override
+    @Transactional
+    public void clearProcessedApplications() {
+        log.info("開始清空已審核完成的申請列表");
+        
+        try {
+            // 查詢所有已審核完成的申請（APPROVED 和 REJECTED 狀態）
+            List<EmployeeApplicationEntity> processedApplications = applicationRepository.findByStatusIn(
+                    Arrays.asList(ApplicationStatus.APPROVED, ApplicationStatus.REJECTED));
+            
+            if (processedApplications.isEmpty()) {
+                log.info("沒有已審核完成的申請需要清空");
+                return;
+            }
+            
+            // 刪除已審核完成的申請
+            applicationRepository.deleteAll(processedApplications);
+            
+            log.info("成功清空已審核完成的申請列表，共刪除 {} 筆申請", processedApplications.size());
+            
+        } catch (Exception e) {
+            log.error("清空已審核完成的申請列表失敗: {}", e.getMessage());
+            throw new RuntimeException("清空已審核完成的申請列表失敗: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    @Transactional
+    public void clearAllApplications() {
+        log.info("開始清空所有申請列表");
+        
+        try {
+            // 查詢所有申請
+            List<EmployeeApplicationEntity> allApplications = applicationRepository.findAll();
+            
+            if (allApplications.isEmpty()) {
+                log.info("沒有申請需要清空");
+                return;
+            }
+            
+            // 刪除所有申請
+            applicationRepository.deleteAll();
+            
+            log.info("成功清空所有申請列表，共刪除 {} 筆申請", allApplications.size());
+            
+        } catch (Exception e) {
+            log.error("清空所有申請列表失敗: {}", e.getMessage());
+            throw new RuntimeException("清空所有申請列表失敗: " + e.getMessage(), e);
+        }
     }
 }

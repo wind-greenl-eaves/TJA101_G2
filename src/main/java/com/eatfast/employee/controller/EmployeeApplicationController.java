@@ -226,4 +226,72 @@ public class EmployeeApplicationController {
                     .body(Map.of("message", "查詢統計失敗：" + e.getMessage()));
         }
     }
+
+    /**
+     * 清空已審核完成的申請列表（總部管理員使用）
+     */
+    @DeleteMapping("/clear-processed")
+    public ResponseEntity<?> clearProcessedApplications(HttpSession session) {
+        employeeLogger.logInfo("收到清空已審核完成申請列表請求");
+        
+        EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+        if (currentEmployee == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "請重新登入"));
+        }
+
+        // 只有總部管理員可以清空申請列表
+        if (currentEmployee.getRole() != EmployeeRole.HEADQUARTERS_ADMIN) {
+            employeeLogger.logWarn("非總部管理員嘗試清空已審核完成申請列表: userId={}", 
+                    currentEmployee.getEmployeeId());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", "權限不足：只有總部管理員可以清空申請列表"));
+        }
+
+        try {
+            applicationService.clearProcessedApplications();
+            employeeLogger.logInfo("已審核完成申請列表清空成功: operatorId={}", 
+                    currentEmployee.getEmployeeId());
+            
+            return ResponseEntity.ok(Map.of("message", "已審核完成的申請列表已清空"));
+        } catch (Exception e) {
+            employeeLogger.logError("清空已審核完成申請列表失敗: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "清空失敗：" + e.getMessage()));
+        }
+    }
+
+    /**
+     * 清空所有申請列表（總部管理員使用）
+     */
+    @DeleteMapping("/clear-all")
+    public ResponseEntity<?> clearAllApplications(HttpSession session) {
+        employeeLogger.logInfo("收到清空所有申請列表請求");
+        
+        EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+        if (currentEmployee == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "請重新登入"));
+        }
+
+        // 只有總部管理員可以清空申請列表
+        if (currentEmployee.getRole() != EmployeeRole.HEADQUARTERS_ADMIN) {
+            employeeLogger.logWarn("非總部管理員嘗試清空所有申請列表: userId={}", 
+                    currentEmployee.getEmployeeId());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", "權限不足：只有總部管理員可以清空申請列表"));
+        }
+
+        try {
+            applicationService.clearAllApplications();
+            employeeLogger.logInfo("所有申請列表清空成功: operatorId={}", 
+                    currentEmployee.getEmployeeId());
+            
+            return ResponseEntity.ok(Map.of("message", "所有申請列表已清空"));
+        } catch (Exception e) {
+            employeeLogger.logError("清空所有申請列表失敗: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "清空失敗：" + e.getMessage()));
+        }
+    }
 }

@@ -51,7 +51,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(253, 251, 246, 0.85);
+            background-color: rgba(253, 251, 246, 0.64);
             z-index: -1;
         }
 
@@ -69,9 +69,9 @@
 
         /* 左側導航區塊 */
         .left-nav-panel {
-            width: 320px;
+            width: 300px;
             position: fixed;
-            left: calc((100% - 1200px) / 2 + 0.75rem - 120px);
+            left: calc((100% - 1300px) / 2 + 0.75rem - 120px);
             top: 0.75rem;
             bottom: 0.75rem;
             overflow-y: auto;
@@ -85,7 +85,7 @@
         /* 主要內容區 */
         .main-content {
             flex: 1;
-            margin-left: 340px;
+            margin-left: 280px;
             max-width: calc(100% - 340px);
         }
 
@@ -483,6 +483,20 @@
                 <h2 class="section-title">申請列表</h2>
                 <div class="flex items-center gap-2">
                     <span id="totalCount" class="text-sm text-gray-500">總計：0 筆</span>
+                    
+                    <!-- 總部管理員的清空申請列表按鈕 -->
+                    <div th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}" 
+                         class="flex items-center gap-2">
+                        <button id="clearProcessedBtn" 
+                                class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                            <i class="fas fa-trash mr-1"></i>清空已審核
+                        </button>
+                        <button id="clearAllBtn" 
+                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                            <i class="fas fa-trash-alt mr-1"></i>清空全部
+                        </button>
+                    </div>
+                    
                     <!-- 門市經理的新增申請按鈕 -->
                     <a th:href="@{/employee/add}" class="submit-btn text-sm"
                        th:if="${session.loggedInEmployee?.role?.name() == 'MANAGER'}">
@@ -1087,22 +1101,72 @@
             }
         };
 
-        // 關閉申請詳細資訊Modal
-        closeModalBtn.addEventListener('click', function() {
-            applicationModal.classList.add('hidden');
-            applicationModal.classList.remove('flex');
-        });
+        // 清空申請列表功能
+        const clearProcessedBtn = document.getElementById('clearProcessedBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
 
-        // 點擊背景關閉Modal
-        applicationModal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                applicationModal.classList.add('hidden');
-                applicationModal.classList.remove('flex');
-            }
-        });
+        // 清空已審核完成的申請
+        if (clearProcessedBtn) {
+            clearProcessedBtn.addEventListener('click', async function() {
+                if (!confirm('確定要清空所有已審核完成的申請記錄嗎？\n\n此操作將永久刪除所有「已核准」和「已拒絕」狀態的申請，無法復原！')) {
+                    return;
+                }
 
-        // 事件監聽器
-        refreshBtn.addEventListener('click', loadApplications);
+                try {
+                    const response = await fetch(`${API_BASE_URL}/clear-processed`, {
+                        method: 'DELETE',
+                        credentials: 'same-origin'
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        alert('已審核完成的申請列表已清空！');
+                        // 重新載入申請列表
+                        loadApplications();
+                    } else {
+                        throw new Error(result.message || '清空已審核申請失敗');
+                    }
+                } catch (error) {
+                    console.error('清空已審核申請錯誤:', error);
+                    alert(`清空失敗：${error.message}`);
+                }
+            });
+        }
+
+        // 清空所有申請
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', async function() {
+                if (!confirm('⚠️ 警告：確定要清空所有申請記錄嗎？\n\n此操作將永久刪除所有狀態的申請記錄，包括待審核、已核准和已拒絕的申請，無法復原！\n\n請謹慎操作！')) {
+                    return;
+                }
+
+                // 二次確認
+                if (!confirm('最後確認：您真的要清空所有申請記錄嗎？\n\n此操作無法復原！')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/clear-all`, {
+                        method: 'DELETE',
+                        credentials: 'same-origin'
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        alert('所有申請記錄已清空！');
+                        // 重新載入申請列表
+                        loadApplications();
+                    } else {
+                        throw new Error(result.message || '清空所有申請失敗');
+                    }
+                } catch (error) {
+                    console.error('清空所有申請錯誤:', error);
+                    alert(`清空失敗：${error.message}`);
+                }
+            });
+        }
 
         // 登出功能
         logoutBtn.addEventListener('click', function() {
@@ -1141,6 +1205,20 @@
             if (e.target === this) {
                 logoutModal.classList.add('hidden');
                 logoutModal.classList.remove('flex');
+            }
+        });
+
+        // 關閉申請詳細資訊Modal
+        closeModalBtn.addEventListener('click', function() {
+            applicationModal.classList.add('hidden');
+            applicationModal.classList.remove('flex');
+        });
+
+        // 點擊背景關閉申請詳細資訊Modal
+        applicationModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                applicationModal.classList.add('hidden');
+                applicationModal.classList.remove('flex');
             }
         });
 

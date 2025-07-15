@@ -50,6 +50,18 @@ public interface EmployeeApplicationService {
     List<EmployeeApplicationDTO> getAllApplications();
 
     /**
+     * 清空申請列表（總部管理員使用）
+     * 只刪除已審核完成的申請（APPROVED 和 REJECTED 狀態）
+     */
+    void clearProcessedApplications();
+
+    /**
+     * 清空所有申請列表（總部管理員使用）
+     * 刪除所有狀態的申請
+     */
+    void clearAllApplications();
+
+    /**
      * 檢查申請中的唯一性約束
      */
     boolean isFieldAvailableInApplications(String field, String value);
