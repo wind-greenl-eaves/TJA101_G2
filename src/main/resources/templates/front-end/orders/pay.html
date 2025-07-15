@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const year = currentYear + i;
         const option = document.createElement('option');
         option.value = year;
-        option.textContent = year;
+        option.textContent = year.toString().slice(-2); // 只顯示末兩位數
         expiryYearSelect.appendChild(option);
     }
 
