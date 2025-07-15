@@ -33,6 +33,11 @@ public interface EmployeeApplicationRepository extends JpaRepository<EmployeeApp
     List<EmployeeApplicationEntity> findByStoreIdAndStatusOrderByCreatedAtDesc(Long storeId, ApplicationStatus status);
 
     /**
+     * 根據狀態列表查詢申請
+     */
+    List<EmployeeApplicationEntity> findByStatusIn(List<ApplicationStatus> statuses);
+
+    /**
      * 檢查帳號是否已在申請中
      */
     boolean existsByAccountAndStatus(String account, ApplicationStatus status);

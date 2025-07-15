@@ -342,9 +342,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 const selectedOption = storeSelect.options[storeSelect.selectedIndex];
                 storeText = selectedOption ? selectedOption.text : '-';
             } else if (storeSelect.type === 'hidden') {
-                // 門市經理的情況，需要從頁面上獲取門市名稱
-                const storeNameSpan = document.querySelector('.nav-item .text-gray-700');
-                storeText = storeNameSpan ? storeNameSpan.textContent : '-';
+                // 門市經理的情況，從門市顯示區域獲取門市名稱
+                const storeDisplayDiv = storeSelect.parentElement.querySelector('.form-input span.text-gray-700');
+                if (storeDisplayDiv) {
+                    storeText = storeDisplayDiv.textContent.trim();
+                } else {
+                    // 備用方案：嘗試從session中獲取門市名稱
+                    const sessionStoreName = /*[[${session.loggedInEmployee?.storeName}]]*/ null;
+                    storeText = sessionStoreName || '無法取得門市資訊';
+                }
             }
         }
         
