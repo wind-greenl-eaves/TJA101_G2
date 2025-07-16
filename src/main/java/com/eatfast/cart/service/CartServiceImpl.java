@@ -224,12 +224,20 @@ public class CartServiceImpl implements CartService {
    @Override
    @Transactional
    public void clearCartByMember(Long memberId) {
+       if (memberId == null) {
+           return;
+       }
        String cartKey = getCartRedisKey(memberId);
+       // 直接刪除該會員對應的整個 Redis Key
        redisTemplate.delete(cartKey);
    }
    private String getMealImageUrl(Long mealId) {
 	   return "/api/meals/" + mealId + "/image"; 
    }
+   
+   
+   
+   
    @Override
    public void updateAllCartItemsCustomization(Long memberId, String mealCustomization) {
        String redisKey = "cart:" + memberId;

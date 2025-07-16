@@ -688,60 +688,82 @@
 	<script>
   // 全域函式：選擇門市後存入 sessionStorage 並重新載入頁面
 async function handleStoreChange(selectEl) {
-    const newStoreId = selectEl.value;
-    if (!newStoreId) return;
+        const newStoreId = selectEl.value;
+        if (!newStoreId) return;
 
-    // 先從後端獲取最準確的購物車商品數量
-    let itemCount = 0;
-    try {
-        const response = await fetch('/api/cart/count');
-        if (response.ok) {
-            const data = await response.json();
-            itemCount = data.item_count;
-        }
-    } catch (error) {
-        console.error("查詢購物車數量失敗:", error);
-        // 如果查詢失敗，為安全起見，直接跳轉，不提示
-        window.location.href = `/menu?storeId=${newStoreId}`;
-        return;
-    }
-    
-    const currentCartStoreId = sessionStorage.getItem("cartStoreId");
+        // 從 sessionStorage 獲取變更前的門市 ID，用於取消操作時還原
+        const originalStoreId = sessionStorage.getItem("selectedStoreId");
 
-    // 【核心修正】現在的判斷依據是真實的商品數量 itemCount
-    if (itemCount > 0 && currentCartStoreId && currentCartStoreId !== newStoreId) {
-        if (confirm("您的購物車內尚有商品，更換門市將會清空購物車，確定要繼續嗎？")) {
-            // 使用者同意，呼叫後端 API 清空購物車
-            clearCartForStoreChange(newStoreId);
-        } else {
-            // 使用者取消，將下拉選單恢復原狀
-            selectEl.value = currentCartStoreId;
+        // 如果選擇的門市與目前相同，則不執行任何操作
+        if (newStoreId === originalStoreId) {
             return;
         }
-    } else {
-        // 如果購物車是空的，或選擇的門市與原來相同，直接導向新頁面
-        window.location.href = `/menu?storeId=${newStoreId}`;
-    }
-}
 
-// 【新增】一個專門用於清空購物車並處理後續動作的函式
-async function clearCartForStoreChange(newStoreId) {
-    if (!memberId) {
-        alert("請先登入會員");
-        return;
+        // 若使用者未登入，後端購物車必為空，直接允許切換
+        if (!isLoggedIn) {
+            window.location.href = `/menu?storeId=${newStoreId}`;
+            return;
+        }
+
+        let itemCount = 0;
+        try {
+            // 【關鍵】直接向後端 API 查詢最準確的購物車狀態
+            const response = await fetch('/cart/count');
+            if (response.ok) {
+                const data = await response.json();
+                itemCount = data.item_count || 0; // 確保 itemCount 是數字
+            } else {
+                // API 請求失敗，提示使用者並還原操作
+                alert("無法確認購物車狀態，請稍後再試。");
+                if (originalStoreId) selectEl.value = originalStoreId;
+                return;
+            }
+        } catch (error) {
+            console.error("查詢購物車數量失敗:", error);
+            alert("網路錯誤，無法確認購物車狀態，請稍後再試。");
+            if (originalStoreId) selectEl.value = originalStoreId;
+            return;
+        }
+
+        // 【核心邏輯】如果購物車中有商品，則跳出確認提示
+        if (itemCount > 0) {
+            if (confirm("您的購物車內尚有商品，更換門市將會清空購物車，確定要繼續嗎？")) {
+                // 使用者同意，執行清空購物車並跳轉
+                await clearCartAndRedirect(newStoreId);
+            } else {
+                // 使用者取消，將下拉選單還原
+                if (originalStoreId) selectEl.value = originalStoreId;
+            }
+        } else {
+            // 購物車是空的，直接跳轉
+            window.location.href = `/menu?storeId=${newStoreId}`;
+        }
     }
-    // 呼叫後端清空購物車的 API (DELETE /cart/member/{id})
+/**
+ * [輔助函式] 呼叫後端 API 清空購物車，並在成功後重新導向至新門市的菜單頁面。
+ * @param {string} newStoreId - 要跳轉的新門市 ID
+ */
+async function clearCartAndRedirect(newStoreId) {
     try {
+        // 呼叫後端 DELETE API 清空購物車
         const response = await fetch(`/cart/member/${memberId}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error('清空購物車失敗');
-
-      	//直接導向帶有 storeId 參數的新 URL
-        window.location.href = `/menu?storeId=${newStoreId}`;
+        if (!response.ok) {
+            throw new Error('清空購物車失敗，請稍後再試。');
+        }
         
-    } catch(error) {
-        alert("清空購物車時發生錯誤，請稍後再試。");
+        showToast('購物車已清空，正在切換門市...');
+
+        // 延遲一點時間讓使用者看到提示，然後再跳轉
+        setTimeout(() => {
+            window.location.href = `/menu?storeId=${newStoreId}`;
+        }, 800);
+
+    } catch (error) {
+        console.error("清空購物車時發生錯誤:", error);
+        alert(error.message);
     }
 }
+
 
   // 顯示請先登入的彈窗
   function checkLogin(e) {
