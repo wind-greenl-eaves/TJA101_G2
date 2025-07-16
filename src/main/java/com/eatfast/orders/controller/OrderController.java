@@ -14,18 +14,22 @@ import com.eatfast.store.model.StoreEntity;
 import com.eatfast.meal.model.MealEntity;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/orders")
@@ -130,8 +134,8 @@ public class OrderController {
             session.removeAttribute("pickupTime");
             session.removeAttribute("orderNotes");
             
-            redirectAttributes.addFlashAttribute("paymentSuccess", true);
-            redirectAttributes.addFlashAttribute("orderId", orderId);
+            // 【修正】將訂單ID保存到 Session 中，供付款成功頁面使用
+            session.setAttribute("currentOrderId", orderId);
             
             return "redirect:/orders/payment-success";
         } catch (Exception e) {
@@ -246,8 +250,105 @@ public class OrderController {
     }
     
     @GetMapping("/payment-success")
-    public String showPaymentSuccess(Model model) {
+    public String showPaymentSuccess(Model model, HttpSession session) {
+        // 【修正】從 URL 參數中獲取訂單ID，或者使用 Session 備份
+        String orderId = (String) session.getAttribute("currentOrderId");
+        
+        // 如果 Session 中沒有訂單ID，重定向到菜單頁面
+        if (orderId == null) {
+            return "redirect:/menu";
+        }
+        
+        try {
+            // 獲取訂單資訊
+            OrderListEntity order = orderListService.getOrderById(orderId).orElse(null);
+            if (order != null) {
+                // 使用正確的方法名稱獲取訂單明細
+                List<OrderListInfoEntity> orderItems = orderListInfoService.getDetailsForOrder(orderId);
+                
+                model.addAttribute("orderId", orderId);
+                model.addAttribute("order", order);
+                model.addAttribute("orderItems", orderItems);
+                
+                // 清除session中的訂單ID（防止重複訪問）
+                session.removeAttribute("currentOrderId");
+            } else {
+                // 如果找不到訂單，重定向到菜單頁面
+                return "redirect:/menu";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("orderId", orderId);
+        }
+        
         return "front-end/orders/payment-success";
+    }
+    
+    /**
+     * 保存餐點評分
+     */
+    @PostMapping("/save-rating")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> saveRating(
+            @RequestParam("orderInfoId") Long orderInfoId,
+            @RequestParam("rating") Integer rating,
+            HttpSession session) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 檢查用戶是否已登入
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
+            
+            if (memberId == null || isLoggedIn == null || !isLoggedIn) {
+                response.put("success", false);
+                response.put("message", "請先登入");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 驗證評分範圍
+            if (rating < 1 || rating > 5) {
+                response.put("success", false);
+                response.put("message", "評分必須在1-5之間");
+                return ResponseEntity.status(400).body(response);
+            }
+            
+            // 【修正】使用 addReview 方法來更新評分
+            try {
+                OrderListInfoEntity updatedOrderInfo = orderListInfoService.addReview(orderInfoId, rating.longValue());
+                
+                // 檢查訂單是否屬於當前會員
+                if (!updatedOrderInfo.getOrderList().getMember().getMemberId().equals(memberId)) {
+                    response.put("success", false);
+                    response.put("message", "無權限操作此訂單");
+                    return ResponseEntity.status(403).body(response);
+                }
+                
+                response.put("success", true);
+                response.put("message", "評分已保存");
+                return ResponseEntity.ok(response);
+                
+            } catch (IllegalArgumentException e) {
+                response.put("success", false);
+                response.put("message", e.getMessage());
+                return ResponseEntity.status(400).body(response);
+            } catch (IllegalStateException e) {
+                response.put("success", false);
+                response.put("message", e.getMessage());
+                return ResponseEntity.status(400).body(response);
+            } catch (Exception e) {
+                response.put("success", false);
+                response.put("message", "找不到訂單明細");
+                return ResponseEntity.status(404).body(response);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "保存評分時發生錯誤");
+            return ResponseEntity.status(500).body(response);
+        }
     }
     
     // 生成訂單編號 (YYYYMMDDXXXX格式)

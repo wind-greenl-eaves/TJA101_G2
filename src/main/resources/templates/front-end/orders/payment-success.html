@@ -52,6 +52,23 @@
             font-size: 1.1rem;
             color: #333;
         }
+        .info-box {
+            background-color: #e8f4fd;
+            border: 1px solid #b8daff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .info-box h4 {
+            color: #0c5460;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .info-box p {
+            margin: 5px 0;
+            color: #666;
+        }
         .action-buttons {
             display: flex;
             gap: 15px;
@@ -82,6 +99,26 @@
         .btn-secondary:hover {
             background-color: #5a6268;
         }
+        .rating-note {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+            font-size: 0.9rem;
+        }
+        .rating-note strong {
+            color: #6c5ce7;
+        }
+        
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .success-container {
+                padding: 20px;
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -94,9 +131,18 @@
         <div class="order-id">
             訂單編號：<span th:text="${orderId}">ORD20250715001</span>
         </div>
-        <p class="success-message">
-            請記住您的訂單編號，並於指定時間前往門市取餐。
-        </p>
+        
+        <div class="info-box">
+            <h4>📋 接下來的步驟：</h4>
+            <p>1. 請記住您的訂單編號</p>
+            <p>2. 於指定時間前往門市取餐</p>
+            <p>3. 取餐時請出示訂單編號</p>
+        </div>
+        
+        <div class="rating-note">
+            <strong>💡 提醒：</strong> 您可以在訂單完成後，於 <strong>會員訂單記錄</strong> 頁面為您的餐點評分，幫助我們提供更好的服務！
+        </div>
+        
         <div class="action-buttons">
             <a href="/menu" class="btn btn-primary">繼續購物</a>
             <a href="/member/orders" class="btn btn-secondary">查看訂單</a>
