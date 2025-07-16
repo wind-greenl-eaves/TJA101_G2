@@ -121,6 +121,7 @@
 
                     <div class="d-flex justify-content-center">
                         <button type="submit" class="btn btn-primary mx-2"><i class="fas fa-check"></i> 確認新增</button>
+                        <button type="button" class="btn btn-info mx-2" id="randomFillBtn"><i class="fas fa-random"></i> 隨機填入</button>
                         <!-- ★【路徑重點 6】: 「取消返回」按鈕。 -->
                         <a th:href="@{/member/select_page}" class="btn btn-secondary mx-2"><i class="fas fa-times"></i> 取消返回</a>
                     </div>
@@ -178,6 +179,63 @@
                 }
             });
             // ★★★★★【JavaScript 新增結束】★★★★★
+
+            // 隨機填入按鈕的點擊事件
+            document.getElementById('randomFillBtn').addEventListener('click', function() {
+                // 隨機生成姓名
+                const names = ['王大明', '李小華', '張三', '李四', '王五'];
+                document.getElementById('username').value = names[Math.floor(Math.random() * names.length)];
+
+                // 隨機生成帳號 (格式: userXXX)
+                const randomNum = Math.floor(Math.random() * 900) + 100; // 產生 100 到 999 之間的隨機數
+                document.getElementById('account').value = 'user' + randomNum;
+
+                // 隨機生成密碼 (8 位數字)
+                const password = Math.random().toString(36).slice(-8);
+                document.getElementById('password').value = password;
+
+                // 隨機生成郵件 (格式: testXXX@example.com)
+                document.getElementById('email').value = 'test' + randomNum + '@example.com';
+
+                // 隨機生成電話 (符合台灣手機和市話格式)
+                const phoneFormats = [
+                    // 手機格式 1: 0912345678
+                    () => {
+                        const prefix = '09' + Math.floor(Math.random() * 10);
+                        const suffix = Math.floor(Math.random() * 90000000) + 10000000;
+                        return prefix + suffix.toString().substring(0, 7);
+                    },
+                    // 手機格式 2: 0912-345-678
+                    () => {
+                        const prefix = '09' + Math.floor(Math.random() * 10);
+                        const middle = Math.floor(Math.random() * 900) + 100;
+                        const suffix = Math.floor(Math.random() * 900) + 100;
+                        return prefix + '-' + middle + '-' + suffix;
+                    },
+                    // 市話格式: 02-12345678
+                    () => {
+                        const areaCodes = ['02', '03', '04', '05', '06', '07', '08'];
+                        const areaCode = areaCodes[Math.floor(Math.random() * areaCodes.length)];
+                        const number = Math.floor(Math.random() * 90000000) + 10000000;
+                        return areaCode + '-' + number;
+                    }
+                ];
+                const selectedFormat = phoneFormats[Math.floor(Math.random() * phoneFormats.length)];
+                document.getElementById('phone').value = selectedFormat();
+
+                // 隨機生成生日 (範圍: 1950-01-01 到 2003-12-31)
+                const start = new Date(1950, 0, 1);
+                const end = new Date(2003, 11, 31);
+                const birthDate = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+                const yyyy = birthDate.getFullYear();
+                const mm = String(birthDate.getMonth() + 1).padStart(2, '0');
+                const dd = String(birthDate.getDate()).padStart(2, '0');
+                document.getElementById('birthday').value = yyyy + '-' + mm + '-' + dd;
+
+                // 隨機選擇性別
+                const genders = ['M', 'F', 'O'];
+                document.getElementById('gender' + genders[Math.floor(Math.random() * genders.length)]).checked = true;
+            });
         });
     </script>
 </body>

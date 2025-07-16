@@ -105,15 +105,17 @@ public class MemberController {
         }
 
         try {
-            // 【業務邏輯路徑】: 將 DTO 傳遞給 Service 層，執行核心業務。
-            MemberEntity savedMember = memberService.registerMember(createRequest);
-            log.info("會員 {} 註冊/啟用成功，ID: {}", savedMember.getAccount(), savedMember.getMemberId());
+            // 【業務邏輯路徑】: 使用管理員專用的註冊方法，會員直接啟用無需驗證
+            MemberEntity savedMember = memberService.registerMemberByAdmin(createRequest);
+            log.info("管理員新增會員成功，ID: {}，帳號: {}，狀態: 已啟用", 
+                     savedMember.getMemberId(), savedMember.getAccount());
             // 【成功訊息路徑】: 使用 RedirectAttributes 跨重定向傳遞成功訊息。
-            redirectAttributes.addFlashAttribute("successMessage", "新增或啟用會員 " + savedMember.getUsername() + " 成功！");
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "新增會員 " + savedMember.getUsername() + " 成功！帳號已直接啟用，無需驗證。");
         
         } catch (IllegalArgumentException e) {
             // 【業務例外路徑】: 捕獲從 Service 層拋出的特定業務例外 (如：帳號已存在)。
-            log.warn("註冊失敗: {}", e.getMessage());
+            log.warn("管理員新增會員失敗: {}", e.getMessage());
             // 將後端業務錯誤轉換為前端表單錯誤，回饋給使用者。
             result.addError(new FieldError("memberCreateRequest", "account", e.getMessage()));
             return MemberViewConstants.VIEW_ADD_MEMBER;

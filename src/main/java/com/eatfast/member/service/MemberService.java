@@ -316,6 +316,43 @@ public class MemberService {
     }
 
     /**
+     * 後台管理員新增會員 - 直接啟用，無需驗證
+     * @param createRequest 會員建立請求
+     * @return 已啟用的會員實體
+     */
+    @Transactional
+    public MemberEntity registerMemberByAdmin(MemberCreateRequest createRequest) {
+        // 1. 檢查帳號或 Email 是否已被註冊 (只查活躍帳號)
+        if (memberRepository.existsByAccountOrEmail(createRequest.getAccount(), createRequest.getEmail())) {
+            throw new IllegalArgumentException("帳號或 Email 已被註冊。");
+        }
+
+        // 2. 檢查帳號是否對應到「已停用」的帳號
+        Optional<MemberEntity> disabledAccountOpt = memberRepository.findByAccountIncludeDisabled(createRequest.getAccount());
+        if (disabledAccountOpt.isPresent() && !disabledAccountOpt.get().isEnabled()) {
+            MemberEntity memberToReactivate = disabledAccountOpt.get();
+            log.info("後台管理員重新啟用已停用的帳號 {}，直接啟用無需驗證。", createRequest.getAccount());
+            // 更新資料並直接啟用
+            memberToReactivate.setUsername(createRequest.getUsername());
+            memberToReactivate.setPassword(passwordEncoder.encode(createRequest.getPassword()));
+            memberToReactivate.setEmail(createRequest.getEmail());
+            memberToReactivate.setPhone(createRequest.getPhone());
+            memberToReactivate.setBirthday(createRequest.getBirthday());
+            memberToReactivate.setGender(createRequest.getGender());
+            memberToReactivate.setEnabled(true); // 管理員新增直接啟用
+            
+            return memberRepository.save(memberToReactivate);
+        }
+
+        // 3. 如果是全新帳號，則將 DTO 轉換為 Entity 並儲存（直接啟用）
+        log.info("後台管理員新增全新帳號 {}，直接啟用無需驗證。", createRequest.getAccount());
+        MemberEntity newMember = MemberMapper.toEntity(createRequest, passwordEncoder);
+        newMember.setEnabled(true); // 管理員新增直接啟用
+        
+        return memberRepository.save(newMember);
+    }
+
+    /**
      * 發送驗證郵件
      */
     private void sendVerificationEmail(MemberEntity member) {
