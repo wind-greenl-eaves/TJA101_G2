@@ -22,19 +22,19 @@ public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
-    private final JavaMailSender mailSender;
+    private final JavaMailSender mailSender; // JavaMailSender 用於發送郵件
 
-    @Value("${spring.mail.username}")
-    private String fromEmail;
+    @Value("${spring.mail.username}") // 寄件者郵箱地址
+    private String fromEmail; // 寄件者郵箱地址
 
     @Value("${app.mail.system-name:早餐店管理系統}")
     private String systemName;
 
     @Value("${app.mail.enabled:true}")
-    private boolean mailEnabled;
+    private boolean mailEnabled; // 是否啟用郵件服務，默認為 true
 
     public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+        this.mailSender = mailSender; 
     }
 
     /**
@@ -60,12 +60,13 @@ public class EmailService {
             // 【關鍵修正】設定 UTF-8 編碼，不使用 multipart
             MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
 
-            // 【修正】設定寄件者信息
-            helper.setFrom(fromEmail, systemName);
+            // 【修正】設定寄件者信息，不使用個人姓名避免編碼問題
+            helper.setFrom(fromEmail);
             helper.setTo(targetEmail);
             
             // 【修正】確保郵件主旨的中文字符正確編碼
-            helper.setSubject("【" + systemName + "】會員密碼重設通知");
+            String subject = "【EATFAST早安通】會員密碼重設通知";
+            helper.setSubject(subject);
 
             // 創建 HTML 郵件內容
             String htmlContent = createPasswordResetEmailContent(memberEmail, memberAccount, memberName, resetUrl);
@@ -73,10 +74,8 @@ public class EmailService {
             // 【關鍵修正】設定 HTML 內容，明確指定為 HTML 格式
             helper.setText(htmlContent, true);
             
-            // 【移除】不設定額外的編碼標頭，讓 MimeMessageHelper 自動處理
-            // 這些標頭可能會導致編碼衝突
-            // message.setHeader("Content-Type", "text/html; charset=UTF-8");
-            // message.setHeader("Content-Transfer-Encoding", "quoted-printable");
+            // 【新增】確保郵件編碼正確
+            message.setHeader("Content-Type", "text/html; charset=UTF-8");
 
             mailSender.send(message);
             
@@ -263,7 +262,7 @@ public class EmailService {
                     <div class="footer">
                         <p>此郵件由系統自動發送，請勿直接回覆</p>
                         <p>如有疑問，請聯繫系統管理員</p>
-                        <p>&copy; 2025 %s - 早餐美味，服務貼心</p>
+                        <p>&copy; 2025 【EATFAST早安通】 - 早餐美味，服務貼心</p>
                     </div>
                 </div>
             </body>
