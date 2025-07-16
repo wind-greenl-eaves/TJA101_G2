@@ -1161,4 +1161,106 @@ public class MemberService {
             return new ArrayList<>();
         }
     }
+    
+    // ================================================================
+    // 					會員訂單管理功能 (Member Order Management)
+    // ================================================================
+    
+    /**
+     * 【功能】獲取會員的特定訂單
+     * 
+     * @param memberId 會員ID
+     * @param orderListId 訂單ID
+     * @return 訂單實體，如果找不到或不屬於該會員則返回null
+     */
+    @Transactional(readOnly = true)
+    public OrderListEntity getMemberOrderById(Long memberId, String orderListId) {
+        log.info("獲取會員 {} 的訂單 {}", memberId, orderListId);
+        
+        try {
+            // 先驗證會員存在
+            MemberEntity member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員 ID: " + memberId));
+            
+            // 查詢訂單並驗證是否屬於該會員
+            Optional<OrderListEntity> orderOpt = orderListRepository.findById(orderListId);
+            
+            if (orderOpt.isPresent()) {
+                OrderListEntity order = orderOpt.get();
+                
+                // 檢查訂單是否屬於該會員
+                if (order.getMember() != null && order.getMember().getMemberId().equals(memberId)) {
+                    log.info("成功獲取會員 {} 的訂單 {}", memberId, orderListId);
+                    return order;
+                } else {
+                    log.warn("訂單 {} 不屬於會員 {}", orderListId, memberId);
+                    return null;
+                }
+            } else {
+                log.warn("找不到訂單 {}", orderListId);
+                return null;
+            }
+            
+        } catch (EntityNotFoundException e) {
+            log.error("獲取會員訂單失敗 - 會員不存在: {}", e.getMessage());
+            return null;
+        } catch (Exception e) {
+            log.error("獲取會員訂單時發生錯誤: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+    
+    /**
+     * 【功能】取消會員訂單
+     * 
+     * @param memberId 會員ID
+     * @param orderListId 訂單ID
+     * @return 是否成功取消
+     */
+    @Transactional
+    public boolean cancelMemberOrder(Long memberId, String orderListId) {
+        log.info("會員 {} 嘗試取消訂單 {}", memberId, orderListId);
+        
+        try {
+            // 先驗證會員存在
+            MemberEntity member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員 ID: " + memberId));
+            
+            // 查詢訂單並驗證是否屬於該會員
+            Optional<OrderListEntity> orderOpt = orderListRepository.findById(orderListId);
+            
+            if (orderOpt.isEmpty()) {
+                log.warn("找不到訂單 {}", orderListId);
+                return false;
+            }
+            
+            OrderListEntity order = orderOpt.get();
+            
+            // 檢查訂單是否屬於該會員
+            if (order.getMember() == null || !order.getMember().getMemberId().equals(memberId)) {
+                log.warn("訂單 {} 不屬於會員 {}", orderListId, memberId);
+                return false;
+            }
+            
+            // 檢查訂單狀態是否可以取消（只有 PENDING 狀態可以取消）
+            if (order.getOrderStatus() != com.eatfast.orderlist.model.OrderStatus.PENDING) {
+                log.warn("訂單 {} 狀態為 {}，無法取消", orderListId, order.getOrderStatus());
+                return false;
+            }
+            
+            // 更新訂單狀態為 CANCELLED
+            order.setOrderStatus(com.eatfast.orderlist.model.OrderStatus.CANCELLED);
+            orderListRepository.save(order);
+            
+            log.info("成功取消會員 {} 的訂單 {}", memberId, orderListId);
+            return true;
+            
+        } catch (EntityNotFoundException e) {
+            log.error("取消訂單失敗 - 會員不存在: {}", e.getMessage());
+            return false;
+        } catch (Exception e) {
+            log.error("取消會員訂單時發生錯誤: {}", e.getMessage(), e);
+            return false;
+        }
+    }
 }

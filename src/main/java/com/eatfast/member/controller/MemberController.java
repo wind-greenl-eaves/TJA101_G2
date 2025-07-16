@@ -1866,4 +1866,83 @@ public class MemberController {
             model.addAttribute("isAdminLoggedIn", false);
         }
     }
+
+    /**
+     * 【會員專用】取消訂單功能
+     */
+    @PostMapping("/orders/cancel")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> cancelMemberOrder(@RequestParam("orderListId") String orderListId, 
+                                                               HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 【Session驗證】檢查會員登入狀態
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
+            
+            if (memberId == null || isLoggedIn == null || !isLoggedIn) {
+                response.put("success", false);
+                response.put("message", "請先登入會員系統");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 【驗證會員存在】
+            MemberEntity member = memberService.getMemberById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
+            
+            if (!member.isEnabled()) {
+                response.put("success", false);
+                response.put("message", "會員帳號已被停用");
+                return ResponseEntity.status(403).body(response);
+            }
+            
+            // 【驗證訂單存在並屬於該會員】
+            OrderListEntity order = memberService.getMemberOrderById(memberId, orderListId);
+            if (order == null) {
+                response.put("success", false);
+                response.put("message", "找不到此訂單或您無權限操作此訂單");
+                return ResponseEntity.status(404).body(response);
+            }
+            
+            // 【檢查訂單狀態】只有處理中的訂單才能取消
+            if (order.getOrderStatus() != OrderStatus.PENDING) {
+                String statusMessage = switch (order.getOrderStatus()) {
+                    case CONFIRMED -> "訂單已確認，無法取消";
+                    case SHIPPED -> "訂單已出餐，無法取消";
+                    case COMPLETED -> "訂單已完成，無法取消";
+                    case CANCELLED -> "訂單已取消";
+                    default -> "訂單狀態異常，無法取消";
+                };
+                response.put("success", false);
+                response.put("message", statusMessage);
+                return ResponseEntity.status(400).body(response);
+            }
+            
+            // 【執行取消訂單】
+            boolean cancelSuccess = memberService.cancelMemberOrder(memberId, orderListId);
+            
+            if (cancelSuccess) {
+                response.put("success", true);
+                response.put("message", "訂單已成功取消");
+                log.info("會員 {} 成功取消訂單 {}", member.getAccount(), orderListId);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "取消訂單失敗，請稍後再試");
+                return ResponseEntity.status(500).body(response);
+            }
+            
+        } catch (EntityNotFoundException e) {
+            log.error("取消訂單失敗 - 會員或訂單不存在: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", "找不到相關資料");
+            return ResponseEntity.status(404).body(response);
+        } catch (Exception e) {
+            log.error("取消訂單時發生錯誤: {}", e.getMessage(), e);
+            response.put("success", false);
+            response.put("message", "系統錯誤，請稍後再試");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 }

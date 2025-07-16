@@ -392,13 +392,6 @@
                                 th:data-order-id="${order.orderListId}">
                             ❌ 取消訂單
                         </button>
-                        <button th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}" 
-                                class="btn btn-sm" 
-                                style="background-color: #28a745;"
-                                onclick="reorder(this)" 
-                                th:data-order-id="${order.orderListId}">
-                            🔄 再次訂購
-                        </button>
                     </div>
                 </div>
             </div>
@@ -414,22 +407,23 @@
                 button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 取消中...';
                 
                 // 使用 fetch 調用後端的取消訂單 API
-                fetch('/orderlist/delete', {
+                fetch('/member/orders/cancel', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
                     body: 'orderListId=' + encodeURIComponent(orderId)
                 })
-                .then(response => {
-                    if (response.ok) {
-                        // 取消成功，更新頁面顯示
-                        alert('訂單已成功取消');
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 取消成功，顯示成功訊息
+                        alert(data.message || '訂單已成功取消');
                         // 重新載入頁面以顯示更新後的狀態
                         window.location.reload();
                     } else {
-                        // 取消失敗
-                        alert('取消訂單失敗，請稍後再試');
+                        // 取消失敗，顯示錯誤訊息
+                        alert(data.message || '取消訂單失敗，請稍後再試');
                         // 恢復按鈕狀態
                         button.disabled = false;
                         button.innerHTML = '❌ 取消訂單';
@@ -445,30 +439,6 @@
             }
         }
         
-        function reorder(button) {
-            const orderId = button.getAttribute('data-order-id');
-            if (confirm('確定要重新訂購此訂單的所有商品嗎？')) {
-                // 發送重新訂購的請求
-                fetch(`/member/orders/${orderId}/reorder`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        alert('商品已加入購物車');
-                        window.location.href = '/member/cart';
-                    } else {
-                        alert('重新訂購失敗，請稍後再試');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('重新訂購失敗，請稍後再試');
-                });
-            }
-        }
     </script>
 </body>
 </html>
