@@ -73,9 +73,8 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="pickupTime">取餐時間:</label>
-                                <input type="datetime-local" id="pickupTime" th:field="*{pickupTime}" class="form-control" />
-                                <small class="form-text text-muted">可設定預計取餐時間</small>
+                                <label>取餐時間:</label>
+                                <input type="text" th:field="*{pickupTime}" class="form-control-plaintext" readonly />
                             </div>
                             
                             <input type="hidden" name="memberId" th:value="${orderListVO.member.memberId}" />
