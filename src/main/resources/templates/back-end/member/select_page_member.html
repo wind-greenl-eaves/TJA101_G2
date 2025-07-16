@@ -35,7 +35,22 @@
         body {
             font-family: 'Noto Sans TC', sans-serif;
             background-color: var(--bg-color);
+            background-image: url('/images/eastfast124.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             color: var(--text-color);
+        }
+         body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(253, 251, 246, 0.2);  /* 與 --bg-color 相同但帶透明度 */
+            z-index: -1;
         }
 
         .modal-backdrop {
@@ -204,6 +219,27 @@
                 <div class="flex items-center">
                     <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" class="w-8 h-8 mr-2">
                     <h3 class="text-xl font-bold">早餐店後台 - 會員資料管理</h3>
+                </div>
+                <!-- 當前登入管理員資訊 -->
+                <div th:if="${isAdminLoggedIn}" class="flex items-center ml-8 px-4 py-2 bg-white border border-[var(--border-color)] rounded-lg shadow-sm">
+                    <i class="fas fa-user-tie text-[var(--primary-color)] mr-2"></i>
+                    <div class="text-sm">
+                        <div class="font-semibold text-[var(--text-color)]">
+                            <span th:text="${currentAdminName}">管理員姓名</span>
+                            <span class="text-xs text-gray-500 ml-1">(<span th:text="${currentAdminAccount}">帳號</span>)</span>
+                        </div>
+                        <div class="text-xs text-gray-600">
+                            <i class="fas fa-shield-alt mr-1"></i>
+                            <span th:text="${currentAdminRole}">角色</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 未登入狀態顯示 -->
+                <div th:unless="${isAdminLoggedIn}" class="flex items-center ml-8 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
+                    <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                    <div class="text-sm text-red-700">
+                        <div class="font-semibold">未檢測到登入資訊</div>
+                    </div>
                 </div>
             </div>
             <div class="flex gap-3">
