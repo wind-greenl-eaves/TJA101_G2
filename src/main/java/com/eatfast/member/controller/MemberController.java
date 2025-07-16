@@ -1635,11 +1635,20 @@ public class MemberController {
             model.addAttribute("displayStart", displayStart);
             model.addAttribute("displayEnd", displayEnd);
             
-            // 添加查詢結果統計訊息
-            if (totalElements == 0) {
-                model.addAttribute("infoMessage", "沒有找到符合條件的會員資料");
-            } else {
-                model.addAttribute("successMessage", "找到 " + totalElements + " 筆符合條件的會員資料，目前顯示第 " + displayStart + "-" + displayEnd + " 筆");
+            // 只在首次查詢時顯示查詢結果統計訊息（非分頁切換）
+            // 通過檢查是否有查詢條件來判斷是否為首次查詢
+            boolean isFirstQuery = page == 1 && (
+                (username != null && !username.trim().isEmpty()) ||
+                (email != null && !email.trim().isEmpty()) ||
+                (phone != null && !phone.trim().isEmpty())
+            );
+            
+            if (isFirstQuery) {
+                if (totalElements == 0) {
+                    model.addAttribute("infoMessage", "沒有找到符合條件的會員資料");
+                } else {
+                    model.addAttribute("successMessage", "找到 " + totalElements + " 筆符合條件的會員資料，目前顯示第 " + displayStart + "-" + displayEnd + " 筆");
+                }
             }
             
             log.info("複合查詢完成，總共找到 {} 筆資料，目前第 {} 頁，每頁 {} 筆", totalElements, page, size);
