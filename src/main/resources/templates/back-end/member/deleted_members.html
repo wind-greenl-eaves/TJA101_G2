@@ -328,6 +328,32 @@
         .operations-guide li strong {
             color: var(--text-color);
         }
+
+        /* --- 修改：自定義彈出視窗樣式 (優化動畫) --- */
+        .modal-overlay {
+            /* 使用更平滑的 cubic-bezier 曲線進行淡入淡出 */
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-panel {
+            /* 同樣使用平滑曲線，並對所有變換屬性生效 */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* 彈窗隱藏時的狀態 */
+        #restore-confirm-modal.hidden .modal-overlay {
+            opacity: 0;
+        }
+        #restore-confirm-modal.hidden .modal-panel {
+            opacity: 0;
+            /* 結合輕微的向上滑動和縮小效果，讓出現時更自然 */
+            transform: translateY(1rem) scale(0.95);
+        }
+
+        /* 彈窗顯示時的最終狀態 (JS移除hidden class後，會從上面的狀態過渡到此狀態) */
+        #restore-confirm-modal .modal-panel {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
     </style>
 </head>
 
@@ -508,8 +534,8 @@
                                     <!-- 復原按鈕 -->
                                     <form th:action="@{/member/restore}" method="post" class="inline">
                                         <input type="hidden" name="memberId" th:value="${member.memberId}">
-                                        <button type="submit" class="restore-btn" 
-                                                onclick="return confirm('確定要復原此會員嗎？復原後會員將重新啟用。')">
+                                        <!-- 修改：移除 onclick，並將 type 改為 button 以防止表單直接提交 -->
+                                        <button type="button" class="restore-btn">
                                             <i class="fas fa-undo"></i>復原
                                         </button>
                                     </form>
@@ -553,24 +579,46 @@
         </div>
     </div>
 
+    <!-- 新增：自定義確認彈出視窗 -->
+    <div id="restore-confirm-modal" class="fixed inset-0 z-50 items-center justify-center hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- 背景遮罩 -->
+        <div class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-60"></div>
+
+        <!-- 彈窗內容 -->
+        <div class="modal-panel bg-white rounded-2xl shadow-2xl w-full max-w-md m-4 transform relative">
+            <div class="p-8 text-center">
+                <!-- 圖示 -->
+                <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-5 border-4 border-white shadow-inner">
+                     <i class="fas fa-undo-alt text-5xl text-green-500 animate-pulse"></i>
+                </div>
+                <!-- 標題 -->
+                <h3 id="modal-title" class="text-2xl font-bold text-gray-800 mb-3">確定要復原此會員嗎？</h3>
+                <!-- 內容 -->
+                <p id="modal-body" class="text-gray-600 mb-8 px-4">
+                    復原後，會員 <strong id="modal-member-name" class="text-gray-900"></strong> 
+                    (<span id="modal-member-account" class="font-mono text-sm bg-gray-100 px-1 rounded"></span>) 
+                    將重新啟用。
+                </p>
+                <!-- 按鈕 -->
+                <div class="flex justify-center gap-4">
+                    <button id="modal-cancel-btn" class="py-3 px-8 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                        取消
+                    </button>
+                    <button id="modal-confirm-btn" class="py-3 px-8 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        確定復原
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 引入 jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
         // 頁面載入完成後的初始化
         document.addEventListener('DOMContentLoaded', function() {
-            // 為復原按鈕添加載入狀態
-            const restoreForms = document.querySelectorAll('form[action*="/member/restore"]');
-            restoreForms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    const button = this.querySelector('.restore-btn');
-                    if (button) {
-                        button.disabled = true;
-                        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>復原中...';
-                    }
-                });
-            });
-
+            
             // 添加表格行點擊效果
             const tableRows = document.querySelectorAll('.deleted-member-row');
             tableRows.forEach(row => {
@@ -608,9 +656,69 @@
                     item.style.transform = 'translateX(0)';
                 }, 1000 + (index * 150));
             });
+
+            // --- 新增：自定義彈出視窗邏輯 ---
+            const modal = document.getElementById('restore-confirm-modal');
+            const modalMemberName = document.getElementById('modal-member-name');
+            const modalMemberAccount = document.getElementById('modal-member-account');
+            const confirmBtn = document.getElementById('modal-confirm-btn');
+            const cancelBtn = document.getElementById('modal-cancel-btn');
+            const modalOverlay = modal.querySelector('.modal-overlay');
+
+            let formToSubmit = null; // 用於儲存待提交的表單
+
+            // 顯示彈出視窗的函式
+            function showRestoreModal(form, memberName, memberAccount) {
+                formToSubmit = form; // 儲存表單
+                modalMemberName.textContent = memberName;
+                modalMemberAccount.textContent = memberAccount;
+                
+                modal.classList.remove('hidden');
+                modal.classList.add('flex'); // 使用 flex 來置中
+            }
+
+            // 隱藏彈出視窗的函式
+            function hideRestoreModal() {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                formToSubmit = null; // 清除已儲存的表單
+            }
+
+            // 為所有「復原」按鈕添加點擊事件監聽
+            const restoreButtons = document.querySelectorAll('.restore-btn');
+            restoreButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault(); // 防止按鈕的預設行為
+
+                    const form = this.closest('form');
+                    const row = this.closest('tr');
+                    // 從表格中動態獲取會員姓名和帳號
+                    const memberName = row.cells[1].textContent.trim();
+                    const memberAccount = row.cells[2].textContent.trim();
+
+                    showRestoreModal(form, memberName, memberAccount);
+                });
+            });
+
+            // 為彈出視窗的「確定復原」按鈕添加事件
+            confirmBtn.addEventListener('click', () => {
+                if (formToSubmit) {
+                    // 提交表單前，顯示載入狀態
+                    const buttonInForm = formToSubmit.querySelector('.restore-btn');
+                    if (buttonInForm) {
+                        buttonInForm.disabled = true;
+                        buttonInForm.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>處理中...';
+                    }
+                    formToSubmit.submit();
+                }
+            });
+
+            // 為「取消」按鈕和背景遮罩添加關閉事件
+            cancelBtn.addEventListener('click', hideRestoreModal);
+            modalOverlay.addEventListener('click', hideRestoreModal);
         });
 
-        // 顯示成功訊息動畫
+        // 顯示成功訊息動畫 (保留)
         function showSuccessMessage(message) {
             const alertDiv = document.createElement('div');
             alertDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
@@ -635,7 +743,7 @@
             }, 3000);
         }
 
-        // 表格行懸停效果增強
+        // 表格行懸停效果增強 (保留)
         function addTableRowEffects() {
             const rows = document.querySelectorAll('.deleted-member-row');
             rows.forEach(row => {
@@ -649,7 +757,7 @@
             });
         }
 
-        // 初始化表格效果
+        // 初始化表格效果 (保留)
         document.addEventListener('DOMContentLoaded', addTableRowEffects);
     </script>
 </body>
