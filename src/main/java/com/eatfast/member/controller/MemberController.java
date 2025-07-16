@@ -240,13 +240,13 @@ public class MemberController {
      */
     @GetMapping("/select_page")
     public String showSelectPage(@RequestParam(defaultValue = "1") int page,
-                                @RequestParam(defaultValue = "10") int size,
+                                @RequestParam(defaultValue = "15") int size,
                                 HttpSession session,
                                 Model model) {
         
         // 驗證分頁參數
         if (page < 1) page = 1;
-        if (size < 1) size = 10;
+        if (size < 1) size = 15;
         if (size > 50) size = 50;
         
         // 獲取當前登入的管理員資訊
@@ -698,7 +698,7 @@ public class MemberController {
             model.addAttribute("orderStats", orderStats);
             model.addAttribute("member", member);
             
-            // 【保持篩選參數】
+            // 【保持篩选參數】
             model.addAttribute("currentStatus", status);
             model.addAttribute("currentStartDate", startDate);
             model.addAttribute("currentEndDate", endDate);
@@ -1518,8 +1518,8 @@ public class MemberController {
             content.append("• 此檔案包含您的個人資料，請妥善保管\n");
             content.append("• 請勿將此檔案分享給他人\n");
             content.append("• 如有疑問，請聯繫 EatFast 客服\n");
-            content.append("• 客服信箱：support@eatfast.com\n\n");
-            
+            content.append("• 客服信箱：support@eatfast.com\n");
+            content.append("• 客服電話：0800-123-456\n");
             content.append("============================================================\n");
             content.append("                 感謝您使用 EatFast 早餐店\n");
             content.append("============================================================\n");
@@ -1625,7 +1625,7 @@ public class MemberController {
             String sizeStr = params.get("size");
             
             int page = 1; // 預設第1頁
-            int size = 10; // 預設每頁10筆
+            int size = 15; // 預設每頁15筆
             
             try {
                 if (pageStr != null && !pageStr.trim().isEmpty()) {
@@ -1634,7 +1634,7 @@ public class MemberController {
                 }
                 if (sizeStr != null && !sizeStr.trim().isEmpty()) {
                     size = Integer.parseInt(sizeStr);
-                    if (size < 1) size = 10;
+                    if (size < 1) size = 15;
                     // 限制每頁最多顯示數量
                     if (size > 50) size = 50;
                 }
@@ -1749,174 +1749,119 @@ public class MemberController {
     }
 
     /**
-     * 【功能】: 顯示已刪除會員列表頁面
-     * 【請求路徑】: 處理 GET /member/deleted 請求
+     * 【功能】: 處理性別查詢會員列表
+     * 【請求路徑】: 處理 POST /member/listMembersByGender 請求
      */
-    @GetMapping("/deleted")
-    public String showDeletedMembers(Model model) {
-        log.info("載入已刪除會員列表頁面");
+    @PostMapping("/listMembersByGender")
+    public String listMembersByGender(@RequestParam("gender") String gender,
+                                     Model model,
+                                     HttpSession session,
+                                     RedirectAttributes redirectAttributes) {
+        
+        log.info("查詢會員性別: {}", gender);
+        
+        // 添加管理員登入資訊到模型中
+        addAdminInfoToModel(session, model);
+        
+        if (gender == null || gender.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "請選擇要查詢的性別");
+            return MemberViewConstants.REDIRECT_TO_SELECT_PAGE;
+        }
         
         try {
-            // 獲取所有已刪除（停用）的會員
-            List<MemberEntity> deletedMembers = memberService.getDeletedMembers();
-            model.addAttribute("deletedMemberList", deletedMembers);
-            
-            log.info("已載入 {} 筆已刪除會員資料", deletedMembers.size());
-            
-            // 【調試信息】列出已刪除會員的詳細資訊
-            if (!deletedMembers.isEmpty()) {
-                log.info("已刪除會員列表:");
-                for (MemberEntity member : deletedMembers) {
-                    log.info("- ID: {}, 帳號: {}, 姓名: {}, 啟用狀態: {}", 
-                             member.getMemberId(), 
-                             member.getAccount(), 
-                             member.getUsername(), 
-                             member.isEnabled());
-                }
-            } else {
-                log.warn("⚠️ 沒有找到任何已刪除的會員記錄");
-                
-                // 額外檢查：查詢所有會員（包括已停用的）
-                List<MemberEntity> allMembers = memberService.getAllMembers();
-                log.info("資料庫中總共有 {} 筆會員記錄", allMembers.size());
-                
-                long disabledCount = allMembers.stream()
-                        .filter(m -> !m.isEnabled())
-                        .count();
-                log.info("其中有 {} 筆記錄的 enabled 狀態為 false", disabledCount);
-                
-                if (disabledCount > 0) {
-                    log.warn("發現已停用會員但查詢不到，可能是查詢邏輯問題");
-                    allMembers.stream()
-                            .filter(m -> !m.isEnabled())
-                            .forEach(m -> log.info("已停用會員: ID={}, 帳號={}, 姓名={}, enabled={}", 
-                                     m.getMemberId(), m.getAccount(), m.getUsername(), m.isEnabled()));
-                }
+            // 將字符串轉換為 Gender 枚舉
+            Gender genderEnum;
+            try {
+                // 修正：直接使用 gender.trim()，不需要 toUpperCase()
+                genderEnum = Gender.valueOf(gender.trim());
+            } catch (IllegalArgumentException e) {
+                log.warn("無效的性別選項: {}", gender);
+                redirectAttributes.addFlashAttribute("errorMessage", "無效的性別選項: " + gender);
+                return MemberViewConstants.REDIRECT_TO_SELECT_PAGE;
             }
             
+            // 查詢指定性別的會員
+            List<MemberEntity> membersByGender = memberService.getMembersByGender(genderEnum);
+            
+            if (membersByGender.isEmpty()) {
+                model.addAttribute("errorMessage", "找不到性別為 '" + getGenderDisplayName(genderEnum) + "' 的會員");
+            } else {
+                model.addAttribute("memberListData", membersByGender);
+                model.addAttribute("successMessage", "成功找到 " + membersByGender.size() + " 位性別為 '" + getGenderDisplayName(genderEnum) + "' 的會員");
+            }
+            
+            // 保持查詢條件
+            model.addAttribute("selectedGender", gender);
+            
         } catch (Exception e) {
-            log.error("載入已刪除會員列表時發生錯誤: {}", e.getMessage(), e);
-            model.addAttribute("errorMessage", "載入已刪除會員列表失敗：" + e.getMessage());
+            log.error("查詢會員性別失敗: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "查詢失敗：" + e.getMessage());
+            return MemberViewConstants.REDIRECT_TO_SELECT_PAGE;
         }
         
-        return MemberViewConstants.VIEW_DELETED_MEMBERS;
+        return MemberViewConstants.VIEW_SELECT_PAGE;
     }
-    
+
     /**
-     * 【功能】: 復原已刪除的會員
-     * 【請求路徑】: 處理 POST /member/restore 請求
+     * 【輔助方法】: 獲取性別顯示名稱
      */
-    @PostMapping("/restore")
-    public String restoreMember(@RequestParam("memberId") Long memberId, 
-                               RedirectAttributes redirectAttributes) {
-        
-        log.info("嘗試復原會員，ID: {}", memberId);
-        
-        try {
-            // 呼叫 Service 執行復原操作
-            MemberEntity restoredMember = memberService.restoreMember(memberId);
-            
-            log.info("會員復原成功 - ID: {}, 帳號: {}, 姓名: {}", 
-                     restoredMember.getMemberId(), 
-                     restoredMember.getAccount(), 
-                     restoredMember.getUsername());
-            
-            redirectAttributes.addFlashAttribute("successMessage", 
-                "會員「" + restoredMember.getUsername() + "」復原成功！帳號已重新啟用。");
-            
-        } catch (EntityNotFoundException e) {
-            log.warn("復原會員失敗 - 找不到會員: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", 
-                "復原失敗：找不到會員 ID " + memberId);
-        } catch (IllegalStateException e) {
-            log.warn("復原會員失敗 - 狀態錯誤: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", 
-                "復原失敗：" + e.getMessage());
-        } catch (Exception e) {
-            log.error("復原會員時發生未預期錯誤: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", 
-                "復原失敗：系統錯誤，請稍後再試");
+    private String getGenderDisplayName(Gender gender) {
+        switch (gender) {
+            case M:
+                return "男性";
+            case F:
+                return "女性";
+            case O:
+                return "其他";
+            default:
+                return "未知";
         }
-        
-        return "redirect:/member/deleted";
     }
-    
+
     /**
-     * 【功能】: 永久刪除會員（真正的刪除，不可復原）
-     * 【請求路徑】: 處理 POST /member/permanently-delete 請求
-     */
-    @PostMapping("/permanently-delete")
-    public String permanentlyDeleteMember(@RequestParam("memberId") Long memberId,
-                                         RedirectAttributes redirectAttributes) {
-        
-        log.info("嘗試永久刪除會員，ID: {}", memberId);
-        
-        try {
-            // 先獲取會員資訊用於日誌記錄
-            Optional<MemberEntity> memberOpt = memberService.getMemberByIdIncludeDeleted(memberId);
-            String memberInfo = memberOpt.map(m -> m.getUsername() + " (" + m.getAccount() + ")")
-                                         .orElse("ID:" + memberId);
-            
-            // 執行永久刪除
-            memberService.permanentlyDeleteMember(memberId);
-            
-            log.warn("會員已永久刪除 - {}", memberInfo);
-            
-            redirectAttributes.addFlashAttribute("successMessage", 
-                "會員「" + memberInfo + "」已永久刪除，此操作無法復原！");
-            
-        } catch (EntityNotFoundException e) {
-            log.warn("永久刪除會員失敗 - 找不到會員: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", 
-                "刪除失敗：找不到會員 ID " + memberId);
-        } catch (Exception e) {
-            log.error("永久刪除會員時發生錯誤: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", 
-                "刪除失敗：系統錯誤，請稍後再試");
-        }
-        
-        return "redirect:/member/deleted";
-    }
-    
-    /**
-     * 【功能】: 將管理員登入資訊添加到模型中的通用方法
-     * 【作用】: 確保所有頁面都能正確顯示登入的管理員資訊
+     * 【輔助方法】: 將管理員登入資訊添加到模型中
+     * 【功能】: 從 HttpSession 中提取管理員資訊並添加到 Model 中，供前端頁面使用
      */
     private void addAdminInfoToModel(HttpSession session, Model model) {
-        // 獲取當前登入的管理員資訊
-        Object loggedInEmployee = session.getAttribute("loggedInEmployee");
-        String employeeName = (String) session.getAttribute("employeeName");
-        String employeeAccount = (String) session.getAttribute("employeeAccount");
-        Object employeeRole = session.getAttribute("employeeRole");
-        Boolean isEmployeeLoggedIn = (Boolean) session.getAttribute("isEmployeeLoggedIn");
-        
-        // 將管理員資訊添加到模型中
-        if (isEmployeeLoggedIn != null && isEmployeeLoggedIn) {
-            model.addAttribute("currentAdmin", loggedInEmployee);
-            model.addAttribute("currentAdminName", employeeName);
-            model.addAttribute("currentAdminAccount", employeeAccount);
+        try {
+            // 獲取當前登入的管理員資訊
+            Object loggedInEmployee = session.getAttribute("loggedInEmployee");
+            String employeeName = (String) session.getAttribute("employeeName");
+            String employeeAccount = (String) session.getAttribute("employeeAccount");
+            Object employeeRole = session.getAttribute("employeeRole");
+            Boolean isEmployeeLoggedIn = (Boolean) session.getAttribute("isEmployeeLoggedIn");
             
-            // 將角色轉換為中文顯示名稱
-            String roleDisplayName = "未知角色";
-            if (employeeRole instanceof com.eatfast.common.enums.EmployeeRole) {
-                roleDisplayName = ((com.eatfast.common.enums.EmployeeRole) employeeRole).getDisplayName();
-            } else if (employeeRole != null) {
-                // 如果是字符串形式的角色，嘗試轉換為枚舉
-                try {
-                    com.eatfast.common.enums.EmployeeRole role = com.eatfast.common.enums.EmployeeRole.valueOf(employeeRole.toString());
-                    roleDisplayName = role.getDisplayName();
-                } catch (IllegalArgumentException e) {
-                    log.warn("無法解析角色: {}", employeeRole);
-                    roleDisplayName = employeeRole.toString();
+            // 將管理員資訊添加到模型中
+            if (isEmployeeLoggedIn != null && isEmployeeLoggedIn) {
+                model.addAttribute("currentAdmin", loggedInEmployee);
+                model.addAttribute("currentAdminName", employeeName);
+                model.addAttribute("currentAdminAccount", employeeAccount);
+                
+                // 將角色轉換為中文顯示名稱
+                String roleDisplayName = "未知角色";
+                if (employeeRole instanceof com.eatfast.common.enums.EmployeeRole) {
+                    roleDisplayName = ((com.eatfast.common.enums.EmployeeRole) employeeRole).getDisplayName();
+                } else if (employeeRole != null) {
+                    // 如果是字符串形式的角色，嘗試轉換為枚舉
+                    try {
+                        com.eatfast.common.enums.EmployeeRole role = com.eatfast.common.enums.EmployeeRole.valueOf(employeeRole.toString());
+                        roleDisplayName = role.getDisplayName();
+                    } catch (IllegalArgumentException e) {
+                        log.warn("無法解析角色: {}", employeeRole);
+                        roleDisplayName = employeeRole.toString();
+                    }
                 }
+                
+                model.addAttribute("currentAdminRole", roleDisplayName);
+                model.addAttribute("isAdminLoggedIn", true);
+                log.debug("管理員資訊已添加到模型 - 姓名: {}, 帳號: {}, 角色: {}", employeeName, employeeAccount, roleDisplayName);
+            } else {
+                model.addAttribute("isAdminLoggedIn", false);
+                log.debug("未檢測到登入的管理員資訊");
             }
-            
-            model.addAttribute("currentAdminRole", roleDisplayName);
-            model.addAttribute("isAdminLoggedIn", true);
-            log.info("當前登入管理員: {} (帳號: {}, 角色: {})", employeeName, employeeAccount, roleDisplayName);
-        } else {
+        } catch (Exception e) {
+            log.error("添加管理員資訊到模型時發生錯誤: {}", e.getMessage(), e);
             model.addAttribute("isAdminLoggedIn", false);
-            log.warn("未檢測到登入的管理員資訊");
         }
     }
 }

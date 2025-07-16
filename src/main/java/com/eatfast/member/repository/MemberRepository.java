@@ -78,6 +78,13 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long>, Jpa
     boolean existsByPhone(String phone);
 
     /**
+     * 【新增】根據性別查詢會員列表
+     * @param gender 性別枚舉值
+     * @return 指定性別的會員列表
+     */
+    List<MemberEntity> findByGender(com.eatfast.common.enums.Gender gender);
+
+    /**
      * 【新增】查詢手機號碼（包括已停用會員）- 支援即時驗證功能
      * @param phone 手機號碼
      * @return 會員資料的 Optional

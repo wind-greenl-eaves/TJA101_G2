@@ -687,6 +687,24 @@ public class MemberService {
         return memberRepository.findAll();
     }
     
+    /**
+     * 【功能】: 根據性別查詢會員列表
+     * 【參數】: gender - 性別枚舉值
+     * 【回傳】: 指定性別的會員列表
+     */
+    public List<MemberEntity> getMembersByGender(com.eatfast.common.enums.Gender gender) {
+        log.info("查詢性別為 {} 的會員", gender);
+        
+        try {
+            List<MemberEntity> members = memberRepository.findByGender(gender);
+            log.info("找到 {} 位性別為 {} 的會員", members.size(), gender);
+            return members;
+        } catch (Exception e) {
+            log.error("查詢性別為 {} 的會員時發生錯誤: {}", gender, e.getMessage(), e);
+            throw new RuntimeException("查詢會員性別失敗: " + e.getMessage());
+        }
+    }
+    
     public Optional<MemberEntity> getMemberByAccountIncludeDisabled(String account) {
         return memberRepository.findByAccountIncludeDisabled(account);
     }

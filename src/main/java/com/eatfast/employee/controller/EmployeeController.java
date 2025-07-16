@@ -195,10 +195,11 @@ public class EmployeeController {
             @RequestParam(required = false) EmployeeRole role,
             @RequestParam(required = false) AccountStatus status,
             @RequestParam(required = false) Long storeId,
+            @RequestParam(required = false) String gender,
             HttpSession session
     ) {
-        logger.info("收到搜尋員工請求: username={}, role={}, status={}, storeId={}", 
-                   username, role, status, storeId);
+        logger.info("收到搜尋員工請求: username={}, role={}, status={}, storeId={}, gender={}", 
+                   username, role, status, storeId, gender);
         
         EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
         if (currentEmployee == null) {
@@ -221,6 +222,7 @@ public class EmployeeController {
             if (StringUtils.hasText(username)) searchParams.put("username", username);
             if (role != null) searchParams.put("role", role);
             if (status != null) searchParams.put("status", status);
+            if (StringUtils.hasText(gender)) searchParams.put("gender", gender);
             
             // 【修正】根據權限限制查詢範圍
             Long[] manageableStoreIds = permissionService.getManageableStoreIds(currentEmployee);
