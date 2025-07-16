@@ -241,12 +241,49 @@ public class MemberController {
     @GetMapping("/select_page")
     public String showSelectPage(@RequestParam(defaultValue = "1") int page,
                                 @RequestParam(defaultValue = "10") int size,
+                                HttpSession session,
                                 Model model) {
         
         // 驗證分頁參數
         if (page < 1) page = 1;
         if (size < 1) size = 10;
         if (size > 50) size = 50;
+        
+        // 獲取當前登入的管理員資訊
+        Object loggedInEmployee = session.getAttribute("loggedInEmployee");
+        String employeeName = (String) session.getAttribute("employeeName");
+        String employeeAccount = (String) session.getAttribute("employeeAccount");
+        Object employeeRole = session.getAttribute("employeeRole");
+        Boolean isEmployeeLoggedIn = (Boolean) session.getAttribute("isEmployeeLoggedIn");
+        
+        // 將管理員資訊添加到模型中
+        if (isEmployeeLoggedIn != null && isEmployeeLoggedIn) {
+            model.addAttribute("currentAdmin", loggedInEmployee);
+            model.addAttribute("currentAdminName", employeeName);
+            model.addAttribute("currentAdminAccount", employeeAccount);
+            
+            // 【修改】將角色轉換為中文顯示名稱
+            String roleDisplayName = "未知角色";
+            if (employeeRole instanceof com.eatfast.common.enums.EmployeeRole) {
+                roleDisplayName = ((com.eatfast.common.enums.EmployeeRole) employeeRole).getDisplayName();
+            } else if (employeeRole != null) {
+                // 如果是字符串形式的角色，嘗試轉換為枚舉
+                try {
+                    com.eatfast.common.enums.EmployeeRole role = com.eatfast.common.enums.EmployeeRole.valueOf(employeeRole.toString());
+                    roleDisplayName = role.getDisplayName();
+                } catch (IllegalArgumentException e) {
+                    log.warn("無法解析角色: {}", employeeRole);
+                    roleDisplayName = employeeRole.toString();
+                }
+            }
+            
+            model.addAttribute("currentAdminRole", roleDisplayName);
+            model.addAttribute("isAdminLoggedIn", true);
+            log.info("當前登入管理員: {} (帳號: {}, 角色: {})", employeeName, employeeAccount, roleDisplayName);
+        } else {
+            model.addAttribute("isAdminLoggedIn", false);
+            log.warn("未檢測到登入的管理員資訊");
+        }
         
         // 【業務邏輯路徑】: 呼叫 Service 方法獲取所有會員的列表。
         List<MemberEntity> allMembers = memberService.getAllMembers();
