@@ -1606,9 +1606,13 @@ public class MemberController {
     @PostMapping("/listMembers_ByCompositeQuery")
     public String listMembersByCompositeQuery(@RequestParam Map<String, String> params,
                                             Model model,
+                                            HttpSession session,
                                             RedirectAttributes redirectAttributes) {
         
         log.info("執行複合查詢，參數: {}", params);
+        
+        // 添加管理員登入資訊到模型中
+        addAdminInfoToModel(session, model);
         
         try {
             // 從參數中提取查詢條件
@@ -1706,9 +1710,13 @@ public class MemberController {
     @PostMapping("/getOneForDisplay")
     public String getOneForDisplay(@RequestParam("account") String account,
                                  Model model,
+                                 HttpSession session,
                                  RedirectAttributes redirectAttributes) {
         
         log.info("查詢單一會員，帳號: {}", account);
+        
+        // 添加管理員登入資訊到模型中
+        addAdminInfoToModel(session, model);
         
         if (account == null || account.trim().isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "請輸入要查詢的會員帳號");
@@ -1868,5 +1876,47 @@ public class MemberController {
         }
         
         return "redirect:/member/deleted";
+    }
+    
+    /**
+     * 【功能】: 將管理員登入資訊添加到模型中的通用方法
+     * 【作用】: 確保所有頁面都能正確顯示登入的管理員資訊
+     */
+    private void addAdminInfoToModel(HttpSession session, Model model) {
+        // 獲取當前登入的管理員資訊
+        Object loggedInEmployee = session.getAttribute("loggedInEmployee");
+        String employeeName = (String) session.getAttribute("employeeName");
+        String employeeAccount = (String) session.getAttribute("employeeAccount");
+        Object employeeRole = session.getAttribute("employeeRole");
+        Boolean isEmployeeLoggedIn = (Boolean) session.getAttribute("isEmployeeLoggedIn");
+        
+        // 將管理員資訊添加到模型中
+        if (isEmployeeLoggedIn != null && isEmployeeLoggedIn) {
+            model.addAttribute("currentAdmin", loggedInEmployee);
+            model.addAttribute("currentAdminName", employeeName);
+            model.addAttribute("currentAdminAccount", employeeAccount);
+            
+            // 將角色轉換為中文顯示名稱
+            String roleDisplayName = "未知角色";
+            if (employeeRole instanceof com.eatfast.common.enums.EmployeeRole) {
+                roleDisplayName = ((com.eatfast.common.enums.EmployeeRole) employeeRole).getDisplayName();
+            } else if (employeeRole != null) {
+                // 如果是字符串形式的角色，嘗試轉換為枚舉
+                try {
+                    com.eatfast.common.enums.EmployeeRole role = com.eatfast.common.enums.EmployeeRole.valueOf(employeeRole.toString());
+                    roleDisplayName = role.getDisplayName();
+                } catch (IllegalArgumentException e) {
+                    log.warn("無法解析角色: {}", employeeRole);
+                    roleDisplayName = employeeRole.toString();
+                }
+            }
+            
+            model.addAttribute("currentAdminRole", roleDisplayName);
+            model.addAttribute("isAdminLoggedIn", true);
+            log.info("當前登入管理員: {} (帳號: {}, 角色: {})", employeeName, employeeAccount, roleDisplayName);
+        } else {
+            model.addAttribute("isAdminLoggedIn", false);
+            log.warn("未檢測到登入的管理員資訊");
+        }
     }
 }

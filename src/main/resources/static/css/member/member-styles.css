@@ -1,0 +1,186 @@
+/* 會員管理系統專用樣式 */
+/* 這個文件對應 select_page_member.html 的樣式需求 */
+
+/* 基本變數設定 */
+:root {
+    --bg-color: #FDFBF6;
+    --container-bg: #F5EFE6;
+    --primary-color: #A67B5B;
+    --primary-hover: #8C684A;
+    --text-color: #5D534A;
+    --border-color: #DED0B6;
+    --table-header-bg: #EFEBE2;
+    --milk-tea-success: #70916b;
+    --milk-tea-danger: #d63031;
+    --milk-tea-info: #6c5ce7;
+    --milk-tea-bg: #f8f9fa;
+}
+
+/* 主要佈局樣式 */
+body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* 會員行樣式 */
+.member-row:hover {
+    background-color: var(--table-header-bg);
+    cursor: pointer;
+}
+
+/* 狀態標籤樣式 */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-active {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* 性別標籤樣式 */
+.gender-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.gender-m {
+    background-color: #cfe2ff;
+    color: #084298;
+}
+
+.gender-f {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.gender-o {
+    background-color: #e2e3e5;
+    color: #41464b;
+}
+
+/* 模態框樣式 */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 1rem;
+}
+
+.modal-content {
+    max-height: 85vh;
+    overflow-y: auto;
+    background: white;
+    border-radius: 0.5rem;
+    position: relative;
+    width: 90%;
+    max-width: 800px;
+}
+
+.modal-backdrop.show {
+    display: flex;
+}
+
+/* 動畫效果 */
+@keyframes fadeOutUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+.fade-out-up {
+    animation: fadeOutUp 0.5s forwards ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.delete-modal-content {
+    animation: fadeInDown 0.3s ease-out;
+}
+
+/* 刪除相關樣式 */
+.delete-row-highlight {
+    background-color: #fff3cd !important;
+    transition: background-color 0.3s ease;
+}
+
+.delete-button-loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* 警告動畫效果 */
+@keyframes warningFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+.warning-fade-out {
+    animation: warningFadeOut 0.5s ease-out forwards;
+}
+
+#username-warning {
+    transition: all 0.3s ease;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#username-warning.hiding {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+/* 脈動效果 */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
