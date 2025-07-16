@@ -306,6 +306,10 @@
                             </div>
                         </div>
                         
+                        <!-- 分頁參數隱藏欄位 -->
+                        <input type="hidden" id="page" name="page" value="1">
+                        <input type="hidden" id="size" name="size" value="10">
+                        
                         <button type="submit" class="w-full bg-green-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">
                             <i class="fas fa-check-double mr-2"></i>執行複合查詢
                         </button>
@@ -409,8 +413,32 @@
                     <div class="bg-[var(--primary-color)] text-white p-4 rounded-t-lg">
                         <h3 class="text-lg font-semibold">
                             <i class="fas fa-users mr-2"></i>會員列表
+                            <span th:if="${totalElements != null}" class="text-sm font-normal ml-2">
+                                (共 <span th:text="${totalElements}">0</span> 筆)
+                            </span>
                         </h3>
                     </div>
+                    
+                    <!-- 分頁控制區 (在表格上方) -->
+                    <div th:if="${totalElements != null and totalElements > 0}" class="p-4 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-gray-600">
+                                顯示第 <span th:text="${displayStart}" class="font-medium text-[var(--primary-color)]">1</span> - 
+                                <span th:text="${displayEnd}" class="font-medium text-[var(--primary-color)]">10</span> 筆，
+                                共 <span th:text="${totalElements}" class="font-medium text-[var(--primary-color)]">0</span> 筆資料
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label for="pageSizeSelect" class="text-sm text-gray-600">每頁顯示：</label>
+                                <select id="pageSizeSelect" class="px-2 py-1 border border-[var(--border-color)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary-color)]">
+                                    <option value="5" th:selected="${pageSize == 5}">5</option>
+                                    <option value="10" th:selected="${pageSize == 10}">10</option>
+                                    <option value="15" th:selected="${pageSize == 15}">15</option>
+                                </select>
+                                <span class="text-sm text-gray-600">筆</span>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="overflow-x-auto">
                         <table class="w-full text-center text-sm">
                             <thead class="bg-[var(--table-header-bg)] font-medium">
@@ -454,6 +482,69 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                    
+                    <!-- 分頁導航區 (在表格下方) -->
+                    <div th:if="${totalPages != null and totalPages > 1}" class="p-4 border-t border-gray-200">
+                        <div class="flex justify-center items-center gap-2">
+                            <!-- 第一頁按鈕 -->
+                            <button type="button" 
+                                    class="px-3 py-1 border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--table-header-bg)] transition-colors"
+                                    th:classappend="${currentPage == 1} ? 'opacity-50 cursor-not-allowed' : ''"
+                                    th:disabled="${currentPage == 1}"
+                                    onclick="changePage(1)">
+                                <i class="fas fa-angle-double-left mr-1"></i>首頁
+                            </button>
+                            
+                            <!-- 上一頁按鈕 -->
+                            <button type="button" 
+                                    class="px-3 py-1 border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--table-header-bg)] transition-colors"
+                                    th:classappend="${!hasPrevious} ? 'opacity-50 cursor-not-allowed' : ''"
+                                    th:disabled="${!hasPrevious}"
+                                    th:onclick="'changePage(' + (${currentPage} - 1) + ')'">
+                                <i class="fas fa-angle-left mr-1"></i>上一頁
+                            </button>
+                            
+                            <!-- 頁碼按鈕 -->
+                            <div class="flex gap-1">
+                                <span th:each="pageNum : ${#numbers.sequence(
+                                    T(java.lang.Math).max(1, currentPage - 2), 
+                                    T(java.lang.Math).min(totalPages, currentPage + 2)
+                                )}">
+                                    <button type="button" 
+                                            class="px-3 py-1 border border-[var(--border-color)] rounded-lg text-sm transition-colors"
+                                            th:classappend="${pageNum == currentPage} ? 'bg-[var(--primary-color)] text-white' : 'hover:bg-[var(--table-header-bg)]'"
+                                            th:onclick="'changePage(' + ${pageNum} + ')'"
+                                            th:text="${pageNum}">
+                                        1
+                                    </button>
+                                </span>
+                            </div>
+                            
+                            <!-- 下一頁按鈕 -->
+                            <button type="button" 
+                                    class="px-3 py-1 border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--table-header-bg)] transition-colors"
+                                    th:classappend="${!hasNext} ? 'opacity-50 cursor-not-allowed' : ''"
+                                    th:disabled="${!hasNext}"
+                                    th:onclick="'changePage(' + (${currentPage} + 1) + ')'">
+                                下一頁<i class="fas fa-angle-right ml-1"></i>
+                            </button>
+                            
+                            <!-- 最後一頁按鈕 -->
+                            <button type="button" 
+                                    class="px-3 py-1 border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--table-header-bg)] transition-colors"
+                                    th:classappend="${currentPage == totalPages} ? 'opacity-50 cursor-not-allowed' : ''"
+                                    th:disabled="${currentPage == totalPages}"
+                                    th:onclick="'changePage(' + ${totalPages} + ')'">
+                                末頁<i class="fas fa-angle-double-right ml-1"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 頁面資訊 -->
+                        <div class="text-center mt-3 text-sm text-gray-600">
+                            第 <span th:text="${currentPage}" class="font-medium text-[var(--primary-color)]">1</span> 頁，
+                            共 <span th:text="${totalPages}" class="font-medium text-[var(--primary-color)]">1</span> 頁
+                        </div>
                     </div>
                 </div>
             </div>
@@ -725,7 +816,9 @@
                         };
                         $('#modal-gender').html(genderMap[member.gender] || '未知');
                         
-                        const enabledHtml = member.enabled ? 
+                        // 修正：統一使用 enabled 或 isEnabled，確保與後端一致
+                        const isEnabled = member.enabled !== undefined ? member.enabled : member.isEnabled;
+                        const enabledHtml = isEnabled ? 
                             '<span class="status-badge status-active"><i class="fas fa-check-circle mr-1"></i> 啟用中</span>' : 
                             '<span class="status-badge status-inactive"><i class="fas fa-times-circle mr-1"></i> 已停用</span>';
                         $('#modal-enabled').html(enabledHtml);
@@ -902,6 +995,82 @@
                 }
             }, false);
         })();
+    </script>
+
+    <!-- 分頁功能的 JavaScript -->
+    <script th:inline="javascript">
+        // 分頁相關的JavaScript函數
+        
+        // 從後端取得分頁參數
+        /*<![CDATA[*/
+        var currentPageSize = /*[[${pageSize}]]*/ 10;
+        var currentPage = /*[[${currentPage}]]*/ 1;
+        var totalPages = /*[[${totalPages}]]*/ 1;
+        /*]]>*/
+        
+        // 切換頁面的函數
+        function changePage(pageNumber) {
+            // 獲取當前表單的查詢條件
+            const form = document.getElementById('composite-query-form');
+            
+            // 更新分頁參數
+            document.getElementById('page').value = pageNumber;
+            
+            // 保持當前的每頁顯示筆數設定
+            const currentPageSizeSelect = document.getElementById('pageSizeSelect');
+            if (currentPageSizeSelect) {
+                document.getElementById('size').value = currentPageSizeSelect.value;
+            }
+            
+            // 提交表單
+            form.submit();
+        }
+        
+        // 當頁面載入完成時初始化分頁功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 每頁顯示筆數變更事件
+            const pageSizeSelect = document.getElementById('pageSizeSelect');
+            if (pageSizeSelect) {
+                // 設定當前頁面的分頁大小選擇器
+                pageSizeSelect.value = currentPageSize;
+                
+                pageSizeSelect.addEventListener('change', function() {
+                    // 更新隱藏欄位的值
+                    document.getElementById('size').value = this.value;
+                    // 重置到第一頁
+                    document.getElementById('page').value = 1;
+                    
+                    // 重新提交查詢
+                    const form = document.getElementById('composite-query-form');
+                    form.submit();
+                });
+            }
+        });
+        
+        // 處理查詢表單提交時的分頁參數
+        document.addEventListener('DOMContentLoaded', function() {
+            const compositeForm = document.getElementById('composite-query-form');
+            if (compositeForm) {
+                compositeForm.addEventListener('submit', function(e) {
+                    // 確保分頁參數正確設置
+                    const pageInput = document.getElementById('page');
+                    const sizeInput = document.getElementById('size');
+                    const pageSizeSelect = document.getElementById('pageSizeSelect');
+                    
+                    // 如果是新的查詢，重置為第1頁
+                    if (!pageInput.value || pageInput.value === '1') {
+                        pageInput.value = '1';
+                    }
+                    
+                    // 設定每頁顯示筆數
+                    if (pageSizeSelect) {
+                        sizeInput.value = pageSizeSelect.value;
+                    } else {
+                        sizeInput.value = sizeInput.value || '10';
+                    }
+                });
+            }
+        });
     </script>
 
     <!-- 強化版刪除確認功能的 JavaScript -->
