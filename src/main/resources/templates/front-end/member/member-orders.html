@@ -152,7 +152,88 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
+        
+        .order-header:hover {
+            background-color: #e9ecef;
+        }
+        
+        .order-header-left {
+            flex: 1;
+        }
+        
+        .order-header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .toggle-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            color: #A67B5B;
+        }
+        
+        .toggle-btn:hover {
+            background-color: rgba(166, 123, 91, 0.1);
+        }
+        
+        .toggle-btn.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .order-body {
+            padding: 20px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .order-body.collapsed {
+            max-height: 0;
+            padding: 0 20px;
+            opacity: 0;
+        }
+        
+        .order-summary-mini {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .order-amount-mini {
+            font-weight: bold;
+            color: #A67B5B;
+        }
+        
+        .collapse-all-controls {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+        
+        .collapse-all-controls button {
+            background: none;
+            border: 1px solid #A67B5B;
+            color: #A67B5B;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .collapse-all-controls button:hover {
+            background-color: #A67B5B;
+            color: white;
+        }
+        
         .order-id {
             font-weight: bold;
             color: #A67B5B;
@@ -320,32 +401,48 @@
                 <a href="/menu" class="btn">🛒 開始購物</a>
             </div>
             
+            <!-- 全部展開/收起控制按鈕 -->
+            <div th:if="${!#lists.isEmpty(orders)}" class="collapse-all-controls">
+                <button onclick="expandAllOrders()">📖 全部展開</button>
+                <button onclick="collapseAllOrders()">📕 全部收起</button>
+            </div>
+            
             <!-- 訂單卡片 -->
             <div th:each="order : ${orders}" class="order-card">
-                <div class="order-header">
-                    <div>
+                <div class="order-header" onclick="toggleOrderDetails(this.querySelector('.toggle-btn'))">
+                    <div class="order-header-left">
                         <span class="order-id" th:text="'訂單編號：' + ${order.orderListId}"></span>
-                        <div class="order-date" th:text="${#temporals.format(order.orderDate, 'yyyy年MM月dd日 HH:mm')}"></div>
+                        <div class="order-date" th:text="'訂單時間：'+ ${#temporals.format(order.orderDate, 'yyyy年MM月dd日 HH:mm')}"></div>
                         <!-- 添加門市資訊 -->
                         <div class="store-info" style="color: #A67B5B; font-size: 14px; margin-top: 5px;">
                             <span style="font-weight: bold;">🏪 門市：</span>
                             <span th:text="${order.store?.storeName ?: '未知門市'}"></span>
                         </div>
+                        <!-- 在收起狀態下顯示簡要資訊 -->
+                        <div class="order-summary-mini">
+                            <span class="order-amount-mini" th:text="'總金額：$' + ${order.orderAmount}"></span>
+                        </div>
                     </div>
-                    <span class="order-status" 
-                          th:classappend="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? 'status-pending' : 
-                                          order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? 'status-confirmed' : 
-                                          order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? 'status-preparing' : 
-                                          order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? 'status-completed' : 
-                                          'status-cancelled'}"
-                          th:text="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? '處理中' : 
-                                   order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? '已確認' : 
-                                   order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? '待取餐' : 
-                                   order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? '已完成' : 
-                                   '已取消'}"></span>
+                    <div class="order-header-right">
+                        <span class="order-status" 
+                              th:classappend="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? 'status-pending' : 
+                                              order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? 'status-confirmed' : 
+                                              order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? 'status-preparing' : 
+                                              order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? 'status-completed' : 
+                                              'status-cancelled'}"
+                              th:text="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? '處理中' : 
+                                       order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? '已確認' : 
+                                       order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? '待取餐' : 
+                                       order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? '已完成' : 
+                                       '已取消'}"></span>
+                        <!-- 摺疊按鈕 -->
+                        <button class="toggle-btn" onclick="event.stopPropagation(); toggleOrderDetails(this)">
+                            ▼
+                        </button>
+                    </div>
                 </div>
                 
-                <div class="order-body">
+                <div class="order-body collapsed">
                     <!-- 客製化備註區域 -->
                     <div th:if="${order.mealCustomization != null and order.mealCustomization != ''}" 
                          class="order-customization" 
@@ -439,6 +536,38 @@
             }
         }
         
+        function toggleOrderDetails(button) {
+            const orderCard = button.closest('.order-card');
+            const orderBody = orderCard.querySelector('.order-body');
+            const isCollapsed = orderBody.classList.toggle('collapsed');
+            
+            // 更新按鈕圖示
+            button.classList.toggle('collapsed', isCollapsed);
+            
+            // 如果需要，可以在這裡添加其他摺疊/展開的邏輯
+        }
+        
+        function expandAllOrders() {
+            const orderBodies = document.querySelectorAll('.order-body.collapsed');
+            orderBodies.forEach(body => {
+                body.classList.remove('collapsed');
+                const toggleButton = body.previousElementSibling.querySelector('.toggle-btn');
+                if (toggleButton) {
+                    toggleButton.classList.remove('collapsed');
+                }
+            });
+        }
+        
+        function collapseAllOrders() {
+            const orderBodies = document.querySelectorAll('.order-body');
+            orderBodies.forEach(body => {
+                body.classList.add('collapsed');
+                const toggleButton = body.previousElementSibling.querySelector('.toggle-btn');
+                if (toggleButton) {
+                    toggleButton.classList.add('collapsed');
+                }
+            });
+        }
     </script>
 </body>
 </html>
