@@ -1,82 +1,74 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>所有餐點類別 - EatFast 後台</title>
-		<link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}"/>
-		<link rel="stylesheet" th:href="@{/css/index.css}"/>
-		<link rel="stylesheet" th:href="@{/css/error.css}"/>
-	    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-	    <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
-	    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" />
-		<link rel="stylesheet" th:href="@{/css/member/style.css}" />
-
-	    <style>
-	    	/* 保持表格置中與垂直對齊的樣式 */
-	    	.table th, .table td {
-			text-align: center;
-		    vertical-align: middle;
-			}
-	    </style>
+<title>所有餐點種類 - EatFast 後台</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+<style>
+body {
+  font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+  background: linear-gradient(135deg, #FDFBF6 0%, #F5EFE6 100%);
+  color: #5D534A;
+  min-height: 100vh;
+}
+</style>
 </head>
-<body>
+<body class="bg-[#FDFBF6] min-h-screen">
 
-	<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-		<div class="container">
-			<a class="navbar-brand d-flex align-items-center" th:href="@{/mealtype/listAllMealType}"> <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-3"> 
-				<span style="font-weight: 500; font-size: 1.25rem;">所有餐點類別 - EatFast 後台</span>
-			</a>
-			<a class="btn btn-outline-light" th:href="@{/mealtype/addMealType}">
-				<i class="fas fa-plus-circle"></i> 新增餐點類別
-			</a> 
-			<a class="btn btn-outline-light ml-auto" th:href="@{/mealtype/select_page_mealtype}">
-            	<i class="fas fa-home"></i> 回餐點類別主頁
-        	</a>
-		</div>
-	</nav>
+<!-- Navbar -->
+<nav class="fixed top-0 left-0 w-full h-16 flex items-center bg-white bg-opacity-95 shadow-lg z-50" style="backdrop-filter: blur(8px);">
+  <div class="max-w-7xl w-full mx-auto flex justify-between items-center px-6">
+    <div class="flex items-center gap-3">
+      <img th:src="@{/images/eatfasticon.png}" src="/images/eatfasticon.png" alt="EatFast" class="w-10 h-10 object-contain" />
+      <span class="text-lg font-bold tracking-wide text-[#A67B5B]">所有餐點種類 - EatFast 後台</span>
+    </div>
+    <div class="flex gap-3">
+      <a th:href="@{/mealtype/addMealType}"
+         class="inline-flex items-center px-5 py-2 rounded-full border border-[#A67B5B] text-[#A67B5B] bg-white hover:bg-[#F0E6D3] font-semibold text-base shadow transition">
+        <i class="fas fa-plus-circle mr-2"></i>新增餐點種類
+      </a>
+      <a th:href="@{/mealtype/select_page_mealtype}"
+         class="inline-flex items-center px-5 py-2 rounded-full border border-[#A67B5B] text-[#A67B5B] bg-white hover:bg-[#F0E6D3] font-semibold text-base shadow transition">
+        <i class="fas fa-home mr-2"></i>回餐點種類主頁
+      </a>
+    </div>
+  </div>
+</nav>
 
-	<div class="container mt-5 pt-4">
-		<h3 class="mb-4 text-center">餐點類別列表</h3>
+<!-- Main Container -->
+<div class="max-w-2xl mx-auto px-4 pt-28 pb-10">
+  <h2 class="text-2xl md:text-3xl font-bold text-center text-[#A67B5B] mb-10 tracking-wider">餐點種類列表</h2>
 
-		<div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
-		<div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
-
-		<div class="table-responsive">
-			<table class="table table-bordered table-hover text-center">
-				<thead class="thead-dark">
-					<tr>
-						<th>餐點類別編號</th>
-						<th>餐點類別名稱</th>
-						<th>修改</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr th:each="mealType : ${mealTypeListData}">
-						<td th:text="${mealType.mealTypeId}"></td>
-						<td th:text="${mealType.mealName}"></td>
-						<td>
-							<form th:action="@{/mealtype/getOne_For_Update}" method="post" style="display: inline;">
-								<input type="hidden" name="mealTypeId" th:value="${mealType.mealTypeId}" />
-								<button type="submit" class="btn btn-primary btn-sm">修改</button>
-							</form>
-						</td>
-<!-- 						<td> -->
-<!-- 							<form th:action="@{/mealtype/delete}" method="post" style="display: inline;" -->
-<!-- 							      onsubmit="return confirm('確定要刪除這筆餐點類別嗎？此操作不可逆，並且若有餐點關聯則無法刪除！');"> -->
-<!-- 								<input type="hidden" name="mealTypeId" th:value="${mealType.mealTypeId}" /> -->
-<!-- 								<button type="submit" class="btn btn-danger btn-sm">刪除</button> -->
-<!-- 							</form> -->
-<!-- 						</td> -->
-					</tr>
-				</tbody>
-			</table>
-			<div th:if="${#lists.isEmpty(mealTypeListData)}" class="alert alert-warning text-center">目前沒有餐點類別資料。</div>
-		</div>
-	</div>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
-	</body>
+  <!-- Card Table 區塊 -->
+  <div class="bg-[#fff8f2] shadow-xl rounded-2xl border border-[#E5D0B6] overflow-hidden mx-auto max-w-2xl">
+    <table class="w-full">
+      <thead>
+        <tr class="bg-[#A67B5B] text-white">
+          <th class="py-4 px-2 font-semibold text-base">餐點種類編號</th>
+          <th class="py-4 px-2 font-semibold text-base">餐點種類名稱</th>
+          <th class="py-4 px-2 font-semibold text-base">修改</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="mealType : ${mealTypeListData}" class="border-b border-[#E5D0B6] hover:bg-[#f7f2ed] transition">
+          <td class="py-4 text-center" th:text="${mealType.mealTypeId}"></td>
+          <td class="py-4 text-center" th:text="${mealType.mealName}"></td>
+          <td class="py-4 text-center">
+            <form th:action="@{/mealtype/getOne_For_Update}" method="post" class="inline">
+              <input type="hidden" name="mealTypeId" th:value="${mealType.mealTypeId}" />
+              <button type="submit" class="px-5 py-2 bg-[#A67B5B] text-white rounded-full shadow hover:bg-[#8B5A3C] transition">修改</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div th:if="${#lists.isEmpty(mealTypeListData)}" class="py-10 text-[#A67B5B] text-center">目前沒有餐點種類資料。</div>
+  </div>
+</div>
+</body>
 </html>
