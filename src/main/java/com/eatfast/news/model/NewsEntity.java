@@ -56,7 +56,7 @@ public class NewsEntity {
     @Column(name = "end_time")
     private LocalDateTime endTime;
 
-    @NotNull(message = "消息狀態不可為空")
+
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "status", nullable = false)
     private NewsStatus status;
@@ -78,18 +78,12 @@ public class NewsEntity {
     private String imageUrl;
 
 
-    //================================================================
-    //           關聯的擁有方 (Owning Side)
-    //================================================================
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)
     private EmployeeEntity employee;
 
 
-    //================================================================
-    //               建構子、Getters、Setters
-    //================================================================
     public NewsEntity() {}
 
     public Long getNewsId() { return newsId; }
