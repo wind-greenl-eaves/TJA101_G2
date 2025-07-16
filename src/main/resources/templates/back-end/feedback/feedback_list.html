@@ -83,3 +83,205 @@
 
 </body>
 </html>
+<!--<!DOCTYPE html>-->
+<!--<html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>意見回饋清單 - 後台管理</title>-->
+
+<!--    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />-->
+<!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">-->
+<!--    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">-->
+
+<!--    <style>-->
+<!--        :root {-->
+<!--            &#45;&#45;bg-color: #FDFBF6;-->
+<!--            &#45;&#45;container-bg: #FFFFFF;-->
+<!--            &#45;&#45;primary-color: #A67B5B;-->
+<!--            &#45;&#45;primary-hover: #8C684A;-->
+<!--            &#45;&#45;text-color: #5D534A;-->
+<!--            &#45;&#45;border-color: #DED0B6;-->
+<!--            &#45;&#45;header-bg: #F5EFE6;-->
+<!--            &#45;&#45;accent-color: #E1A87A;-->
+<!--            &#45;&#45;shadow-light: rgba(0, 0, 0, 0.05);-->
+<!--        }-->
+<!--        body {-->
+<!--            font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;-->
+<!--            line-height: 1.6;-->
+<!--            color: var(&#45;&#45;text-color);-->
+<!--            background-color: var(&#45;&#45;bg-color);-->
+<!--            padding-top: 60px; /* 為固定的導航欄預留空間 */-->
+<!--        }-->
+
+<!--        /* -&#45;&#45; 導覽列通用樣式 -&#45;&#45; */-->
+<!--        .nav-fixed {-->
+<!--            position: fixed; top: 0; left: 0; right: 0; height: 60px;-->
+<!--            background: rgba(255, 255, 255, 0.95);-->
+<!--            box-shadow: 0 2px 10px var(&#45;&#45;shadow-light);-->
+<!--            z-index: 1000; backdrop-filter: blur(10px);-->
+<!--        }-->
+<!--        .nav-container {-->
+<!--            max-width: 1200px; margin: 0 auto; display: flex;-->
+<!--            justify-content: space-between; align-items: center;-->
+<!--            height: 100%; padding: 0 2rem;-->
+<!--        }-->
+<!--        .nav-logo { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(&#45;&#45;primary-color); }-->
+<!--        .nav-logo-icon { width: 35px; height: 35px; object-fit: contain; }-->
+<!--        .nav-logo-text { font-size: 1.2rem; font-weight: 700; }-->
+<!--        .nav-menu { display: flex; gap: 2rem; align-items: center; }-->
+<!--        .nav-link { color: var(&#45;&#45;text-color); text-decoration: none; font-weight: 500; }-->
+
+<!--        /* -&#45;&#45; 頁首標題區塊 -&#45;&#45; */-->
+<!--        .page-header {-->
+<!--            padding: 3rem 2rem;-->
+<!--            background-color: var(&#45;&#45;header-bg);-->
+<!--            text-align: center;-->
+<!--            margin-bottom: 3rem;-->
+<!--            border-bottom: 1px solid var(&#45;&#45;border-color);-->
+<!--        }-->
+<!--        .page-title {-->
+<!--            font-size: 2.5rem;-->
+<!--            color: var(&#45;&#45;primary-color);-->
+<!--            font-weight: 700;-->
+<!--        }-->
+<!--        .page-subtitle {-->
+<!--            font-size: 1.1rem;-->
+<!--            color: var(&#45;&#45;text-color);-->
+<!--            opacity: 0.8;-->
+<!--            max-width: 600px;-->
+<!--            margin: 0.5rem auto 0;-->
+<!--        }-->
+
+<!--        /* -&#45;&#45; 主內容區塊 -&#45;&#45; */-->
+<!--        .main-content {-->
+<!--            max-width: 1400px; /* 加寬以容納表格 */-->
+<!--            margin: 0 auto;-->
+<!--            padding: 0 2rem 4rem;-->
+<!--        }-->
+
+<!--        /* ★★★ 為清單頁面特別設計的表格樣式 ★★★ */-->
+<!--        .feedback-table-wrapper {-->
+<!--            background: var(&#45;&#45;container-bg);-->
+<!--            border-radius: 15px;-->
+<!--            padding: 2rem;-->
+<!--            box-shadow: 0 5px 25px var(&#45;&#45;shadow-light);-->
+<!--            border: 1px solid var(&#45;&#45;border-color);-->
+<!--        }-->
+<!--        .table {-->
+<!--            border-collapse: separate;-->
+<!--            border-spacing: 0 10px; /* 增加行間距 */-->
+<!--            margin-top: -10px;-->
+<!--        }-->
+<!--        .table th, .table td {-->
+<!--            text-align: center;-->
+<!--            vertical-align: middle;-->
+<!--            padding: 1rem;-->
+<!--        }-->
+<!--        .table thead th {-->
+<!--            background-color: transparent;-->
+<!--            border: none;-->
+<!--            color: var(&#45;&#45;primary-hover);-->
+<!--            font-weight: 700;-->
+<!--            text-transform: uppercase;-->
+<!--            font-size: 0.9rem;-->
+<!--            letter-spacing: 0.5px;-->
+<!--        }-->
+<!--        .table tbody tr {-->
+<!--            background-color: #fff;-->
+<!--            box-shadow: 0 4px 15px rgba(0,0,0,0.05);-->
+<!--            border-radius: 10px;-->
+<!--            transition: all 0.2s ease-in-out;-->
+<!--        }-->
+<!--        .table tbody tr:hover {-->
+<!--            transform: translateY(-3px) scale(1.01);-->
+<!--            box-shadow: 0 8px 25px rgba(0,0,0,0.08);-->
+<!--            cursor: pointer;-->
+<!--        }-->
+<!--        .table tbody td {-->
+<!--            border: none;-->
+<!--        }-->
+<!--        .table tbody td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; }-->
+<!--        .table tbody td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; }-->
+<!--        .content-cell {-->
+<!--            max-width: 350px;-->
+<!--            white-space: pre-wrap;-->
+<!--            text-align: left !important;-->
+<!--            line-height: 1.5;-->
+<!--        }-->
+<!--        .table .member-name { font-weight: 500; color: var(&#45;&#45;primary-color); }-->
+<!--        .table .timestamp { font-size: 0.9rem; color: #999; }-->
+
+<!--        /* -&#45;&#45; 頁尾樣式 -&#45;&#45; */-->
+<!--        .footer {-->
+<!--            background: var(&#45;&#45;primary-hover);-->
+<!--            color: white;-->
+<!--            text-align: center;-->
+<!--            padding: 2rem;-->
+<!--            margin-top: 4rem;-->
+<!--        }-->
+<!--        .copyright { opacity: 0.8; font-size: 0.9rem; }-->
+
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+
+<!--<nav class="nav-fixed">-->
+<!--    <div class="nav-container">-->
+<!--        <a th:href="@{/welcome}" class="nav-logo">-->
+<!--            <img th:src="@{/images/123.png}" alt="EatFast Logo" class="nav-logo-icon">-->
+<!--            <span class="nav-logo-text">EatFast 後台管理</span>-->
+<!--        </a>-->
+<!--        <div class="nav-menu">-->
+<!--            <a href="#" class="nav-link">員工管理</a>-->
+<!--            <a href="#" class="nav-link">訂單管理</a>-->
+<!--            <a th:href="@{/feedback/list}" class="nav-link" style="color: var(&#45;&#45;accent-color); font-weight: 700;">意見回饋</a>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</nav>-->
+
+<!--<header class="page-header">-->
+<!--    <h1 class="page-title"><i class="fas fa-comments"></i> 顧客意見回饋清單</h1>-->
+<!--    <p class="page-subtitle">這裡是所有顧客的寶貴意見，請及時查看與處理。</p>-->
+<!--</header>-->
+
+<!--<main class="main-content">-->
+<!--    <div class="feedback-table-wrapper">-->
+<!--        <div class="table-responsive" th:if="${not #lists.isEmpty(feedbackList)}">-->
+<!--            <table class="table">-->
+<!--                <thead>-->
+<!--                <tr>-->
+<!--                    <th>編號</th>-->
+<!--                    <th>會員姓名</th>-->
+<!--                    <th>連絡電話</th>-->
+<!--                    <th>意見內容</th>-->
+<!--                    <th>用餐時間</th>-->
+<!--                    <th>用餐門市</th>-->
+<!--                    <th>提交時間</th>-->
+<!--                </tr>-->
+<!--                </thead>-->
+<!--                <tbody>-->
+<!--                <tr th:each="fb : ${feedbackList}">-->
+<!--                    <td th:text="${fb.feedbackId}"></td>-->
+<!--                    <td class="member-name" th:text="${fb.member.username}"></td>-->
+<!--                    <td th:text="${fb.phone}"></td>-->
+<!--                    <td class="content-cell" th:text="${fb.content}"></td>-->
+<!--                    <td th:text="${fb.diningTime ?: '-'}"></td> <td th:text="${fb.diningStore ?: '-'}"></td> <td class="timestamp" th:text="${#temporals.format(fb.createTime, 'yyyy-MM-dd HH:mm')}"></td>-->
+<!--                </tr>-->
+<!--                </tbody>-->
+<!--            </table>-->
+<!--        </div>-->
+
+<!--        <div th:if="${#lists.isEmpty(feedbackList)}" class="text-center text-muted py-5">-->
+<!--            <h4><i class="fas fa-info-circle"></i> 目前尚無任何意見回饋</h4>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</main>-->
+
+<!--<footer class="footer">-->
+<!--    <div class="copyright">-->
+<!--        © 2025 EatFast 早餐店管理後台 - 版權所有-->
+<!--    </div>-->
+<!--</footer>-->
+
+<!--</body>-->
+<!--</html>-->

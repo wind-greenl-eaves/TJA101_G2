@@ -2,28 +2,75 @@
 <html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>顧客意見表單 - 溫馨奶茶風</title>
+    <title>顧客意見表單 - EatFast</title>
+
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f8f0e3;
-            padding-top: 40px;
-            padding-bottom: 40px;
+        /* === 全站通用樣式 (來自您喜歡的風格) === */
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #FFFFFF;
+            --primary-color: #A67B5B; /* 主要品牌色 (深奶茶色) */
+            --primary-hover: #8C684A; /* 滑鼠懸停時的顏色 */
+            --text-color: #5D534A; /* 主要文字顏色 */
+            --border-color: #DED0B6; /* 邊框顏色 */
+            --shadow-light: rgba(0, 0, 0, 0.05);
         }
+
+        body {
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-top: 60px; /* 為固定的導覽列預留空間 */
+        }
+
+        /* --- 導覽列樣式 --- */
+        .nav-fixed {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px var(--shadow-light);
+            z-index: 1000; backdrop-filter: blur(10px);
+        }
+        .nav-container {
+            max-width: 1200px; margin: 0 auto; display: flex;
+            justify-content: space-between; align-items: center;
+            height: 100%; padding: 0 2rem;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--primary-color); }
+        .nav-logo-icon { width: 35px; height: 35px; object-fit: contain; }
+        .nav-logo-text { font-size: 1.2rem; font-weight: 700; }
+        .nav-menu { display: flex; gap: 2rem; align-items: center; }
+        .nav-link { color: var(--text-color); text-decoration: none; font-weight: 500; position: relative; }
+        .nav-link::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px; background: var(--primary-color); transition: width 0.3s ease; }
+        .nav-link:hover::after { width: 100%; }
+        .nav-login { background: var(--primary-color); color: white; padding: 0.5rem 1.5rem; border-radius: 50px; text-decoration: none; transition: all 0.3s ease; }
+        .nav-login:hover { background: var(--primary-hover); transform: translateY(-2px); color: white; }
+
+        /* --- 頁尾樣式 --- */
+        .footer {
+            background: var(--primary-hover);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+        .copyright { opacity: 0.8; font-size: 0.9rem; }
+
+        /* === 意見回饋表單專用樣式 === */
         .feedback-container {
-            max-width: 600px;
-            margin: auto;
-            background-color: #fffaf0;
+            max-width: 650px;
+            margin: 4rem auto;
+            background-color: var(--container-bg);
             padding: 40px;
             border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(160, 82, 45, 0.1);
-            border: 1px solid #e0d8c4;
+            box-shadow: 0 8px 25px var(--shadow-light);
+            border: 1px solid var(--border-color);
         }
         .feedback-container h3 {
-            color: #8B4513;
+            color: var(--primary-color);
             text-align: center;
             margin-bottom: 35px;
             font-weight: 700;
@@ -35,86 +82,115 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
-            color: #776e65;
+            color: var(--text-color);
         }
         .form-control {
-            display: block;
-            width: 100%;
-            padding: 12px 15px;
-            font-size: 16px;
-            line-height: 1.5;
-            color: #495057;
-            background-color: #fff;
-            border: 1px solid #ced4da;
             border-radius: 8px;
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
         }
         .form-control:focus {
-            color: #495057;
-            background-color: #fff;
-            border-color: #d2b48c;
-            outline: 0;
-            box-shadow: 0 0 0 0.2rem rgba(210, 180, 140, 0.4);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(166, 123, 91, 0.25);
         }
         .form-control:read-only {
             background-color: #f5f5f5;
-            opacity: 0.8;
             cursor: not-allowed;
         }
         .btn-submit {
-            background: linear-gradient(145deg, #d2b48c, #b5987d);
+            background: var(--primary-color);
             border: none;
             color: white;
             padding: 12px 25px;
             font-size: 18px;
             font-weight: bold;
-            display: block;
             width: 100%;
             border-radius: 10px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(166, 123, 91, 0.2);
         }
         .btn-submit:hover {
-            color: white;
+            background: var(--primary-hover);
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(139, 69, 19, 0.2);
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.3);
         }
     </style>
 </head>
 <body>
 
+<nav class="nav-fixed">
+    <div class="nav-container">
+        <a th:href="@{/welcome}" class="nav-logo">
+            <img th:src="@{/images/123.png}" alt="EatFast Logo" class="nav-logo-icon">
+            <span class="nav-logo-text">EatFast 早餐店</span>
+        </a>
+
+        <div class="nav-menu">
+            <a th:href="@{/news}" class="nav-link">最新消息</a>
+            <a href="/store/storelist" class="nav-link">門市據點</a>
+            <a href="/menu" class="nav-link">餐點菜單</a>
+            <a th:href="${session.isLoggedIn} ? @{/member/dashboard} : @{/api/v1/auth/member-login}" class="nav-link">會員專區</a>
+            <a href="/feedback/form" class="nav-link">聯繫我們</a>
+            <a th:href="${session.isLoggedIn} ? @{/cart} : @{/api/v1/auth/member-login}" class="nav-link">購物車</a>
+        </div>
+
+        <div th:if="${session.isLoggedIn}" class="nav-user-info" style="display: flex; align-items: center; gap: 1rem;">
+            <span style="color: var(--primary-color);">歡迎, <span th:text="${session.memberName}"></span></span>
+            <button type="button" class="nav-login" onclick="confirmLogout()">
+                <i class="fas fa-sign-out-alt"></i> 登出
+            </button>
+            <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display: none;"></form>
+        </div>
+        <a th:unless="${session.isLoggedIn}" th:href="@{/api/v1/auth/member-login}" class="nav-login">
+            <i class="fas fa-sign-in-alt"></i> 會員登入
+        </a>
+    </div>
+</nav>
+
 <div class="feedback-container">
-    <h3><i class="fas fa-comment-dots"></i> 意見回饋</h3>
+    <h3><i class="fas fa-comment-dots"></i> 顧客意見回饋</h3>
+
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
     <form th:action="@{/feedback/submit}" method="post" th:object="${feedback}">
-
         <div class="form-group">
             <label for="memberName">會員姓名</label>
             <input type="text" class="form-control" id="memberName" th:value="*{member.username}" readonly>
         </div>
-
         <div class="form-group">
             <label for="phone">連絡電話</label>
             <input type="text" class="form-control" id="phone" th:field="*{phone}" readonly>
         </div>
-
         <div class="form-group">
             <label for="diningTime">用餐時間</label>
-            <input type="text" class="form-control" id="diningTime" th:field="*{diningTime}" placeholder="例如：2025-07-14 晚上7點">
+            <input type="text" class="form-control" id="diningTime" th:field="*{diningTime}" placeholder="例如：2025-07-14 晚上7點" required>
         </div>
-
         <div class="form-group">
             <label for="diningStore">用餐門市</label>
-            <input type="text" class="form-control" id="diningStore" th:field="*{diningStore}" placeholder="例如：台北南西店">
+            <input type="text" class="form-control" id="diningStore" th:field="*{diningStore}" placeholder="例如：台北南西店" required>
         </div>
         <div class="form-group">
             <label for="content">您的意見</label>
             <textarea class="form-control" id="content" rows="5" th:field="*{content}" required placeholder="請在此輸入您的寶貴意見..."></textarea>
         </div>
-
         <button type="submit" class="btn btn-submit">送出意見</button>
     </form>
 </div>
+
+<footer class="footer">
+    <div class="copyright">
+        © 2025 EatFast 早餐店 - 版權所有
+    </div>
+</footer>
+
+<script>
+    function confirmLogout() {
+        if (confirm('您確定要登出嗎？')) {
+            document.getElementById('logout-form').submit();
+        }
+    }
+</script>
 
 </body>
 </html>
