@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>已刪除會員管理 - 溫馨奶茶風</title>
+    <title>已刪除會員管理 - EatFast 早餐店</title>
 
     <!-- 引入 Bootstrap CSS -->
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
@@ -62,465 +62,256 @@
             transform: translateY(-1px);
         }
         
-        .empty-state {
-            text-align: center;
-            padding: 3rem 2rem;
-            color: #6c757d;
+        .info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
         
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         
-        /* 動畫效果 */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .action-buttons .btn {
+            flex: 1;
+            min-width: 120px;
         }
         
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .pulse-animation {
-            animation: pulse 0.6s ease-in-out;
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .action-buttons .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 
 <body>
-
-    <!-- 頂部導航欄 -->
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" th:href="@{/member/select_page}">
-                <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-3">
-                <span style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 已刪除會員管理</span>
+    <div class="container-fluid">
+        <!-- 導航欄 -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+            <a class="navbar-brand" href="#" th:href="@{/}">
+                <i class="fas fa-utensils"></i> EatFast 早餐店
             </a>
-            <div>
-                <a class="btn btn-outline-light mr-2" th:href="@{/member/select_page}">
-                    <i class="fas fa-arrow-left"></i> 回會員管理
-                </a>
-                <a class="btn btn-outline-light" th:href="@{/}">
-                    <i class="fas fa-home"></i> 回首頁
+            
+            <div class="navbar-nav ml-auto">
+                <span class="navbar-text mr-3" th:if="${isAdminLoggedIn}">
+                    <i class="fas fa-user"></i> 
+                    <span th:text="${currentAdminName}">管理員</span>
+                    (<span th:text="${currentAdminRole}">角色</span>)
+                </span>
+                <a class="nav-link" href="#" th:href="@{/member/select_page}">
+                    <i class="fas fa-arrow-left"></i> 返回會員管理
                 </a>
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    <div class="container mt-4 fade-in">
-
-        <!-- 訊息顯示區 -->
-        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
-            <i class="fas fa-exclamation-circle"></i> <span th:utext="${errorMessage}"></span>
-        </div>
-        <div th:if="${successMessage}" class="alert alert-success" role="alert" style="background-color: var(--milk-tea-success); color: white; border-color: #70916b;">
-            <i class="fas fa-check-circle"></i> <span th:utext="${successMessage}"></span>
-        </div>
-
-        <!-- 頁面標題與統計資訊 -->
+        <!-- 頁面標題 -->
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card border-warning">
-                    <div class="card-header bg-warning text-dark">
-                        <h4 class="mb-0">
-                            <i class="fas fa-trash-restore mr-2"></i>
-                            已刪除會員管理中心
-                        </h4>
-                    </div>
+                <div class="info-card">
+                    <h1 class="mb-3">
+                        <i class="fas fa-trash-restore"></i> 已刪除會員管理
+                    </h1>
+                    <p class="mb-0">
+                        <i class="fas fa-info-circle"></i> 
+                        此頁面顯示所有已刪除（停用）的會員資料，您可以選擇復原或永久刪除這些會員。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 訊息顯示區域 -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <!-- 成功訊息 -->
+                <div class="alert alert-success alert-dismissible fade show" role="alert" 
+                     th:if="${successMessage}" th:text="${successMessage}">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <!-- 錯誤訊息 -->
+                <div class="alert alert-danger alert-dismissible fade show" role="alert" 
+                     th:if="${errorMessage}" th:text="${errorMessage}">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <!-- 資訊訊息 -->
+                <div class="alert alert-info alert-dismissible fade show" role="alert" 
+                     th:if="${infoMessage}" th:text="${infoMessage}">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 統計資訊 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card bg-light">
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <p class="mb-2">
-                                    <i class="fas fa-info-circle text-info mr-2"></i>
-                                    此頁面顯示所有已刪除（停用）的會員帳號，您可以選擇復原或永久刪除。
-                                </p>
-                                <p class="mb-0 text-muted">
-                                    <i class="fas fa-exclamation-triangle text-warning mr-2"></i>
-                                    <strong>注意：</strong>永久刪除操作無法復原，請謹慎操作！
-                                </p>
-                            </div>
-                            <div class="col-md-4 text-right">
-                                <div class="bg-light p-3 rounded">
-                                    <h5 class="text-muted mb-1">已刪除會員總數</h5>
-                                    <h2 class="text-danger mb-0" th:text="${#lists.size(deletedMemberList)}">0</h2>
-                                </div>
-                            </div>
-                        </div>
+                        <h5 class="card-title">
+                            <i class="fas fa-chart-bar"></i> 統計資訊
+                        </h5>
+                        <p class="card-text">
+                            <span class="badge badge-secondary" th:text="${#lists.size(deletedMembers)}">0</span> 
+                            位已刪除會員
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-exclamation-triangle"></i> 注意事項
+                        </h5>
+                        <p class="card-text mb-0">
+                            <small class="text-muted">
+                                復原操作會重新啟用會員帳號，永久刪除後無法復原
+                            </small>
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- 已刪除會員列表 -->
-        <div class="card">
-            <div class="card-header bg-danger text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-users-slash mr-2"></i>
-                    已刪除會員列表
-                </h5>
-            </div>
-            <div class="card-body p-0">
-                <!-- 如果沒有已刪除會員 -->
-                <div th:if="${#lists.isEmpty(deletedMemberList)}" class="empty-state">
-                    <i class="fas fa-smile text-success"></i>
-                    <h4>太好了！目前沒有已刪除的會員</h4>
-                    <p class="text-muted">所有會員帳號都處於正常狀態。</p>
-                    <a th:href="@{/member/select_page}" class="btn btn-primary">
-                        <i class="fas fa-arrow-left mr-2"></i>返回會員管理
-                    </a>
-                </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-users"></i> 已刪除會員列表
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- 當沒有已刪除會員時顯示 -->
+                        <div class="text-center py-5" th:if="${#lists.isEmpty(deletedMembers)}">
+                            <i class="fas fa-smile fa-3x text-success mb-3"></i>
+                            <h4 class="text-muted">沒有已刪除的會員</h4>
+                            <p class="text-muted">目前所有會員帳號都是正常狀態</p>
+                            <a class="btn btn-primary" th:href="@{/member/select_page}">
+                                <i class="fas fa-arrow-left"></i> 返回會員管理
+                            </a>
+                        </div>
 
-                <!-- 如果有已刪除會員 -->
-                <div th:unless="${#lists.isEmpty(deletedMemberList)}" class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th>會員編號</th>
-                                <th>會員姓名</th>
-                                <th>登入帳號</th>
-                                <th>電子郵件</th>
-                                <th>連絡電話</th>
-                                <th>刪除時間</th>
-                                <th>狀態</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="member : ${deletedMemberList}" 
-                                class="deleted-member-row"
-                                th:data-member-id="${member.memberId}">
-                                <td>
-                                    <span class="badge badge-secondary" th:text="${member.memberId}"></span>
-                                </td>
-                                <td>
-                                    <strong th:text="${member.username}"></strong>
-                                </td>
-                                <td>
-                                    <code th:text="${member.account}"></code>
-                                </td>
-                                <td th:text="${member.email}"></td>
-                                <td th:text="${member.phone ?: 'N/A'}"></td>
-                                <td>
-                                    <small class="text-muted">
-                                        <span th:text="${member.lastUpdatedAt != null ? #temporals.format(member.lastUpdatedAt, 'yyyy-MM-dd HH:mm') : '未知'}"></span>
-                                    </small>
-                                </td>
-                                <td>
-                                    <span class="deleted-badge">
-                                        <i class="fas fa-ban mr-1"></i>已刪除
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <!-- 復原按鈕 -->
-                                        <button type="button" 
-                                                class="btn btn-sm restore-btn"
-                                                onclick="showRestoreConfirmModal(this)"
-                                                th:data-member-id="${member.memberId}"
-                                                th:data-member-name="${member.username}"
-                                                th:data-member-account="${member.account}"
-                                                title="復原此會員帳號">
-                                            <i class="fas fa-undo"></i> 復原
-                                        </button>
-                                        
-<!--                                         永久刪除按鈕 -->
-<!--                                         <button type="button"  -->
-<!--                                                 class="btn btn-sm permanent-delete-btn" -->
-<!--                                                 onclick="showPermanentDeleteModal(this)" -->
-<!--                                                 th:data-member-id="${member.memberId}" -->
-<!--                                                 th:data-member-name="${member.username}" -->
-<!--                                                 th:data-member-account="${member.account}" -->
-<!--                                                 title="永久刪除此會員（不可復原）"> -->
-<!--                                             <i class="fas fa-skull-crossbones"></i> 永久刪除 -->
-<!--                                         </button> -->
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                        <!-- 當有已刪除會員時顯示表格 -->
+                        <div class="table-responsive" th:if="${!#lists.isEmpty(deletedMembers)}">
+                            <table class="table table-striped table-hover">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th scope="col">會員編號</th>
+                                        <th scope="col">姓名</th>
+                                        <th scope="col">帳號</th>
+                                        <th scope="col">電子郵件</th>
+                                        <th scope="col">電話</th>
+                                        <th scope="col">性別</th>
+                                        <th scope="col">註冊時間</th>
+                                        <th scope="col">刪除時間</th>
+                                        <th scope="col">狀態</th>
+                                        <th scope="col">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="member : ${deletedMembers}" class="deleted-member-row">
+                                        <td th:text="${member.memberId}">1</td>
+                                        <td th:text="${member.username}">會員姓名</td>
+                                        <td th:text="${member.account}">member001</td>
+                                        <td th:text="${member.email}">member@example.com</td>
+                                        <td th:text="${member.phone != null ? member.phone : '未設定'}">0912345678</td>
+                                        <td>
+                                            <span th:switch="${member.gender}">
+                                                <span th:case="'M'">男性</span>
+                                                <span th:case="'F'">女性</span>
+                                                <span th:case="'O'">其他</span>
+                                                <span th:case="*">未設定</span>
+                                            </span>
+                                        </td>
+                                        <td th:text="${member.createdAt != null ? #temporals.format(member.createdAt, 'yyyy-MM-dd HH:mm') : '不詳'}">
+                                            2024-01-01 12:00
+                                        </td>
+                                        <td th:text="${member.lastUpdatedAt != null ? #temporals.format(member.lastUpdatedAt, 'yyyy-MM-dd HH:mm') : '不詳'}">
+                                            2024-01-01 12:00
+                                        </td>
+                                        <td>
+                                            <span class="deleted-badge">已刪除</span>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <!-- 復原按鈕 -->
+                                                <form th:action="@{/member/restore}" method="post" class="d-inline">
+                                                    <input type="hidden" name="memberId" th:value="${member.memberId}">
+                                                    <button type="submit" class="btn btn-sm restore-btn" 
+                                                            onclick="return confirm('確定要復原此會員嗎？復原後會員將重新啟用。')">
+                                                        <i class="fas fa-undo"></i> 復原
+                                                    </button>
+                                                </form>
+                                                
+                                                <!-- 永久刪除按鈕 -->
+<!--                                                 <form th:action="@{/member/permanent-delete}" method="post" class="d-inline"> -->
+<!--                                                     <input type="hidden" name="memberId" th:value="${member.memberId}"> -->
+<!--                                                     <button type="submit" class="btn btn-sm permanent-delete-btn"  -->
+<!--                                                             onclick="return confirm('警告：此操作會永久刪除會員資料，且無法復原！\n\n確定要繼續嗎？')"> -->
+<!--                                                         <i class="fas fa-trash-alt"></i> 永久刪除 -->
+<!--                                                     </button> -->
+<!--                                                 </form> -->
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-    </div>
-
-    <!-- 復原確認 Modal -->
-    <div class="modal fade" id="restoreConfirmModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-undo mr-2"></i>確認復原會員
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="text-center mb-3">
-                        <i class="fas fa-user-check text-success" style="font-size: 3rem;"></i>
+        <!-- 操作說明 -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-question-circle"></i> 操作說明
+                        </h5>
                     </div>
-                    <p class="text-center mb-3">您確定要復原以下會員的帳號嗎？</p>
-                    
-                    <div class="card bg-light">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-6">
-                                    <strong>會員姓名：</strong><br>
-                                    <span id="restoreMemberName" class="text-primary"></span>
-                                </div>
-                                <div class="col-6">
-                                    <strong>登入帳號：</strong><br>
-                                    <code id="restoreMemberAccount"></code>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-undo text-success"></i> 
+                                <strong>復原：</strong>重新啟用會員帳號，會員可以正常登入使用系統
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-trash-alt text-danger"></i> 
+                                <strong>永久刪除：</strong>從資料庫中完全移除會員資料，此操作無法復原
+                            </li>
+                            <li class="mb-0">
+                                <i class="fas fa-info-circle text-info"></i> 
+                                <strong>注意：</strong>永久刪除前請確認該會員沒有未完成的訂單或其他業務關聯
+                            </li>
+                        </ul>
                     </div>
-                    
-                    <div class="alert alert-success mt-3" role="alert">
-                        <i class="fas fa-check-circle mr-2"></i>
-                        復原後，該會員將可以正常登入和使用系統功能。
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times mr-2"></i>取消
-                    </button>
-                    <form id="restoreForm" method="post" th:action="@{/member/restore}" style="display: inline;">
-                        <input type="hidden" name="memberId" id="restoreMemberId" />
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-undo mr-2"></i>確認復原
-                        </button>
-                    </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 永久刪除確認 Modal -->
-    <div class="modal fade" id="permanentDeleteModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-skull-crossbones mr-2"></i>⚠️ 危險操作：永久刪除會員
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <!-- 警告區域 -->
-                    <div class="alert alert-danger" role="alert">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-exclamation-triangle fa-2x mr-3"></i>
-                            <div>
-                                <h6 class="alert-heading mb-1"><strong>極度危險的操作！</strong></h6>
-                                <p class="mb-0">此操作將<strong>永久刪除</strong>會員資料，<strong>無法復原</strong>！</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 會員資訊 -->
-                    <div class="card border-danger mb-3">
-                        <div class="card-header bg-danger text-white">
-                            <h6 class="mb-0">即將永久刪除的會員</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-6">
-                                    <strong>會員姓名：</strong><br>
-                                    <span id="deleteMemberName" class="text-danger"></span>
-                                </div>
-                                <div class="col-6">
-                                    <strong>登入帳號：</strong><br>
-                                    <code id="deleteMemberAccount"></code>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 安全確認 -->
-                    <div class="card border-warning">
-                        <div class="card-header bg-warning text-dark">
-                            <h6 class="mb-0">安全確認</h6>
-                        </div>
-                        <div class="card-body">
-                            <p class="text-danger mb-3">
-                                請輸入 <code class="bg-danger text-white px-2 py-1">PERMANENT DELETE</code> 來確認此操作：
-                            </p>
-                            
-                            <input type="text" 
-                                   id="permanentDeleteConfirmText" 
-                                   class="form-control" 
-                                   placeholder="請輸入 PERMANENT DELETE"
-                                   autocomplete="off">
-                            <div id="permanentDeleteFeedback" class="mt-2"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times mr-2"></i>取消
-                    </button>
-                    <form id="permanentDeleteForm" method="post" th:action="@{/member/permanently-delete}" style="display: inline;">
-                        <input type="hidden" name="memberId" id="permanentDeleteMemberId" />
-                        <button type="submit" 
-                                id="confirmPermanentDeleteBtn" 
-                                class="btn btn-danger" 
-                                disabled>
-                            <i class="fas fa-skull-crossbones mr-2"></i>
-                            <span id="permanentDeleteButtonText">永久刪除 (已鎖定)</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 引入必要的 JavaScript -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
-
-    <script>
-        // 復原會員功能
-        function showRestoreConfirmModal(buttonElement) {
-            const memberId = buttonElement.getAttribute('data-member-id');
-            const memberName = buttonElement.getAttribute('data-member-name');
-            const memberAccount = buttonElement.getAttribute('data-member-account');
-
-            document.getElementById('restoreMemberId').value = memberId;
-            document.getElementById('restoreMemberName').textContent = memberName;
-            document.getElementById('restoreMemberAccount').textContent = memberAccount;
-
-            $('#restoreConfirmModal').modal('show');
-        }
-
-        // 永久刪除會員功能
-        let permanentDeleteConfirmValid = false;
-
-        function showPermanentDeleteModal(buttonElement) {
-            const memberId = buttonElement.getAttribute('data-member-id');
-            const memberName = buttonElement.getAttribute('data-member-name');
-            const memberAccount = buttonElement.getAttribute('data-member-account');
-
-            document.getElementById('permanentDeleteMemberId').value = memberId;
-            document.getElementById('deleteMemberName').textContent = memberName;
-            document.getElementById('deleteMemberAccount').textContent = memberAccount;
-
-            // 重置確認狀態
-            resetPermanentDeleteConfirmation();
-
-            $('#permanentDeleteModal').modal('show');
-        }
-
-        function resetPermanentDeleteConfirmation() {
-            const confirmText = document.getElementById('permanentDeleteConfirmText');
-            const confirmBtn = document.getElementById('confirmPermanentDeleteBtn');
-            const buttonText = document.getElementById('permanentDeleteButtonText');
-            const feedback = document.getElementById('permanentDeleteFeedback');
-
-            confirmText.value = '';
-            confirmText.className = 'form-control';
-            confirmBtn.disabled = true;
-            buttonText.textContent = '永久刪除 (已鎖定)';
-            feedback.innerHTML = '';
-            permanentDeleteConfirmValid = false;
-        }
-
-        function validatePermanentDeleteConfirmation(inputValue) {
-            const confirmText = document.getElementById('permanentDeleteConfirmText');
-            const confirmBtn = document.getElementById('confirmPermanentDeleteBtn');
-            const buttonText = document.getElementById('permanentDeleteButtonText');
-            const feedback = document.getElementById('permanentDeleteFeedback');
-
-            const trimmedValue = inputValue.trim();
-
-            if (trimmedValue === 'PERMANENT DELETE') {
-                confirmText.className = 'form-control is-valid';
-                confirmBtn.disabled = false;
-                buttonText.textContent = '確認永久刪除';
-                feedback.innerHTML = `
-                    <div class="alert alert-success border-0 mb-0" role="alert">
-                        <i class="fas fa-check-circle mr-2"></i>驗證成功，可以執行永久刪除
-                    </div>
-                `;
-                permanentDeleteConfirmValid = true;
-            } else if (trimmedValue === '') {
-                confirmText.className = 'form-control';
-                confirmBtn.disabled = true;
-                buttonText.textContent = '永久刪除 (已鎖定)';
-                feedback.innerHTML = '';
-                permanentDeleteConfirmValid = false;
-            } else {
-                confirmText.className = 'form-control is-invalid';
-                confirmBtn.disabled = true;
-                buttonText.textContent = '永久刪除 (已鎖定)';
-                feedback.innerHTML = `
-                    <div class="alert alert-danger border-0 mb-0" role="alert">
-                        <i class="fas fa-times-circle mr-2"></i>輸入錯誤，請輸入正確的確認文字
-                    </div>
-                `;
-                permanentDeleteConfirmValid = false;
-            }
-        }
-
-        // 事件監聽器
-        document.addEventListener('DOMContentLoaded', function() {
-            // 監聽永久刪除確認輸入
-            const permanentDeleteInput = document.getElementById('permanentDeleteConfirmText');
-            if (permanentDeleteInput) {
-                permanentDeleteInput.addEventListener('input', function(e) {
-                    validatePermanentDeleteConfirmation(e.target.value);
-                });
-            }
-
-            // 監聽永久刪除表單提交
-            const permanentDeleteForm = document.getElementById('permanentDeleteForm');
-            if (permanentDeleteForm) {
-                permanentDeleteForm.addEventListener('submit', function(e) {
-                    if (!permanentDeleteConfirmValid) {
-                        e.preventDefault();
-                        alert('請先完成安全確認！');
-                        return false;
-                    }
-                    
-                    // 顯示處理中狀態
-                    const btn = document.getElementById('confirmPermanentDeleteBtn');
-                    const buttonText = document.getElementById('permanentDeleteButtonText');
-                    btn.disabled = true;
-                    buttonText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>處理中...';
-                    
-                    return true;
-                });
-            }
-
-            // Modal 關閉時清理狀態
-            $('#permanentDeleteModal').on('hidden.bs.modal', function() {
-                resetPermanentDeleteConfirmation();
-            });
-        });
-
-        // 成功操作後的視覺反饋
-        function showSuccessAnimation(row) {
-            if (row) {
-                row.classList.add('pulse-animation');
-                setTimeout(() => {
-                    row.classList.remove('pulse-animation');
-                }, 600);
-            }
-        }
-    </script>
-
+    <!-- 引入 Bootstrap JS -->
+    <script th:src="@{/webjars/jquery/3.4.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
 </body>
+
 </html>

@@ -1945,4 +1945,95 @@ public class MemberController {
             return ResponseEntity.status(500).body(response);
         }
     }
+
+    // ================================================================
+    // 					已刪除會員管理功能 (Deleted Member Management)
+    // ================================================================
+    
+    /**
+     * 【功能】: 顯示已刪除會員列表頁面
+     * 【請求路徑】: 處理 GET /member/deleted 請求
+     */
+    @GetMapping("/deleted")
+    public String showDeletedMembers(Model model, HttpSession session) {
+        // 添加管理員登入資訊到模型中
+        addAdminInfoToModel(session, model);
+        
+        try {
+            // 獲取所有已刪除（停用）的會員
+            List<MemberEntity> deletedMembers = memberService.getDeletedMembers();
+            
+            // 將已刪除會員資料傳遞給視圖
+            model.addAttribute("deletedMembers", deletedMembers);
+            
+            if (deletedMembers.isEmpty()) {
+                model.addAttribute("infoMessage", "目前沒有已刪除的會員");
+            } else {
+                model.addAttribute("successMessage", "找到 " + deletedMembers.size() + " 筆已刪除的會員資料");
+            }
+            
+            log.info("顯示已刪除會員列表，共 {} 筆資料", deletedMembers.size());
+            
+        } catch (Exception e) {
+            log.error("載入已刪除會員列表失敗: {}", e.getMessage(), e);
+            model.addAttribute("errorMessage", "載入已刪除會員列表失敗：" + e.getMessage());
+            model.addAttribute("deletedMembers", new ArrayList<>());
+        }
+        
+        return MemberViewConstants.VIEW_DELETED_MEMBERS;
+    }
+    
+    /**
+     * 【功能】: 復原已刪除的會員
+     * 【請求路徑】: 處理 POST /member/restore 請求
+     */
+    @PostMapping("/restore")
+    public String restoreMember(@RequestParam("memberId") Long memberId, 
+                               RedirectAttributes redirectAttributes) {
+        
+        try {
+            MemberEntity restoredMember = memberService.restoreMember(memberId);
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "會員「" + restoredMember.getUsername() + "」已成功復原並重新啟用！");
+            
+            log.info("會員復原成功 - ID: {}, 帳號: {}", memberId, restoredMember.getAccount());
+            
+        } catch (EntityNotFoundException e) {
+            log.error("復原會員失敗 - 會員不存在: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "復原失敗：找不到指定的會員");
+        } catch (IllegalStateException e) {
+            log.error("復原會員失敗 - 狀態錯誤: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "復原失敗：" + e.getMessage());
+        } catch (Exception e) {
+            log.error("復原會員失敗 - 未預期錯誤: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "復原失敗：系統錯誤");
+        }
+        
+        return "redirect:/member/deleted";
+    }
+    
+    /**
+     * 【功能】: 永久刪除會員（真正的刪除，不可復原）
+     * 【請求路徑】: 處理 POST /member/permanent-delete 請求
+     */
+    @PostMapping("/permanent-delete")
+    public String permanentlyDeleteMember(@RequestParam("memberId") Long memberId, 
+                                         RedirectAttributes redirectAttributes) {
+        
+        try {
+            memberService.permanentlyDeleteMember(memberId);
+            redirectAttributes.addFlashAttribute("successMessage", "會員已永久刪除（此操作不可復原）");
+            
+            log.warn("會員永久刪除成功 - ID: {}", memberId);
+            
+        } catch (EntityNotFoundException e) {
+            log.error("永久刪除會員失敗 - 會員不存在: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "永久刪除失敗：找不到指定的會員");
+        } catch (Exception e) {
+            log.error("永久刪除會員失敗 - 未預期錯誤: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "永久刪除失敗：系統錯誤");
+        }
+        
+        return "redirect:/member/deleted";
+    }
 }

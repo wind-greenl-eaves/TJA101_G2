@@ -289,6 +289,20 @@
 			<version>4.2.1</version>
 		</dependency>
 
+		<!-- jQuery (via WebJars) -->
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>jquery</artifactId>
+			<version>3.4.1</version>
+		</dependency>
+
+		<!-- Popper.js (via WebJars) - Bootstrap 4 依賴 -->
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>popper.js</artifactId>
+			<version>1.14.3</version>
+		</dependency>
+
 	</dependencies>
 
 	<!--
