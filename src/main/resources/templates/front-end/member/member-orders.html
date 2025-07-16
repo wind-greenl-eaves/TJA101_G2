@@ -152,7 +152,88 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
+        
+        .order-header:hover {
+            background-color: #e9ecef;
+        }
+        
+        .order-header-left {
+            flex: 1;
+        }
+        
+        .order-header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .toggle-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            color: #A67B5B;
+        }
+        
+        .toggle-btn:hover {
+            background-color: rgba(166, 123, 91, 0.1);
+        }
+        
+        .toggle-btn.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .order-body {
+            padding: 20px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .order-body.collapsed {
+            max-height: 0;
+            padding: 0 20px;
+            opacity: 0;
+        }
+        
+        .order-summary-mini {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .order-amount-mini {
+            font-weight: bold;
+            color: #A67B5B;
+        }
+        
+        .collapse-all-controls {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+        
+        .collapse-all-controls button {
+            background: none;
+            border: 1px solid #A67B5B;
+            color: #A67B5B;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .collapse-all-controls button:hover {
+            background-color: #A67B5B;
+            color: white;
+        }
+        
         .order-id {
             font-weight: bold;
             color: #A67B5B;
@@ -254,6 +335,115 @@
             background-color: #f0f0f0;
             color: #333;
         }
+        /* 評分功能樣式 */
+        .rating-section {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #f0ad4e;
+        }
+        
+        .rating-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .meal-rating-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 8px 0;
+            background-color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .meal-info {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .meal-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 3px;
+            font-size: 0.9rem;
+        }
+        
+        .meal-details {
+            color: #666;
+            font-size: 0.8rem;
+        }
+        
+        .rating-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .star-rating {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .star {
+            font-size: 1.2rem;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        
+        .star:hover,
+        .star.active {
+            color: #ffc107;
+        }
+        
+        .star.rated {
+            color: #ffc107;
+            cursor: default;
+        }
+        
+        .rating-feedback {
+            font-size: 0.7rem;
+            color: #28a745;
+            margin-left: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .rating-feedback.show {
+            opacity: 1;
+        }
+        
+        .btn-rate {
+            background-color: #f0ad4e;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn-rate:hover {
+            background-color: #ec971f;
+        }
+        
+        .rated-badge {
+            background-color: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
         @media (max-width: 768px) {
             .order-header {
                 flex-direction: column;
@@ -320,32 +510,48 @@
                 <a href="/menu" class="btn">🛒 開始購物</a>
             </div>
             
+            <!-- 全部展開/收起控制按鈕 -->
+            <div th:if="${!#lists.isEmpty(orders)}" class="collapse-all-controls">
+                <button onclick="expandAllOrders()">📖 全部展開</button>
+                <button onclick="collapseAllOrders()">📕 全部收起</button>
+            </div>
+            
             <!-- 訂單卡片 -->
             <div th:each="order : ${orders}" class="order-card">
-                <div class="order-header">
-                    <div>
+                <div class="order-header" onclick="toggleOrderDetails(this.querySelector('.toggle-btn'))">
+                    <div class="order-header-left">
                         <span class="order-id" th:text="'訂單編號：' + ${order.orderListId}"></span>
-                        <div class="order-date" th:text="${#temporals.format(order.orderDate, 'yyyy年MM月dd日 HH:mm')}"></div>
+                        <div class="order-date" th:text="'訂單時間：'+ ${#temporals.format(order.orderDate, 'yyyy年MM月dd日 HH:mm')}"></div>
                         <!-- 添加門市資訊 -->
                         <div class="store-info" style="color: #A67B5B; font-size: 14px; margin-top: 5px;">
                             <span style="font-weight: bold;">🏪 門市：</span>
                             <span th:text="${order.store?.storeName ?: '未知門市'}"></span>
                         </div>
+                        <!-- 在收起狀態下顯示簡要資訊 -->
+                        <div class="order-summary-mini">
+                            <span class="order-amount-mini" th:text="'總金額：$' + ${order.orderAmount}"></span>
+                        </div>
                     </div>
-                    <span class="order-status" 
-                          th:classappend="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? 'status-pending' : 
-                                          order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? 'status-confirmed' : 
-                                          order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? 'status-preparing' : 
-                                          order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? 'status-completed' : 
-                                          'status-cancelled'}"
-                          th:text="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? '處理中' : 
-                                   order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? '已確認' : 
-                                   order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? '待取餐' : 
-                                   order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? '已完成' : 
-                                   '已取消'}"></span>
+                    <div class="order-header-right">
+                        <span class="order-status" 
+                              th:classappend="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? 'status-pending' : 
+                                              order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? 'status-confirmed' : 
+                                              order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? 'status-preparing' : 
+                                              order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? 'status-completed' : 
+                                              'status-cancelled'}"
+                              th:text="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? '處理中' : 
+                                       order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? '已確認' : 
+                                       order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? '待取餐' : 
+                                       order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? '已完成' : 
+                                       '已取消'}"></span>
+                        <!-- 摺疊按鈕 -->
+                        <button class="toggle-btn" onclick="event.stopPropagation(); toggleOrderDetails(this)">
+                            ▼
+                        </button>
+                    </div>
                 </div>
                 
-                <div class="order-body">
+                <div class="order-body collapsed">
                     <!-- 客製化備註區域 -->
                     <div th:if="${order.mealCustomization != null and order.mealCustomization != ''}" 
                          class="order-customization" 
@@ -392,13 +598,40 @@
                                 th:data-order-id="${order.orderListId}">
                             ❌ 取消訂單
                         </button>
-                        <button th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}" 
-                                class="btn btn-sm" 
-                                style="background-color: #28a745;"
-                                onclick="reorder(this)" 
-                                th:data-order-id="${order.orderListId}">
-                            🔄 再次訂購
-                        </button>
+                    </div>
+                    
+                    <!-- 評分區域 - 只在已完成訂單顯示 -->
+                    <div th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}" 
+                         class="rating-section">
+                        <div class="rating-title">🌟 評分您的餐點</div>
+                        <div th:each="item : ${order.orderListInfos}" class="meal-rating-item">
+                            <div class="meal-info">
+                                <div class="meal-name" th:text="${item.meal?.mealName ?: '未知餐點'}"></div>
+                                <div class="meal-details" th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.mealPrice}"></div>
+                            </div>
+                            <div class="rating-controls">
+                                <!-- 顯示目前評分的星星 -->
+                                <div class="star-rating" th:data-order-info-id="${item.orderListInfoId}" th:data-current-rating="${item.reviewStars ?: 0}">
+                                    <span class="star" th:classappend="${item.reviewStars >= 1 ? 'rated' : ''}" data-rating="1">★</span>
+                                    <span class="star" th:classappend="${item.reviewStars >= 2 ? 'rated' : ''}" data-rating="2">★</span>
+                                    <span class="star" th:classappend="${item.reviewStars >= 3 ? 'rated' : ''}" data-rating="3">★</span>
+                                    <span class="star" th:classappend="${item.reviewStars >= 4 ? 'rated' : ''}" data-rating="4">★</span>
+                                    <span class="star" th:classappend="${item.reviewStars >= 5 ? 'rated' : ''}" data-rating="5">★</span>
+                                </div>
+                                <!-- 評分按鈕 - 只在未評分時顯示 -->
+                                <button th:if="${item.reviewStars == null || item.reviewStars == 0}" 
+                                        class="btn-rate" 
+                                        onclick="openRatingDialog(this)"
+                                        th:data-order-info-id="${item.orderListInfoId}">
+                                    ⭐ 評分
+                                </button>
+                                <!-- 已評分標籤 -->
+                                <div th:if="${item.reviewStars != null && item.reviewStars > 0}" class="rated-badge">
+                                    <span>✅ 已評分</span>
+                                </div>
+                                <span class="rating-feedback"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -414,22 +647,23 @@
                 button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 取消中...';
                 
                 // 使用 fetch 調用後端的取消訂單 API
-                fetch('/orderlist/delete', {
+                fetch('/member/orders/cancel', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
                     body: 'orderListId=' + encodeURIComponent(orderId)
                 })
-                .then(response => {
-                    if (response.ok) {
-                        // 取消成功，更新頁面顯示
-                        alert('訂單已成功取消');
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 取消成功，顯示成功訊息
+                        alert(data.message || '訂單已成功取消');
                         // 重新載入頁面以顯示更新後的狀態
                         window.location.reload();
                     } else {
-                        // 取消失敗
-                        alert('取消訂單失敗，請稍後再試');
+                        // 取消失敗，顯示錯誤訊息
+                        alert(data.message || '取消訂單失敗，請稍後再試');
                         // 恢復按鈕狀態
                         button.disabled = false;
                         button.innerHTML = '❌ 取消訂單';
@@ -445,27 +679,149 @@
             }
         }
         
-        function reorder(button) {
-            const orderId = button.getAttribute('data-order-id');
-            if (confirm('確定要重新訂購此訂單的所有商品嗎？')) {
-                // 發送重新訂購的請求
-                fetch(`/member/orders/${orderId}/reorder`, {
+        function toggleOrderDetails(button) {
+            const orderCard = button.closest('.order-card');
+            const orderBody = orderCard.querySelector('.order-body');
+            const isCollapsed = orderBody.classList.toggle('collapsed');
+            
+            // 更新按鈕圖示
+            button.classList.toggle('collapsed', isCollapsed);
+            
+            // 如果需要，可以在這裡添加其他摺疊/展開的邏輯
+        }
+        
+        function expandAllOrders() {
+            const orderBodies = document.querySelectorAll('.order-body.collapsed');
+            orderBodies.forEach(body => {
+                body.classList.remove('collapsed');
+                const toggleButton = body.previousElementSibling.querySelector('.toggle-btn');
+                if (toggleButton) {
+                    toggleButton.classList.remove('collapsed');
+                }
+            });
+        }
+        
+        function collapseAllOrders() {
+            const orderBodies = document.querySelectorAll('.order-body');
+            orderBodies.forEach(body => {
+                body.classList.add('collapsed');
+                const toggleButton = body.previousElementSibling.querySelector('.toggle-btn');
+                if (toggleButton) {
+                    toggleButton.classList.add('collapsed');
+                }
+            });
+        }
+        
+        // 評分功能
+        function openRatingDialog(button) {
+            const orderInfoId = button.getAttribute('data-order-info-id');
+            const starRating = button.closest('.rating-controls').querySelector('.star-rating');
+            const stars = starRating.querySelectorAll('.star');
+            
+            // 添加點擊事件到星星
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    saveRating(orderInfoId, rating, button, stars);
+                });
+                
+                star.addEventListener('mouseenter', function() {
+                    const hoverRating = parseInt(this.getAttribute('data-rating'));
+                    highlightStars(stars, hoverRating);
+                });
+            });
+            
+            // 滑鼠離開時恢復原狀
+            starRating.addEventListener('mouseleave', function() {
+                const currentRating = starRating.getAttribute('data-current-rating') || 0;
+                highlightStars(stars, currentRating);
+            });
+            
+            // 顯示提示訊息
+            const feedback = button.closest('.rating-controls').querySelector('.rating-feedback');
+            feedback.textContent = '請點擊星星評分';
+            feedback.classList.add('show');
+            
+            // 隱藏評分按鈕
+            button.style.display = 'none';
+        }
+        
+        // 高亮星星
+        function highlightStars(stars, rating) {
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+        
+        // 保存評分
+        function saveRating(orderInfoId, rating, button, stars) {
+            if (confirm('確定要給予 ' + rating + ' 星評分嗎？')) {
+                // 禁用星星點擊
+                stars.forEach(star => {
+                    star.style.pointerEvents = 'none';
+                });
+                
+                fetch('/orders/save-rating', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                    }
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `orderInfoId=${orderInfoId}&rating=${rating}`
                 })
-                .then(response => {
-                    if (response.ok) {
-                        alert('商品已加入購物車');
-                        window.location.href = '/member/cart';
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 評分成功
+                        const starRating = button.closest('.rating-controls').querySelector('.star-rating');
+                        starRating.setAttribute('data-current-rating', rating);
+                        
+                        // 設置星星為已評分狀態
+                        stars.forEach((star, index) => {
+                            star.classList.remove('active');
+                            if (index < rating) {
+                                star.classList.add('rated');
+                            }
+                        });
+                        
+                        // 顯示成功訊息
+                        const feedback = button.closest('.rating-controls').querySelector('.rating-feedback');
+                        feedback.textContent = '感謝您的評分！';
+                        feedback.classList.add('show');
+                        
+                        // 顯示已評分標籤
+                        const ratedBadge = document.createElement('div');
+                        ratedBadge.className = 'rated-badge';
+                        ratedBadge.innerHTML = '<span>✅ 已評分</span>';
+                        button.parentNode.insertBefore(ratedBadge, button);
+                        
+                        // 隱藏評分按鈕
+                        button.style.display = 'none';
+                        
+                        // 3秒後隱藏提示
+                        setTimeout(() => {
+                            feedback.classList.remove('show');
+                        }, 3000);
                     } else {
-                        alert('重新訂購失敗，請稍後再試');
+                        alert('評分保存失敗：' + data.message);
+                        // 恢復按鈕顯示
+                        button.style.display = 'inline-block';
+                        stars.forEach(star => {
+                            star.style.pointerEvents = 'auto';
+                        });
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    alert('重新訂購失敗，請稍後再試');
+                    console.error('評分保存錯誤:', error);
+                    alert('評分保存失敗，請稍後再試');
+                    // 恢復按鈕顯示
+                    button.style.display = 'inline-block';
+                    stars.forEach(star => {
+                        star.style.pointerEvents = 'auto';
+                    });
                 });
             }
         }

@@ -8,7 +8,7 @@ public class xxx {
 		this.name = name;
 		this.age = age;
 //		888888
-//		7/4 首頁增加 rrrRE
+//		7/4 首頁增加 rrrREE
 		
 	}
 }
