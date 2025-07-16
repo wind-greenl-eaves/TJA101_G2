@@ -127,7 +127,17 @@ public class AdminAnnouncementController {
             return ResponseEntity.internalServerError().body("發布失敗: " + e.getMessage());
         }
     }
+    @GetMapping("/delete/{id}")
+    public String deleteAnnouncement(@PathVariable Long id) {
+        // 加上偵錯訊息，確認請求有進來
+        System.out.println("====== DEBUG: 準備刪除 ID 為 " + id + " 的公告 ======");
 
+        // 呼叫 Service 層去執行刪除的業務邏輯
+        announcementService.deleteById(id);
+
+        // 刪除完成後，將頁面重新導向到草稿列表頁
+        return "redirect:/announcement/drafts";
+    }
 
     @GetMapping("/") // 監聽對網站根目錄 (首頁) 的請求
     public String showWelcomePage() {

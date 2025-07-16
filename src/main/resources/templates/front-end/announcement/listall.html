@@ -2,82 +2,86 @@
 <html lang="zh-Hant" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>門市公告管理 - 溫馨奶茶風</title>
+    <title>門市公告清單 - 溫馨奶茶風</title>
 
-    <!-- Bootstrap 與字型 -->
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
-    
-    <!-- 自訂樣式 -->
-    <link rel="stylesheet" th:href="@{/css/member/style.css}" />
+
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8f3ef;
+            color: #5e4635;
+        }
+        .container {
+            background-color: #fffaf5;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(186, 152, 128, 0.3);
+            padding: 30px;
+            margin-top: 50px;
+        }
+        h2 {
+            color: #a1774e;
+        }
+        .table thead.thead-light th {
+            background-color: #f0e0cf;
+        }
+        .btn-info {
+            background-color: #d9b99b;
+            border-color: #d9b99b;
+        }
+
+        .btn-secondary {
+            background-color: #cfc1b2;
+            border-color: #cfc1b2;
+        }
+    </style>
 </head>
 <body>
 <div class="container mt-5">
     <h2 class="mb-4 text-center" style="font-family: 'Noto Sans TC';">🍵 門市公告清單</h2>
 
-    <!-- 新增按鈕 -->
-        <div class="text-right mb-3">
-
-            <a class="btn btn-secondary" th:href="@{/}"> <i class="fas fa-home"></i> 返回首頁
-            </a>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover text-center">
-            </table>
-        </div>
-
+    <div class="text-right mb-3">
+        <a class="btn btn-secondary" th:href="@{/}"> <i class="fas fa-home"></i> 返回首頁
+        </a>
     </div>
-    </body>
-    <!-- 表格開始 -->
+
     <div class="table-responsive">
         <table class="table table-bordered table-hover text-center">
             <thead class="thead-light">
-                <tr>
-                    <th>公告標題</th>
-                    <th>門市</th>
-                    <th>狀態</th>
-                    <th>上架時間</th>
-                    <th>下架時間</th>
-                    <th>操作</th>
-                </tr>
+            <tr>
+                <th>公告標題</th>
+                <th>門市</th>
+                <th>狀態</th>
+                <th>上架時間</th>
+                <th>下架時間</th>
+                <th>操作</th>
+            </tr>
             </thead>
-            <tbody>
+            <tbody th:if="${announcements != null and not #lists.isEmpty(announcements)}">
             <tr th:each="announcement : ${announcements}">
                 <td th:text="${announcement.title}">標題</td>
                 <td th:text="${announcement.store.storeName}">門市名稱</td>
                 <td>
-                    <span th:switch="${announcement.status}">
-                        <span th:case="0">草稿</span>
-                        <span th:case="1">上架</span>
-                        <span th:case="2">下架</span>
-                        <span th:case="*">未知</span>
-                    </span>
+                    <span th:text="${announcement.status.getDisplayName()}">狀態</span>
                 </td>
-
                 <td th:text="${#temporals.format(announcement.startTime, 'yyyy-MM-dd HH:mm')}">起始</td>
                 <td th:text="${#temporals.format(announcement.endTime, 'yyyy-MM-dd HH:mm')}">結束</td>
                 <td>
                     <a class="btn btn-info btn-sm" th:href="@{/announcements/{id}(id=${announcement.announcementId})}">
                         <i class="fas fa-eye"></i> 查看
                     </a>
-
-                    <!-- 表格開始
-                    <a class="btn btn-danger btn-sm"
-                       th:href="@{/announcements/delete/{id}(id=${announcement.announcementId})}"
-                       onclick="return confirm('確定要刪除這筆公告嗎？')">
-                        <i class="fas fa-trash-alt"></i> 刪除
-                    </a>
-                    -->
                 </td>
             </tr>
             </tbody>
         </table>
     </div>
 
-    <div th:if="${#lists.isEmpty(announcements)}" class="text-center text-muted mt-4">
-        <i class="fas fa-info-circle"></i> 尚無公告資料
+    <div th:if="${announcements == null or #lists.isEmpty(announcements)}" class="alert alert-info text-center mt-4">
+        <i class="fas fa-info-circle"></i> 尚無有效公告資料
     </div>
+
 </div>
 </body>
 </html>
