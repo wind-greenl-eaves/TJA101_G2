@@ -65,51 +65,561 @@
             justify-content: center;
             z-index: 50;
             padding: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
         }
 
         .modal-content {
-            max-height: 85vh;
+            max-height: 90vh;
             overflow-y: auto;
             background: white;
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             position: relative;
             width: 90%;
-            max-width: 800px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid #e5e7eb;
+            transform: scale(0.9) translateY(-20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0;
+        }
+
+        .modal-backdrop.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-backdrop.show .modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        /* 會員詳細資料模態框的特殊動畫效果 */
+        .member-detail-modal .modal-content {
+            animation: memberDetailSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .member-detail-modal.hiding .modal-content {
+            animation: memberDetailSlideOut 0.3s cubic-bezier(0.55, 0.085, 0.68, 0.53);
+        }
+
+        @keyframes memberDetailSlideIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(-40px) rotateX(-10deg);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.02) translateY(-10px) rotateX(-2deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0) rotateX(0deg);
+            }
+        }
+
+        @keyframes memberDetailSlideOut {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0) rotateX(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.85) translateY(-30px) rotateX(-5deg);
+            }
+        }
+
+        /* 內容載入動畫 */
+        .modal-content-loaded {
+            animation: contentFadeIn 0.5s ease-out 0.2s both;
+        }
+
+        @keyframes contentFadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 表格行的漸進式動畫 */
+        .modal-table-row {
+            opacity: 0;
+            transform: translateX(-10px);
+            animation: tableRowSlideIn 0.3s ease-out forwards;
+        }
+
+        .modal-table-row:nth-child(1) { animation-delay: 0.05s; }
+        .modal-table-row:nth-child(2) { animation-delay: 0.1s; }
+        .modal-table-row:nth-child(3) { animation-delay: 0.15s; }
+        .modal-table-row:nth-child(4) { animation-delay: 0.2s; }
+        .modal-table-row:nth-child(5) { animation-delay: 0.25s; }
+        .modal-table-row:nth-child(6) { animation-delay: 0.3s; }
+        .modal-table-row:nth-child(7) { animation-delay: 0.35s; }
+        .modal-table-row:nth-child(8) { animation-delay: 0.4s; }
+        .modal-table-row:nth-child(9) { animation-delay: 0.45s; }
+        .modal-table-row:nth-child(10) { animation-delay: 0.5s; }
+        .modal-table-row:nth-child(11) { animation-delay: 0.55s; }
+
+        @keyframes tableRowSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* 載入動畫優化 */
+        .modal-spinner {
+            animation: spinnerPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes spinnerPulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        /* 按鈕hover效果優化 */
+        .modal-close-btn {
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform: scale(1);
+        }
+
+        .modal-close-btn:hover {
+            transform: scale(1.1) rotate(90deg);
+            color: #ef4444;
+        }
+
+        /* 背景模糊效果 */
+        .modal-backdrop.show {
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+            background: white;
+            border-radius: 0.75rem;
+            position: relative;
+            width: 90%;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid #e5e7eb;
         }
 
         .modal-backdrop.show {
             display: flex;
         }
 
+        /* 優化刪除模態框的特殊樣式 */
+        .delete-modal-content {
+            animation: slideInDown 0.4s ease-out;
+            max-width: 800px;  /* 從 900px 調整為 720px，提供更多空間 */
+            max-height: 90vh;  /* 從 150vh 調整為 90vh，避免超出視窗 */
+            width: 88%;        /* 從 90% 調整為 88% */
+            background: white;
+            border-radius: 0.875rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            overflow-y: auto;  /* 添加垂直滾动条 */
+            transform-origin: center top;
+        }
+
+        .delete-modal-header {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            padding: 1rem 1.5rem;          /* 從 1.25rem 1.75rem 縮小到 1rem 1.5rem */
+            border-bottom: 3px solid #991b1b;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .delete-modal-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        .delete-modal-body {
+            padding: 1.5rem;              /* 從 1.75rem 縮小到 1.5rem */
+        }
+
+        .delete-modal-footer {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 1rem 1.5rem;         /* 從 1.25rem 1.75rem 縮小到 1rem 1.5rem */
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .danger-warning-box {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 2px solid #fecaca;
+            border-radius: 0.75rem;       /* 從 0.875rem 縮小到 0.75rem */
+            padding: 1rem;                /* 從 1.25rem 縮小到 1rem */
+            margin-bottom: 1rem;          /* 從 1.25rem 縮小到 1rem */
+            position: relative;
+            overflow: hidden;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .danger-warning-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(220, 38, 38, 0.1);  /* 從 0 8px 20px 縮小到 0 6px 16px */
+        }
+
+        .danger-warning-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #dc2626, #ef4444, #dc2626);
+            animation: warningPulse 2s infinite;
+        }
+
+        .member-info-card {
+            background: white;
+            border: 2px solid #fecaca;
+            border-radius: 0.75rem;       /* 從 0.875rem 縮小到 0.75rem */
+            padding: 1rem;                /* 從 1.25rem 縮小到 1rem */
+            margin-bottom: 1rem;          /* 從 1.25rem 縮小到 1rem */
+            box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.1);  /* 從 0 6px 12px 縮小到 0 4px 10px */
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .member-info-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px -2px rgba(0, 0, 0, 0.15);  /* 從 0 8px 16px 縮小到 0 6px 14px */
+        }
+
+        .member-info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.875rem;                /* 從 1rem 縮小到 0.875rem */
+        }
+
+        @media (min-width: 768px) {
+            .member-info-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;                 /* 從 1.25rem 縮小到 1rem */
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .member-info-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .member-info-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 0.75rem;             /* 從 0.875rem 縮小到 0.75rem */
+            background: #f8fafc;
+            border-radius: 0.5rem;        /* 從 0.625rem 縮小到 0.5rem */
+            border-left: 4px solid #e5e7eb;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .member-info-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .member-info-item:hover {
+            background: #f1f5f9;
+            border-left-color: #6b7280;
+            transform: translateX(3px);
+        }
+
+        .member-info-item:hover::before {
+            transform: translateX(100%);
+        }
+
+        .security-confirmation-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border: 2px solid #fcd34d;
+            border-radius: 0.75rem;       /* 從 0.875rem 縮小到 0.75rem */
+            padding: 1rem;                /* 從 1.25rem 縮小到 1rem */
+            position: relative;
+            overflow: hidden;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .security-confirmation-box:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(245, 158, 11, 0.1);  /* 從 0 6px 16px 縮小到 0 5px 14px */
+        }
+
+        .security-confirmation-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #f59e0b, #eab308, #f59e0b);
+            animation: securityPulse 2.5s infinite;
+        }
+
+        .delete-confirm-input {
+            width: 100%;
+            padding: 0.75rem;             /* 從 0.875rem 縮小到 0.75rem */
+            border: 3px solid #fca5a5;
+            border-radius: 0.75rem;       /* 從 0.875rem 縮小到 0.75rem */
+            text-align: center;
+            font-size: 1rem;              /* 從 1.125rem 縮小到 1rem */
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            transition: all 0.4s ease;
+            background: #fefefe;
+            font-family: 'Courier New', monospace;
+        }
+
+        .delete-confirm-input:focus {
+            outline: none;
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+            transform: scale(1.015);
+        }
+
+        .delete-confirm-input.valid {
+            border-color: #10b981;
+            background: #f0fdf4;
+            transform: scale(1.015);
+            animation: successPulse 1s ease-out;
+        }
+
+        .delete-confirm-input.invalid {
+            border-color: #ef4444;
+            background: #fef2f2;
+            animation: shake 0.6s ease-in-out;
+        }
+
+        .delete-button {
+            padding: 0.75rem 2rem;        /* 從 0.875rem 2.25rem 縮小到 0.75rem 2rem */
+            border-radius: 0.75rem;       /* 從 0.875rem 縮小到 0.75rem */
+            font-weight: 600;
+            font-size: 0.9rem;            /* 從 1rem 縮小到 0.9rem */
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;                  /* 從 0.625rem 縮小到 0.5rem */
+            min-width: 140px;             /* 從 160px 縮小到 140px */
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .delete-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all 0.4s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .delete-button:hover::before {
+            width: 240px;                 /* 從 280px 縮小到 240px */
+            height: 240px;                /* 從 280px 縮小到 240px */
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 96%;
+                max-width: none;
+                margin: 1rem;
+            }
+            
+            .delete-modal-content {
+                width: 94%;
+                max-width: none;
+                max-width: 93vw;
+            }
+            
+            .delete-modal-header {
+                padding: 1rem 1.25rem;
+            }
+            
+            .delete-modal-body {
+                padding: 1.25rem;
+            }
+            
+            .delete-modal-footer {
+                padding: 1rem 1.25rem;
+            }
+            
+            .member-info-grid {
+                grid-template-columns: 1fr;
+                gap: 0.875rem;
+            }
+            
+            .delete-button {
+                padding: 0.75rem 1.75rem;
+                min-width: 140px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .delete-modal-content {
+                width: 96%;
+                margin: 0.5rem;
+            }
+            
+            .delete-modal-header {
+                padding: 0.875rem 1rem;
+            }
+            
+            .delete-modal-body {
+                padding: 1rem;
+            }
+            
+            .delete-modal-footer {
+                padding: 0.875rem 1rem;
+                flex-direction: column;
+                gap: 0.625rem;
+            }
+            
+            .delete-button {
+                width: 100%;
+                min-width: auto;
+                font-size: 0.875rem;
+            }
+        }
+
         /* 動畫效果 */
-        @keyframes fadeOutUp {
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes securityPulse {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scaleX(1);
+            }
+            50% { 
+                opacity: 0.8; 
+                transform: scaleX(0.95);
+            }
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1.02); }
+        }
+
+        @keyframes warningPulse {
+            0%, 100% { 
+                opacity: 1; 
+                background: linear-gradient(90deg, #dc2626, #ef4444, #dc2626);
+            }
+            50% { 
+                opacity: 0.7; 
+                background: linear-gradient(90deg, #ef4444, #f87171, #ef4444);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+            20%, 40%, 60%, 80% { transform: translateX(8px); }
+        }
+
+        /* 模態框淡出動畫 */
+        .modal-backdrop.hiding {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
             from {
                 opacity: 1;
-                transform: translateY(0);
             }
             to {
                 opacity: 0;
-                transform: translateY(-20px);
             }
         }
 
-        .fade-out-up {
-            animation: fadeOutUp 0.5s forwards ease-out;
+        .delete-modal-content.hiding {
+            animation: slideOutUp 0.3s ease-in forwards;
         }
 
-        @keyframes warningFadeOut {
+        @keyframes slideOutUp {
             from {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
             to {
                 opacity: 0;
-                transform: translateY(-10px);
+                transform: translateY(-30px) scale(0.95);
             }
-        }
-
-        .warning-fade-out {
-            animation: warningFadeOut 0.5s ease-out forwards;
         }
 
         #username-warning {
@@ -590,36 +1100,36 @@
     </div>
 
     <!-- 會員詳細資訊 Modal -->
-    <div id="memberDetailModal" class="modal-backdrop">
+    <div id="memberDetailModal" class="modal-backdrop member-detail-modal">
         <div class="modal-content p-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold text-[var(--primary-color)]">
                     <i class="fas fa-user mr-2"></i>會員詳細資料
                 </h2>
-                <button type="button" class="text-gray-500 hover:text-gray-700 text-xl" onclick="closeModal('memberDetailModal')">
+                <button type="button" class="modal-close-btn text-gray-500 hover:text-gray-700 text-xl" onclick="closeModal('memberDetailModal')">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div id="modal-spinner" class="text-center my-5">
+            <div id="modal-spinner" class="modal-spinner text-center my-5">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary-color)]"></div>
                 <p class="mt-2 text-gray-500">載入中...</p>
             </div>
-            <div id="modal-table" class="hidden">
+            <div id="modal-table" class="hidden modal-content-loaded">
                 <table class="w-full text-sm">
                     <tbody class="divide-y divide-gray-200">
-                        <tr class="hover:bg-gray-50">
+                        <tr class="modal-table-row hover:bg-gray-50">
                             <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)] w-32">會員編號</th>
                             <td class="py-2 px-3" id="modal-memberId"></td>
                         </tr>
-                        <tr class="hover:bg-gray-50">
+                        <tr class="modal-table-row hover:bg-gray-50">
                             <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">會員姓名</th>
                             <td class="py-2 px-3" id="modal-username"></td>
                         </tr>
-                        <tr class="hover:bg-gray-50">
+                        <tr class="modal-table-row hover:bg-gray-50">
                             <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">登入帳號</th>
                             <td class="py-2 px-3" id="modal-account"></td>
                         </tr>
-                        <tr class="hover:bg-gray-50">
+                        <tr class="modal-table-row hover:bg-gray-50">
                             <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">密碼狀態</th>
                             <td class="py-2 px-3" id="modal-password-status">
                                 <span class="status-badge bg-red-100 text-red-800">
@@ -627,31 +1137,31 @@
                                 </span>
                             </td>
                         </tr>
-                        <tr class="hover:bg-gray-50">
+                        <tr class="modal-table-row hover:bg-gray-50">
                             <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">電子郵件</th>
                             <td class="py-2 px-3" id="modal-email"></td>
                         </tr>
-                        <tr class="hover:bg-gray-50">
+                        <tr class="modal-table-row hover:bg-gray-50">
                             <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">連絡電話</th>
                             <td class="py-2 px-3" id="modal-phone"></td>
                         </tr>
-                        <tr class="hover:bg-gray-50">
+                        <tr class="modal-table-row hover:bg-gray-50">
                             <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">生日</th>
                             <td class="py-2 px-3" id="modal-birthday"></td>
                         </tr>
-                        <tr class="hover:bg-gray-50">
+                        <tr class="modal-table-row hover:bg-gray-50">
                             <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">性別</th>
                             <td class="py-2 px-3" id="modal-gender"></td>
                         </tr>
-                        <tr class="hover:bg-gray-50">
+                        <tr class="modal-table-row hover:bg-gray-50">
                             <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">帳號狀態</th>
                             <td class="py-2 px-3" id="modal-enabled"></td>
                         </tr>
-                        <tr class="hover:bg-gray-50">
+                        <tr class="modal-table-row hover:bg-gray-50">
                             <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">註冊時間</th>
                             <td class="py-2 px-3" id="modal-createdAt"></td>
                         </tr>
-                        <tr class="hover:bg-gray-50">
+                        <tr class="modal-table-row hover:bg-gray-50">
                             <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">最後更新時間</th>
                             <td class="py-2 px-3" id="modal-lastUpdatedAt"></td>
                         </tr>
@@ -668,109 +1178,127 @@
 
     <!-- 強化版刪除確認 Modal -->
     <div id="deleteConfirmModal" class="modal-backdrop">
-        <div class="modal-content p-6 max-w-2xl">
-            <div class="delete-modal-content">
-                <!-- 危險警告標題 -->
-                <div class="bg-gradient-to-r from-red-500 to-red-600 text-white p-4 rounded-t-lg">
-                    <h2 class="text-xl font-bold">
-                        <i class="fas fa-exclamation-triangle mr-2 text-yellow-300"></i>
-                        ⚠️ 危險操作：刪除會員
-                    </h2>
+        <div class="delete-modal-content">
+            <!-- 危險警告標題 -->
+            <div class="delete-modal-header">
+                <h2 class="text-xl font-bold text-white flex items-center relative z-10">
+                    <i class="fas fa-exclamation-triangle mr-2 text-yellow-300"></i>
+                    ⚠️ 危險操作：刪除會員
+                </h2>
+            </div>
+            
+            <!-- 內容區域 -->
+            <div class="delete-modal-body">
+                <!-- 警告提示 -->
+                <div class="danger-warning-box">
+                    <div class="flex items-start">
+                        <i class="fas fa-skull-crossbones text-red-500 text-2xl mr-3 mt-1"></i>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-red-800 mb-2">注意：此操作具有風險！</h3>
+                            <p class="text-red-700 text-sm leading-relaxed">
+                                您即將執行會員刪除操作，此動作會將會員標記為「已刪除」狀態。
+                                刪除後的會員資料可在「已刪除會員」頁面中查看和復原。
+                            </p>
+                        </div>
+                    </div>
                 </div>
                 
-                <!-- 內容區域 -->
-                <div class="p-6">
-                    <!-- 警告提示 -->
-                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                        <div class="flex items-center">
-                            <i class="fas fa-skull-crossbones text-red-500 text-2xl mr-3"></i>
-                            <div>
-                                <h3 class="font-bold text-red-800 mb-1">注意：此操作具有風險！</h3>
-                                <p class="text-red-700">您即將執行會員刪除操作，此動作會將會員標記為「已刪除」狀態。</p>
+                <!-- 會員資訊卡片 -->
+                <div class="member-info-card">
+                    <h3 class="font-semibold text-red-800 mb-3 flex items-center">
+                        <i class="fas fa-user-times mr-2"></i>即將刪除的會員資訊
+                    </h3>
+                    <div class="member-info-grid">
+                        <div class="member-info-item">
+                            <i class="fas fa-id-badge text-blue-500 mr-3 text-lg"></i>
+                            <div class="flex-1">
+                                <span class="text-sm text-gray-600 block">會員編號</span>
+                                <div id="deleteMemberId_display" class="font-semibold text-blue-800 mt-1"></div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- 會員資訊卡片 -->
-                    <div class="bg-white border border-red-200 rounded-lg p-4 mb-4">
-                        <h3 class="font-semibold text-red-800 mb-3">
-                            <i class="fas fa-user-times mr-2"></i>即將刪除的會員資訊
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-2">
-                                <div class="flex items-center">
-                                    <i class="fas fa-id-badge text-blue-500 mr-2"></i>
-                                    <strong>會員編號：</strong>
-                                    <span id="deleteMemberId_display" class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm"></span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-user text-green-500 mr-2"></i>
-                                    <strong>姓名：</strong>
-                                    <span id="deleteMemberName" class="ml-2 font-semibold"></span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-at text-purple-500 mr-2"></i>
-                                    <strong>登入帳號：</strong>
-                                    <span id="deleteMemberAccount" class="ml-2"></span>
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                <div class="flex items-center">
-                                    <i class="fas fa-envelope text-orange-500 mr-2"></i>
-                                    <strong>電子郵件：</strong>
-                                    <span id="deleteMemberEmail" class="ml-2"></span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-phone text-gray-500 mr-2"></i>
-                                    <strong>連絡電話：</strong>
-                                    <span id="deleteMemberPhone" class="ml-2"></span>
-                                </div>
+                        <div class="member-info-item">
+                            <i class="fas fa-user text-green-500 mr-3 text-lg"></i>
+                            <div class="flex-1">
+                                <span class="text-sm text-gray-600 block">姓名</span>
+                                <div id="deleteMemberName" class="font-semibold mt-1"></div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- 安全確認區域 -->
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <h3 class="font-semibold text-yellow-800 mb-3">
-                            <i class="fas fa-shield-alt mr-2"></i>安全確認
-                        </h3>
-                        <p class="text-red-600 mb-3">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            為了防止誤操作，請在下方輸入框中輸入 <code class="bg-red-100 text-red-800 px-2 py-1 rounded">DELETE</code> 來確認此操作：
-                        </p>
-                        
-                        <div class="mb-3">
-                            <label for="deleteConfirmText" class="block font-medium mb-2">
-                                <i class="fas fa-keyboard mr-2"></i>請輸入 "DELETE" (大寫)：
-                            </label>
-                            <input type="text" 
-                                   id="deleteConfirmText" 
-                                   class="w-full px-3 py-2 border-2 border-red-300 rounded-lg text-center text-lg focus:outline-none focus:border-red-500"
-                                   placeholder="請輸入 DELETE 來確認刪除"
-                                   autocomplete="off">
-                            <div id="deleteTextFeedback" class="mt-2"></div>
+                        <div class="member-info-item">
+                            <i class="fas fa-at text-purple-500 mr-3 text-lg"></i>
+                            <div class="flex-1">
+                                <span class="text-sm text-gray-600 block">登入帳號</span>
+                                <div id="deleteMemberAccount" class="font-semibold mt-1"></div>
+                            </div>
                         </div>
-                        
-                        <!-- 確認狀態指示器 -->
-                        <div id="deleteStatusIndicator" class="text-center">
-                            <div class="bg-gray-100 text-gray-700 p-3 rounded-lg">
-                                <i class="fas fa-lock mr-2"></i>
-                                <strong>刪除功能已鎖定</strong> - 請完成安全確認
+                        <div class="member-info-item">
+                            <i class="fas fa-envelope text-orange-500 mr-3 text-lg"></i>
+                            <div class="flex-1">
+                                <span class="text-sm text-gray-600 block">電子郵件</span>
+                                <div id="deleteMemberEmail" class="font-semibold mt-1"></div>
+                            </div>
+                        </div>
+                        <div class="member-info-item">
+                            <i class="fas fa-phone text-gray-500 mr-3 text-lg"></i>
+                            <div class="flex-1">
+                                <span class="text-sm text-gray-600 block">連絡電話</span>
+                                <div id="deleteMemberPhone" class="font-semibold mt-1"></div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- 按鈕區域 -->
-                <div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end gap-3">
-                    <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors" onclick="closeModal('deleteConfirmModal')">
+                <!-- 安全確認區域 -->
+                <div class="security-confirmation-box">
+                    <h3 class="font-semibold text-yellow-800 mb-3 flex items-center">
+                        <i class="fas fa-shield-alt mr-2"></i>安全確認
+                    </h3>
+                    <div class="text-red-600 mb-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle mt-1 mr-2"></i>
+                            <p class="text-sm leading-relaxed">
+                                為了防止誤操作，請在下方輸入框中輸入 
+                                <code class="bg-red-100 text-red-800 px-2 py-1 rounded font-mono">DELETE</code> 
+                                來確認此操作
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="deleteConfirmText" class="block font-medium mb-2 flex items-center">
+                            <i class="fas fa-keyboard mr-2"></i>請輸入 "DELETE" (大寫)：
+                        </label>
+                        <input type="text" 
+                               id="deleteConfirmText" 
+                               class="delete-confirm-input"
+                               placeholder="請輸入 DELETE 來確認刪除"
+                               autocomplete="off"
+                               spellcheck="false">
+                        <div id="deleteTextFeedback" class="mt-2"></div>
+                    </div>
+                    
+                    <!-- 確認狀態指示器 -->
+                    <div id="deleteStatusIndicator" class="text-center">
+                        <div class="bg-gray-100 text-gray-700 p-3 rounded-lg">
+                            <i class="fas fa-lock mr-2"></i>
+                            <strong>刪除功能已鎖定</strong> - 請完成安全確認
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 按鈕區域 -->
+            <div class="delete-modal-footer">
+                <div class="flex justify-end gap-4">
+                    <button type="button" 
+                            class="delete-button cancel-button" 
+                            onclick="closeModal('deleteConfirmModal')">
                         <i class="fas fa-times mr-2"></i>取消
                     </button>
                     <form id="deleteMemberForm" method="post" th:action="@{/member/delete}" style="display: inline;">
                         <input type="hidden" name="memberId" id="deleteMemberId" />
                         <button type="submit" 
                                 id="confirmDeleteBtn" 
-                                class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" 
+                                class="delete-button confirm-delete-button" 
                                 disabled>
                             <i class="fas fa-trash-alt mr-2"></i>
                             <span id="deleteButtonText">刪除會員 (已鎖定)</span>
@@ -807,6 +1335,11 @@
             if (modal) {
                 modal.classList.remove('show');
                 modal.style.display = 'none';
+                
+                // 如果是刪除確認模態框，重置狀態
+                if (modalId === 'deleteConfirmModal') {
+                    resetDeleteConfirmationState();
+                }
             }
         }
 
@@ -815,8 +1348,29 @@
             if (modal) {
                 modal.style.display = 'flex';
                 modal.classList.add('show');
+                
+                // 添加點擊背景關閉功能
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeModal(modalId);
+                    }
+                });
             }
         }
+
+        // 添加 ESC 鍵關閉功能
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                // 關閉所有打開的模態框
+                const modals = ['memberDetailModal', 'deleteConfirmModal'];
+                modals.forEach(modalId => {
+                    const modal = document.getElementById(modalId);
+                    if (modal && modal.classList.contains('show')) {
+                        closeModal(modalId);
+                    }
+                });
+            }
+        });
     </script>
 
     <!-- 會員詳細資訊功能的 JavaScript -->
