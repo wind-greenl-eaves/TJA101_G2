@@ -991,32 +991,49 @@
                         <table class="w-full text-center text-sm">
                             <thead class="bg-[var(--table-header-bg)] font-medium">
                                 <tr>
-                                    <th class="p-3">會員編號</th>
-                                    <th class="p-3">會員姓名</th>
-                                    <th class="p-3">登入帳號</th>
-                                    <th class="p-3">電子郵件</th>
-                                    <th class="p-3">連絡電話</th>
-                                    <th class="p-3">操作</th>
+                                    <th class="py-2 px-3 w-20">會員編號</th>
+                                    <th class="py-2 px-3 w-16">性別</th>
+                                    <th class="py-2 px-3 w-24">會員姓名</th>
+                                    <th class="py-2 px-3 w-28">登入帳號</th>
+                                    <th class="py-2 px-3 w-48">電子郵件</th>
+                                    <th class="py-2 px-3 w-32">連絡電話</th>
+                                    <th class="py-2 px-3 w-24">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr th:each="member : ${memberListData}" 
                                     th:data-member-id="${member.memberId}" 
                                     class="member-row border-b border-gray-200 hover:bg-[var(--table-header-bg)] cursor-pointer">
-                                    <td class="p-3" th:text="${member.memberId}"></td>
-                                    <td class="p-3" th:text="${member.username}"></td>
-                                    <td class="p-3" th:text="${member.account}"></td>
-                                    <td class="p-3" th:text="${member.email}"></td>
-                                    <td class="p-3" th:text="${member.phone}"></td>
-                                    <td class="p-3">
-                                        <div class="flex justify-center gap-2">
+                                    <td class="py-2 px-3" th:text="${member.memberId}"></td>
+                                    <td class="py-2 px-3">
+                                        <span th:switch="${member.gender.name()}">
+                                            <span th:case="'M'" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <i class="fas fa-mars mr-1"></i>男
+                                            </span>
+                                            <span th:case="'F'" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
+                                                <i class="fas fa-venus mr-1"></i>女
+                                            </span>
+                                            <span th:case="'O'" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                <i class="fas fa-genderless mr-1"></i>其他
+                                            </span>
+                                            <span th:case="*" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                                                <i class="fas fa-question mr-1"></i>未知
+                                            </span>
+                                        </span>
+                                    </td>
+                                    <td class="py-2 px-3" th:text="${member.username}"></td>
+                                    <td class="py-2 px-3" th:text="${member.account}"></td>
+                                    <td class="py-2 px-3" th:text="${member.email}"></td>
+                                    <td class="py-2 px-3" th:text="${member.phone}"></td>
+                                    <td class="py-2 px-3">
+                                        <div class="flex justify-center gap-1">
                                             <form method="post" th:action="@{/member/getOne_For_Update}" style="display: inline;">
                                                 <input type="hidden" name="memberId" th:value="${member.memberId}" />
-                                                <button type="submit" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
+                                                <button type="submit" class="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-xs">
                                                     <i class="fas fa-edit mr-1"></i>修改
                                                 </button>
                                             </form>
-                                            <button type="button" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors" 
+                                            <button type="button" class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-xs" 
                                                     onclick="showDeleteConfirmModal(this)"
                                                     th:data-member-id="${member.memberId}"
                                                     th:data-member-name="${member.username}"
