@@ -235,15 +235,57 @@ public class MemberController {
     }
     
     /**
-     * 【功能】: 顯示所有會員列表頁 (簡化版，無分頁)。
+     * 【功能】: 顯示所有會員列表頁 (支援分頁)。
      * 【請求路徑】: 處理 GET /member/select_page 請求。
      */
     @GetMapping("/select_page")
-    public String showSelectPage(Model model) {
-        // 【業務邏輯路徑】: 直接呼叫 Service 方法獲取所有會員的列表。
-        List<MemberEntity> memberList = memberService.getAllMembers();
-        // 【資料流路徑】: 將列表資料放入 Model，供前端模板 (e.g., th:each) 使用。
+    public String showSelectPage(@RequestParam(defaultValue = "1") int page,
+                                @RequestParam(defaultValue = "10") int size,
+                                Model model) {
+        
+        // 驗證分頁參數
+        if (page < 1) page = 1;
+        if (size < 1) size = 10;
+        if (size > 50) size = 50;
+        
+        // 【業務邏輯路徑】: 呼叫 Service 方法獲取所有會員的列表。
+        List<MemberEntity> allMembers = memberService.getAllMembers();
+        
+        // 手動實作分頁邏輯
+        int totalElements = allMembers.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        
+        // 計算開始和結束索引
+        int startIndex = (page - 1) * size;
+        int endIndex = Math.min(startIndex + size, totalElements);
+        
+        List<MemberEntity> memberList = new ArrayList<>();
+        if (startIndex < totalElements) {
+            memberList = allMembers.subList(startIndex, endIndex);
+        }
+        
+        // 【資料流路徑】: 將列表資料放入 Model，供前端模板使用。
         model.addAttribute("memberListData", memberList);
+        
+        // 分頁資訊
+        model.addAttribute("currentPage", page);
+        model.addAttribute("pageSize", size);
+        model.addAttribute("totalElements", totalElements);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("hasNext", page < totalPages);
+        model.addAttribute("hasPrevious", page > 1);
+        
+        // 計算顯示範圍
+        int displayStart = startIndex + 1;
+        int displayEnd = endIndex;
+        model.addAttribute("displayStart", displayStart);
+        model.addAttribute("displayEnd", displayEnd);
+        
+        // 為了讓分頁控制器能正確處理，添加一個空的搜尋參數
+        model.addAttribute("searchParams", new HashMap<>());
+        
+        log.info("顯示所有會員列表，總共 {} 筆資料，目前第 {} 頁，每頁 {} 筆", totalElements, page, size);
+        
         // 【視圖路徑】: 返回列表頁的模板名稱。
         return MemberViewConstants.VIEW_SELECT_PAGE;
     }
@@ -1521,7 +1563,7 @@ public class MemberController {
     }
 
     /**
-     * 【功能】: 處理複合查詢請求，根據多個條件查詢會員
+     * 【功能】: 處理複合查詢請求，根據多個條件查詢會員 (支援分頁)
      * 【請求路徑】: 處理 POST /member/listMembers_ByCompositeQuery 請求
      */
     @PostMapping("/listMembers_ByCompositeQuery")
@@ -1537,21 +1579,79 @@ public class MemberController {
             String email = params.get("email");
             String phone = params.get("phone");
             
-            // 呼叫 Service 層執行複合查詢
-            List<MemberEntity> memberList = memberService.findMembersByCompositeQuery(username, email, phone);
+            // 分頁參數
+            String pageStr = params.get("page");
+            String sizeStr = params.get("size");
             
-            // 將查詢結果和查詢參數都傳遞給視圖
+            int page = 1; // 預設第1頁
+            int size = 10; // 預設每頁10筆
+            
+            try {
+                if (pageStr != null && !pageStr.trim().isEmpty()) {
+                    page = Integer.parseInt(pageStr);
+                    if (page < 1) page = 1;
+                }
+                if (sizeStr != null && !sizeStr.trim().isEmpty()) {
+                    size = Integer.parseInt(sizeStr);
+                    if (size < 1) size = 10;
+                    // 限制每頁最多顯示數量
+                    if (size > 50) size = 50;
+                }
+            } catch (NumberFormatException e) {
+                log.warn("分頁參數格式錯誤，使用預設值");
+            }
+            
+            // 呼叫 Service 層執行複合查詢（先取得全部結果）
+            List<MemberEntity> allMembers = memberService.findMembersByCompositeQuery(username, email, phone);
+            
+            // 手動實作分頁邏輯
+            int totalElements = allMembers.size();
+            int totalPages = (int) Math.ceil((double) totalElements / size);
+            
+            // 計算開始和結束索引
+            int startIndex = (page - 1) * size;
+            int endIndex = Math.min(startIndex + size, totalElements);
+            
+            List<MemberEntity> memberList = new ArrayList<>();
+            if (startIndex < totalElements) {
+                memberList = allMembers.subList(startIndex, endIndex);
+            }
+            
+            // 將查詢結果和分頁資訊傳遞給視圖
             model.addAttribute("memberListData", memberList);
             model.addAttribute("searchParams", convertToSearchParamsMap(params));
             
-            // 添加查詢結果統計訊息
-            if (memberList.isEmpty()) {
-                model.addAttribute("infoMessage", "沒有找到符合條件的會員資料");
-            } else {
-                model.addAttribute("successMessage", "找到 " + memberList.size() + " 筆符合條件的會員資料");
+            // 分頁資訊
+            model.addAttribute("currentPage", page);
+            model.addAttribute("pageSize", size);
+            model.addAttribute("totalElements", totalElements);
+            model.addAttribute("totalPages", totalPages);
+            model.addAttribute("hasNext", page < totalPages);
+            model.addAttribute("hasPrevious", page > 1);
+            
+            // 計算顯示範圍
+            int displayStart = startIndex + 1;
+            int displayEnd = endIndex;
+            model.addAttribute("displayStart", displayStart);
+            model.addAttribute("displayEnd", displayEnd);
+            
+            // 只在首次查詢時顯示查詢結果統計訊息（非分頁切換）
+            // 通過檢查是否有查詢條件來判斷是否為首次查詢
+            boolean isFirstQuery = page == 1 && (
+                (username != null && !username.trim().isEmpty()) ||
+                (email != null && !email.trim().isEmpty()) ||
+                (phone != null && !phone.trim().isEmpty())
+            );
+            
+            if (isFirstQuery) {
+                if (totalElements == 0) {
+                    model.addAttribute("infoMessage", "沒有找到符合條件的會員資料");
+                } else {
+                    model.addAttribute("successMessage", "找到 " + totalElements + " 筆符合條件的會員資料，目前顯示第 " + displayStart + "-" + displayEnd + " 筆");
+                }
             }
             
-            log.info("複合查詢完成，找到 {} 筆資料", memberList.size());
+            log.info("複合查詢完成，總共找到 {} 筆資料，目前第 {} 頁，每頁 {} 筆", totalElements, page, size);
             
         } catch (Exception e) {
             log.error("複合查詢執行失敗: {}", e.getMessage(), e);

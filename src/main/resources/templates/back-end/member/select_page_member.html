@@ -1,48 +1,72 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>會員資料管理 - 溫馨奶茶風</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會員資料管理 - 早餐店後台</title>
 
-    <!-- 引入 Bootstrap CSS -->
-    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
-    <!-- 引入 Font Awesome 提供圖示 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <!-- 引入 Google Fonts 提供更柔和的字體 -->
+    <!-- 外部函式庫 -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- 引入外部自定義的 CSS 檔案 -->
+    <link rel="stylesheet" th:href="@{/css/member/member-styles.css}">
 
-    <!-- 連結到外部的 CSS 樣式檔案 -->
-    <link rel="stylesheet" th:href="@{/css/member/style.css}" />
-
-    <!-- 關閉按鈕與動畫的 CSS -->
+    <!-- 自定義樣式 -->
     <style>
-        .card-header {
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #F5EFE6;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --table-header-bg: #EFEBE2;
+            --milk-tea-success: #70916b;
+            --milk-tea-danger: #d63031;
+            --milk-tea-info: #6c5ce7;
+            --milk-tea-bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            max-height: 85vh;
+            overflow-y: auto;
+            background: white;
+            border-radius: 0.5rem;
             position: relative;
+            width: 90%;
+            max-width: 800px;
         }
-        .close-btn {
-            position: absolute;
-            top: 50%;
-            right: 1rem;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            line-height: 1;
-            opacity: 0.7;
-            text-shadow: none;
-            padding: 0;
-            cursor: pointer;
-            transition: opacity 0.2s ease;
+
+        .modal-backdrop.show {
+            display: flex;
         }
-        .close-btn:hover {
-            opacity: 1;
-        }
-        
+
+        /* 動畫效果 */
         @keyframes fadeOutUp {
             from {
                 opacity: 1;
@@ -120,259 +144,408 @@
             pointer-events: none;
             opacity: 0.7;
         }
-    </style>
 
+        .member-row:hover {
+            background-color: var(--table-header-bg);
+            cursor: pointer;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .gender-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .gender-m {
+            background-color: #cfe2ff;
+            color: #084298;
+        }
+
+        .gender-f {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .gender-o {
+            background-color: #e2e3e5;
+            color: #41464b;
+        }
+    </style>
 </head>
 
-<body>
+<body class="antialiased">
 
-    <!-- 頂部導航欄 -->
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" th:href="@{/member/select_page}">
-                <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" width="40" height="40" class="mr-3">
-                <span style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 會員資料管理</span>
-            </a>
-            <a class="btn btn-outline-light" th:href="@{/employee/select_page}">
-                <i class="fas fa-home"></i> 員工管理首頁
-            </a>
-        </div>
-    </nav>
-
-    <div class="container mt-4">
+    <div class="container mx-auto my-8 px-4">
+        <!-- 頂部標題與按鈕 -->
+        <header class="flex justify-between items-center p-4 bg-[var(--container-bg)] border border-[var(--border-color)] rounded-xl shadow-sm mb-4">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center">
+                    <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" class="w-8 h-8 mr-2">
+                    <h3 class="text-xl font-bold">早餐店後台 - 會員資料管理</h3>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <a th:href="@{/member/addMember}" class="bg-[var(--primary-color)] text-white font-semibold py-2 px-5 rounded-lg hover:bg-[var(--primary-hover)] transition-colors">
+                    <i class="fas fa-plus-circle mr-2"></i>新增會員
+                </a>
+                <a th:href="@{/member/deleted}" class="bg-gray-500 text-white font-semibold py-2 px-5 rounded-lg hover:bg-gray-600 transition-colors">
+                    <i class="fas fa-trash-restore mr-2"></i>已刪除會員
+                </a>
+                <a th:href="@{/employee/select_page}" class="bg-gray-200 text-[var(--text-color)] font-semibold py-2 px-5 rounded-lg hover:bg-gray-300 transition-colors">
+                    <i class="fas fa-home mr-2"></i>員工管理首頁
+                </a>
+            </div>
+        </header>
 
         <!-- 訊息顯示區 -->
-        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
-            <i class="fas fa-exclamation-circle"></i> <span th:utext="${errorMessage}"></span>
+        <div th:if="${errorMessage}" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <i class="fas fa-exclamation-circle mr-2"></i><span th:utext="${errorMessage}"></span>
         </div>
-        <div th:if="${successMessage}" class="alert alert-success" role="alert" style="background-color: var(--milk-tea-success); color: white; border-color: #70916b;">
-            <i class="fas fa-check-circle"></i> <span th:utext="${successMessage}"></span>
+        <div th:if="${successMessage}" class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+            <i class="fas fa-check-circle mr-2"></i><span th:utext="${successMessage}"></span>
         </div>
 
-        <div class="row">
-
-            <!-- 左側：查詢與管理功能區 -->
-            <div class="col-lg-4">
-                 <!-- 單一條件查詢卡片 -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fas fa-search"></i> 單一條件查詢
-                    </div>
-                    <div class="card-body">
-                        <form method="post" th:action="@{/member/getOneForDisplay}" class="mb-3">
-                            <div class="form-group">
-                                <label for="account">輸入會員登入帳號:</label>
-                                <input type="text" id="account" name="account" class="form-control" th:value="${param.account}">
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-paper-plane"></i> 送出查詢</button>
-                        </form>
-                        <hr>
-                        <form method="post" th:action="@{/member/getOneForDisplay}" th:if="${memberListData != null}">
-                            <div class="form-group">
-                                <label for="accountSelect">選擇會員姓名:</label>
-                                <select id="accountSelect" name="account" class="form-control">
-                                     <option th:each="member : ${memberListData}" th:value="${member.account}" th:text="${member.username} + ' (' + ${member.account} + ')'" />
+        <!-- 主要內容區域 -->
+        <div class="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4">
+            <!-- 左側查詢區塊 -->
+            <div class="space-y-4">
+                <!-- 單一條件查詢卡片 -->
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <h3 class="text-lg font-semibold mb-4 text-[var(--primary-color)]">
+                        <i class="fas fa-search mr-2"></i>單一條件查詢
+                    </h3>
+                    <form method="post" th:action="@{/member/getOneForDisplay}" class="space-y-4">
+                        <div>
+                            <label for="account" class="block text-sm font-medium mb-1">會員登入帳號</label>
+                            <input type="text" id="account" name="account" class="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg focus:outline-none focus:border-[var(--primary-color)]" th:value="${param.account}">
+                        </div>
+                        <button type="submit" class="w-full bg-[var(--primary-color)] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[var(--primary-hover)] transition-colors">
+                            <i class="fas fa-paper-plane mr-2"></i>送出查詢
+                        </button>
+                    </form>
+                    
+                    <div th:if="${memberListData != null}" class="mt-4 pt-4 border-t border-[var(--border-color)]">
+                        <form method="post" th:action="@{/member/getOneForDisplay}">
+                            <div class="mb-3">
+                                <label for="accountSelect" class="block text-sm font-medium mb-1">選擇會員姓名</label>
+                                <select id="accountSelect" name="account" class="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg focus:outline-none focus:border-[var(--primary-color)]">
+                                    <option th:each="member : ${memberListData}" th:value="${member.account}" th:text="${member.username} + ' (' + ${member.account} + ')'" />
                                 </select>
                             </div>
-                            <button type="submit" class="btn btn-info btn-block"><i class="fas fa-hand-pointer"></i> 選擇查詢</button>
+                            <button type="submit" class="w-full bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-hand-pointer mr-2"></i>選擇查詢
+                            </button>
                         </form>
                     </div>
                 </div>
 
                 <!-- 複合查詢卡片 -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fas fa-filter"></i> 萬用複合查詢
-                    </div>
-                    <div class="card-body">
-                        <form method="post" id="composite-query-form" th:action="@{/member/listMembers_ByCompositeQuery}" class="needs-validation" novalidate>
-                            <div class="form-group">
-                                <label for="username">會員姓名 (模糊):</label>
-                                <!-- ★★★★★【最終修正】: 改為讀取從 Controller 明確傳來的 searchParams 物件 ★★★★★ -->
-                                <input type="text" id="username" name="username" class="form-control"
-                                       th:value="${searchParams != null and searchParams.get('username') != null} ? ${searchParams.get('username')[0]} : ''"
-                                       pattern="^[\u4e00-\u9fa5]*$"
-                                       maxlength="20"
-                                       title="請輸入中文姓名（最多20個字）"
-                                       placeholder="可輸入部分中文姓名">
-                                <div class="invalid-feedback">
-                                    請只輸入中文字。
-                                </div>
-                                <div id="username-warning" class="mt-1" style="display: none; color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; padding: 0.5rem; border-radius: 0.25rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                    <i class="fas fa-keyboard"></i> 請使用中文輸入法
-                                </div>
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <h3 class="text-lg font-semibold mb-4 text-[var(--primary-color)]">
+                        <i class="fas fa-filter mr-2"></i>萬用複合查詢
+                        <br>	
+                        <i  class="ff"></i>清除欄位可搜尋所有會員
+                    </h3>
+                    <form method="post" id="composite-query-form" th:action="@{/member/listMembers_ByCompositeQuery}" class="space-y-4 needs-validation" novalidate>
+                        <div>
+                            <label for="username" class="block text-sm font-medium mb-1">會員姓名 (模糊)</label>
+                            <input type="text" id="username" name="username" class="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg focus:outline-none focus:border-[var(--primary-color)]"
+                                   th:value="${searchParams != null and searchParams.get('username') != null} ? ${searchParams.get('username')[0]} : ''"
+                                   pattern="^[\u4e00-\u9fa5]*$"
+                                   maxlength="20"
+                                   title="請輸入中文姓名（最多20個字）"
+                                   placeholder="可輸入部分中文姓名">
+                            <div class="invalid-feedback text-red-500 text-sm hidden">
+                                請只輸入中文字。
                             </div>
-                            <div class="form-group">
-                                <label for="email">電子郵件 (精確):</label>
-                                <!-- ★★★★★【最終修正】: 改為讀取從 Controller 明確傳來的 searchParams 物件 ★★★★★ -->
-                                <input type="email" id="email" name="email" class="form-control"
-                                       th:value="${searchParams != null and searchParams.get('email') != null} ? ${searchParams.get('email')[0]} : ''"
-                                       title="請輸入有效的電子郵件地址"
-                                       placeholder="例如: user@example.com">
-                                <div class="invalid-feedback">
-                                    請輸入有效的電子郵件地址。
-                                </div>
+                            <div id="username-warning" class="mt-1 hidden p-2 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
+                                <i class="fas fa-keyboard mr-1"></i>請使用中文輸入法
                             </div>
-                            <div class="form-group">
-                                <label for="phone">連絡電話 (模糊):</label>
-                                <!-- ★★★★★【最終修正】: 改為讀取從 Controller 明確傳來的 searchParams 物件 ★★★★★ -->
-                                <input type="tel" id="phone" name="phone" class="form-control"
-                                       th:value="${searchParams != null and searchParams.get('phone') != null} ? ${searchParams.get('phone')[0]} : ''"
-                                       pattern="^[0-9-]*$"
-                                       title="電話號碼只能包含數字和橫線(-)"
-                                       placeholder="可輸入部分電話號碼">
-                                <div class="invalid-feedback">
-                                    電話號碼格式不正確，只能包含數字和橫線(-)。
-                                </div>
+                        </div>
+                        
+                        <div>
+                            <label for="email" class="block text-sm font-medium mb-1">電子郵件 (精確)</label>
+                            <input type="email" id="email" name="email" class="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg focus:outline-none focus:border-[var(--primary-color)]"
+                                   th:value="${searchParams != null and searchParams.get('email') != null} ? ${searchParams.get('email')[0]} : ''"
+                                   title="請輸入有效的電子郵件地址"
+                                   placeholder="例如: user@example.com">
+                            <div class="invalid-feedback text-red-500 text-sm hidden">
+                                請輸入有效的電子郵件地址。
                             </div>
-                            <button type="submit" class="btn btn-success btn-block"><i class="fas fa-check-double"></i> 執行複合查詢</button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- 新增會員入口 -->
-                 <div class="card">
-                    <div class="card-header">
-                        <i class="fas fa-user-plus"></i> 會員管理
-                    </div>
-                    <div class="card-body">
-                        <a th:href="@{/member/addMember}" class="btn btn-warning btn-block font-weight-bold mb-2">
-                           <i class="fas fa-plus-circle"></i> 新增會員資料
-                        </a>
-                        <a th:href="@{/member/deleted}" class="btn btn-secondary btn-block font-weight-bold">
-                           <i class="fas fa-trash-restore"></i> 查看已刪除會員
-                        </a>
-                    </div>
+                        </div>
+                        
+                        <div>
+                            <label for="phone" class="block text-sm font-medium mb-1">連絡電話 (模糊)</label>
+                            <input type="tel" id="phone" name="phone" class="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg focus:outline-none focus:border-[var(--primary-color)]"
+                                   th:value="${searchParams != null and searchParams.get('phone') != null} ? ${searchParams.get('phone')[0]} : ''"
+                                   pattern="^[0-9-]*$"
+                                   title="電話號碼只能包含數字和橫線(-)"
+                                   placeholder="可輸入部分電話號碼">
+                            <div class="invalid-feedback text-red-500 text-sm hidden">
+                                電話號碼格式不正確，只能包含數字和橫線(-)。
+                            </div>
+                        </div>
+                        
+                        <!-- 分頁參數隱藏欄位 -->
+                        <input type="hidden" id="page" name="page" value="1">
+                        <input type="hidden" id="size" name="size" value="10">
+                        
+                        <button type="submit" class="w-full bg-green-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">
+                            <i class="fas fa-check-double mr-2"></i>執行複合查詢
+                        </button>
+                    </form>
                 </div>
             </div>
 
-            <!-- 右側：查詢結果顯示區 -->
-            <div class="col-lg-8">
-                
+            <!-- 右側資料顯示區域 -->
+            <div class="space-y-4">
                 <!-- 單一查詢結果顯示區 -->
-                <div id="single-result-card" class="card" th:if="${member != null}">
-                    <div class="card-header" style="background-color: var(--milk-tea-info);">
-                        <i class="fas fa-user"></i> 單筆查詢結果
-                        <button type="button" class="close-btn" aria-label="Close"
+                <div id="single-result-card" class="bg-white rounded-lg shadow-md" th:if="${member != null}">
+                    <div class="bg-[var(--primary-color)] text-white p-4 rounded-t-lg flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">
+                            <i class="fas fa-user mr-2"></i>單筆查詢結果
+                        </h3>
+                        <button type="button" class="text-white hover:text-gray-200 text-xl" aria-label="Close"
                                 th:onclick="'closeSingleResultCard(\'' + @{/member/select_page} + '\')'">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <div class="card-body">
-                        <table class="table table-bordered table-hover">
-                            <tbody>
-                                <tr>
-                                    <th scope="row" style="width: 150px; background-color: var(--milk-tea-bg);">會員編號</th>
-                                    <td th:text="${member.memberId}"></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" style="background-color: var(--milk-tea-bg);">會員姓名</th>
-                                    <td th:text="${member.username}"></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" style="background-color: var(--milk-tea-bg);">登入帳號</th>
-                                    <td th:text="${member.account}"></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" style="background-color: var(--milk-tea-bg);">密碼狀態</th>
-                                    <td>
-                                        <span class="badge badge-danger" style="font-size: 0.9rem; padding: 0.4em 0.6em;">
-                                            <i class="fas fa-exclamation-triangle"></i> 密碼已加密保護
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" style="background-color: var(--milk-tea-bg);">電子郵件</th>
-                                    <td th:text="${member.email}"></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" style="background-color: var(--milk-tea-bg);">連絡電話</th>
-                                    <td th:text="${member.phone}"></td>
-                                </tr>
-                                 <tr>
-                                    <th scope="row" style="background-color: var(--milk-tea-bg);">生日</th>
-                                    <td th:text="${#temporals.format(member.birthday, 'yyyy-MM-dd')}"></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" style="background-color: var(--milk-tea-bg);">性別</th>
-                                    <td>
-                                        <span th:switch="${member.gender.name()}"> <!-- 使用 .name() 取得 Enum 名稱 -->
-                                            <span th:case="'M'"><i class="fas fa-mars"></i> 男性</span>
-                                            <span th:case="'F'"><i class="fas fa-venus"></i> 女性</span>
-                                            <span th:case="'O'"><i class="fas fa-genderless"></i> 其他</span>
-                                            <span th:case="*">未知</span>
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" style="background-color: var(--milk-tea-bg);">帳號狀態</th>
-                                    <td>
-                                        <span th:if="${member.isEnabled}" class="badge" style="background-color: var(--milk-tea-success); color: white; font-size: 0.9rem; padding: 0.4em 0.6em;">
-                                            <i class="fas fa-check-circle"></i> 啟用中
-                                        </span>
-                                        <span th:unless="${member.isEnabled}" class="badge" style="background-color: var(--milk-tea-danger); color: white; font-size: 0.9rem; padding: 0.4em 0.6em;">
-                                            <i class="fas fa-times-circle"></i> 已停用
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" style="background-color: var(--milk-tea-bg);">註冊時間</th>
-                                    <td th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
-                                </tr>
-                                 <tr>
-                                    <th scope="row" style="background-color: var(--milk-tea-bg);">最後更新時間</th>
-                                    <td th:text="${member.lastUpdatedAt} ? ${#temporals.format(member.lastUpdatedAt, 'yyyy-MM-dd HH:mm:ss')} : '尚未更新過'"></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="p-4">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr class="hover:bg-gray-50">
+                                        <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)] w-32">會員編號</th>
+                                        <td class="py-2 px-3" th:text="${member.memberId}"></td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">會員姓名</th>
+                                        <td class="py-2 px-3" th:text="${member.username}"></td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">登入帳號</th>
+                                        <td class="py-2 px-3" th:text="${member.account}"></td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">密碼狀態</th>
+                                        <td class="py-2 px-3">
+                                            <span class="status-badge bg-red-100 text-red-800">
+                                                <i class="fas fa-exclamation-triangle mr-1"></i>密碼已加密保護
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">電子郵件</th>
+                                        <td class="py-2 px-3" th:text="${member.email}"></td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">連絡電話</th>
+                                        <td class="py-2 px-3" th:text="${member.phone}"></td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">生日</th>
+                                        <td class="py-2 px-3" th:text="${#temporals.format(member.birthday, 'yyyy-MM-dd')}"></td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">性別</th>
+                                        <td class="py-2 px-3">
+                                            <span th:switch="${member.gender.name()}">
+                                                <span th:case="'M'" class="gender-badge gender-m">
+                                                    <i class="fas fa-mars mr-1"></i>男性
+                                                </span>
+                                                <span th:case="'F'" class="gender-badge gender-f">
+                                                    <i class="fas fa-venus mr-1"></i>女性
+                                                </span>
+                                                <span th:case="'O'" class="gender-badge gender-o">
+                                                    <i class="fas fa-genderless mr-1"></i>其他
+                                                </span>
+                                                <span th:case="*">未知</span>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">帳號狀態</th>
+                                        <td class="py-2 px-3">
+                                            <span th:if="${member.isEnabled}" class="status-badge status-active">
+                                                <i class="fas fa-check-circle mr-1"></i>啟用中
+                                            </span>
+                                            <span th:unless="${member.isEnabled}" class="status-badge status-inactive">
+                                                <i class="fas fa-times-circle mr-1"></i>已停用
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">註冊時間</th>
+                                        <td class="py-2 px-3" th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">最後更新時間</th>
+                                        <td class="py-2 px-3" th:text="${member.lastUpdatedAt} ? ${#temporals.format(member.lastUpdatedAt, 'yyyy-MM-dd HH:mm:ss')} : '尚未更新過'"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
                 <!-- 列表查詢結果顯示區 -->
-                <div class="card" th:if="${memberListData != null and not #lists.isEmpty(memberListData)}">
-                    <div class="card-header">
-                        <i class="fas fa-users"></i> 會員列表
+                <div class="bg-white rounded-lg shadow-md" th:if="${memberListData != null and not #lists.isEmpty(memberListData)}">
+                    <div class="bg-[var(--primary-color)] text-white p-4 rounded-t-lg">
+                        <h3 class="text-lg font-semibold">
+                            <i class="fas fa-users mr-2"></i>會員列表
+                            <span th:if="${totalElements != null}" class="text-sm font-normal ml-2">
+                                (共 <span th:text="${totalElements}">0</span> 筆)
+                            </span>
+                        </h3>
                     </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>會員編號</th>
-                                        <th>會員姓名</th>
-                                        <th>登入帳號</th>
-                                        <th>電子郵件</th>
-                                        <th>連絡電話</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr th:each="member : ${memberListData}" th:data-member-id="${member.memberId}" style="cursor: pointer;" class="member-row">
-                                        <td th:text="${member.memberId}"></td>
-                                        <td th:text="${member.username}"></td>
-                                        <td th:text="${member.account}"></td>
-                                        <td th:text="${member.email}"></td>
-                                        <td th:text="${member.phone}"></td>
-                                        <td>
+                    
+                    <!-- 分頁控制區 (在表格上方) -->
+                    <div th:if="${totalElements != null and totalElements > 0}" class="p-4 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-gray-600">
+                                顯示第 <span th:text="${displayStart}" class="font-medium text-[var(--primary-color)]">1</span> - 
+                                <span th:text="${displayEnd}" class="font-medium text-[var(--primary-color)]">10</span> 筆，
+                                共 <span th:text="${totalElements}" class="font-medium text-[var(--primary-color)]">0</span> 筆資料
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label for="pageSizeSelect" class="text-sm text-gray-600">每頁顯示：</label>
+                                <select id="pageSizeSelect" class="px-2 py-1 border border-[var(--border-color)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary-color)]">
+                                    <option value="5" th:selected="${pageSize == 5}">5</option>
+                                    <option value="10" th:selected="${pageSize == 10}">10</option>
+                                    <option value="15" th:selected="${pageSize == 15}">15</option>
+                                </select>
+                                <span class="text-sm text-gray-600">筆</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-center text-sm">
+                            <thead class="bg-[var(--table-header-bg)] font-medium">
+                                <tr>
+                                    <th class="p-3">會員編號</th>
+                                    <th class="p-3">會員姓名</th>
+                                    <th class="p-3">登入帳號</th>
+                                    <th class="p-3">電子郵件</th>
+                                    <th class="p-3">連絡電話</th>
+                                    <th class="p-3">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="member : ${memberListData}" 
+                                    th:data-member-id="${member.memberId}" 
+                                    class="member-row border-b border-gray-200 hover:bg-[var(--table-header-bg)] cursor-pointer">
+                                    <td class="p-3" th:text="${member.memberId}"></td>
+                                    <td class="p-3" th:text="${member.username}"></td>
+                                    <td class="p-3" th:text="${member.account}"></td>
+                                    <td class="p-3" th:text="${member.email}"></td>
+                                    <td class="p-3" th:text="${member.phone}"></td>
+                                    <td class="p-3">
+                                        <div class="flex justify-center gap-2">
                                             <form method="post" th:action="@{/member/getOne_For_Update}" style="display: inline;">
                                                 <input type="hidden" name="memberId" th:value="${member.memberId}" />
-                                                <button type="submit" class="btn btn-sm btn-success">
-                                                    <i class="fas fa-edit"></i> 修改
+                                                <button type="submit" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
+                                                    <i class="fas fa-edit mr-1"></i>修改
                                                 </button>
                                             </form>
-                                            <button type="button" class="btn btn-sm btn-danger" 
+                                            <button type="button" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors" 
                                                     onclick="showDeleteConfirmModal(this)"
                                                     th:data-member-id="${member.memberId}"
                                                     th:data-member-name="${member.username}"
                                                     th:data-member-account="${member.account}"
                                                     th:data-member-email="${member.email}"
                                                     th:data-member-phone="${member.phone}">
-                                                <i class="fas fa-trash-alt"></i> 刪除
+                                                <i class="fas fa-trash-alt mr-1"></i>刪除
                                             </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 分頁導航區 (在表格下方) -->
+                    <div th:if="${totalPages != null and totalPages > 1}" class="p-4 border-t border-gray-200">
+                        <div class="flex justify-center items-center gap-2">
+                            <!-- 第一頁按鈕 -->
+                            <button type="button" 
+                                    class="px-3 py-1 border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--table-header-bg)] transition-colors"
+                                    th:classappend="${currentPage == 1} ? 'opacity-50 cursor-not-allowed' : ''"
+                                    th:disabled="${currentPage == 1}"
+                                    onclick="changePage(1)">
+                                <i class="fas fa-angle-double-left mr-1"></i>首頁
+                            </button>
+                            
+                            <!-- 上一頁按鈕 -->
+                            <button type="button" 
+                                    class="px-3 py-1 border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--table-header-bg)] transition-colors"
+                                    th:classappend="${!hasPrevious} ? 'opacity-50 cursor-not-allowed' : ''"
+                                    th:disabled="${!hasPrevious}"
+                                    th:onclick="'changePage(' + (${currentPage} - 1) + ')'">
+                                <i class="fas fa-angle-left mr-1"></i>上一頁
+                            </button>
+                            
+                            <!-- 頁碼按鈕 -->
+                            <div class="flex gap-1">
+                                <span th:each="pageNum : ${#numbers.sequence(
+                                    T(java.lang.Math).max(1, currentPage - 2), 
+                                    T(java.lang.Math).min(totalPages, currentPage + 2)
+                                )}">
+                                    <button type="button" 
+                                            class="px-3 py-1 border border-[var(--border-color)] rounded-lg text-sm transition-colors"
+                                            th:classappend="${pageNum == currentPage} ? 'bg-[var(--primary-color)] text-white' : 'hover:bg-[var(--table-header-bg)]'"
+                                            th:onclick="'changePage(' + ${pageNum} + ')'"
+                                            th:text="${pageNum}">
+                                        1
+                                    </button>
+                                </span>
+                            </div>
+                            
+                            <!-- 下一頁按鈕 -->
+                            <button type="button" 
+                                    class="px-3 py-1 border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--table-header-bg)] transition-colors"
+                                    th:classappend="${!hasNext} ? 'opacity-50 cursor-not-allowed' : ''"
+                                    th:disabled="${!hasNext}"
+                                    th:onclick="'changePage(' + (${currentPage} + 1) + ')'">
+                                下一頁<i class="fas fa-angle-right ml-1"></i>
+                            </button>
+                            
+                            <!-- 最後一頁按鈕 -->
+                            <button type="button" 
+                                    class="px-3 py-1 border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--table-header-bg)] transition-colors"
+                                    th:classappend="${currentPage == totalPages} ? 'opacity-50 cursor-not-allowed' : ''"
+                                    th:disabled="${currentPage == totalPages}"
+                                    th:onclick="'changePage(' + ${totalPages} + ')'">
+                                末頁<i class="fas fa-angle-double-right ml-1"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 頁面資訊 -->
+                        <div class="text-center mt-3 text-sm text-gray-600">
+                            第 <span th:text="${currentPage}" class="font-medium text-[var(--primary-color)]">1</span> 頁，
+                            共 <span th:text="${totalPages}" class="font-medium text-[var(--primary-color)]">1</span> 頁
                         </div>
                     </div>
                 </div>
@@ -381,196 +554,187 @@
     </div>
 
     <!-- 會員詳細資訊 Modal -->
-    <div class="modal fade" id="memberDetailModal" tabindex="-1" role="dialog" aria-labelledby="memberDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header" style="background-color: var(--milk-tea-info); color: white;">
-                    <h5 class="modal-title" id="memberDetailModalLabel">
-                        <i class="fas fa-user"></i> 會員詳細資料
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div id="modal-spinner" class="text-center my-5">
-                        <div class="spinner-border" role="status">
-                            <span class="sr-only">載入中...</span>
-                        </div>
-                    </div>
-                    <table class="table table-bordered d-none" id="modal-table">
-                        <tbody>
-                            <tr>
-                                <th style="width: 150px; background-color: var(--milk-tea-bg);">會員編號</th>
-                                <td id="modal-memberId"></td>
-                            </tr>
-                            <tr>
-                                <th style="background-color: var(--milk-tea-bg);">會員姓名</th>
-                                <td id="modal-username"></td>
-                            </tr>
-                            <tr>
-                                <th style="background-color: var(--milk-tea-bg);">登入帳號</th>
-                                <td id="modal-account"></td>
-                            </tr>
-                            <tr>
-                                <th style="background-color: var(--milk-tea-bg);">密碼狀態</th>
-                                <td id="modal-password-status">
-                                    <span class="badge badge-danger" style="font-size: 0.9rem; padding: 0.4em 0.6em;">
-                                        <i class="fas fa-exclamation-triangle"></i> 密碼已加密保護
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th style="background-color: var(--milk-tea-bg);">電子郵件</th>
-                                <td id="modal-email"></td>
-                            </tr>
-                            <tr>
-                                <th style="background-color: var(--milk-tea-bg);">連絡電話</th>
-                                <td id="modal-phone"></td>
-                            </tr>
-                            <tr>
-                                <th style="background-color: var(--milk-tea-bg);">生日</th>
-                                <td id="modal-birthday"></td>
-                            </tr>
-                            <tr>
-                                <th style="background-color: var(--milk-tea-bg);">性別</th>
-                                <td id="modal-gender"></td>
-                            </tr>
-                            <tr>
-                                <th style="background-color: var(--milk-tea-bg);">帳號狀態</th>
-                                <td id="modal-enabled"></td>
-                            </tr>
-                            <tr>
-                                <th style="background-color: var(--milk-tea-bg);">註冊時間</th>
-                                <td id="modal-createdAt"></td>
-                            </tr>
-                            <tr>
-                                <th style="background-color: var(--milk-tea-bg);">最後更新時間</th>
-                                <td id="modal-lastUpdatedAt"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
-                </div>
+    <div id="memberDetailModal" class="modal-backdrop">
+        <div class="modal-content p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-[var(--primary-color)]">
+                    <i class="fas fa-user mr-2"></i>會員詳細資料
+                </h2>
+                <button type="button" class="text-gray-500 hover:text-gray-700 text-xl" onclick="closeModal('memberDetailModal')">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div id="modal-spinner" class="text-center my-5">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary-color)]"></div>
+                <p class="mt-2 text-gray-500">載入中...</p>
+            </div>
+            <div id="modal-table" class="hidden">
+                <table class="w-full text-sm">
+                    <tbody class="divide-y divide-gray-200">
+                        <tr class="hover:bg-gray-50">
+                            <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)] w-32">會員編號</th>
+                            <td class="py-2 px-3" id="modal-memberId"></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">會員姓名</th>
+                            <td class="py-2 px-3" id="modal-username"></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">登入帳號</th>
+                            <td class="py-2 px-3" id="modal-account"></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">密碼狀態</th>
+                            <td class="py-2 px-3" id="modal-password-status">
+                                <span class="status-badge bg-red-100 text-red-800">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>密碼已加密保護
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">電子郵件</th>
+                            <td class="py-2 px-3" id="modal-email"></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">連絡電話</th>
+                            <td class="py-2 px-3" id="modal-phone"></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">生日</th>
+                            <td class="py-2 px-3" id="modal-birthday"></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">性別</th>
+                            <td class="py-2 px-3" id="modal-gender"></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">帳號狀態</th>
+                            <td class="py-2 px-3" id="modal-enabled"></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">註冊時間</th>
+                            <td class="py-2 px-3" id="modal-createdAt"></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <th class="py-2 px-3 text-left font-medium bg-[var(--table-header-bg)]">最後更新時間</th>
+                            <td class="py-2 px-3" id="modal-lastUpdatedAt"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors" onclick="closeModal('memberDetailModal')">
+                    關閉
+                </button>
             </div>
         </div>
     </div>
 
     <!-- 強化版刪除確認 Modal -->
-    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content border-0 shadow-lg">
+    <div id="deleteConfirmModal" class="modal-backdrop">
+        <div class="modal-content p-6 max-w-2xl">
+            <div class="delete-modal-content">
                 <!-- 危險警告標題 -->
-                <div class="modal-header" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; border: none;">
-                    <h5 class="modal-title" id="deleteConfirmModalLabel">
-                        <i class="fas fa-exclamation-triangle mr-2 text-warning"></i>
-                        <strong>⚠️ 危險操作：刪除會員</strong>
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true" style="opacity: 0.8;">&times;</span>
-                    </button>
+                <div class="bg-gradient-to-r from-red-500 to-red-600 text-white p-4 rounded-t-lg">
+                    <h2 class="text-xl font-bold">
+                        <i class="fas fa-exclamation-triangle mr-2 text-yellow-300"></i>
+                        ⚠️ 危險操作：刪除會員
+                    </h2>
                 </div>
                 
                 <!-- 內容區域 -->
-                <div class="modal-body p-4">
+                <div class="p-6">
                     <!-- 警告提示 -->
-                    <div class="alert alert-danger border-0 mb-4" style="background-color: #f8d7da;">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-skull-crossbones fa-2x text-danger mr-3"></i>
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-skull-crossbones text-red-500 text-2xl mr-3"></i>
                             <div>
-                                <h6 class="alert-heading mb-1"><strong>注意：此操作具有風險！</strong></h6>
-                                <p class="mb-0">您即將執行會員刪除操作，此動作會將會員標記為「已刪除」狀態。</p>
+                                <h3 class="font-bold text-red-800 mb-1">注意：此操作具有風險！</h3>
+                                <p class="text-red-700">您即將執行會員刪除操作，此動作會將會員標記為「已刪除」狀態。</p>
                             </div>
                         </div>
                     </div>
                     
                     <!-- 會員資訊卡片 -->
-                    <div class="card border-danger mb-4">
-                        <div class="card-header bg-danger text-white">
-                            <h6 class="mb-0"><i class="fas fa-user-times mr-2"></i>即將刪除的會員資訊</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-2">
-                                        <i class="fas fa-id-badge text-primary mr-2"></i>
-                                        <strong>會員編號：</strong> 
-                                        <span id="deleteMemberId_display" class="badge badge-primary"></span>
-                                    </div>
-                                    <div class="mb-2">
-                                        <i class="fas fa-user text-success mr-2"></i>
-                                        <strong>姓名：</strong> 
-                                        <span id="deleteMemberName" class="text-dark font-weight-bold"></span>
-                                    </div>
-                                    <div class="mb-2">
-                                        <i class="fas fa-at text-info mr-2"></i>
-                                        <strong>登入帳號：</strong> 
-                                        <span id="deleteMemberAccount" class="text-dark"></span>
-                                    </div>
+                    <div class="bg-white border border-red-200 rounded-lg p-4 mb-4">
+                        <h3 class="font-semibold text-red-800 mb-3">
+                            <i class="fas fa-user-times mr-2"></i>即將刪除的會員資訊
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <div class="flex items-center">
+                                    <i class="fas fa-id-badge text-blue-500 mr-2"></i>
+                                    <strong>會員編號：</strong>
+                                    <span id="deleteMemberId_display" class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm"></span>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="mb-2">
-                                        <i class="fas fa-envelope text-warning mr-2"></i>
-                                        <strong>電子郵件：</strong> 
-                                        <span id="deleteMemberEmail" class="text-dark"></span>
-                                    </div>
-                                    <div class="mb-2">
-                                        <i class="fas fa-phone text-secondary mr-2"></i>
-                                        <strong>連絡電話：</strong> 
-                                        <span id="deleteMemberPhone" class="text-dark"></span>
-                                    </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-user text-green-500 mr-2"></i>
+                                    <strong>姓名：</strong>
+                                    <span id="deleteMemberName" class="ml-2 font-semibold"></span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-at text-purple-500 mr-2"></i>
+                                    <strong>登入帳號：</strong>
+                                    <span id="deleteMemberAccount" class="ml-2"></span>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex items-center">
+                                    <i class="fas fa-envelope text-orange-500 mr-2"></i>
+                                    <strong>電子郵件：</strong>
+                                    <span id="deleteMemberEmail" class="ml-2"></span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-phone text-gray-500 mr-2"></i>
+                                    <strong>連絡電話：</strong>
+                                    <span id="deleteMemberPhone" class="ml-2"></span>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- 安全確認區域 -->
-                    <div class="card border-warning">
-                        <div class="card-header bg-warning text-dark">
-                            <h6 class="mb-0"><i class="fas fa-shield-alt mr-2"></i>安全確認</h6>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <h3 class="font-semibold text-yellow-800 mb-3">
+                            <i class="fas fa-shield-alt mr-2"></i>安全確認
+                        </h3>
+                        <p class="text-red-600 mb-3">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            為了防止誤操作，請在下方輸入框中輸入 <code class="bg-red-100 text-red-800 px-2 py-1 rounded">DELETE</code> 來確認此操作：
+                        </p>
+                        
+                        <div class="mb-3">
+                            <label for="deleteConfirmText" class="block font-medium mb-2">
+                                <i class="fas fa-keyboard mr-2"></i>請輸入 "DELETE" (大寫)：
+                            </label>
+                            <input type="text" 
+                                   id="deleteConfirmText" 
+                                   class="w-full px-3 py-2 border-2 border-red-300 rounded-lg text-center text-lg focus:outline-none focus:border-red-500"
+                                   placeholder="請輸入 DELETE 來確認刪除"
+                                   autocomplete="off">
+                            <div id="deleteTextFeedback" class="mt-2"></div>
                         </div>
-                        <div class="card-body">
-                            <p class="text-danger mb-3">
-                                <i class="fas fa-info-circle mr-1"></i>
-                                為了防止誤操作，請在下方輸入框中輸入 <code class="bg-danger text-white px-2 py-1 rounded">DELETE</code> 來確認此操作：
-                            </p>
-                            
-                            <div class="form-group">
-                                <label for="deleteConfirmText" class="font-weight-bold">
-                                    <i class="fas fa-keyboard mr-2"></i>請輸入 "DELETE" (大寫)：
-                                </label>
-                                <input type="text" 
-                                       id="deleteConfirmText" 
-                                       class="form-control form-control-lg" 
-                                       placeholder="請輸入 DELETE 來確認刪除"
-                                       autocomplete="off"
-                                       style="border: 2px solid #dc3545; font-size: 1.1rem; text-align: center;">
-                                <div id="deleteTextFeedback" class="mt-2"></div>
-                            </div>
-                            
-                            <!-- 確認狀態指示器 -->
-                            <div id="deleteStatusIndicator" class="text-center mt-3">
-                                <div class="alert alert-secondary" role="alert">
-                                    <i class="fas fa-lock mr-2"></i>
-                                    <strong>刪除功能已鎖定</strong> - 請完成安全確認
-                                </div>
+                        
+                        <!-- 確認狀態指示器 -->
+                        <div id="deleteStatusIndicator" class="text-center">
+                            <div class="bg-gray-100 text-gray-700 p-3 rounded-lg">
+                                <i class="fas fa-lock mr-2"></i>
+                                <strong>刪除功能已鎖定</strong> - 請完成安全確認
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- 按鈕區域 -->
-                <div class="modal-footer border-0 bg-light">
-                    <button type="button" class="btn btn-secondary btn-lg" data-dismiss="modal">
+                <div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end gap-3">
+                    <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors" onclick="closeModal('deleteConfirmModal')">
                         <i class="fas fa-times mr-2"></i>取消
                     </button>
                     <form id="deleteMemberForm" method="post" th:action="@{/member/delete}" style="display: inline;">
                         <input type="hidden" name="memberId" id="deleteMemberId" />
                         <button type="submit" 
                                 id="confirmDeleteBtn" 
-                                class="btn btn-danger btn-lg" 
+                                class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" 
                                 disabled>
                             <i class="fas fa-trash-alt mr-2"></i>
                             <span id="deleteButtonText">刪除會員 (已鎖定)</span>
@@ -581,10 +745,8 @@
         </div>
     </div>
 
-    <!-- 引入必要的 JavaScript -->
+    <!-- 引入 jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
 
     <script th:inline="javascript">
         /*<![CDATA[*/
@@ -603,6 +765,22 @@
                 }, 300);
             }
         }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+            }
+        }
+
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'flex';
+                modal.classList.add('show');
+            }
+        }
     </script>
 
     <!-- 會員詳細資訊功能的 JavaScript -->
@@ -614,18 +792,17 @@
                 }
                 
                 const memberId = $(this).data('member-id');
-                const modal = $('#memberDetailModal');
                 const spinner = $('#modal-spinner');
                 const table = $('#modal-table');
 
+                showModal('memberDetailModal');
                 spinner.show();
-                table.addClass('d-none');
-                modal.modal('show');
+                table.addClass('hidden');
                 
                 $.ajax({
                     url: apiDetailBaseUrl + memberId,
                     method: 'GET',
-                    timeout: 10000, // 設定 10 秒超時
+                    timeout: 10000,
                     success: function(member) {
                         $('#modal-memberId').text(member.memberId);
                         $('#modal-username').text(member.username);
@@ -635,15 +812,17 @@
                         $('#modal-birthday').text(member.birthday);
                         
                         const genderMap = {
-                            'M': '<i class="fas fa-mars text-primary"></i> 男性',
-                            'F': '<i class="fas fa-venus text-danger"></i> 女性',
-                            'O': '<i class="fas fa-genderless text-muted"></i> 其他'
+                            'M': '<span class="gender-badge gender-m"><i class="fas fa-mars mr-1"></i> 男性</span>',
+                            'F': '<span class="gender-badge gender-f"><i class="fas fa-venus mr-1"></i> 女性</span>',
+                            'O': '<span class="gender-badge gender-o"><i class="fas fa-genderless mr-1"></i> 其他</span>'
                         };
                         $('#modal-gender').html(genderMap[member.gender] || '未知');
                         
-                        const enabledHtml = member.enabled ? 
-                            '<span class="badge badge-success"><i class="fas fa-check-circle"></i> 啟用中</span>' : 
-                            '<span class="badge badge-danger"><i class="fas fa-times-circle"></i> 已停用</span>';
+                        // 修正：統一使用 enabled 或 isEnabled，確保與後端一致
+                        const isEnabled = member.enabled !== undefined ? member.enabled : member.isEnabled;
+                        const enabledHtml = isEnabled ? 
+                            '<span class="status-badge status-active"><i class="fas fa-check-circle mr-1"></i> 啟用中</span>' : 
+                            '<span class="status-badge status-inactive"><i class="fas fa-times-circle mr-1"></i> 已停用</span>';
                         $('#modal-enabled').html(enabledHtml);
                         
                         const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
@@ -651,14 +830,13 @@
                         $('#modal-lastUpdatedAt').text(member.lastUpdatedAt ? new Date(member.lastUpdatedAt).toLocaleString('zh-TW', options) : '尚未更新過');
                         
                         spinner.hide();
-                        table.removeClass('d-none');
+                        table.removeClass('hidden');
                     },
                     error: function(xhr, status, error) {
                         console.error('取得會員詳細資料時發生錯誤:', error);
                         spinner.hide();
-                        table.addClass('d-none');
+                        table.addClass('hidden');
                         
-                        // 改善的錯誤處理與用戶提示
                         let errorMessage = '';
                         let errorIcon = 'fas fa-exclamation-triangle';
                         
@@ -683,32 +861,32 @@
                         }
                         
                         const errorHtml = `
-                            <div class="alert alert-danger" role="alert">
-                                <h6><i class="${errorIcon}"></i> 載入失敗</h6>
-                                <p class="mb-2">${errorMessage}</p>
-                                <small class="text-muted">錯誤代碼: ${xhr.status || 'N/A'} | 狀態: ${status}</small>
-                                <hr class="my-2">
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="location.reload()">
-                                    <i class="fas fa-redo"></i> 重新載入頁面
-                                </button>
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                                <div class="text-red-500 mb-2">
+                                    <i class="${errorIcon} text-3xl"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-red-800 mb-2">載入失敗</h3>
+                                <p class="text-red-700 mb-2">${errorMessage}</p>
+                                <small class="text-red-600">錯誤代碼: ${xhr.status || 'N/A'} | 狀態: ${status}</small>
+                                <div class="mt-4">
+                                    <button type="button" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors" onclick="location.reload()">
+                                        <i class="fas fa-redo mr-2"></i>重新載入頁面
+                                    </button>
+                                </div>
                             </div>
                         `;
                         
-                        modal.find('.modal-body').html(errorHtml);
-                        
-                        // 清理事件監聽器以避免重複綁定
-                        modal.off('hidden.bs.modal.errorCleanup').on('hidden.bs.modal.errorCleanup', function () {
-                            modal.find('.modal-body').html(`
-                                <div id="modal-spinner" class="text-center my-5">
-                                    <div class="spinner-border" role="status">
-                                        <span class="sr-only">載入中...</span>
-                                    </div>
-                                </div>
-                                <table class="table table-bordered d-none" id="modal-table">
-                                    <!-- 原有的表格內容 -->
-                                </table>
-                            `);
-                        });
+                        $('#memberDetailModal .modal-content').html(`
+                            <div class="flex justify-between items-center mb-6 p-4 bg-red-500 text-white rounded-t-lg">
+                                <h2 class="text-xl font-bold">
+                                    <i class="fas fa-user mr-2"></i>會員詳細資料
+                                </h2>
+                                <button type="button" class="text-white hover:text-gray-200 text-xl" onclick="closeModal('memberDetailModal')">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="p-6">${errorHtml}</div>
+                        `);
                     }
                 });
             });
@@ -720,54 +898,52 @@
         // 使用 IIFE (立即執行函式) 避免污染全域變數
         (function() {
             'use strict';
-            // 當頁面完全載入後執行
+            
             window.addEventListener('load', function() {
-                // 找到所有需要 Bootstrap 驗證樣式的表單
-                var forms = document.getElementsByClassName('needs-validation');
+                const forms = document.getElementsByClassName('needs-validation');
                 
-                // 遍歷所有表單並新增提交事件監聽器
                 Array.prototype.filter.call(forms, function(form) {
                     form.addEventListener('submit', function(event) {
-                        // 如果表單內容不符合 HTML5 驗證規則
                         if (form.checkValidity() === false) {
-                            event.preventDefault(); // 阻止表單提交
-                            event.stopPropagation(); // 停止事件繼續向上傳播
+                            event.preventDefault();
+                            event.stopPropagation();
                         }
-                        // 為表單加上 'was-validated' class，觸發 Bootstrap 的驗證樣式顯示
                         form.classList.add('was-validated');
                     }, false);
                 });
 
-                // --- 新增的即時驗證邏輯 ---
-
-                // 選取複合查詢表單中的 Email 輸入框
+                // 即時驗證邏輯
                 const emailInput = document.querySelector('#composite-query-form #email');
                 if (emailInput) {
                     emailInput.addEventListener('input', function() {
-                        // 如果欄位內有值，且驗證未通過 (例如 Email 格式不符)
+                        const feedback = this.nextElementSibling;
                         if (emailInput.value && !emailInput.checkValidity()) {
-                            emailInput.classList.add('is-invalid'); // 手動添加 Bootstrap 的無效樣式
+                            emailInput.classList.add('border-red-500');
+                            feedback.classList.remove('hidden');
                         } else {
-                            emailInput.classList.remove('is-invalid'); // 如果有效或為空，則移除樣式
+                            emailInput.classList.remove('border-red-500');
+                            feedback.classList.add('hidden');
                         }
                     });
                 }
 
-                // 選取複合查詢表單中的電話輸入框
                 const phoneInput = document.querySelector('#composite-query-form #phone');
                 if (phoneInput) {
                     phoneInput.addEventListener('input', function() {
+                        const feedback = this.nextElementSibling;
                         if (phoneInput.value && !phoneInput.checkValidity()) {
-                            phoneInput.classList.add('is-invalid');
+                            phoneInput.classList.add('border-red-500');
+                            feedback.classList.remove('hidden');
                         } else {
-                            phoneInput.classList.remove('is-invalid');
+                            phoneInput.classList.remove('border-red-500');
+                            feedback.classList.add('hidden');
                         }
                     });
                 }
             
-                // 保留原有的、針對中文輸入法優化的姓名欄位驗證邏輯
-                var usernameInput = document.getElementById('username');
-                var usernameWarning = document.getElementById('username-warning');
+                // 中文輸入法優化的姓名欄位驗證邏輯
+                const usernameInput = document.getElementById('username');
+                const usernameWarning = document.getElementById('username-warning');
                 
                 if (usernameInput) {
                     let isComposing = false;
@@ -779,14 +955,12 @@
                             usernameWarning.classList.remove('hiding');
                         }
                         
-                        usernameWarning.style.display = 'block';
-                        usernameWarning.style.opacity = '1';
-                        usernameWarning.style.transform = 'translateY(0)';
+                        usernameWarning.classList.remove('hidden');
                         
                         warningTimeout = setTimeout(() => {
                             usernameWarning.classList.add('hiding');
                             setTimeout(() => {
-                                usernameWarning.style.display = 'none';
+                                usernameWarning.classList.add('hidden');
                                 usernameWarning.classList.remove('hiding');
                             }, 300);
                         }, 1000);
@@ -821,33 +995,100 @@
                         }
                     });
                 }
-
             }, false);
         })();
     </script>
 
+    <!-- 分頁功能的 JavaScript -->
+    <script th:inline="javascript">
+        // 分頁相關的JavaScript函數
+        
+        // 從後端取得分頁參數
+        /*<![CDATA[*/
+        var currentPageSize = /*[[${pageSize}]]*/ 10;
+        var currentPage = /*[[${currentPage}]]*/ 1;
+        var totalPages = /*[[${totalPages}]]*/ 1;
+        /*]]>*/
+        
+        // 切換頁面的函數
+        function changePage(pageNumber) {
+            // 獲取當前表單的查詢條件
+            const form = document.getElementById('composite-query-form');
+            
+            // 更新分頁參數
+            document.getElementById('page').value = pageNumber;
+            
+            // 保持當前的每頁顯示筆數設定
+            const currentPageSizeSelect = document.getElementById('pageSizeSelect');
+            if (currentPageSizeSelect) {
+                document.getElementById('size').value = currentPageSizeSelect.value;
+            }
+            
+            // 提交表單
+            form.submit();
+        }
+        
+        // 當頁面載入完成時初始化分頁功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 每頁顯示筆數變更事件
+            const pageSizeSelect = document.getElementById('pageSizeSelect');
+            if (pageSizeSelect) {
+                // 設定當前頁面的分頁大小選擇器
+                pageSizeSelect.value = currentPageSize;
+                
+                pageSizeSelect.addEventListener('change', function() {
+                    // 更新隱藏欄位的值
+                    document.getElementById('size').value = this.value;
+                    // 重置到第一頁
+                    document.getElementById('page').value = 1;
+                    
+                    // 重新提交查詢
+                    const form = document.getElementById('composite-query-form');
+                    form.submit();
+                });
+            }
+        });
+        
+        // 處理查詢表單提交時的分頁參數
+        document.addEventListener('DOMContentLoaded', function() {
+            const compositeForm = document.getElementById('composite-query-form');
+            if (compositeForm) {
+                compositeForm.addEventListener('submit', function(e) {
+                    // 確保分頁參數正確設置
+                    const pageInput = document.getElementById('page');
+                    const sizeInput = document.getElementById('size');
+                    const pageSizeSelect = document.getElementById('pageSizeSelect');
+                    
+                    // 如果是新的查詢，重置為第1頁
+                    if (!pageInput.value || pageInput.value === '1') {
+                        pageInput.value = '1';
+                    }
+                    
+                    // 設定每頁顯示筆數
+                    if (pageSizeSelect) {
+                        sizeInput.value = pageSizeSelect.value;
+                    } else {
+                        sizeInput.value = sizeInput.value || '10';
+                    }
+                });
+            }
+        });
+    </script>
+
     <!-- 強化版刪除確認功能的 JavaScript -->
     <script>
-        // === 全域變數 ===
+        // 全域變數
         let currentDeleteMemberId = null;
         let currentDeleteMemberData = null;
         let deleteConfirmationValid = false;
 
-        // === 主要功能函數 ===
-        
-        /**
-         * 顯示刪除確認 Modal
-         * @param {HTMLElement} buttonElement - 點擊的刪除按鈕元素
-         */
         function showDeleteConfirmModal(buttonElement) {
-            // 取得會員資料
             const memberId = buttonElement.getAttribute('data-member-id');
             const memberName = buttonElement.getAttribute('data-member-name');
             const memberAccount = buttonElement.getAttribute('data-member-account');
             const memberEmail = buttonElement.getAttribute('data-member-email');
             const memberPhone = buttonElement.getAttribute('data-member-phone');
 
-            // 儲存當前要刪除的會員資料
             currentDeleteMemberId = memberId;
             currentDeleteMemberData = {
                 id: memberId,
@@ -857,39 +1098,24 @@
                 phone: memberPhone
             };
 
-            // 填入會員資訊到 Modal 中
             populateMemberInfoInModal(currentDeleteMemberData);
-
-            // 重置 Modal 狀態
             resetDeleteConfirmationState();
+            showModal('deleteConfirmModal');
 
-            // 顯示 Modal
-            $('#deleteConfirmModal').modal('show');
-
-            // 自動聚焦到輸入框
             setTimeout(() => {
                 document.getElementById('deleteConfirmText').focus();
             }, 500);
         }
 
-        /**
-         * 填入會員資訊到刪除確認 Modal
-         * @param {Object} memberData - 會員資料物件
-         */
         function populateMemberInfoInModal(memberData) {
             document.getElementById('deleteMemberId_display').textContent = memberData.id;
             document.getElementById('deleteMemberName').textContent = memberData.name || 'N/A';
             document.getElementById('deleteMemberAccount').textContent = memberData.account || 'N/A';
             document.getElementById('deleteMemberEmail').textContent = memberData.email || 'N/A';
             document.getElementById('deleteMemberPhone').textContent = memberData.phone || 'N/A';
-            
-            // 設定隱藏的表單欄位
             document.getElementById('deleteMemberId').value = memberData.id;
         }
 
-        /**
-         * 重置刪除確認狀態
-         */
         function resetDeleteConfirmationState() {
             const confirmText = document.getElementById('deleteConfirmText');
             const confirmBtn = document.getElementById('confirmDeleteBtn');
@@ -897,35 +1123,24 @@
             const feedback = document.getElementById('deleteTextFeedback');
             const statusIndicator = document.getElementById('deleteStatusIndicator');
 
-            // 清空輸入框
             confirmText.value = '';
-            confirmText.className = 'form-control form-control-lg';
-            confirmText.style.borderColor = '#dc3545';
-
-            // 重置按鈕狀態
+            confirmText.className = 'w-full px-3 py-2 border-2 border-red-300 rounded-lg text-center text-lg focus:outline-none focus:border-red-500';
+            
             confirmBtn.disabled = true;
-            confirmBtn.className = 'btn btn-danger btn-lg';
+            confirmBtn.className = 'px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed';
             buttonText.textContent = '刪除會員 (已鎖定)';
-
-            // 清空反饋訊息
+            
             feedback.innerHTML = '';
-
-            // 重置狀態指示器
             statusIndicator.innerHTML = `
-                <div class="alert alert-secondary" role="alert">
+                <div class="bg-gray-100 text-gray-700 p-3 rounded-lg">
                     <i class="fas fa-lock mr-2"></i>
                     <strong>刪除功能已鎖定</strong> - 請完成安全確認
                 </div>
             `;
-
-            // 重置全域變數
+            
             deleteConfirmationValid = false;
         }
 
-        /**
-         * 驗證刪除確認輸入
-         * @param {string} inputValue - 使用者輸入的文字
-         */
         function validateDeleteConfirmation(inputValue) {
             const confirmText = document.getElementById('deleteConfirmText');
             const confirmBtn = document.getElementById('confirmDeleteBtn');
@@ -933,42 +1148,27 @@
             const feedback = document.getElementById('deleteTextFeedback');
             const statusIndicator = document.getElementById('deleteStatusIndicator');
 
-            // 移除前後空白
             const trimmedValue = inputValue.trim();
 
             if (trimmedValue === '') {
-                // 輸入為空
                 setValidationState('empty', confirmText, confirmBtn, buttonText, feedback, statusIndicator);
             } else if (trimmedValue === 'DELETE') {
-                // 輸入正確
                 setValidationState('valid', confirmText, confirmBtn, buttonText, feedback, statusIndicator);
                 deleteConfirmationValid = true;
             } else {
-                // 輸入錯誤
                 setValidationState('invalid', confirmText, confirmBtn, buttonText, feedback, statusIndicator);
             }
         }
 
-        /**
-         * 設定驗證狀態的視覺回饋
-         * @param {string} state - 驗證狀態：'empty', 'valid', 'invalid'
-         * @param {HTMLElement} input - 輸入框元素
-         * @param {HTMLElement} button - 按鈕元素
-         * @param {HTMLElement} buttonText - 按鈕文字元素
-         * @param {HTMLElement} feedback - 反饋區域元素
-         * @param {HTMLElement} statusIndicator - 狀態指示器元素
-         */
         function setValidationState(state, input, button, buttonText, feedback, statusIndicator) {
             switch (state) {
                 case 'empty':
-                    input.className = 'form-control form-control-lg';
-                    input.style.borderColor = '#dc3545';
+                    input.className = 'w-full px-3 py-2 border-2 border-red-300 rounded-lg text-center text-lg focus:outline-none focus:border-red-500';
                     button.disabled = true;
-                    button.className = 'btn btn-danger btn-lg';
                     buttonText.textContent = '刪除會員 (已鎖定)';
                     feedback.innerHTML = '';
                     statusIndicator.innerHTML = `
-                        <div class="alert alert-secondary" role="alert">
+                        <div class="bg-gray-100 text-gray-700 p-3 rounded-lg">
                             <i class="fas fa-lock mr-2"></i>
                             <strong>刪除功能已鎖定</strong> - 請完成安全確認
                         </div>
@@ -977,74 +1177,53 @@
                     break;
 
                 case 'valid':
-                    input.className = 'form-control form-control-lg is-valid';
-                    input.style.borderColor = '#28a745';
+                    input.className = 'w-full px-3 py-2 border-2 border-green-500 rounded-lg text-center text-lg focus:outline-none focus:border-green-500';
                     button.disabled = false;
-                    button.className = 'btn btn-danger btn-lg';
                     buttonText.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>確認刪除會員';
                     feedback.innerHTML = `
-                        <div class="alert alert-success border-0 mb-0" role="alert">
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-green-700">
                             <i class="fas fa-check-circle mr-2"></i>
                             <strong>驗證成功！</strong> 現在可以執行刪除操作
                         </div>
                     `;
                     statusIndicator.innerHTML = `
-                        <div class="alert alert-success" role="alert">
+                        <div class="bg-green-100 text-green-700 p-3 rounded-lg">
                             <i class="fas fa-unlock mr-2"></i>
                             <strong>安全確認完成</strong> - 刪除功能已解鎖
                         </div>
                     `;
                     deleteConfirmationValid = true;
-                    
-                    // 成功驗證時的動畫效果
-                    input.style.animation = 'pulse 0.5s';
-                    setTimeout(() => {
-                        input.style.animation = '';
-                    }, 500);
                     break;
 
                 case 'invalid':
-                    input.className = 'form-control form-control-lg is-invalid';
-                    input.style.borderColor = '#dc3545';
+                    input.className = 'w-full px-3 py-2 border-2 border-red-500 rounded-lg text-center text-lg focus:outline-none focus:border-red-500';
                     button.disabled = true;
-                    button.className = 'btn btn-danger btn-lg';
                     buttonText.textContent = '刪除會員 (已鎖定)';
                     feedback.innerHTML = `
-                        <div class="alert alert-danger border-0 mb-0" role="alert">
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700">
                             <i class="fas fa-times-circle mr-2"></i>
                             <strong>輸入錯誤！</strong> 請輸入大寫的 "DELETE"
                         </div>
                     `;
                     statusIndicator.innerHTML = `
-                        <div class="alert alert-danger" role="alert">
+                        <div class="bg-red-100 text-red-700 p-3 rounded-lg">
                             <i class="fas fa-lock mr-2"></i>
                             <strong>驗證失敗</strong> - 請輸入正確的確認文字
                         </div>
                     `;
                     deleteConfirmationValid = false;
-                    
-                    // 錯誤時的震動效果
-                    input.style.animation = 'shake 0.5s';
-                    setTimeout(() => {
-                        input.style.animation = '';
-                    }, 500);
                     break;
             }
         }
 
-        /**
-         * 處理刪除表單提交
-         * @param {Event} event - 表單提交事件
-         */
         function handleDeleteFormSubmit(event) {
             if (!deleteConfirmationValid) {
                 event.preventDefault();
                 event.stopPropagation();
                 
-                // 顯示錯誤提示
                 const feedback = document.getElementById('deleteTextFeedback');
                 feedback.innerHTML = `
-                    <div class="alert alert-warning border-0 mb-0" role="alert">
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-yellow-700">
                         <i class="fas fa-exclamation-triangle mr-2"></i>
                         <strong>操作被阻止！</strong> 請先完成安全確認
                     </div>
@@ -1053,48 +1232,23 @@
                 return false;
             }
 
-            // 顯示最終確認動畫
             const confirmBtn = document.getElementById('confirmDeleteBtn');
             const buttonText = document.getElementById('deleteButtonText');
             
             confirmBtn.disabled = true;
             buttonText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>執行刪除中...';
             
-            // 讓表單正常提交
             return true;
         }
 
-        /**
-         * 添加成功刪除後的動畫效果（如果需要的話）
-         * @param {number} memberId - 被刪除的會員ID
-         */
-        function animateRowRemoval(memberId) {
-            const row = document.querySelector(`tr[data-member-id="${memberId}"]`);
-            if (row) {
-                row.style.transition = 'all 0.5s ease-out';
-                row.style.backgroundColor = '#f8d7da';
-                row.style.opacity = '0';
-                row.style.transform = 'translateX(-100%)';
-                
-                setTimeout(() => {
-                    row.remove();
-                }, 500);
-            }
-        }
-
-        // === 事件監聽器設定 ===
-        
-        // 當頁面載入完成後設定事件監聽器
+        // 事件監聽器設定
         document.addEventListener('DOMContentLoaded', function() {
-            // 監聽刪除確認輸入框的變化
             const deleteConfirmInput = document.getElementById('deleteConfirmText');
             if (deleteConfirmInput) {
-                // 即時驗證輸入
                 deleteConfirmInput.addEventListener('input', function(e) {
                     validateDeleteConfirmation(e.target.value);
                 });
 
-                // 處理 Enter 鍵
                 deleteConfirmInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
@@ -1104,7 +1258,6 @@
                     }
                 });
 
-                // 處理貼上事件
                 deleteConfirmInput.addEventListener('paste', function(e) {
                     setTimeout(() => {
                         validateDeleteConfirmation(e.target.value);
@@ -1112,112 +1265,10 @@
                 });
             }
 
-            // 監聽刪除表單提交
             const deleteForm = document.getElementById('deleteMemberForm');
             if (deleteForm) {
                 deleteForm.addEventListener('submit', handleDeleteFormSubmit);
             }
-
-            // 監聽 Modal 關閉事件，清理狀態
-            $('#deleteConfirmModal').on('hidden.bs.modal', function() {
-                currentDeleteMemberId = null;
-                currentDeleteMemberData = null;
-                deleteConfirmationValid = false;
-            });
-
-            // 監聽 Modal 顯示事件，設定焦點
-            $('#deleteConfirmModal').on('shown.bs.modal', function() {
-                const input = document.getElementById('deleteConfirmText');
-                if (input) {
-                    input.focus();
-                }
-            });
-        });
-
-        // === CSS 動畫樣式 ===
-        
-        // 動態添加 CSS 動畫樣式
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes pulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.02); }
-                100% { transform: scale(1); }
-            }
-            
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-5px); }
-                75% { transform: translateX(5px); }
-            }
-            
-            @keyframes fadeInDown {
-                from {
-                    opacity: 0;
-                    transform: translateY(-20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-            
-            .delete-modal-content {
-                animation: fadeInDown 0.3s ease-out;
-            }
-            
-            .delete-row-highlight {
-                background-color: #fff3cd !important;
-                transition: background-color 0.3s ease;
-            }
-            
-            .delete-button-loading {
-                pointer-events: none;
-                opacity: 0.7;
-            }
-        `;
-        document.head.appendChild(style);
-
-        // === 輔助功能 ===
-        
-        /**
-         * 高亮顯示即將被刪除的表格行
-         * @param {number} memberId - 會員ID
-         */
-        function highlightDeleteRow(memberId) {
-            // 移除所有現有的高亮
-            document.querySelectorAll('.delete-row-highlight').forEach(row => {
-                row.classList.remove('delete-row-highlight');
-            });
-            
-            // 高亮當前選中的行
-            const row = document.querySelector(`tr[data-member-id="${memberId}"]`);
-            if (row) {
-                row.classList.add('delete-row-highlight');
-            }
-        }
-
-        /**
-         * 清除表格行高亮
-         */
-        function clearDeleteRowHighlight() {
-            document.querySelectorAll('.delete-row-highlight').forEach(row => {
-                row.classList.remove('delete-row-highlight');
-            });
-        }
-
-        // 修改原有的 showDeleteConfirmModal 函數以包含行高亮
-        const originalShowDeleteConfirmModal = showDeleteConfirmModal;
-        showDeleteConfirmModal = function(buttonElement) {
-            originalShowDeleteConfirmModal(buttonElement);
-            highlightDeleteRow(currentDeleteMemberId);
-        };
-
-        // 當 Modal 關閉時清除高亮
-        $(document).ready(function() {
-            $('#deleteConfirmModal').on('hidden.bs.modal', function() {
-                clearDeleteRowHighlight();
-            });
         });
     </script>
 </body>
