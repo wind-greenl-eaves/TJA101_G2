@@ -111,10 +111,10 @@
                             <input class="form-check-input" type="radio" th:field="*{gender}" id="genderF" value="F">
                             <label class="form-check-label" for="genderF">女性</label>
                         </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" th:field="*{gender}" id="genderO" value="O">
-                            <label class="form-check-label" for="genderO">其他</label>
-                        </div>
+<!--                         <div class="form-check form-check-inline"> -->
+<!--                             <input class="form-check-input" type="radio" th:field="*{gender}" id="genderO" value="O"> -->
+<!--                             <label class="form-check-label" for="genderO">其他</label> -->
+<!--                         </div> -->
                     </div>
                     
                     <hr>
@@ -139,18 +139,6 @@
     <script>
         // 等待整個網頁文件都載入完成後，再執行裡面的程式碼
         document.addEventListener("DOMContentLoaded", function() {
-            // 透過 ID 找到各個輸入框，並設定它們的 value (值)
-            document.getElementById("username").value = "王大明";
-            document.getElementById("account").value = "testuser01";
-            document.getElementById("password").value = "password123";
-            document.getElementById("email").value = "test01@example.com";
-            document.getElementById("phone").value = "0912-345678";
-            document.getElementById("birthday").value = "1995-08-15";
-            
-            // 預設選中「男性」
-            document.getElementById("genderM").checked = true;
-
-
             // ★★★★★【JavaScript 已新增】密碼顯示/隱藏邏輯 ★★★★★
             
             // 1. 取得 DOM 元素
@@ -233,7 +221,7 @@
                 document.getElementById('birthday').value = yyyy + '-' + mm + '-' + dd;
 
                 // 隨機選擇性別
-                const genders = ['M', 'F', 'O'];
+                const genders = ['M', 'F']; // 這裡可以擴展更多性別選項
                 document.getElementById('gender' + genders[Math.floor(Math.random() * genders.length)]).checked = true;
             });
         });
