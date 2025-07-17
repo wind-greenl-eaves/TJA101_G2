@@ -156,7 +156,8 @@
     <form th:action="@{/feedback/submit}" method="post" th:object="${feedback}">
         <div class="form-group">
             <label for="memberName">會員姓名</label>
-            <input type="text" class="form-control" id="memberName" th:value="*{member.username}" readonly>
+            <!-- 確認是使用 ${memberName}，而不是 ${feedback.member.username} -->
+            <input type="text" class="form-control" id="memberName" th:value="${memberName}" readonly>
         </div>
         <div class="form-group">
             <label for="phone">連絡電話</label>

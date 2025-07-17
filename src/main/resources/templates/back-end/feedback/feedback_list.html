@@ -10,19 +10,19 @@
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f8f0e3;
+            background-color: #f8f0e3; /* 淡米色背景 */
             padding: 30px;
         }
         .list-container {
-            max-width: 1200px;
+            max-width: 1300px; /* 稍微加寬以容納新欄位 */
             margin: auto;
-            background-color: #fffaf0;
+            background-color: #fffaf0; /* 象牙白容器背景 */
             padding: 40px;
             border-radius: 15px;
             box-shadow: 0 8px 16px rgba(160, 82, 45, 0.1);
         }
         .list-container h2 {
-            color: #8B4513;
+            color: #8B4513; /* 鞍褐色標題 */
             text-align: center;
             margin-bottom: 35px;
             font-weight: 700;
@@ -31,7 +31,7 @@
             background-color: #fff;
         }
         .table thead {
-            background-color: #e0d8c4;
+            background-color: #e0d8c4; /* 奶茶色表頭 */
             color: #8B4513;
         }
         .table th, .table td {
@@ -39,7 +39,7 @@
             text-align: center;
         }
         .content-cell {
-            max-width: 300px;
+            max-width: 280px; /* 調整寬度 */
             white-space: pre-wrap;
             text-align: left !important;
             word-wrap: break-word;
@@ -48,14 +48,17 @@
             background-color: #8B4513;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
         }
         .btn-refresh:hover {
             background-color: #A0522D;
             color: white;
         }
+        /* ★★★ 奶茶風樣式 (整合進來) ★★★ */
+        .status-badge { padding: 0.35rem 0.85rem; border-radius: 50px; font-size: 0.9rem; }
+        .status-pending { background-color: #E5C28F; color: #784F17; } /* 焦糖色 */
+        .status-processed { background-color: #D1C3B2; color: #5B4E3E; } /* 奶蓋色 */
+        .action-btn { background-color: #6F4E37; color: white; padding: 0.4rem 1rem; border-radius: 5px; text-decoration: none; transition: background-color 0.2s; }
+        .action-btn:hover { background-color: #4a3525; text-decoration: none; color:white; }
     </style>
 </head>
 <body>
@@ -68,6 +71,10 @@
         </a>
     </div>
 
+    <!-- 成功/失敗訊息提示 -->
+    <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+
     <div class="table-responsive" th:if="${not #lists.isEmpty(feedbackList)}">
         <table class="table table-bordered table-hover">
             <thead>
@@ -75,30 +82,42 @@
                 <th>編號</th>
                 <th>會員姓名</th>
                 <th>連絡電話</th>
-                <th style="width: 30%;">意見內容</th>
+                <th style="width: 25%;">意見內容</th>
                 <th>用餐時間</th>
                 <th>用餐門市</th>
                 <th>提交時間</th>
                 <th>狀態</th>
+                <th>操作</th> <!-- ★★★ 新增欄位 ★★★ -->
             </tr>
             </thead>
             <tbody>
+            <!-- Controller 傳來的是 feedbackDtoList，但我們在模板中仍用 fb 變數名即可 -->
             <tr th:each="fb : ${feedbackList}">
                 <td th:text="${fb.feedbackId}"></td>
-                <td th:text="${fb.member?.username ?: fb.member?.memberName ?: '未知會員'}"></td>
+                <!-- ★★★ 核心修正 1：直接使用 DTO 的 memberName ★★★ -->
+                <td class="font-weight-bold" th:text="${fb.memberName}"></td>
                 <td th:text="${fb.phone}"></td>
                 <td class="content-cell" th:text="${fb.content}"></td>
                 <td th:text="${fb.diningTime ?: '-'}"></td>
                 <td th:text="${fb.diningStore ?: '-'}"></td>
                 <td th:text="${#temporals.format(fb.createTime, 'yyyy-MM-dd HH:mm')}"></td>
                 <td>
-                    <span th:text="${fb.status ?: '待處理'}" 
-                          th:class="${fb.status == '已處理' ? 'badge badge-success' : 'badge badge-warning'}"></span>
+                    <span th:text="${fb.status}"
+                          th:classappend="${fb.status == '待處理'} ? 'status-pending' : 'status-processed'"
+                          class="status-badge"></span>
+                </td>
+                <td>
+                    <!-- ★★★ 核心修正 2：加入回覆按鈕 ★★★ -->
+                    <a th:if="${fb.status == '待處理'}"
+                       th:href="@{/feedback/{id}/reply(id=${fb.feedbackId})}"
+                       class="action-btn">
+                        <i class="fas fa-reply"></i> 回覆
+                    </a>
                 </td>
             </tr>
             </tbody>
         </table>
-        
+
         <div class="text-center mt-3">
             <small class="text-muted">
                 共 <span th:text="${#lists.size(feedbackList)}"></span> 筆意見回饋
@@ -114,18 +133,6 @@
 
 <script th:src="@{/webjars/jquery/3.4.1/jquery.min.js}"></script>
 <script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
-<script>
-    // 防止相對路徑問題
-    $(document).ready(function() {
-        // 確保所有連結都使用絕對路徑
-        console.log('意見回饋清單頁面已載入');
-        
-        // 如果需要自動重新整理，可以取消註解下面的代碼
-        // setInterval(function() {
-        //     location.reload();
-        // }, 30000); // 30 秒自動重新整理
-    });
-</script>
 
 </body>
 </html>

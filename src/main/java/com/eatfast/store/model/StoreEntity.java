@@ -103,8 +103,8 @@ public class StoreEntity {
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<AnnouncementEntity> announcements = new HashSet<>();
 
-    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Set<FeedbackEntity> feedback = new HashSet<>();
+//    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+//    private Set<FeedbackEntity> feedback = new HashSet<>();
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<CartEntity> cartItems = new HashSet<>();
@@ -143,8 +143,8 @@ public class StoreEntity {
     public void setEmployees(Set<EmployeeEntity> employees) { this.employees = employees; }
     public Set<AnnouncementEntity> getAnnouncements() { return announcements; }
     public void setAnnouncements(Set<AnnouncementEntity> announcements) { this.announcements = announcements; }
-    public Set<FeedbackEntity> getFeedback() { return feedback; }
-    public void setFeedback(Set<FeedbackEntity> feedback) { this.feedback = feedback; }
+//    public Set<FeedbackEntity> getFeedback() { return feedback; }
+//    public void setFeedback(Set<FeedbackEntity> feedback) { this.feedback = feedback; }
     public Set<CartEntity> getCartItems() { return cartItems; }
     public void setCartItems(Set<CartEntity> cartItems) { this.cartItems = cartItems; }
     public Set<StoreMealEntity> getMealStatuses() { return mealStatuses; }

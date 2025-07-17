@@ -1,8 +1,4 @@
-package com.eatfast.feedback.model    ; // 假設的 package 路徑
-
-// 【檔案路徑配對】: 為了建立多對一關聯，需要 import 父實體
-import com.eatfast.member.model.MemberEntity;
-import com.eatfast.store.model.StoreEntity;
+package com.eatfast.feedback.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -16,7 +12,7 @@ import java.util.Objects;
  * 顧客意見回饋實體 (Feedback Entity)
  * <p>
  * 此實體對應資料庫中的 `feedback` 表，用於儲存來自顧客的意見或問題。
- * 每一筆紀錄都必須關聯到一位提交意見的會員和其所針對的門市。
+ * (版本: 已移除 Foreign Key 關聯，由程式邏輯確保資料完整性)
  * </p>
  */
 @Entity
@@ -24,7 +20,7 @@ import java.util.Objects;
 public class FeedbackEntity {
 
     //================================================================
-    // 							欄位定義 (Fields)
+    //                    欄位定義 (Fields)
     //================================================================
 
     @Id
@@ -32,82 +28,59 @@ public class FeedbackEntity {
     @Column(name = "feedback_id")
     private Long feedbackId;
 
-    /**
-     * 此意見回饋的提交時間。
-     * 1. @CreationTimestamp: (不可變關鍵字) Hibernate 註解，在實體新增時自動填入當前時間。
-     * 2. updatable = false: (不可變關鍵字) 確保此時間戳在後續更新中不會被改變。
-     */
+    // --- 原有欄位 ---
+
+    @Column(name = "member_id", nullable = false)
+    private Long memberId; // FK 已移除，改為 Long 型別
+
+    @Column(name = "store_id")
+    private Long storeId; // FK 已移除，改為 Long 型別
+
     @CreationTimestamp
     @Column(name = "create_time", nullable = false, updatable = false)
     private LocalDateTime createTime;
-
-    /**
-     * 提交時間 (手動設定)
-     */
-    @Column(name = "submission_date")
-    private LocalDateTime submissionDate;
-
-    /**
-     * 處理狀態
-     */
-    @Column(name = "status", length = 20)
-    private String status;
 
     @NotBlank(message = "連絡電話不可為空")
     @Size(max = 20, message = "連絡電話長度不可超過 20 字元")
     @Column(name = "phone", nullable = false, length = 20)
     private String phone;
 
-    /**
-     * 意見回饋的詳細內文。
-     * length = 5000: (不可變動) 此設定需與資料庫 DDL 的 VARCHAR(5000) 完全匹配，
-     * 以避免因內容過長導致的資料截斷錯誤。
-     */
     @NotBlank(message = "意見內容不可為空")
     @Column(name = "content", nullable = false, length = 5000)
     private String content;
 
-    /**
-     * 用餐時間
-     */
-    @Column(name = "dining_time", length = 100)
+    @Column(name = "dining_time", length = 255) // 根據 DDL 調整長度
     private String diningTime;
 
-    /**
-     * 用餐店家
-     */
-    @Column(name = "dining_store", length = 100)
+    @Column(name = "dining_store", length = 255) // 根據 DDL 調整長度
     private String diningStore;
 
+    // --- ★★★ 緊急應對新增欄位 (由此開始) ★★★ ---
 
-    //================================================================
-    // 				關聯的擁有方 (Owning Side of Relationship)
-    //================================================================
+    @Column(name = "status", length = 20)
+    private String status;
 
-    /**
-     * 提交此意見的會員 (多對一)。
-     * 1. @ManyToOne: (不可變關鍵字) 宣告這是一個多對一關聯 (多筆意見 -> 一位會員)。
-     * 2. fetch = FetchType.LAZY: (不可變關鍵字) **效能關鍵**。
-     * 3. @JoinColumn: (不可變關鍵字) 指定外鍵欄位。
-     * 4. name = "member_id": (不可變動) 必須與資料庫中的外鍵欄位名完全匹配。
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private MemberEntity member;
+    @Column(name = "reply_content", columnDefinition = "TEXT")
+    private String replyContent;
 
-    /**
-     * 意見所針對的門市 (多對一)。
-     * 註：如果 storeId 可以為 null，則調整為 nullable = true
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = true)
-    private StoreEntity store;
+    @Column(name = "replied_at")
+    private LocalDateTime repliedAt;
+
+    @Column(name = "processed_by_admin_id")
+    private Long processedByAdminId;
+
+    // --- ★★★ 緊急應對新增欄位 (到此結束) ★★★ ---
 
 
     //================================================================
-    //					 建構子、Getters、Setters
+    //               建構子、Getters、Setters
     //================================================================
-    public FeedbackEntity() {}
+
+    public FeedbackEntity() {
+        // 預設建構子
+    }
+
+    // --- Getters and Setters ---
 
     public Long getFeedbackId() {
         return feedbackId;
@@ -117,28 +90,28 @@ public class FeedbackEntity {
         this.feedbackId = feedbackId;
     }
 
+    public Long getMemberId() {
+        return memberId;
+    }
+
+    public void setMemberId(Long memberId) {
+        this.memberId = memberId;
+    }
+
+    public Long getStoreId() {
+        return storeId;
+    }
+
+    public void setStoreId(Long storeId) {
+        this.storeId = storeId;
+    }
+
     public LocalDateTime getCreateTime() {
         return createTime;
     }
 
     public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
-    }
-
-    public LocalDateTime getSubmissionDate() {
-        return submissionDate;
-    }
-
-    public void setSubmissionDate(LocalDateTime submissionDate) {
-        this.submissionDate = submissionDate;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     public String getPhone() {
@@ -173,36 +146,51 @@ public class FeedbackEntity {
         this.diningStore = diningStore;
     }
 
-    public MemberEntity getMember() {
-        return member;
+    public String getStatus() {
+        return status;
     }
 
-    public void setMember(MemberEntity member) {
-        this.member = member;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
-    public StoreEntity getStore() {
-        return store;
+    public String getReplyContent() {
+        return replyContent;
     }
 
-    public void setStore(StoreEntity store) {
-        this.store = store;
+    public void setReplyContent(String replyContent) {
+        this.replyContent = replyContent;
+    }
+
+    public LocalDateTime getRepliedAt() {
+        return repliedAt;
+    }
+
+    public void setRepliedAt(LocalDateTime repliedAt) {
+        this.repliedAt = repliedAt;
+    }
+
+    public Long getProcessedByAdminId() {
+        return processedByAdminId;
+    }
+
+    public void setProcessedByAdminId(Long processedByAdminId) {
+        this.processedByAdminId = processedByAdminId;
     }
 
     //================================================================
     // 物件核心方法 (equals, hashCode, toString)
     //================================================================
+
     @Override
     public String toString() {
-        // 為避免 LAZY loading 問題，關聯物件只印出其 ID
         return "FeedbackEntity{" +
                 "feedbackId=" + feedbackId +
-                ", memberId=" + (member != null ? member.getMemberId() : "null") +
-                ", storeId=" + (store != null ? store.getStoreId() : "null") +
+                ", memberId=" + memberId +
+                ", storeId=" + storeId +
                 ", createTime=" + createTime +
                 ", status='" + status + '\'' +
-                ", diningTime='" + diningTime + '\'' +
-                ", diningStore='" + diningStore + '\'' +
+                ", repliedAt=" + repliedAt +
                 '}';
     }
 
