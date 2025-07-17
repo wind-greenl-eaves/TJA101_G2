@@ -7,8 +7,6 @@ public class xxx {
 	public xxx(String name, int age) {
 		this.name = name;
 		this.age = age;
-//		888888E
-//		7/4 首頁增加 rrrREE
-//		EE
+
 	}
 }

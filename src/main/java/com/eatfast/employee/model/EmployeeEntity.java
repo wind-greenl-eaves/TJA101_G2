@@ -205,17 +205,17 @@ public class EmployeeEntity {
     /**
      * 最後一次登入失敗時間
      * 記錄最後一次登入失敗的時間，用於追蹤和分析。
-     * 對應到 employee 資料表的 last_login_failure_at 欄位。
+     * 對應到 employee 資料表的 last_failure_time 欄位。
      */
-    @Column(name = "last_login_failure_at")
+    @Column(name = "last_failure_time")
     private LocalDateTime lastLoginFailureAt;
 
     /**
      * 帳號鎖定時間
      * 記錄帳號因登入失敗過多而被鎖定的時間。
-     * 對應到 employee 資料表的 account_locked_at 欄位。
+     * 對應到 employee 資料表的 account_locked_time 欄位。
      */
-    @Column(name = "account_locked_at")
+    @Column(name = "account_locked_time")
     private LocalDateTime accountLockedAt;
 
     /**
