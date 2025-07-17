@@ -358,7 +358,7 @@
                 
                 <div class="form-group-style">
                     <label for="mealPrice">餐點價格：</label>
-                    <input type="text" id="mealPrice" class="form-control-style" th:field="*{mealPrice}"
+                    <input type="number" id="mealPrice" class="form-control-style" th:field="*{mealPrice}" min="1" step="1"
                            oninput="hideErrorMessage('mealPrice.errors');" />
                     <span class="text-danger-style" th:if="${#fields.hasErrors('mealPrice')}" th:errors="*{mealPrice}" id="mealPrice.errors"></span>
                 </div>

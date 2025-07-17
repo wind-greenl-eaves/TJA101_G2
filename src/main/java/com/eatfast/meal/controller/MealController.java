@@ -61,6 +61,15 @@ public class MealController {
                         RedirectAttributes redirectAttributes) throws IOException {
         MultipartFile mealPic = mealEntity.getMealPicFile();
 
+        Long mealTypeId = mealEntity.getMealType() != null ? mealEntity.getMealType().getMealTypeId() : null;
+        if (mealTypeId == null) {
+            result.addError(new FieldError("mealEntity", "mealType.mealTypeId", "餐點種類不可為空"));
+        } else {
+            // 查出完整 MealTypeEntity，再 set 回 mealEntity
+            MealTypeEntity fullType = mealTypeService.getOneMealType(mealTypeId);
+            mealEntity.setMealType(fullType);
+        }
+        
         if (mealPic != null && !mealPic.isEmpty()) {
         	// 存 uploads/meal_pic 資料夾
 			if (mealPic.getSize() > MAX_FILE_SIZE) {
@@ -92,9 +101,18 @@ public class MealController {
 	    final String UPLOAD_DIR = "uploads/meal_pic/";
 	
 	    MultipartFile mealPic = mealEntity.getMealPicFile();
-	    result = removeFieldError(mealEntity, result, "mealPic");
+	    removeFieldError(mealEntity, result, "mealPic"); // 直接呼叫，不要再 result = ...
+
 	
 	    MealEntity existingMeal = mealService.getOneMeal(mealEntity.getMealId());
+	    
+	    Long mealTypeId = mealEntity.getMealType() != null ? mealEntity.getMealType().getMealTypeId() : null;
+	    if (mealTypeId == null) {
+	        result.addError(new FieldError("mealEntity", "mealType.mealTypeId", "餐點種類不可為空"));
+	    } else {
+	        MealTypeEntity fullType = mealTypeService.getOneMealType(mealTypeId);
+	        mealEntity.setMealType(fullType);
+	    }
 	    
 	    if (mealPic != null && !mealPic.isEmpty()) {
 	        if (mealPic.getSize() > MAX_FILE_SIZE) {
@@ -124,6 +142,7 @@ public class MealController {
 	        if (mealEntity.getMealType() == null) {
 	            mealEntity.setMealType(new MealTypeEntity());
 	        }
+	        model.addAttribute("mealEntity", mealEntity);// 將錯誤的 mealEntity 傳回表單
 	        model.addAttribute("mealTypeListData", mealTypeService.getAll());
 	        return "back-end/meal/update_meal_input";
 	    }
@@ -237,15 +256,62 @@ public class MealController {
         }
         return newResult;
     }
+    
+    // 從 select_page_meal 表單頁面進行複合查詢
+    @PostMapping("/select_page_ByCompositeQuery")
+    public String compositeQueryFromSelectPage(HttpServletRequest req, Model model) {
+        Map<String, String[]> map = req.getParameterMap();
+        String[] mealNameArr = map.get("mealName");
+        String mealName = (mealNameArr != null && mealNameArr.length > 0) ? mealNameArr[0].trim() : "";
+        if (!mealName.isEmpty() && !mealName.matches("^[\u4e00-\u9fa5]+$")) {
+            // 查詢失敗，停留在 select_page
+            model.addAttribute("compositeError", "餐點名稱僅能輸入中文");
+            model.addAttribute("param", map);
+            model.addAttribute("mealTypeListData", mealTypeService.getAll());
+            model.addAttribute("mealListData", mealService.getAll());
+            return "back-end/meal/select_page_meal"; // 停留在 select_page
+        }
+        // 查詢成功
+        List<MealEntity> list = mealService.getAll(map);
+        model.addAttribute("mealListData", list);
+        model.addAttribute("param", map);
+        model.addAttribute("mealTypeListData", mealTypeService.getAll());
+        return "back-end/meal/listAllMeal";
+    }
+
 
     // 條件複合查詢（搭配 HibernateUtil）
     @PostMapping("/listMeal_ByCompositeQuery")
     public String listAllMeal(HttpServletRequest req, ModelMap model) {
         Map<String, String[]> map = req.getParameterMap();
+        
+        // 後端驗證: 餐點名稱只能輸入中文（可空白，不檢查長度）
+        String[] mealNameArr = map.get("mealName");
+        String mealName = (mealNameArr != null && mealNameArr.length > 0) ? mealNameArr[0].trim() : "";
+        if (!mealName.isEmpty() && !mealName.matches("^[\u4e00-\u9fa5]+$")) {
+            model.addAttribute("errorMessage", "餐點名稱僅能輸入中文");
+            // 必要時，把查詢欄位值帶回
+            model.addAttribute("param", map);
+            // 重新查全部餐點避免查詢條件出錯沒資料
+            model.addAttribute("mealListData", mealService.getAll());
+            // 下拉選單選項
+            model.addAttribute("mealTypeListData", mealTypeService.getAll());
+            return "back-end/meal/listAllMeal";
+        }
+        
         List<MealEntity> list = mealService.getAll(map);
         model.addAttribute("mealListData", list);
         model.addAttribute("param", map);
         
+        // 保留種類選擇
+        String[] mealTypeIdArr = map.get("mealTypeId");
+        Long selectedMealTypeId = null;
+        if (mealTypeIdArr != null && mealTypeIdArr.length > 0 && !mealTypeIdArr[0].isBlank()) {
+            try { selectedMealTypeId = Long.valueOf(mealTypeIdArr[0]); } catch(Exception e) {}
+        }
+        model.addAttribute("selectedMealTypeId", selectedMealTypeId);
+        
+        // 保留狀態選擇
         String[] statusArr = map.get("status");
         if (statusArr != null && statusArr.length > 0 && !statusArr[0].isBlank()) {
             try {
@@ -263,6 +329,7 @@ public class MealController {
     // 顯示所有餐點的列表頁面
     @GetMapping("/listAllMeal")
     public String listAllMeal(ModelMap model) {
+    	
         List<MealEntity> list = mealService.getAll();
         model.addAttribute("mealListData", list);
         return "back-end/meal/listAllMeal"; // 返回餐點列表頁面
