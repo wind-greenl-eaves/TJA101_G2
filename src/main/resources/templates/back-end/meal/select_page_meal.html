@@ -432,12 +432,16 @@
                 </div>
             </section>
             
+            <div th:if="${compositeError}" class="alert alert-danger w-full mb-4" role="alert">
+			    <i class="fas fa-exclamation-circle"></i> <span th:text="${compositeError}"></span>
+			</div>
+            
             <section>
                 <div class="section-title-container">
                     <h2 class="section-title">複合條件查詢</h2>
                 </div>
                 <div class="query-block composite-query-block space-y-6"> 
-                    <form method="post" th:action="@{/meal/listMeal_ByCompositeQuery}" id="composite-query-form">
+                    <form method="post" th:action="@{/meal/select_page_ByCompositeQuery}" id="composite-query-form">
                         
                         <div class="form-container"> <label for="mealName" class="form-label"><i class="fas fa-utensils mr-2"></i>餐點名稱：</label>
                             <input type="text" name="mealName" id="mealName" class="form-input" placeholder="請輸入餐點名稱" th:value="${param.mealName}">

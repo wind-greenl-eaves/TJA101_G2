@@ -32,7 +32,8 @@ public class MealTypeEntity {
     @Column(name = "meal_type_id")
     private Long mealTypeId;
 
-    @NotBlank(message = "餐點種類名稱：請勿空白")
+    @NotBlank(message = "餐點種類名稱不可為空")
+    @Pattern(regexp = "^[\u4e00-\u9fa5]+$", message = "餐點種類名稱僅限輸入中文字")
     @Size(min = 1, max = 50, message = "餐點種類名稱長度須為 1 到 50 個字") // 與 DB 同步
     @Column(name = "meal_name", nullable = false, length = 50)
     private String mealName;
@@ -74,8 +75,13 @@ public class MealTypeEntity {
         return mealName;
     }
     public void setMealName(String mealName) {
-        this.mealName = mealName;
+        if (mealName != null) {
+            this.mealName = mealName.trim(); // 去頭尾空白
+        } else {
+            this.mealName = null;
+        }
     }
+
 
     // 【新增】關聯集合的 Getter / Setter
     public Set<MealEntity> getMeals() {

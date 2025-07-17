@@ -25,15 +25,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /*
@@ -74,6 +73,7 @@ public class MealEntity {
 
     @NotBlank(message = "餐點名稱不可為空")
     @Size(max = 50, message = "餐點名稱長度不可超過 50 個字元")
+    @Pattern(regexp = "^[\u4e00-\u9fa5]{2,50}$", message = "餐點名稱僅能輸入中文，長度 2~50 字")
     @Column(name = "meal_name", nullable = false, length = 50)
     private String mealName; // 餐點名稱
 
@@ -104,7 +104,7 @@ public class MealEntity {
      * MealEntity 是關係的擁有方，通過 meal_type_id 欄位連接 MealTypeEntity。
      */
     @NotNull(message = "餐點種類不可為空")
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "meal_type_id", nullable = false)
     private MealTypeEntity mealType; // 餐點所屬的種類實體
 

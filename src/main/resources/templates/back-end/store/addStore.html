@@ -1,20 +1,31 @@
+<!-- =======================================================================================
+     檔案: addStore.html (完全後端驗證版)
+     說明: 【核心修改 - 2025/01/14】
+           1. 完全移除所有 HTML5 前端驗證屬性 (required, pattern, minlength, maxlength)
+           2. 移除所有前端 JavaScript 驗證邏輯
+           3. 所有驗證完全依賴後端 Spring Boot 的 @Valid 註解和自定義驗證器
+           4. 前端只負責顯示後端回傳的驗證錯誤訊息
+     ======================================================================================= -->
 <!DOCTYPE html>
 <html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>新增門市資料 - EatFast 後台</title>
+    <title>新增門市資料 - EatFast</title>
     
+    <!-- 引入 Tailwind CSS 框架 -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 引入 Google Fonts (思源黑體) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- 引入 Font Awesome 圖示庫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <link rel="stylesheet" th:href="@{/css/store/form-styles.css}"> 
-
     <style>
-        /* 您的自定義 CSS 變數和通用樣式 */
+        /* 自定義 CSS 變數，實現奶茶色主題 */
         :root {
             --bg-color: #FDFBF6;
             --container-bg: #F5EFE6;
@@ -23,226 +34,538 @@
             --text-color: #5D534A;
             --border-color: #DED0B6;
             --error-color: #D9534F;
+            --success-color: #4CAF50;
+            --header-bg: #F5EFE6;
+            --placeholder-color: #B0A495;
+            --input-focus-ring: rgba(166, 123, 91, 0.2);
+            --input-error: #DC2626;
+            --input-success: #059669;
         }
+        
         body {
             font-family: 'Noto Sans TC', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
+            font-size: 14px;
+            background-image: url('/images/eatfast4.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            min-height: 100vh;
         }
-        .form-wrapper {
-            max-width: 800px;
-            margin: 2rem auto;
+
+        /* 在 body 後添加一個半透明的覆蓋層，增強文字可讀性 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(253, 251, 246, 0.64);
+            z-index: -1;
+        }
+
+        /* 頁面容器 */
+        .page-container {
+            display: flex;
+            gap: 0.75rem;
+            position: relative;
+            min-height: 100vh;
+            padding: 0.75rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 90%;
+        }
+
+        /* 左側導航區塊 */
+        .left-nav-panel {
+            width: 280px;
+            position: fixed;
+            left: calc((100% - 1400px) / 2 + 0.75rem - 100px);
+            top: 0.75rem;
+            bottom: 0.75rem;
+            overflow-y: auto;
             background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            border-radius: 0.5rem;
             border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1);
+            padding: 1rem;
         }
-        .form-header {
+
+        /* 主要內容區域 */
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            max-width: calc(100% - 300px);
+        }
+
+        /* 導航項目樣式 */
+        .nav-item {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid var(--border-color);
-            background-color: var(--container-bg);
-            border-top-left-radius: 0.75rem;
-            border-top-right-radius: 0.75rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+            cursor: pointer;
         }
+
+        .nav-item:hover {
+            background-color: var(--container-bg);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .nav-item i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* 表單樣式 */
+        .form-wrapper {
+            background-color:rgba(255, 255, 255, 0.4); /* 改為半透明白色 */
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+        }
+
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
         .form-label {
             display: block;
-            font-weight: 600;
             margin-bottom: 0.5rem;
-            color: var(--primary-color);
+            font-weight: 500;
+            color: var(--text-color);
         }
+
         .form-input {
             width: 100%;
             padding: 0.75rem 1rem;
             border: 1px solid var(--border-color);
             border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: all 0.2s;
+            background-color: #FFFFFF;
+            transition: all 0.2s ease-in-out;
+            font-size: 0.875rem;
         }
+
+        .form-input::placeholder {
+            color: var(--placeholder-color);
+            font-style: italic;
+        }
+
         .form-input:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(166, 123, 91, 0.2);
+            box-shadow: 0 0 0 3px var(--input-focus-ring);
         }
-        .error-message {
-            color: var(--error-color);
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
+
+        .form-input.border-red-500 {
+            border-color: var(--input-error);
         }
+
+        .form-input.border-red-500:focus {
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+        }
+
+        .submit-button, .cancel-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease-in-out;
+            border: none;
+            cursor: pointer;
+        }
+
         .submit-button {
             background-color: var(--primary-color);
             color: white;
-            font-weight: 600;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            transition: background-color 0.2s;
         }
+
         .submit-button:hover {
             background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                        0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
+
         .cancel-button {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.5rem 1rem;
-            background-color: var(--container-bg);
-            color: var(--primary-color);
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: all 0.2s;
+            background-color: #e5e7eb;
+            color: var(--text-color);
         }
+
         .cancel-button:hover {
-            background-color: var(--border-color);
+            background-color: #d1d5db;
         }
-        /* 針對狀態選擇器的調整 */
-        select.form-input {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 1rem 1rem;
+
+        .error-message {
+            color: var(--input-error);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            min-height: 1.25rem;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-toggle-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-color);
+            opacity: 0.5;
+            cursor: pointer;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .password-toggle-icon:hover {
+            opacity: 1;
+        }
+
+        /* 跑馬燈訊息 */
+        .marquee-text {
+            animation: marquee-animation 20s linear infinite;
+            font-size: 0.875rem;
+            padding: 0.5rem;
+        }
+
+        @keyframes marquee-animation {
+            0%   { transform: translateX(100%); }
+            100% { transform: translateX(-150%); }
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 1400px) {
+            .left-nav-panel {
+                left: 0.75rem;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .page-container {
+                flex-direction: column;
+                width: 95%;
+            }
+            .left-nav-panel {
+                position: static;
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+            .main-content {
+                max-width: 100%;
+                margin-left: 0;
+            }
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased" th:data-has-employee-session="${session.loggedInEmployee != null}">
 
-<div class="form-wrapper">
-    <header class="form-header">
-        <div class="flex items-center gap-4">
-            <img th:src="@{/images/123.png}" alt="Logo" class="w-10 h-10 mr-2">
-            <div>
-                <h1 class="text-xl font-bold">新增門市資料</h1>
-                <p class="text-sm text-gray-500">請填寫所有必填欄位</p>
-            </div>
+<div class="page-container">
+    <!-- 左側導航區塊 -->
+    <aside class="left-nav-panel">
+        <div class="nav-section-title">
+            <i class="fas fa-compass mr-2"></i>系統導航
         </div>
-        <a th:href="@{/store/listAll}" class="cancel-button"> <i class="fas fa-list-alt mr-2"></i> 返回所有門市資料
-        </a>
-    </header>
 
-    <div id="message-container" th:classappend="${successMessage} ? 'bg-green-100 border-green-500 text-green-700 block' : (${errorMessage} ? 'bg-red-100 border-red-500 text-red-700 block' : 'hidden')"
-         class="p-4 mx-8 mt-6 text-sm rounded-lg" role="alert">
-         <span th:if="${successMessage}" th:text="${successMessage}"></span>
-         <span th:if="${errorMessage}" th:text="${errorMessage}"></span>
+        <!-- 門市管理區塊 -->
+        <div class="mb-6">
+            <div class="nav-section-title">門市管理</div>
+            <div class="nav-item active">
+                <i class="fas fa-user-plus"></i>
+                <span>新增門市</span>
+            </div>
+            <a th:href="@{/store/listAll}" class="nav-item"
+               th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN' or session.loggedInEmployee?.role?.name() == 'MANAGER'}">
+                <i class="fas fa-list"></i>
+                <span>門市列表</span>
+            </a>
+            <a th:href="@{/employee/select_page}" class="nav-item">
+                <i class="fas fa-search"></i>
+                <span>返回管理首頁</span>
+            </a>
+        </div>
+
+        </aside>
+
+    <!-- 主要內容區域 -->
+    <div class="main-content">
+        <!-- Header 區塊 -->
+        <header class="flex items-center justify-between p-4 bg-[var(--container-bg)] border border-[var(--border-color)] rounded-xl shadow-sm mb-6">
+            <div class="flex items-center">
+                <img src="/images/123.png" alt="Logo" class="w-12 h-12 rounded-full mr-2">
+                <div class="ml-4">
+                    <h1 class="text-xl font-bold">早餐店後台</h1>
+                    <h2 class="text-xl font-bold">新增門市資料</h2>
+                    <p class="text-sm text-gray-500">填寫門市資料，必填欄位由後端驗證</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- 登入員工資訊顯示 -->
+                <div class="flex items-center bg-opacity-50 px-4 py-2 rounded-lg border border-[var(--border-color)] shadow-sm" th:if="${session.loggedInEmployee}">
+                    <i class="fas fa-user-circle text-2xl text-[var(--primary-color)] mr-3"></i>
+                    <div class="text-right">
+                        <p class="text-sm font-semibold text-[var(--text-color)]" th:text="${session.employeeName}">員工姓名</p>
+                        <p class="text-xs text-gray-500">
+                            <span th:text="${session.loggedInEmployee.role?.displayName}">職位</span>
+                            <span class="mx-1">|</span>
+                            <span th:text="'ID: ' + ${session.employeeId}">ID: 001</span>
+                        </p>
+                    </div>
+                </div>
+                <!-- 登出按鈕 -->
+                <button id="logoutBtn" class="submit-button">
+                    <i class="fas fa-sign-out-alt mr-2"></i>登出系統
+                </button>
+            </div>
+        </header>
+
+        <!-- 跑馬燈訊息 -->
+        <div class="bg-white p-3 rounded-lg border border-[var(--border-color)] shadow-sm overflow-hidden whitespace-nowrap mb-8">
+            <p class="inline-block marquee-text text-[var(--primary-color)] font-medium">新增門市資料 - 請確實填寫所有必要資訊，系統將進行完整驗證</p>
+        </div>
+
+        <!-- 表單區塊 -->
+        <div class="form-wrapper">
+            <div class="form-header">
+                <div class="flex items-center gap-4">
+                    <img th:src="@{/images/123.png}" alt="Icon" class="w-10 h-10 mr-2">
+                    <div>
+                        <h1 class="text-xl font-bold">新增門市資料</h1>
+                        <p class="text-sm text-gray-500">請填寫門市資料，必填欄位由後端驗證</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="message-container" class="hidden p-4 mx-8 mt-6 text-sm rounded-lg" role="alert"></div>
+            
+            <form id="add-form"
+                  th:action="@{/store/insert}"
+                  method="post"
+                  th:object="${createStoreRequest}" 
+                  class="p-8 space-y-6">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+                    <!-- 門市名稱 -->
+                    <div>
+                        <label for="storeName" class="form-label">門市名稱</label>
+                        <input type="text" id="storeName" th:field="*{storeName}" class="form-input" placeholder="例如: 中山南京店">
+                        <div class="error-message" th:if="${#fields.hasErrors('storeName')}" th:errors="*{storeName}"></div>
+                    </div>
+                    
+                    <!-- 門市地址 -->
+                    <div class="sm:col-span-2">
+                        <label for="storeLoc" class="form-label">門市地址</label>
+                        <input type="text" id="storeLoc" th:field="*{storeLoc}" class="form-input" placeholder="例如: 台北市中山區南京東路三段XX號">
+                        <div class="error-message" th:if="${#fields.hasErrors('storeLoc')}" th:errors="*{storeLoc}"></div>
+                    </div>
+
+                    
+                    <!-- 門市電話 -->
+                    <div class="sm:col-span-2">
+                        <label for="storePhone" class="form-label">門市電話</label>
+                        <input type="tel" 
+                               id="storePhone" 
+                               th:field="*{storePhone}"
+                               class="form-input"
+                               placeholder="例如: 0225119999" >
+                        <div class="error-message"  th:if="${#fields.hasErrors('storePhone')}" th:errors="*{storePhone}"></div>
+                    </div>
+                    
+                    <!-- 門市營業時間 -->
+                    <div>
+                        <label for="storeTime" class="form-label">門市營業時間</label>
+                        <input type="text" 
+                               id="storeTime" 
+                               th:field="*{storeTime}"
+                               class="form-input"                       
+                               placeholder="例如: 5:00~14:00 營業  週一公休，" 
+                               >
+                        <div class="error-message" th:if="${#fields.hasErrors('storeTime')}" th:errors="*{storeTime}"></div>
+                    </div>
+                    
+                    <!-- 門市狀態 -->
+                    <div>
+                        <label for="storeStatus" class="form-label">門市狀態</label>
+                        <select id="storeStatus" 
+                               th:field="*{storeStatus}" 
+                               class="form-input">
+                               <option value="" disabled selected>-- 請選擇門市狀態 --</option>
+                               <option th:each="statusOpt : ${T(com.eatfast.common.enums.StoreStatus).values()}"
+                                th:value="${statusOpt}" th:text="${statusOpt.description}"> </option>
+                        </select>
+                        <div class="error-storeStatus"  th:if="${#fields.hasErrors('storeStatus')}" th:errors="*{storeStatus}"></div>
+                    </div>
+                    
+                    <button type="submit" 
+                            class="submit-button"
+                            id="submit-btn">
+                        <i class="fas fa-plus mr-2"></i>確認新增
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-    
-    <form id="add-form"
-          th:action="@{/store/insert}"
-          th:object="${createStoreRequest}" method="post" class="p-8 space-y-6">
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-            <div>
-                <label for="storeName" class="form-label">門市名稱</label>
-                <input type="text" id="storeName" name="storeName" th:field="*{storeName}" class="form-input" placeholder="例如: 一號店" />
-                <div id="error-storeName" class="error-message" th:if="${#fields.hasErrors('storeName')}" th:errors="*{storeName}"></div>
-            </div>
-
-            <div class="sm:col-span-2">
-                <label for="storeLoc" class="form-label">門市地址</label>
-                <input type="text" id="storeLoc" name="storeLoc" th:field="*{storeLoc}" class="form-input" placeholder="例如: 台北市中山區南京東路三段XX號" />
-                <div id="error-storeLoc" class="error-message" th:if="${#fields.hasErrors('storeLoc')}" th:errors="*{storeLoc}"></div>
-            </div>
-
-            <div>
-                <label for="storePhone" class="form-label">門市電話</label>
-                <input type="tel" id="storePhone" name="storePhone" th:field="*{storePhone}" class="form-input" placeholder="例如: 0225119999" />
-                <div id="error-storePhone" class="error-message" th:if="${#fields.hasErrors('storePhone')}" th:errors="*{storePhone}"></div>
-            </div>
-            
-            <div>
-                <label for="storeTime" class="form-label">門市營業時間</label>
-                <input type="text" id="storeTime" name="storeTime" th:field="*{storeTime}" class="form-input" placeholder="例如: 星期一公休，二~日 6:30~14:30 營業" />
-                <div id="error-storeTime" class="error-message" th:if="${#fields.hasErrors('storeTime')}" th:errors="*{storeTime}"></div>
-            </div>
-            
-            <div>
-                <label for="storeStatus" class="form-label">門市狀態</label>
-                <select id="storeStatus" name="storeStatus" th:field="*{storeStatus}"  class="form-input"> 
-                     <option value="" disabled selected>-- 請選擇門市狀態 --</option>
-                    <option th:each="statusOpt : ${T(com.eatfast.common.enums.StoreStatus).values()}"
-                            th:value="${statusOpt}" th:text="${statusOpt.description}"> </option>
-                </select>
-                <div id="error-storeStatus" class="error-message" th:if="${#fields.hasErrors('storeStatus')}" th:errors="*{storeStatus}"></div>
-            </div>
-        </div>
-
-        <hr>
-        <div class="flex items-center justify-end pt-6 border-t border-[var(--border-color)]">
-            <button type="submit" class="submit-button">
-                <i class="fas fa-plus mr-2"></i>確認新增
-            </button>
-        </div>
-    </form>
 </div>
 
-<div id="success-modal" class="fixed inset-0 z-50 hidden">
-    <div class="fixed inset-0 bg-black bg-opacity-50"></div>
-    
-    <div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 shadow-xl w-96">
-        <div class="text-center">
-            <div class="w-16 h-16 rounded-full bg-green-100 p-2 flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-check text-3xl text-green-500"></i>
-            </div>
-            
-            <h3 class="text-lg font-medium text-gray-900 mb-4" id="success-modal-message"></h3>
-            
-            <button id="success-modal-confirm" 
-                    class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
-                返回列表
-            </button>
+<!-- 登出確認 Modal -->
+<div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-2xl text-center max-w-sm mx-auto">
+        <h3 class="text-xl font-bold mb-4">確認登出</h3>
+        <p class="mb-6">您確定要登出系統嗎？</p>
+        <div class="flex justify-center gap-4">
+            <button id="cancelLogoutBtn" class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors">取消</button>
+            <button id="confirmLogoutBtn" class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors">確認登出</button>
         </div>
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // 從 Thymeleaf 獲取 Flash Attributes 中的訊息
-        const successMessage = /*[[${successMessage}]]*/ null;
-        const errorMessage = /*[[${errorMessage}]]*/ null;
+<!-- 二次確認 Modal -->
+<div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 m-4 max-w-md w-full">
+        <div class="flex items-center mb-4">
+            <i class="fas fa-question-circle text-yellow-500 text-2xl mr-3"></i>
+            <h3 class="text-lg font-semibold text-gray-900">確認新增員工</h3>
+        </div>
         
-        const messageContainer = document.getElementById('message-container');
-        const successModal = document.getElementById('success-modal');
-        const successModalMessage = document.getElementById('success-modal-message');
-        const successModalConfirm = document.getElementById('success-modal-confirm');
-
-        // 顯示頂部的成功/錯誤訊息
-        if (successMessage) {
-            messageContainer.classList.remove('hidden', 'bg-red-100', 'border-red-500', 'text-red-700');
-            messageContainer.classList.add('bg-green-100', 'border-green-500', 'text-green-700', 'block');
-            messageContainer.innerHTML = `<div>${successMessage}</div>`;
+        <!-- 顯示即將新增的員工資訊 -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+            <h4 class="font-semibold mb-2 text-gray-700">即將新增以下員工資訊：</h4>
+            <div class="space-y-1 text-sm text-gray-600">
+                <p><span class="font-medium">姓名：</span><span id="confirm-username">-</span></p>
+                <p><span class="font-medium">帳號：</span><span id="confirm-account">-</span></p>
+                <p><span class="font-medium">信箱：</span><span id="confirm-email">-</span></p>
+                <p><span class="font-medium">電話：</span><span id="confirm-phone">-</span></p>
+                <p><span class="font-medium">角色：</span><span id="confirm-role">-</span></p>
+                <p><span class="font-medium">門市：</span><span id="confirm-store">-</span></p>
+            </div>
+        </div>
+        
+        <p class="text-gray-600 mb-6">確定要新增這間門市嗎？此操作將會：</p>
+        <ul class="text-sm text-gray-600 mb-6 space-y-1">
+            <li>• 建立新的門市資料</li>
             
-            // 彈出成功 Modal
-            successModalMessage.textContent = successMessage;
-            successModal.classList.remove('hidden');
-        } else if (errorMessage) {
-            messageContainer.classList.remove('hidden', 'bg-green-100', 'border-green-500', 'text-green-700');
-            messageContainer.classList.add('bg-red-100', 'border-red-500', 'text-red-700', 'block');
-            messageContainer.innerHTML = `<div>${errorMessage}</div>`;
-            // 如果是錯誤，不自動彈出 Modal，只顯示在頂部
-        }
+            <li>• 無法復原此操作</li>
+        </ul>
+        
+        <div class="flex justify-end space-x-3">
+            <button id="confirm-cancel-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                <i class="fas fa-times mr-2"></i>取消
+            </button>
+            <button id="confirm-submit-btn" class="px-4 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-[var(--primary-hover)] transition-colors">
+                <i class="fas fa-check mr-2"></i>確認新增
+            </button>
+        </div>
+    </div>
+</div>
 
-        // Modal 確認按鈕的事件監聽器
-        if (successModalConfirm) {
-            successModalConfirm.addEventListener('click', function() {
-                successModal.classList.add('hidden');
-                // 點擊確認後導向列表頁面
-                window.location.href = /*[[@{/store/listAll}]]*/ '/store/listAll';
+<!-- 成功提示模態框 -->
+<div id="success-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 m-4 max-w-md w-full">
+        <div class="flex items-center mb-4">
+            <i class="fas fa-check-circle text-green-500 text-2xl mr-3"></i>
+            <h3 class="text-lg font-semibold text-gray-900">新增成功</h3>
+        </div>
+        <p id="success-modal-message" class="text-gray-700 mb-6"></p>
+        <div class="flex justify-end">
+            <button id="success-modal-confirm" 
+                    class="bg-[var(--primary-color)] text-white px-4 py-2 rounded-lg hover:bg-[var(--primary-hover)] transition-colors">
+                確定
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 登出功能 JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 登出 Modal 邏輯
+    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutModal = document.getElementById('logoutModal');
+    const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+    const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+
+    // 顯示登出確認視窗
+    logoutBtn.addEventListener('click', function() {
+        logoutModal.classList.remove('hidden');
+        logoutModal.classList.add('flex');
+    });
+
+    // 取消登出
+    cancelLogoutBtn.addEventListener('click', function() {
+        logoutModal.classList.add('hidden');
+        logoutModal.classList.remove('flex');
+    });
+
+    // 確認登出
+    confirmLogoutBtn.addEventListener('click', async function() {
+        try {
+            // 調用後端登出端點清除 Session
+            const response = await fetch('/employee/logout', {
+                method: 'GET',
+                credentials: 'same-origin'
             });
-        }
-        // 如果您希望點擊 Modal 背景也能關閉並導向
-        if (successModal) {
-            successModal.addEventListener('click', function(event) {
-                if (event.target === successModal) { // 確保點擊的是背景，而不是 Modal 內容
-                    successModal.classList.add('hidden');
-                    window.location.href = /*[[@{/store/listAll}]]*/ '/store/listAll';
-                }
-            });
+
+            if (response.ok) {
+                // 登出成功，重定向到登入頁面
+                window.location.href = '/employee/login?logout=success';
+            } else {
+                throw new Error('登出請求失敗');
+            }
+        } catch (error) {
+            console.error('登出錯誤:', error);
+            // 即使出錯也嘗試重定向到登入頁面
+            window.location.href = '/employee/login?logout=success';
+        } finally {
+            logoutModal.classList.add('hidden');
+            logoutModal.classList.remove('flex');
         }
     });
 
-    // 由於您移除了 HTML5 前端驗證屬性，這裡也移除了相應的 JavaScript 驗證邏輯
-    // 如果需要前端驗證，您將需要重新手動編寫基於 JavaScript 的驗證邏輯，
-    // 並確保其與後端驗證規則一致。
+    // 點擊背景關閉 Modal
+    logoutModal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            logoutModal.classList.add('hidden');
+            logoutModal.classList.remove('flex');
+        }
+    });
+});
 </script>
 
 </body>

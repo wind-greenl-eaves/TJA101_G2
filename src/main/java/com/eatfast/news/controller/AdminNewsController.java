@@ -1,5 +1,6 @@
 package com.eatfast.news.controller;
 
+import com.eatfast.common.enums.NewsStatus;
 import com.eatfast.employee.model.EmployeeEntity;
 import com.eatfast.employee.repository.EmployeeRepository;
 import com.eatfast.news.model.NewsEntity;
@@ -14,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.List;
 
 @Controller
@@ -30,7 +30,9 @@ public class AdminNewsController {
         this.employeeRepository = employeeRepository;
     }
 
-    // --- 顯示列表 ---
+    /**
+     * 顯示後台消息列表頁
+     */
     @GetMapping("/list")
     public String showNewsList(Model model) {
         List<NewsEntity> allNews = newsService.getAllNews();
@@ -38,27 +40,34 @@ public class AdminNewsController {
         return "back-end/news/news_list_all";
     }
 
-    // --- 顯示詳情 ---
+    /**
+     * ✅ 處理「查看」按鈕點擊，顯示單一消息詳情
+     */
     @GetMapping("/view/{id}")
     public String showNewsDetail(@PathVariable("id") Long newsId, Model model) {
         NewsEntity news = newsService.findById(newsId);
-        // ✅ 【已修正】將 "newsItem" 改為 "newsDetail"，與 HTML 模板保持一致
         model.addAttribute("newsDetail", news);
         return "back-end/news/news_view_detail";
     }
 
-    // --- 新增功能 ---
+    /**
+     * 顯示「新增消息」的表單頁面
+     */
     @GetMapping("/create")
     public String showCreateForm(Model model) {
         model.addAttribute("news", new NewsEntity());
         return "back-end/news/news_add_form";
     }
 
+    /**
+     * 處理「新增消息」的表單提交
+     */
     @PostMapping("/create")
     public String processCreateForm(@Valid @ModelAttribute("news") NewsEntity news,
                                     BindingResult bindingResult,
                                     RedirectAttributes redirectAttributes,
-                                    @RequestParam("imageFile") MultipartFile imageFile) {
+                                    @RequestParam("imageFile") MultipartFile imageFile,
+                                    @RequestParam("action") String action) {
         if (bindingResult.hasErrors()) {
             return "back-end/news/news_add_form";
         }
@@ -72,13 +81,24 @@ public class AdminNewsController {
             redirectAttributes.addFlashAttribute("errorMessage", "圖片上傳失敗！");
             return "back-end/news/news_add_form";
         }
+
+        if ("publish".equals(action)) {
+            news.setStatus(NewsStatus.PUBLISHED);
+            redirectAttributes.addFlashAttribute("successMessage", "消息已成功發布！");
+        } else {
+            news.setStatus(NewsStatus.DRAFT);
+            redirectAttributes.addFlashAttribute("successMessage", "消息已儲存為草稿！");
+        }
+
         Long tempEmployeeId = 1L;
         newsService.saveNews(news, tempEmployeeId);
-        redirectAttributes.addFlashAttribute("successMessage", "消息新增成功！");
+
         return "redirect:/admin/news/list";
     }
 
-    // --- 編輯功能 ---
+    /**
+     * 顯示「編輯消息」的表單頁面
+     */
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable("id") Long newsId, Model model) {
         NewsEntity newsToEdit = newsService.findById(newsId);
@@ -86,6 +106,9 @@ public class AdminNewsController {
         return "back-end/news/news_edit_form";
     }
 
+    /**
+     * 處理「編輯消息」的表單提交
+     */
     @PostMapping("/update")
     public String processEditForm(@Valid @ModelAttribute("news") NewsEntity news,
                                   BindingResult bindingResult,
@@ -96,16 +119,18 @@ public class AdminNewsController {
         }
         try {
             newsService.updateNews(news, imageFile);
-        } catch (IOException e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errorMessage", "圖片更新失敗！");
+            redirectAttributes.addFlashAttribute("errorMessage", "更新失敗：" + e.getMessage());
             return "back-end/news/news_edit_form";
         }
         redirectAttributes.addFlashAttribute("successMessage", "消息 (ID: " + news.getNewsId() + ") 已成功更新！");
         return "redirect:/admin/news/list";
     }
 
-    // --- 刪除功能 ---
+    /**
+     * 處理刪除最新消息的請求
+     */
     @GetMapping("/delete/{id}")
     public String deleteNews(@PathVariable("id") Long newsId, RedirectAttributes redirectAttributes) {
         try {
