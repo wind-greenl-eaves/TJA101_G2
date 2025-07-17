@@ -62,8 +62,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final FileService fileService;
     private final MailService mailService;
 
-    @Value("${app.upload.employee-photos}")
-    private String uploadPath;
+    @Value("${app.upload.employee-photos}") // 從配置檔讀取上傳路徑
+    private String uploadPath;// 上傳路徑，用於存儲員工照片
 
     @Autowired
     public EmployeeServiceImpl(
@@ -114,9 +114,9 @@ public class EmployeeServiceImpl implements EmployeeService {
             }
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
-        return employeeRepository.findAll(spec).stream()
-                .map(employeeMapper::toDto)
-                .collect(Collectors.toList());
+        return employeeRepository.findAll(spec).stream()// 使用 JPA 規格查詢
+                .map(employeeMapper::toDto) // 使用映射器將實體轉換為 DTO
+                .collect(Collectors.toList());// 將結果轉換為 DTO 列表
     }
 
     @Override

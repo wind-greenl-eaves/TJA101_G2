@@ -74,6 +74,7 @@ public class EmployeeController {
     // 這個方法負責處理「新增員工」的請求。
     // 前端會送出一個表單（multipart/form-data），包含員工資料。
     // 對應 API 路徑：POST /api/v1/employees
+    //@ModleAttribute 用來處理 multipart/form-data 的表單資料。
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<?> createEmployee(@Valid @ModelAttribute CreateEmployeeRequest request, HttpSession session) {
         employeeLogger.logInfo("收到新增員工請求: username={}, email={}, role={}", 

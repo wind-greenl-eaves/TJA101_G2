@@ -20,6 +20,7 @@ public class EmployeeSecurityController {
     /**
      * 檢查員工登入狀態
      * GET /employee/security/status/{id}
+     * ResponseEntity<Map<String, Object>> 包含員工登入狀態資訊
      */
     @GetMapping("/status/{id}")
     public ResponseEntity<Map<String, Object>> getEmployeeLoginStatus(@PathVariable Long id) {
