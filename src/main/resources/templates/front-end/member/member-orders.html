@@ -1,644 +1,713 @@
 <!DOCTYPE html>
 <html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>訂單記錄 - 早餐店會員系統</title>
-    <style>
-        body {
-            font-family: 'Microsoft JhengHei', Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: url('/images/eatfast5.png') center center / cover no-repeat fixed;
-            /* 添加半透明遮罩層確保內容可讀性 */
-            position: relative;
-        }
-        
-        /* 添加背景遮罩層 */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(245, 245, 245, 0.85);
-            z-index: -1;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color:transparent;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-            position: relative;
-            z-index: 1;
-        }
-        h1 {
-            color: #A67B5B;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.2em;
-        }
-        .navigation-bar {
-            background: linear-gradient(90deg, #a67b5b 0%, #6f4e37 100%);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .navigation-bar a {
-            color: white;
-            text-decoration: none;
-            margin-right: 20px;
-            padding: 8px 15px;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
-        }
-        .navigation-bar a:hover, .navigation-bar a.active {
-            background-color: rgba(255,255,255,0.2);
-        }
-        .order-filters {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .filter-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-        }
-        .filter-group label {
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-        .filter-group input, .filter-group select {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .btn {
-            background-color: #A67B5B;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            text-decoration: none;
-            display: inline-block;
-            margin-right: 10px;
-            transition: background-color 0.3s ease;
-        }
-        .btn:hover {
-            background-color: #8B5A3C;
-        }
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 12px;
-        }
-        .order-summary {
-            background-color: #e8f4fd;
-            border: 1px solid #b8daff;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            text-align: center;
-        }
-        .summary-item {
-            background-color: white;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .summary-number {
-            font-size: 24px;
-            font-weight: bold;
-            color: #A67B5B;
-        }
-        .summary-label {
-            font-size: 14px;
-            color: #666;
-            margin-top: 5px;
-        }
-        .order-list {
-            margin-top: 20px;
-        }
-        .order-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            background-color: white;
-            overflow: hidden;
-        }
-        .order-header {
-            background-color: #f8f9fa;
-            padding: 15px 20px;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        
-        .order-header:hover {
-            background-color: #e9ecef;
-        }
-        
-        .order-header-left {
-            flex: 1;
-        }
-        
-        .order-header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .toggle-btn {
-            background: none;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 3px;
-            transition: all 0.3s ease;
-            color: #A67B5B;
-        }
-        
-        .toggle-btn:hover {
-            background-color: rgba(166, 123, 91, 0.1);
-        }
-        
-        .toggle-btn.collapsed {
-            transform: rotate(-90deg);
-        }
-        
-        .order-body {
-            padding: 20px;
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
-        
-        .order-body.collapsed {
-            max-height: 0;
-            padding: 0 20px;
-            opacity: 0;
-        }
-        
-        .order-summary-mini {
-            font-size: 14px;
-            color: #666;
-            margin-top: 5px;
-        }
-        
-        .order-amount-mini {
-            font-weight: bold;
-            color: #A67B5B;
-        }
-        
-        .collapse-all-controls {
-            text-align: right;
-            margin-bottom: 15px;
-        }
-        
-        .collapse-all-controls button {
-            background: none;
-            border: 1px solid #A67B5B;
-            color: #A67B5B;
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-left: 5px;
-            transition: all 0.3s ease;
-        }
-        
-        .collapse-all-controls button:hover {
-            background-color: #A67B5B;
-            color: white;
-        }
-        
-        .order-id {
-            font-weight: bold;
-            color: #A67B5B;
-        }
-        .order-date {
-            color: #666;
-            font-size: 14px;
-        }
-        .order-status {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .status-pending {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        .status-confirmed {
-            background-color: #cce5ff;
-            color: #004085;
-        }
-        .status-preparing {
-            background-color: #ffe6cc;
-            color: #cc6600;
-        }
-        .status-ready {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .status-completed {
-            background-color: #d1ecf1;
-            color: #0c5460;
-        }
-        .status-cancelled {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .order-body {
-            padding: 20px;
-        }
-        .order-items {
-            margin-bottom: 15px;
-        }
-        .order-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .order-item:last-child {
-            border-bottom: none;
-        }
-        .item-name {
-            font-weight: bold;
-            color: #333;
-        }
-        .item-details {
-            color: #666;
-            font-size: 14px;
-        }
-        .item-price {
-            font-weight: bold;
-            color: #A67B5B;
-        }
-        .order-total {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 15px;
-            border-top: 2px solid #A67B5B;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .total-amount {
-            color: #A67B5B;
-        }
-        .order-actions {
-            margin-top: 15px;
-            text-align: right;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-        .empty-state img {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-        .btn-active {
-            background-color: #A67B5B;
-            color: white;
-        }
-        .btn-inactive {
-            background-color: #f0f0f0;
-            color: #333;
-        }
-        /* 評分功能樣式 */
-        .rating-section {
-            margin-top: 15px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #f0ad4e;
-        }
-        
-        .rating-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 15px;
-        }
-        
-        .meal-rating-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            margin: 8px 0;
-            background-color: #fff;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
-        .meal-info {
-            flex: 1;
-            text-align: left;
-        }
-        
-        .meal-name {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 3px;
-            font-size: 0.9rem;
-        }
-        
-        .meal-details {
-            color: #666;
-            font-size: 0.8rem;
-        }
-        
-        .rating-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .star-rating {
-            display: flex;
-            gap: 3px;
-        }
-        
-        .star {
-            font-size: 1.2rem;
-            color: #ddd;
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-        
-        .star:hover,
-        .star.active {
-            color: #ffc107;
-        }
-        
-        .star.rated {
-            color: #ffc107;
-            cursor: default;
-        }
-        
-        .rating-feedback {
-            font-size: 0.7rem;
-            color: #28a745;
-            margin-left: 8px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .rating-feedback.show {
-            opacity: 1;
-        }
-        
-        .btn-rate {
-            background-color: #f0ad4e;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background-color 0.3s ease;
-        }
-        
-        .btn-rate:hover {
-            background-color: #ec971f;
-        }
-        
-        .rated-badge {
-            background-color: #28a745;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-        }
-        @media (max-width: 768px) {
-            .order-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            .filter-row {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>訂單記錄 - 早餐店會員系統</title>
+<style>
+body {
+	font-family: 'Microsoft JhengHei', Arial, sans-serif;
+	margin: 0;
+	padding: 20px;
+	background: url('/images/eatfast5.png') center center/cover no-repeat
+		fixed;
+	/* 添加半透明遮罩層確保內容可讀性 */
+	position: relative;
+}
+
+/* 添加背景遮罩層 */
+body::before {
+	content: '';
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(245, 245, 245, 0.85);
+	z-index: -1;
+}
+
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+	background-color: transparent;
+	padding: 30px;
+	border-radius: 10px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+	backdrop-filter: blur(10px);
+	position: relative;
+	z-index: 1;
+}
+
+h1 {
+	color: #A67B5B;
+	text-align: center;
+	margin-bottom: 30px;
+	font-size: 2.2em;
+}
+
+.navigation-bar {
+	background: linear-gradient(90deg, #a67b5b 0%, #6f4e37 100%);
+	padding: 15px;
+	border-radius: 8px;
+	margin-bottom: 20px;
+}
+
+.navigation-bar a {
+	color: white;
+	text-decoration: none;
+	margin-right: 20px;
+	padding: 8px 15px;
+	border-radius: 4px;
+	transition: background-color 0.3s ease;
+}
+
+.navigation-bar a:hover, .navigation-bar a.active {
+	background-color: rgba(255, 255, 255, 0.2);
+}
+
+.order-filters {
+	background-color: #f8f9fa;
+	padding: 20px;
+	border-radius: 8px;
+	margin-bottom: 20px;
+}
+
+.filter-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 15px;
+	margin-bottom: 15px;
+}
+
+.filter-group {
+	display: flex;
+	flex-direction: column;
+}
+
+.filter-group label {
+	margin-bottom: 5px;
+	font-weight: bold;
+	color: #333;
+}
+
+.filter-group input, .filter-group select {
+	padding: 8px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+.btn {
+	background-color: #A67B5B;
+	color: white;
+	padding: 10px 20px;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 14px;
+	text-decoration: none;
+	display: inline-block;
+	margin-right: 10px;
+	transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+	background-color: #8B5A3C;
+}
+
+.btn-sm {
+	padding: 6px 12px;
+	font-size: 12px;
+}
+
+.order-summary {
+	background-color: #e8f4fd;
+	border: 1px solid #b8daff;
+	border-radius: 8px;
+	padding: 20px;
+	margin-bottom: 20px;
+}
+
+.summary-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 15px;
+	text-align: center;
+}
+
+.summary-item {
+	background-color: white;
+	padding: 15px;
+	border-radius: 5px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.summary-number {
+	font-size: 24px;
+	font-weight: bold;
+	color: #A67B5B;
+}
+
+.summary-label {
+	font-size: 14px;
+	color: #666;
+	margin-top: 5px;
+}
+
+.order-list {
+	margin-top: 20px;
+}
+
+.order-card {
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	margin-bottom: 20px;
+	background-color: white;
+	overflow: hidden;
+}
+
+.order-header {
+	background-color: #f8f9fa;
+	padding: 15px 20px;
+	border-bottom: 1px solid #ddd;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.order-header:hover {
+	background-color: #e9ecef;
+}
+
+.order-header-left {
+	flex: 1;
+}
+
+.order-header-right {
+	display: flex;
+	align-items: center;
+	gap: 15px;
+}
+
+.toggle-btn {
+	background: none;
+	border: none;
+	font-size: 16px;
+	cursor: pointer;
+	padding: 5px;
+	border-radius: 3px;
+	transition: all 0.3s ease;
+	color: #A67B5B;
+}
+
+.toggle-btn:hover {
+	background-color: rgba(166, 123, 91, 0.1);
+}
+
+.toggle-btn.collapsed {
+	transform: rotate(-90deg);
+}
+
+.order-body {
+	padding: 20px;
+	transition: all 0.3s ease;
+	overflow: hidden;
+}
+
+.order-body.collapsed {
+	max-height: 0;
+	padding: 0 20px;
+	opacity: 0;
+}
+
+.order-summary-mini {
+	font-size: 14px;
+	color: #666;
+	margin-top: 5px;
+}
+
+.order-amount-mini {
+	font-weight: bold;
+	color: #A67B5B;
+}
+
+.collapse-all-controls {
+	text-align: right;
+	margin-bottom: 15px;
+}
+
+.collapse-all-controls button {
+	background: none;
+	border: 1px solid #A67B5B;
+	color: #A67B5B;
+	padding: 5px 10px;
+	border-radius: 3px;
+	cursor: pointer;
+	font-size: 12px;
+	margin-left: 5px;
+	transition: all 0.3s ease;
+}
+
+.collapse-all-controls button:hover {
+	background-color: #A67B5B;
+	color: white;
+}
+
+.order-id {
+	font-weight: bold;
+	color: #A67B5B;
+}
+
+.order-date {
+	color: #666;
+	font-size: 14px;
+}
+
+.order-status {
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+.status-pending {
+	background-color: #fff3cd;
+	color: #856404;
+}
+
+.status-confirmed {
+	background-color: #cce5ff;
+	color: #004085;
+}
+
+.status-preparing {
+	background-color: #ffe6cc;
+	color: #cc6600;
+}
+
+.status-ready {
+	background-color: #d4edda;
+	color: #155724;
+}
+
+.status-completed {
+	background-color: #d1ecf1;
+	color: #0c5460;
+}
+
+.status-cancelled {
+	background-color: #f8d7da;
+	color: #721c24;
+}
+
+.order-body {
+	padding: 20px;
+}
+
+.order-items {
+	margin-bottom: 15px;
+}
+
+.order-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px 0;
+	border-bottom: 1px solid #eee;
+}
+
+.order-item:last-child {
+	border-bottom: none;
+}
+
+.item-name {
+	font-weight: bold;
+	color: #333;
+}
+
+.item-details {
+	color: #666;
+	font-size: 14px;
+}
+
+.item-price {
+	font-weight: bold;
+	color: #A67B5B;
+}
+
+.order-total {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-top: 15px;
+	border-top: 2px solid #A67B5B;
+	font-size: 18px;
+	font-weight: bold;
+}
+
+.total-amount {
+	color: #A67B5B;
+}
+
+.order-actions {
+	margin-top: 15px;
+	text-align: right;
+}
+
+.empty-state {
+	text-align: center;
+	padding: 40px;
+	color: #666;
+}
+
+.empty-state img {
+	width: 80px;
+	height: 80px;
+	margin-bottom: 20px;
+	opacity: 0.5;
+}
+
+.btn-active {
+	background-color: #A67B5B;
+	color: white;
+}
+
+.btn-inactive {
+	background-color: #f0f0f0;
+	color: #333;
+}
+/* 評分功能樣式 */
+.rating-section {
+	margin-top: 15px;
+	padding: 15px;
+	background-color: #f8f9fa;
+	border-radius: 8px;
+	border-left: 4px solid #f0ad4e;
+}
+
+.rating-title {
+	font-size: 1.1rem;
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 15px;
+}
+
+.meal-rating-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px;
+	margin: 8px 0;
+	background-color: #fff;
+	border-radius: 6px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.meal-info {
+	flex: 1;
+	text-align: left;
+}
+
+.meal-name {
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 3px;
+	font-size: 0.9rem;
+}
+
+.meal-details {
+	color: #666;
+	font-size: 0.8rem;
+}
+
+.rating-controls {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.star-rating {
+	display: flex;
+	gap: 3px;
+}
+
+.star {
+	font-size: 1.2rem;
+	color: #ddd;
+	cursor: pointer;
+	transition: color 0.2s ease;
+}
+
+.star:hover, .star.active {
+	color: #ffc107;
+}
+
+.star.rated {
+	color: #ffc107;
+	cursor: default;
+}
+
+.rating-feedback {
+	font-size: 0.7rem;
+	color: #28a745;
+	margin-left: 8px;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.rating-feedback.show {
+	opacity: 1;
+}
+
+.btn-rate {
+	background-color: #f0ad4e;
+	color: white;
+	border: none;
+	padding: 5px 10px;
+	border-radius: 3px;
+	cursor: pointer;
+	font-size: 12px;
+	transition: background-color 0.3s ease;
+}
+
+.btn-rate:hover {
+	background-color: #ec971f;
+}
+
+.rated-badge {
+	background-color: #28a745;
+	color: white;
+	padding: 3px 8px;
+	border-radius: 12px;
+	font-size: 0.7rem;
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+}
+
+@media ( max-width : 768px) {
+	.order-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+	}
+	.filter-row {
+		grid-template-columns: 1fr;
+	}
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>📋 訂單記錄</h1>
-        
-        <!-- 導航欄 -->
-        <div class="navigation-bar">
-            <a href="/member/dashboard">🏠 首頁</a>
-            <a href="/member/profile">👤 個人資料</a>
-            <a href="/member/orders" class="active">📋 訂單記錄</a>
-            <a href="/member/favorites">❤️ 我的收藏</a>
-            <a href="/member/settings">⚙️ 帳號設定</a>
-            <a href="/logout" onclick="return confirm('確定要登出嗎？')">🚪 登出</a>
-        </div>
-        
-        
-        <!-- 訂單篩選器 -->
-        <div class="order-filters">
-            <div class="filter-row">
-                <div class="filter-group">
-                    <label>訂單狀態：</label>
-                    <div style="display: flex; gap: 10px; margin-top: 5px;">
-                        <a th:href="@{/member/orders}" 
-                           class="btn" 
-                           th:classappend="${param.status == null or param.status == '' ? 'btn-active' : 'btn-inactive'}"
-                           style="text-decoration: none;">
-                            📋 全部訂單
-                        </a>
-                        <a th:href="@{/member/orders(status='COMPLETED')}" 
-                           class="btn" 
-                           th:classappend="${param.status == 'COMPLETED' ? 'btn-active' : 'btn-inactive'}"
-                           style="text-decoration: none;">
-                            ✅ 已完成
-                        </a>
-                        <a th:href="@{/member/orders(status='INCOMPLETE')}" 
-                           class="btn" 
-                           th:classappend="${param.status == 'INCOMPLETE' ? 'btn-active' : 'btn-inactive'}"
-                           style="text-decoration: none;">
-                            ⏳ 未完成
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 訂單列表 -->
-        <div class="order-list">
-            <!-- 如果沒有訂單 -->
-            <div th:if="${#lists.isEmpty(orders)}" class="empty-state">
-                <div style="font-size: 48px; margin-bottom: 20px;">📋</div>
-                <h3>尚無訂單記錄</h3>
-                <p>您還沒有任何訂單，趕快去選購美味的早餐吧！</p>
-                <a href="/menu" class="btn">🛒 開始購物</a>
-            </div>
-            
-            <!-- 全部展開/收起控制按鈕 -->
-            <div th:if="${!#lists.isEmpty(orders)}" class="collapse-all-controls">
-                <button onclick="expandAllOrders()">📖 全部展開</button>
-                <button onclick="collapseAllOrders()">📕 全部收起</button>
-            </div>
-            
-            <!-- 訂單卡片 -->
-            <div th:each="order : ${orders}" class="order-card">
-                <div class="order-header" onclick="toggleOrderDetails(this.querySelector('.toggle-btn'))">
-                    <div class="order-header-left">
-                        <span class="order-id" th:text="'訂單編號：' + ${order.orderListId}"></span>
-                        <div class="order-date" th:text="'訂單時間：'+ ${#temporals.format(order.orderDate, 'yyyy年MM月dd日 HH:mm')}"></div>
-                        <!-- 添加門市資訊 -->
-                        <div class="store-info" style="color: #A67B5B; font-size: 14px; margin-top: 5px;">
-                            <span style="font-weight: bold;">🏪 門市：</span>
-                            <span th:text="${order.store?.storeName ?: '未知門市'}"></span>
-                        </div>
-                        <!-- 在收起狀態下顯示簡要資訊 -->
-                        <div class="order-summary-mini">
-                            <span class="order-amount-mini" th:text="'總金額：$' + ${order.orderAmount}"></span>
-                        </div>
-                    </div>
-                    <div class="order-header-right">
-                        <span class="order-status" 
-                              th:classappend="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? 'status-pending' : 
+	<div class="container">
+		<h1>📋 訂單記錄</h1>
+
+		<!-- 導航欄 -->
+		<div class="navigation-bar">
+			<a href="/member/dashboard">🏠 首頁</a> <a href="/member/profile">👤
+				個人資料</a> <a href="/member/orders" class="active">📋 訂單記錄</a> <a
+				href="/member/favorites">❤️ 我的收藏</a> <a href="/member/settings">⚙️
+				帳號設定</a> <a href="/logout" onclick="return confirm('確定要登出嗎？')">🚪 登出</a>
+		</div>
+
+
+		<!-- 訂單篩選器 -->
+		<div class="order-filters">
+			<div class="filter-row">
+				<div class="filter-group">
+					<label>訂單狀態：</label>
+					<div style="display: flex; gap: 10px; margin-top: 5px;">
+						<a th:href="@{/member/orders}" class="btn"
+							th:classappend="${param.status == null or param.status == '' ? 'btn-active' : 'btn-inactive'}"
+							style="text-decoration: none;"> 📋 全部訂單 </a> <a
+							th:href="@{/member/orders(status='COMPLETED')}" class="btn"
+							th:classappend="${param.status == 'COMPLETED' ? 'btn-active' : 'btn-inactive'}"
+							style="text-decoration: none;"> ✅ 已完成 </a> <a
+							th:href="@{/member/orders(status='INCOMPLETE')}" class="btn"
+							th:classappend="${param.status == 'INCOMPLETE' ? 'btn-active' : 'btn-inactive'}"
+							style="text-decoration: none;"> ⏳ 未完成 </a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- 訂單列表 -->
+		<div class="order-list">
+			<!-- 如果沒有訂單 -->
+			<div th:if="${#lists.isEmpty(orders)}" class="empty-state">
+				<div style="font-size: 48px; margin-bottom: 20px;">📋</div>
+				<h3>尚無訂單記錄</h3>
+				<p>您還沒有任何訂單，趕快去選購美味的早餐吧！</p>
+				<a href="/menu" class="btn">🛒 開始購物</a>
+			</div>
+
+			<!-- 全部展開/收起控制按鈕 -->
+			<div th:if="${!#lists.isEmpty(orders)}" class="collapse-all-controls">
+				<button onclick="expandAllOrders()">📖 全部展開</button>
+				<button onclick="collapseAllOrders()">📕 全部收起</button>
+			</div>
+
+			<!-- 訂單卡片 -->
+			<div th:each="order : ${orders}" class="order-card">
+				<div class="order-header"
+					onclick="toggleOrderDetails(this.querySelector('.toggle-btn'))">
+					<div class="order-header-left">
+						<span class="order-id" th:text="'訂單編號：' + ${order.orderListId}"></span>
+						<div class="order-date"
+							th:text="'訂單時間：'+ ${#temporals.format(order.orderDate, 'yyyy年MM月dd日 HH:mm')}"></div>
+						<!-- 添加門市資訊 -->
+						<div class="store-info"
+							style="color: #A67B5B; font-size: 14px; margin-top: 5px;">
+							<span style="font-weight: bold;">🏪 門市：</span> <span
+								th:text="${order.store?.storeName ?: '未知門市'}"></span>
+						</div>
+						<!-- 在收起狀態下顯示簡要資訊 -->
+						<div class="order-summary-mini">
+							<span class="order-amount-mini"
+								th:text="'總金額：$' + ${order.orderAmount}"></span>
+						</div>
+					</div>
+					<div class="order-header-right">
+						<span class="order-status"
+							th:classappend="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? 'status-pending' : 
                                               order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? 'status-confirmed' : 
                                               order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? 'status-preparing' : 
                                               order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? 'status-completed' : 
                                               'status-cancelled'}"
-                              th:text="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? '處理中' : 
+							th:text="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? '處理中' : 
                                        order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? '已確認' : 
                                        order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? '待取餐' : 
                                        order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? '已完成' : 
                                        '已取消'}"></span>
-                        <!-- 摺疊按鈕 -->
-                        <button class="toggle-btn" onclick="event.stopPropagation(); toggleOrderDetails(this)">
-                            ▼
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="order-body collapsed">
-                    <!-- 客製化備註區域 -->
-                    <div th:if="${order.mealCustomization != null and order.mealCustomization != ''}" 
-                         class="order-customization" 
-                         style="margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #A67B5B; border-radius: 4px;">
-                        <strong style="color: #A67B5B;">客製化備註：</strong>
-                        <span th:text="${order.mealCustomization}"></span>
-                    </div>
-                    
-                    <!-- 訂單項目 -->
-                    <div class="order-items">
-                        <div th:each="item : ${order.orderListInfos}" class="order-item">
-                            <div>
-                                <div class="item-name" th:text="${item.meal?.mealName ?: '未知餐點'}"></div>
-                                <div class="item-details" th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.mealPrice}"></div>
-                            </div>
-                            <div class="item-price" th:text="'$' + ${item.quantity * item.mealPrice}"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- 訂單總計 -->
-                    <div class="order-total">
-                        <span>訂單總額：</span>
-                        <span class="total-amount" th:text="'$' + ${order.orderAmount}"></span>
-                    </div>
-                    
-                    <!-- 取餐號碼 -->
-                    <div th:if="${order.mealPickupNumber != null and order.orderStatus != T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}" style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
-                        <strong>取餐號碼：</strong>
-                        <span style="font-size: 18px; color: #A67B5B; font-weight: bold;" th:text="${order.mealPickupNumber}"></span>
-                    </div>
-                    
-                    <!-- 取餐時間 -->
-                    <div th:if="${order.pickupTime != null}" style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
-                        <strong>取餐時間：</strong>
-                        <span style="font-size: 16px; color: #A67B5B; font-weight: bold;" th:text="${#temporals.format(order.pickupTime, 'yyyy年MM月dd日 HH:mm')}"></span>
-                    </div>
-                    
-                    <!-- 訂單操作 -->
-                    <div class="order-actions">
-                        <button th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING}" 
-                                class="btn btn-sm" 
-                                style="background-color: #dc3545;"
-                                onclick="cancelOrder(this)" 
-                                th:data-order-id="${order.orderListId}">
-                            ❌ 取消訂單
-                        </button>
-                    </div>
-                    
-                    <!-- 評分區域 - 只在已完成訂單顯示 -->
-                    <div th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}" 
-                         class="rating-section">
-                        <div class="rating-title">🌟 評分您的餐點</div>
-                        <div th:each="item : ${order.orderListInfos}" class="meal-rating-item">
-                            <div class="meal-info">
-                                <div class="meal-name" th:text="${item.meal?.mealName ?: '未知餐點'}"></div>
-                                <div class="meal-details" th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.mealPrice}"></div>
-                            </div>
-                            <div class="rating-controls">
-                                <!-- 顯示目前評分的星星 -->
-                                <div class="star-rating" th:data-order-info-id="${item.orderListInfoId}" th:data-current-rating="${item.reviewStars ?: 0}">
-                                    <span class="star" th:classappend="${item.reviewStars >= 1 ? 'rated' : ''}" data-rating="1">★</span>
-                                    <span class="star" th:classappend="${item.reviewStars >= 2 ? 'rated' : ''}" data-rating="2">★</span>
-                                    <span class="star" th:classappend="${item.reviewStars >= 3 ? 'rated' : ''}" data-rating="3">★</span>
-                                    <span class="star" th:classappend="${item.reviewStars >= 4 ? 'rated' : ''}" data-rating="4">★</span>
-                                    <span class="star" th:classappend="${item.reviewStars >= 5 ? 'rated' : ''}" data-rating="5">★</span>
-                                </div>
-                                <!-- 評分按鈕 - 只在未評分時顯示 -->
-                                <button th:if="${item.reviewStars == null || item.reviewStars == 0}" 
-                                        class="btn-rate" 
-                                        onclick="openRatingDialog(this)"
-                                        th:data-order-info-id="${item.orderListInfoId}">
-                                    ⭐ 評分
-                                </button>
-                                <!-- 已評分標籤 -->
-                                <div th:if="${item.reviewStars != null && item.reviewStars > 0}" class="rated-badge">
-                                    <span>✅ 已評分</span>
-                                </div>
-                                <span class="rating-feedback"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script>
+						<!-- 摺疊按鈕 -->
+						<button class="toggle-btn"
+							onclick="event.stopPropagation(); toggleOrderDetails(this)">
+							▼</button>
+					</div>
+				</div>
+
+				<div class="order-body collapsed">
+					<!-- 客製化備註區域 -->
+					<div
+						th:if="${order.mealCustomization != null and order.mealCustomization != ''}"
+						class="order-customization"
+						style="margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #A67B5B; border-radius: 4px;">
+						<strong style="color: #A67B5B;">客製化備註：</strong> <span
+							th:text="${order.mealCustomization}"></span>
+					</div>
+
+					<!-- 訂單項目 -->
+					<div class="order-items">
+						<div th:each="item : ${order.orderListInfos}" class="order-item">
+							<div>
+								<div class="item-name"
+									th:text="${item.meal?.mealName ?: '未知餐點'}"></div>
+								<div class="item-details"
+									th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.mealPrice}"></div>
+							</div>
+							<div class="item-price"
+								th:text="'$' + ${item.quantity * item.mealPrice}"></div>
+						</div>
+					</div>
+
+					<!-- 訂單總計 -->
+					<div class="order-total">
+						<span>訂單總額：</span> <span class="total-amount"
+							th:text="'$' + ${order.orderAmount}"></span>
+					</div>
+
+					<!-- 取餐號碼 -->
+					<div
+						th:if="${order.mealPickupNumber != null and order.orderStatus != T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}"
+						style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
+						<strong>取餐號碼：</strong> <span
+							style="font-size: 18px; color: #A67B5B; font-weight: bold;"
+							th:text="${order.mealPickupNumber}"></span>
+					</div>
+
+					<!-- 取餐時間 -->
+					<div th:if="${order.pickupTime != null}"
+						style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
+						<strong>取餐時間：</strong> <span
+							style="font-size: 16px; color: #A67B5B; font-weight: bold;"
+							th:text="${#temporals.format(order.pickupTime, 'yyyy年MM月dd日 HH:mm')}"></span>
+					</div>
+
+					<!-- 訂單操作 -->
+					<div class="order-actions">
+						<button
+							th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING}"
+							class="btn btn-sm" style="background-color: #dc3545;"
+							onclick="cancelOrder(this)"
+							th:data-order-id="${order.orderListId}">❌ 取消訂單</button>
+					</div>
+
+					<!-- 評分區域 - 只在已完成訂單顯示 -->
+					<div
+						th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}"
+						class="rating-section">
+						<div class="rating-title">🌟 評分您的餐點</div>
+						<div th:each="item : ${order.orderListInfos}"
+							class="meal-rating-item">
+							<div class="meal-info">
+								<div class="meal-name"
+									th:text="${item.meal?.mealName ?: '未知餐點'}"></div>
+								<div class="meal-details"
+									th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.mealPrice}"></div>
+							</div>
+							<div class="rating-controls">
+								<!-- 星星評分 - 可直接點擊 -->
+								<div class="star-rating"
+									th:data-order-info-id="${item.orderListInfoId}"
+									th:data-current-rating="${item.reviewStars ?: 0}"
+									th:data-rated="${item.reviewStars != null && item.reviewStars > 0}">
+									<span class="star"
+										th:classappend="${item.reviewStars >= 1 ? 'rated' : ''}"
+										data-rating="1">★</span> <span class="star"
+										th:classappend="${item.reviewStars >= 2 ? 'rated' : ''}"
+										data-rating="2">★</span> <span class="star"
+										th:classappend="${item.reviewStars >= 3 ? 'rated' : ''}"
+										data-rating="3">★</span> <span class="star"
+										th:classappend="${item.reviewStars >= 4 ? 'rated' : ''}"
+										data-rating="4">★</span> <span class="star"
+										th:classappend="${item.reviewStars >= 5 ? 'rated' : ''}"
+										data-rating="5">★</span>
+								</div>
+								<!-- 評分狀態顯示 -->
+								<div
+									th:if="${item.reviewStars == null || item.reviewStars == 0}"
+									class="rating-hint" style="font-size: 0.8rem; color: #666;">
+									點擊星星評分</div>
+								<div th:if="${item.reviewStars != null && item.reviewStars > 0}"
+									class="rated-badge">
+									<span>✅ 已評分</span>
+								</div>
+								<span class="rating-feedback"></span>
+							</div>
+						</div>
+						<!-- 統一送出按鈕 - 只有當有未評分的餐點時才顯示 -->
+						<div class="rating-submit-area"
+							style="text-align: center; margin-top: 15px;">
+
+							<div
+								th:with="unratedItemsCount = ${#lists.size(order.orderListInfos.?[reviewStars == null or reviewStars == 0])}">
+
+								<button th:if="${unratedItemsCount > 0}"
+									class="btn-submit-rating"
+									th:data-order-id="${order.orderListId}"
+									style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+									📝 送出評分</button>
+
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
         function cancelOrder(button) {
             const orderId = button.getAttribute('data-order-id');
             if (confirm('確定要取消此訂單嗎？取消後無法恢復。')) {
@@ -712,38 +781,92 @@
             });
         }
         
-        // 評分功能
-        function openRatingDialog(button) {
-            const orderInfoId = button.getAttribute('data-order-info-id');
-            const starRating = button.closest('.rating-controls').querySelector('.star-rating');
-            const stars = starRating.querySelectorAll('.star');
-            
-            // 添加點擊事件到星星
-            stars.forEach(star => {
-                star.addEventListener('click', function() {
-                    const rating = parseInt(this.getAttribute('data-rating'));
-                    saveRating(orderInfoId, rating, button, stars);
+        // 存儲臨時評分數據
+        let tempRatings = new Map();
+        
+        // 初始化評分功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 為所有星星評分區域添加事件監聽器
+            const starRatings = document.querySelectorAll('.star-rating');
+            starRatings.forEach(starRating => {
+                const orderInfoId = starRating.getAttribute('data-order-info-id');
+                const isRated = starRating.getAttribute('data-rated') === 'true';
+                const currentRating = parseInt(starRating.getAttribute('data-current-rating')) || 0;
+                const stars = starRating.querySelectorAll('.star');
+                
+                // 如果已經評分，則不允許再次評分
+                if (isRated) {
+                    stars.forEach(star => {
+                        star.style.cursor = 'default';
+                    });
+                    return;
+                }
+                
+                // 添加點擊事件 - 只是暫存評分，不立即送出
+                stars.forEach(star => {
+                    star.addEventListener('click', function() {
+                        if (isRated) return; // 已評分則不允許再次評分
+                        
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        selectRating(orderInfoId, rating, starRating);
+                    });
+                    
+                    // 滑鼠懸停效果
+                    star.addEventListener('mouseenter', function() {
+                        if (isRated) return;
+                        
+                        const hoverRating = parseInt(this.getAttribute('data-rating'));
+                        highlightStars(stars, hoverRating);
+                    });
                 });
                 
-                star.addEventListener('mouseenter', function() {
-                    const hoverRating = parseInt(this.getAttribute('data-rating'));
-                    highlightStars(stars, hoverRating);
+                // 滑鼠離開時恢復原狀
+                starRating.addEventListener('mouseleave', function() {
+                    if (isRated) return;
+                    
+                    const currentTempRating = tempRatings.get(orderInfoId) || currentRating;
+                    highlightStars(stars, currentTempRating);
                 });
             });
             
-            // 滑鼠離開時恢復原狀
-            starRating.addEventListener('mouseleave', function() {
-                const currentRating = starRating.getAttribute('data-current-rating') || 0;
-                highlightStars(stars, currentRating);
+            // 為送出按鈕添加事件監聽器
+            const submitButtons = document.querySelectorAll('.btn-submit-rating');
+            submitButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const orderId = this.getAttribute('data-order-id');
+                    submitAllRatings(orderId, this);
+                });
+            });
+        });
+        
+        // 選擇評分（暫存）
+        function selectRating(orderInfoId, rating, starRating) {
+            const stars = starRating.querySelectorAll('.star');
+            
+            // 暫存評分
+            tempRatings.set(orderInfoId, rating);
+            
+            // 更新星星顯示
+            stars.forEach((star, index) => {
+                star.classList.remove('active');
+                if (index < rating) {
+                    star.classList.add('active');
+                }
             });
             
-            // 顯示提示訊息
-            const feedback = button.closest('.rating-controls').querySelector('.rating-feedback');
-            feedback.textContent = '請點擊星星評分';
+            // 更新屬性
+            starRating.setAttribute('data-current-rating', rating);
+            
+            // 顯示已選擇的反饋
+            const ratingControls = starRating.closest('.rating-controls');
+            const feedback = ratingControls.querySelector('.rating-feedback');
+            feedback.textContent = `已選擇 ${rating} 星`;
             feedback.classList.add('show');
             
-            // 隱藏評分按鈕
-            button.style.display = 'none';
+            // 3秒後隱藏提示
+            setTimeout(() => {
+                feedback.classList.remove('show');
+            }, 3000);
         }
         
         // 高亮星星
@@ -757,73 +880,130 @@
             });
         }
         
-        // 保存評分
-        function saveRating(orderInfoId, rating, button, stars) {
-            if (confirm('確定要給予 ' + rating + ' 星評分嗎？')) {
-                // 禁用星星點擊
-                stars.forEach(star => {
-                    star.style.pointerEvents = 'none';
-                });
+        // 統一送出所有評分
+        function submitAllRatings(orderId, button) {
+            const ratingSection = button.closest('.rating-section');
+            const starRatings = ratingSection.querySelectorAll('.star-rating');
+            
+            // 收集所有評分數據
+            const ratingsData = [];
+            let hasUnratedItems = false;
+            
+            starRatings.forEach(starRating => {
+                const orderInfoId = starRating.getAttribute('data-order-info-id');
+                const isRated = starRating.getAttribute('data-rated') === 'true';
                 
-                fetch('/orders/save-rating', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `orderInfoId=${orderInfoId}&rating=${rating}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // 評分成功
-                        const starRating = button.closest('.rating-controls').querySelector('.star-rating');
-                        starRating.setAttribute('data-current-rating', rating);
+                if (!isRated) {
+                    const tempRating = tempRatings.get(orderInfoId);
+                    if (tempRating) {
+                        ratingsData.push({
+                            orderInfoId: orderInfoId,
+                            rating: tempRating
+                        });
+                    } else {
+                        hasUnratedItems = true;
+                    }
+                }
+            });
+            
+            // 檢查是否有未評分的項目
+            if (hasUnratedItems && ratingsData.length === 0) {
+                alert('請至少為一個餐點評分');
+                return;
+            }
+            
+            // 如果沒有新的評分，則不需要送出
+            if (ratingsData.length === 0) {
+                alert('所有餐點都已評分');
+                return;
+            }
+            
+            // 禁用按鈕並顯示載入狀態
+            button.disabled = true;
+            button.innerHTML = '📝 送出中...';
+            
+            // 逐一送出評分
+            submitRatingsSequentially(ratingsData, 0, button, ratingSection);
+        }
+        
+        // 按順序送出評分
+        function submitRatingsSequentially(ratingsData, index, button, ratingSection) {
+            if (index >= ratingsData.length) {
+                // 所有評分都已送出
+                button.innerHTML = '✅ 評分完成';
+                
+                
+                // 重新載入頁面以顯示最新狀態
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+                
+                return;
+            }
+            
+            const data = ratingsData[index];
+            
+            fetch('/orders/save-rating', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `orderInfoId=${data.orderInfoId}&rating=${data.rating}`
+            })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.success) {
+                    // 更新對應的星星顯示
+                    const starRating = ratingSection.querySelector(`[data-order-info-id="${data.orderInfoId}"]`);
+                    if (starRating) {
+                        const stars = starRating.querySelectorAll('.star');
+                        const ratingControls = starRating.closest('.rating-controls');
                         
-                        // 設置星星為已評分狀態
-                        stars.forEach((star, index) => {
+                        // 設置為已評分狀態
+                        starRating.setAttribute('data-rated', 'true');
+                        stars.forEach((star, starIndex) => {
                             star.classList.remove('active');
-                            if (index < rating) {
+                            if (starIndex < data.rating) {
                                 star.classList.add('rated');
                             }
+                            star.style.cursor = 'default';
+                            star.style.pointerEvents = 'none';
                         });
                         
-                        // 顯示成功訊息
-                        const feedback = button.closest('.rating-controls').querySelector('.rating-feedback');
-                        feedback.textContent = '感謝您的評分！';
-                        feedback.classList.add('show');
+                        // 更新提示
+                        const ratingHint = ratingControls.querySelector('.rating-hint');
+                        if (ratingHint) {
+                            ratingHint.style.display = 'none';
+                        }
                         
-                        // 顯示已評分標籤
-                        const ratedBadge = document.createElement('div');
-                        ratedBadge.className = 'rated-badge';
-                        ratedBadge.innerHTML = '<span>✅ 已評分</span>';
-                        button.parentNode.insertBefore(ratedBadge, button);
-                        
-                        // 隱藏評分按鈕
-                        button.style.display = 'none';
-                        
-                        // 3秒後隱藏提示
-                        setTimeout(() => {
-                            feedback.classList.remove('show');
-                        }, 3000);
-                    } else {
-                        alert('評分保存失敗：' + data.message);
-                        // 恢復按鈕顯示
-                        button.style.display = 'inline-block';
-                        stars.forEach(star => {
-                            star.style.pointerEvents = 'auto';
-                        });
+                        // 添加已評分標籤
+                        if (!ratingControls.querySelector('.rated-badge')) {
+                            const ratedBadge = document.createElement('div');
+                            ratedBadge.className = 'rated-badge';
+                            ratedBadge.innerHTML = '<span>✅ 已評分</span>';
+                            ratingControls.appendChild(ratedBadge);
+                        }
                     }
-                })
-                .catch(error => {
-                    console.error('評分保存錯誤:', error);
-                    alert('評分保存失敗，請稍後再試');
-                    // 恢復按鈕顯示
-                    button.style.display = 'inline-block';
-                    stars.forEach(star => {
-                        star.style.pointerEvents = 'auto';
-                    });
-                });
-            }
+                    
+                    // 從暫存中移除
+                    tempRatings.delete(data.orderInfoId);
+                    
+                    // 繼續送出下一個評分
+                    submitRatingsSequentially(ratingsData, index + 1, button, ratingSection);
+                } else {
+                    alert('評分保存失敗：' + responseData.message);
+                    // 恢復按鈕狀態
+                    button.disabled = false;
+                    button.innerHTML = '📝 送出評分';
+                }
+            })
+            .catch(error => {
+                console.error('評分保存錯誤:', error);
+                alert('評分保存失敗，請稍後再試');
+                // 恢復按鈕狀態
+                button.disabled = false;
+                button.innerHTML = '📝 送出評分';
+            });
         }
     </script>
 </body>
