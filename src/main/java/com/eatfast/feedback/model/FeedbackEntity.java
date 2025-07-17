@@ -41,6 +41,18 @@ public class FeedbackEntity {
     @Column(name = "create_time", nullable = false, updatable = false)
     private LocalDateTime createTime;
 
+    /**
+     * 提交時間 (手動設定)
+     */
+    @Column(name = "submission_date")
+    private LocalDateTime submissionDate;
+
+    /**
+     * 處理狀態
+     */
+    @Column(name = "status", length = 20)
+    private String status;
+
     @NotBlank(message = "連絡電話不可為空")
     @Size(max = 20, message = "連絡電話長度不可超過 20 字元")
     @Column(name = "phone", nullable = false, length = 20)
@@ -54,6 +66,18 @@ public class FeedbackEntity {
     @NotBlank(message = "意見內容不可為空")
     @Column(name = "content", nullable = false, length = 5000)
     private String content;
+
+    /**
+     * 用餐時間
+     */
+    @Column(name = "dining_time", length = 100)
+    private String diningTime;
+
+    /**
+     * 用餐店家
+     */
+    @Column(name = "dining_store", length = 100)
+    private String diningStore;
 
 
     //================================================================
@@ -73,9 +97,10 @@ public class FeedbackEntity {
 
     /**
      * 意見所針對的門市 (多對一)。
+     * 註：如果 storeId 可以為 null，則調整為 nullable = true
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
+    @JoinColumn(name = "store_id", nullable = true)
     private StoreEntity store;
 
 
@@ -100,6 +125,22 @@ public class FeedbackEntity {
         this.createTime = createTime;
     }
 
+    public LocalDateTime getSubmissionDate() {
+        return submissionDate;
+    }
+
+    public void setSubmissionDate(LocalDateTime submissionDate) {
+        this.submissionDate = submissionDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public String getPhone() {
         return phone;
     }
@@ -114,6 +155,22 @@ public class FeedbackEntity {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getDiningTime() {
+        return diningTime;
+    }
+
+    public void setDiningTime(String diningTime) {
+        this.diningTime = diningTime;
+    }
+
+    public String getDiningStore() {
+        return diningStore;
+    }
+
+    public void setDiningStore(String diningStore) {
+        this.diningStore = diningStore;
     }
 
     public MemberEntity getMember() {
@@ -143,6 +200,9 @@ public class FeedbackEntity {
                 ", memberId=" + (member != null ? member.getMemberId() : "null") +
                 ", storeId=" + (store != null ? store.getStoreId() : "null") +
                 ", createTime=" + createTime +
+                ", status='" + status + '\'' +
+                ", diningTime='" + diningTime + '\'' +
+                ", diningStore='" + diningStore + '\'' +
                 '}';
     }
 
@@ -160,37 +220,5 @@ public class FeedbackEntity {
     @Override
     public int hashCode() {
         return feedbackId != null ? Objects.hash(feedbackId) : super.hashCode();
-    }
-
-    public void setSubmissionDate(LocalDateTime now) {
-    }
-
-    public void setStatus(String 待處理) {
-    }
-    // 在 FeedbackEntity.java 中
-
-    // ... 其他屬性 ...
-    @Column(name = "dining_time")
-    private String diningTime;
-
-    @Column(name = "dining_store")
-    private String diningStore;
-
-// ... 其他 getter 和 setter ...
-
-    public String getDiningTime() {
-        return diningTime;
-    }
-
-    public void setDiningTime(String diningTime) {
-        this.diningTime = diningTime;
-    }
-
-    public String getDiningStore() {
-        return diningStore;
-    }
-
-    public void setDiningStore(String diningStore) {
-        this.diningStore = diningStore;
     }
 }
