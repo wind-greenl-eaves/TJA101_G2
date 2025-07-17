@@ -75,8 +75,10 @@
             <td th:text="${#temporals.format(a.endTime, 'yyyy-MM-dd HH:mm')}">end</td>
             <td>
                 <a class="btn btn-sm btn-info" th:href="@{'/announcement/edit/' + ${a.announcementId}}">編輯</a>
-                <a class="btn btn-sm btn-success" th:href="@{'/announcement/publish/' + ${a.announcementId}}" onclick="showPublishedModal(event)">發佈</a>
-                <a class="btn btn-sm btn-danger" th:href="@{'/announcement/delete/' + ${a.announcementId}}">刪除</a>
+
+                <a class="btn btn-sm btn-danger"
+                   th:href="@{'/announcement/delete/' + ${a.announcementId}}"
+                   onclick="return confirm('您確定要刪除這篇草稿嗎？');">刪除</a>
             </td>
         </tr>
         </tbody>
