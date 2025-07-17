@@ -1945,4 +1945,70 @@ public class MemberController {
             return ResponseEntity.status(500).body(response);
         }
     }
+    
+    /**
+     * 【會員專用】保存餐點評分功能
+     */
+    @PostMapping("/orders/save-rating")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> saveMealRating(@RequestParam("orderInfoId") Long orderInfoId,
+                                                            @RequestParam("rating") Integer rating,
+                                                            HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 【Session驗證】檢查會員登入狀態
+            Long memberId = (Long) session.getAttribute("loggedInMemberId");
+            Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
+            
+            if (memberId == null || isLoggedIn == null || !isLoggedIn) {
+                response.put("success", false);
+                response.put("message", "請先登入會員系統");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 【參數驗證】
+            if (rating == null || rating < 1 || rating > 5) {
+                response.put("success", false);
+                response.put("message", "評分必須在1-5星之間");
+                return ResponseEntity.status(400).body(response);
+            }
+            
+            // 【驗證會員存在】
+            MemberEntity member = memberService.getMemberById(memberId)
+                    .orElseThrow(() -> new EntityNotFoundException("找不到會員資料"));
+            
+            if (!member.isEnabled()) {
+                response.put("success", false);
+                response.put("message", "會員帳號已被停用");
+                return ResponseEntity.status(403).body(response);
+            }
+            
+            // 【執行評分保存】
+            boolean saveSuccess = memberService.saveMealRating(memberId, orderInfoId, rating);
+            
+            if (saveSuccess) {
+                response.put("success", true);
+                response.put("message", "評分保存成功");
+                response.put("rating", rating);
+                log.info("會員 {} 成功為訂單明細 {} 評分: {} 星", member.getAccount(), orderInfoId, rating);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "評分保存失敗，請確認訂單狀態");
+                return ResponseEntity.status(400).body(response);
+            }
+            
+        } catch (EntityNotFoundException e) {
+            log.error("保存評分失敗 - 資料不存在: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", "找不到相關資料");
+            return ResponseEntity.status(404).body(response);
+        } catch (Exception e) {
+            log.error("保存評分時發生錯誤: {}", e.getMessage(), e);
+            response.put("success", false);
+            response.put("message", "系統錯誤，請稍後再試");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 }

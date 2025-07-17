@@ -57,15 +57,19 @@ public class MemberService {
     private final EmailService emailService;
     // 【修正】統一驗證碼服務接口
     private final VerificationCodeServiceInterface verificationCodeService;
+    // 【新增】注入訂單明細Repository
+    private final com.eatfast.orderlistinfo.repository.OrderListInfoRepository orderListInfoRepository;
 
     // 依賴注入的標準建構子模式
     public MemberService(MemberRepository memberRepository, OrderListRepository orderListRepository,
                         PasswordEncoder passwordEncoder, EmailService emailService, 
-                        VerificationCodeService redisVerificationCodeService) {
+                        VerificationCodeService redisVerificationCodeService,
+                        com.eatfast.orderlistinfo.repository.OrderListInfoRepository orderListInfoRepository) {
         this.memberRepository = memberRepository;
         this.orderListRepository = orderListRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.orderListInfoRepository = orderListInfoRepository;
         
         // 【修正】根據配置選擇驗證碼服務實現
         this.verificationCodeService = new VerificationCodeServiceInterface() {
@@ -1260,6 +1264,71 @@ public class MemberService {
             return false;
         } catch (Exception e) {
             log.error("取消會員訂單時發生錯誤: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+    
+    /**
+     * 【新增】會員保存餐點評分
+     * 
+     * @param memberId 會員ID
+     * @param orderInfoId 訂單明細ID
+     * @param rating 評分(1-5星)
+     * @return 保存成功返回true，否則返回false
+     */
+    @Transactional
+    public boolean saveMealRating(Long memberId, Long orderInfoId, Integer rating) {
+        log.info("會員保存餐點評分 - 會員ID: {}, 訂單明細ID: {}, 評分: {}", memberId, orderInfoId, rating);
+        
+        try {
+            // 1. 驗證會員是否存在
+            if (!memberRepository.existsById(memberId)) {
+                log.warn("會員不存在 - ID: {}", memberId);
+                return false;
+            }
+            
+            // 2. 查詢訂單明細
+            Optional<com.eatfast.orderlistinfo.model.OrderListInfoEntity> orderInfoOpt = 
+                    orderListInfoRepository.findById(orderInfoId);
+            
+            if (orderInfoOpt.isEmpty()) {
+                log.warn("訂單明細不存在 - ID: {}", orderInfoId);
+                return false;
+            }
+            
+            com.eatfast.orderlistinfo.model.OrderListInfoEntity orderInfo = orderInfoOpt.get();
+            
+            // 3. 驗證訂單是否屬於該會員
+            if (!orderInfo.getOrderList().getMember().getMemberId().equals(memberId)) {
+                log.warn("訂單明細不屬於指定會員 - 會員ID: {}, 訂單明細ID: {}, 訂單所屬會員ID: {}", 
+                         memberId, orderInfoId, orderInfo.getOrderList().getMember().getMemberId());
+                return false;
+            }
+            
+            // 4. 檢查訂單狀態是否為已完成
+            if (orderInfo.getOrderList().getOrderStatus() != com.eatfast.orderlist.model.OrderStatus.COMPLETED) {
+                log.warn("訂單狀態不是已完成，無法評分 - 訂單ID: {}, 當前狀態: {}", 
+                         orderInfo.getOrderList().getOrderListId(), orderInfo.getOrderList().getOrderStatus());
+                return false;
+            }
+            
+            // 5. 檢查是否已經評分過
+            if (orderInfo.getReviewStars() != null && orderInfo.getReviewStars() > 0) {
+                log.warn("該餐點已經評分過 - 訂單明細ID: {}, 目前評分: {}", 
+                         orderInfoId, orderInfo.getReviewStars());
+                return false;
+            }
+            
+            // 6. 保存評分
+            orderInfo.setReviewStars(rating.longValue());
+            orderListInfoRepository.save(orderInfo);
+            
+            log.info("會員餐點評分保存成功 - 會員ID: {}, 訂單明細ID: {}, 評分: {} 星", 
+                     memberId, orderInfoId, rating);
+            return true;
+            
+        } catch (Exception e) {
+            log.error("會員保存餐點評分時發生錯誤: {}", e.getMessage(), e);
             return false;
         }
     }

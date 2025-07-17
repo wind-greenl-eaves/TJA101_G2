@@ -610,27 +610,47 @@
                                 <div class="meal-details" th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.mealPrice}"></div>
                             </div>
                             <div class="rating-controls">
-                                <!-- 顯示目前評分的星星 -->
-                                <div class="star-rating" th:data-order-info-id="${item.orderListInfoId}" th:data-current-rating="${item.reviewStars ?: 0}">
-                                    <span class="star" th:classappend="${item.reviewStars >= 1 ? 'rated' : ''}" data-rating="1">★</span>
-                                    <span class="star" th:classappend="${item.reviewStars >= 2 ? 'rated' : ''}" data-rating="2">★</span>
-                                    <span class="star" th:classappend="${item.reviewStars >= 3 ? 'rated' : ''}" data-rating="3">★</span>
-                                    <span class="star" th:classappend="${item.reviewStars >= 4 ? 'rated' : ''}" data-rating="4">★</span>
-                                    <span class="star" th:classappend="${item.reviewStars >= 5 ? 'rated' : ''}" data-rating="5">★</span>
+                                <!-- 星星評分 - 可直接點擊 -->
+                                <div class="star-rating" 
+                                     th:data-order-info-id="${item.orderListInfoId}" 
+                                     th:data-current-rating="${item.reviewStars ?: 0}"
+                                     th:data-rated="${item.reviewStars != null && item.reviewStars > 0}">
+                                    <span class="star" 
+                                          th:classappend="${item.reviewStars >= 1 ? 'rated' : ''}" 
+                                          data-rating="1">★</span>
+                                    <span class="star" 
+                                          th:classappend="${item.reviewStars >= 2 ? 'rated' : ''}" 
+                                          data-rating="2">★</span>
+                                    <span class="star" 
+                                          th:classappend="${item.reviewStars >= 3 ? 'rated' : ''}" 
+                                          data-rating="3">★</span>
+                                    <span class="star" 
+                                          th:classappend="${item.reviewStars >= 4 ? 'rated' : ''}" 
+                                          data-rating="4">★</span>
+                                    <span class="star" 
+                                          th:classappend="${item.reviewStars >= 5 ? 'rated' : ''}" 
+                                          data-rating="5">★</span>
                                 </div>
-                                <!-- 評分按鈕 - 只在未評分時顯示 -->
-                                <button th:if="${item.reviewStars == null || item.reviewStars == 0}" 
-                                        class="btn-rate" 
-                                        onclick="openRatingDialog(this)"
-                                        th:data-order-info-id="${item.orderListInfoId}">
-                                    ⭐ 評分
-                                </button>
-                                <!-- 已評分標籤 -->
-                                <div th:if="${item.reviewStars != null && item.reviewStars > 0}" class="rated-badge">
+                                <!-- 評分狀態顯示 -->
+                                <div th:if="${item.reviewStars == null || item.reviewStars == 0}" 
+                                     class="rating-hint" 
+                                     style="font-size: 0.8rem; color: #666;">
+                                    點擊星星評分
+                                </div>
+                                <div th:if="${item.reviewStars != null && item.reviewStars > 0}" 
+                                     class="rated-badge">
                                     <span>✅ 已評分</span>
                                 </div>
                                 <span class="rating-feedback"></span>
                             </div>
+                        </div>
+                        <!-- 統一送出按鈕 -->
+                        <div class="rating-submit-area" style="text-align: center; margin-top: 15px;">
+                            <button class="btn-submit-rating" 
+                                    th:data-order-id="${order.orderListId}"
+                                    style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                                📝 送出評分
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -712,38 +732,92 @@
             });
         }
         
-        // 評分功能
-        function openRatingDialog(button) {
-            const orderInfoId = button.getAttribute('data-order-info-id');
-            const starRating = button.closest('.rating-controls').querySelector('.star-rating');
-            const stars = starRating.querySelectorAll('.star');
-            
-            // 添加點擊事件到星星
-            stars.forEach(star => {
-                star.addEventListener('click', function() {
-                    const rating = parseInt(this.getAttribute('data-rating'));
-                    saveRating(orderInfoId, rating, button, stars);
+        // 存儲臨時評分數據
+        let tempRatings = new Map();
+        
+        // 初始化評分功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 為所有星星評分區域添加事件監聽器
+            const starRatings = document.querySelectorAll('.star-rating');
+            starRatings.forEach(starRating => {
+                const orderInfoId = starRating.getAttribute('data-order-info-id');
+                const isRated = starRating.getAttribute('data-rated') === 'true';
+                const currentRating = parseInt(starRating.getAttribute('data-current-rating')) || 0;
+                const stars = starRating.querySelectorAll('.star');
+                
+                // 如果已經評分，則不允許再次評分
+                if (isRated) {
+                    stars.forEach(star => {
+                        star.style.cursor = 'default';
+                    });
+                    return;
+                }
+                
+                // 添加點擊事件 - 只是暫存評分，不立即送出
+                stars.forEach(star => {
+                    star.addEventListener('click', function() {
+                        if (isRated) return; // 已評分則不允許再次評分
+                        
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        selectRating(orderInfoId, rating, starRating);
+                    });
+                    
+                    // 滑鼠懸停效果
+                    star.addEventListener('mouseenter', function() {
+                        if (isRated) return;
+                        
+                        const hoverRating = parseInt(this.getAttribute('data-rating'));
+                        highlightStars(stars, hoverRating);
+                    });
                 });
                 
-                star.addEventListener('mouseenter', function() {
-                    const hoverRating = parseInt(this.getAttribute('data-rating'));
-                    highlightStars(stars, hoverRating);
+                // 滑鼠離開時恢復原狀
+                starRating.addEventListener('mouseleave', function() {
+                    if (isRated) return;
+                    
+                    const currentTempRating = tempRatings.get(orderInfoId) || currentRating;
+                    highlightStars(stars, currentTempRating);
                 });
             });
             
-            // 滑鼠離開時恢復原狀
-            starRating.addEventListener('mouseleave', function() {
-                const currentRating = starRating.getAttribute('data-current-rating') || 0;
-                highlightStars(stars, currentRating);
+            // 為送出按鈕添加事件監聽器
+            const submitButtons = document.querySelectorAll('.btn-submit-rating');
+            submitButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const orderId = this.getAttribute('data-order-id');
+                    submitAllRatings(orderId, this);
+                });
+            });
+        });
+        
+        // 選擇評分（暫存）
+        function selectRating(orderInfoId, rating, starRating) {
+            const stars = starRating.querySelectorAll('.star');
+            
+            // 暫存評分
+            tempRatings.set(orderInfoId, rating);
+            
+            // 更新星星顯示
+            stars.forEach((star, index) => {
+                star.classList.remove('active');
+                if (index < rating) {
+                    star.classList.add('active');
+                }
             });
             
-            // 顯示提示訊息
-            const feedback = button.closest('.rating-controls').querySelector('.rating-feedback');
-            feedback.textContent = '請點擊星星評分';
+            // 更新屬性
+            starRating.setAttribute('data-current-rating', rating);
+            
+            // 顯示已選擇的反饋
+            const ratingControls = starRating.closest('.rating-controls');
+            const feedback = ratingControls.querySelector('.rating-feedback');
+            feedback.textContent = `已選擇 ${rating} 星`;
             feedback.classList.add('show');
             
-            // 隱藏評分按鈕
-            button.style.display = 'none';
+            // 3秒後隱藏提示
+            setTimeout(() => {
+                feedback.classList.remove('show');
+            }, 3000);
         }
         
         // 高亮星星
@@ -757,73 +831,134 @@
             });
         }
         
-        // 保存評分
-        function saveRating(orderInfoId, rating, button, stars) {
-            if (confirm('確定要給予 ' + rating + ' 星評分嗎？')) {
-                // 禁用星星點擊
-                stars.forEach(star => {
-                    star.style.pointerEvents = 'none';
-                });
+        // 統一送出所有評分
+        function submitAllRatings(orderId, button) {
+            const ratingSection = button.closest('.rating-section');
+            const starRatings = ratingSection.querySelectorAll('.star-rating');
+            
+            // 收集所有評分數據
+            const ratingsData = [];
+            let hasUnratedItems = false;
+            
+            starRatings.forEach(starRating => {
+                const orderInfoId = starRating.getAttribute('data-order-info-id');
+                const isRated = starRating.getAttribute('data-rated') === 'true';
                 
-                fetch('/orders/save-rating', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `orderInfoId=${orderInfoId}&rating=${rating}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // 評分成功
-                        const starRating = button.closest('.rating-controls').querySelector('.star-rating');
-                        starRating.setAttribute('data-current-rating', rating);
+                if (!isRated) {
+                    const tempRating = tempRatings.get(orderInfoId);
+                    if (tempRating) {
+                        ratingsData.push({
+                            orderInfoId: orderInfoId,
+                            rating: tempRating
+                        });
+                    } else {
+                        hasUnratedItems = true;
+                    }
+                }
+            });
+            
+            // 檢查是否有未評分的項目
+            if (hasUnratedItems && ratingsData.length === 0) {
+                alert('請至少為一個餐點評分');
+                return;
+            }
+            
+            // 如果沒有新的評分，則不需要送出
+            if (ratingsData.length === 0) {
+                alert('所有餐點都已評分');
+                return;
+            }
+            
+            // 禁用按鈕並顯示載入狀態
+            button.disabled = true;
+            button.innerHTML = '📝 送出中...';
+            
+            // 逐一送出評分
+            submitRatingsSequentially(ratingsData, 0, button, ratingSection);
+        }
+        
+        // 按順序送出評分
+        function submitRatingsSequentially(ratingsData, index, button, ratingSection) {
+            if (index >= ratingsData.length) {
+                // 所有評分都已送出
+                button.innerHTML = '✅ 評分完成';
+                
+                // 隱藏送出按鈕
+                setTimeout(() => {
+                    button.style.display = 'none';
+                }, 1000);
+                
+                // 重新載入頁面以顯示最新狀態
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+                
+                return;
+            }
+            
+            const data = ratingsData[index];
+            
+            fetch('/orders/save-rating', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `orderInfoId=${data.orderInfoId}&rating=${data.rating}`
+            })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.success) {
+                    // 更新對應的星星顯示
+                    const starRating = ratingSection.querySelector(`[data-order-info-id="${data.orderInfoId}"]`);
+                    if (starRating) {
+                        const stars = starRating.querySelectorAll('.star');
+                        const ratingControls = starRating.closest('.rating-controls');
                         
-                        // 設置星星為已評分狀態
-                        stars.forEach((star, index) => {
+                        // 設置為已評分狀態
+                        starRating.setAttribute('data-rated', 'true');
+                        stars.forEach((star, starIndex) => {
                             star.classList.remove('active');
-                            if (index < rating) {
+                            if (starIndex < data.rating) {
                                 star.classList.add('rated');
                             }
+                            star.style.cursor = 'default';
+                            star.style.pointerEvents = 'none';
                         });
                         
-                        // 顯示成功訊息
-                        const feedback = button.closest('.rating-controls').querySelector('.rating-feedback');
-                        feedback.textContent = '感謝您的評分！';
-                        feedback.classList.add('show');
+                        // 更新提示
+                        const ratingHint = ratingControls.querySelector('.rating-hint');
+                        if (ratingHint) {
+                            ratingHint.style.display = 'none';
+                        }
                         
-                        // 顯示已評分標籤
-                        const ratedBadge = document.createElement('div');
-                        ratedBadge.className = 'rated-badge';
-                        ratedBadge.innerHTML = '<span>✅ 已評分</span>';
-                        button.parentNode.insertBefore(ratedBadge, button);
-                        
-                        // 隱藏評分按鈕
-                        button.style.display = 'none';
-                        
-                        // 3秒後隱藏提示
-                        setTimeout(() => {
-                            feedback.classList.remove('show');
-                        }, 3000);
-                    } else {
-                        alert('評分保存失敗：' + data.message);
-                        // 恢復按鈕顯示
-                        button.style.display = 'inline-block';
-                        stars.forEach(star => {
-                            star.style.pointerEvents = 'auto';
-                        });
+                        // 添加已評分標籤
+                        if (!ratingControls.querySelector('.rated-badge')) {
+                            const ratedBadge = document.createElement('div');
+                            ratedBadge.className = 'rated-badge';
+                            ratedBadge.innerHTML = '<span>✅ 已評分</span>';
+                            ratingControls.appendChild(ratedBadge);
+                        }
                     }
-                })
-                .catch(error => {
-                    console.error('評分保存錯誤:', error);
-                    alert('評分保存失敗，請稍後再試');
-                    // 恢復按鈕顯示
-                    button.style.display = 'inline-block';
-                    stars.forEach(star => {
-                        star.style.pointerEvents = 'auto';
-                    });
-                });
-            }
+                    
+                    // 從暫存中移除
+                    tempRatings.delete(data.orderInfoId);
+                    
+                    // 繼續送出下一個評分
+                    submitRatingsSequentially(ratingsData, index + 1, button, ratingSection);
+                } else {
+                    alert('評分保存失敗：' + responseData.message);
+                    // 恢復按鈕狀態
+                    button.disabled = false;
+                    button.innerHTML = '📝 送出評分';
+                }
+            })
+            .catch(error => {
+                console.error('評分保存錯誤:', error);
+                alert('評分保存失敗，請稍後再試');
+                // 恢復按鈕狀態
+                button.disabled = false;
+                button.innerHTML = '📝 送出評分';
+            });
         }
     </script>
 </body>
