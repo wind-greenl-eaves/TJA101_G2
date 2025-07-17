@@ -554,9 +554,9 @@
                 <i class="fas fa-bullhorn"></i>
                 <span>門市公告管理</span>
             </a>
-            <!-- 顧客意見回饋管理 //-->
-            <a th:href="@{/feedback/feedback_list}" class="nav-item" th:if="${session.loggedInEmployee != null}">
-                <i class="fas fa-bullhorn"></i>
+            <!-- 顧客意見回饋管理 -->
+            <a th:href="@{/feedback/list}" class="nav-item" th:if="${session.loggedInEmployee != null}">
+                <i class="fas fa-comments"></i>
                 <span>顧客意見回饋管理</span>
             </a>
 
