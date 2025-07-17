@@ -64,6 +64,8 @@
             color: var(--text-color);
             background: linear-gradient(135deg, var(--bg-color) 0%, var(--header-bg) 100%);
             min-height: 100vh;
+            display: flex;
+    		flex-direction: column;
         }
         
 		        /* 【新增】主內容容器樣式 */
@@ -74,6 +76,11 @@
 		    padding-top: 100px;     /* 關鍵：留出足夠空間給上方固定的導覽列 (60px) + 額外間距 */
 		    padding-left: 2rem;     /* 在小螢幕時，左右保留一些邊距，避免內容貼邊 */
 		    padding-right: 2rem;
+		    flex-grow: 1; /*新增這一行，讓主要內容區塊填滿剩餘空間*/
+		    display: flex;
+    		flex-direction: column;   /* 確保內容垂直排列 */
+    		justify-content: center;  /* 垂直置中 */
+            align-items: center;    /* 水平置中 */
 		}
 
         /* Style for dynamically added message container */
@@ -442,7 +449,7 @@
             </a>
             
             <div class="nav-menu">
-            	<a th:href="@{/news/list}" class="nav-link">最新消息</a>
+            	<a th:href="@{/news}" class="nav-link">最新消息</a>
                 <a th:href="@{/store/storelist}" class="nav-link">門市據點</a>
                 <a th:href="@{/menu}" class="nav-link">餐點菜單</a>
                 <!-- 根據登入狀態顯示不同內容 -->
@@ -490,7 +497,7 @@
                             <i class="fas fa-exclamation-triangle mr-2"></i>請先登入會員才能使用購物車功能。
                         </p>
                         <p>
-                            <a th:href="@{/api/v1/auth/member-login}" class="bg-brand-primary text-white px-4 py-2 rounded hover:bg-brand-primary-hover">
+                            <a th:href="@{/api/v1/auth/member-login}" class="bg-brand-primary text-white px-4 py-2 rounded hover:bg-brand-primary-hover mt-6">
                                 <i class="fas fa-sign-in-alt mr-2"></i>前往登入
                             </a>
                         </p>
