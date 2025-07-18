@@ -105,7 +105,10 @@
         .news-content { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
         .news-content h5 { font-size: 1.3rem; color: var(--primary-hover); margin-bottom: 0.75rem; }
         .news-content .date { font-size: 0.85rem; color: #999; margin-bottom: 1rem; }
-        .news-content p { color: var(--text-color); margin-bottom: 1.5rem; flex-grow: 1; }
+        .news-content .card-text {
+            color: var(--text-color);
+            margin-bottom: 1.5rem;
+            flex-grow: 1;}
         .btn-outline { background: transparent; color: var(--primary-color); border: 2px solid var(--primary-color); padding: 0.6rem 1.2rem; border-radius: 50px; text-decoration: none; font-weight: 500; transition: all 0.3s ease; }
         .btn-outline:hover { background: var(--primary-color); color: white; }
 
@@ -195,11 +198,14 @@
                 <h5 class="card-title">
                     <a th:href="@{/news/{id}(id=${news.newsId})}" th:text="${news.title}" class="text-decoration-none" style="color: inherit;"></a>
                 </h5>
-                <p class="date" th:text="'發布於 ' + ${#temporals.format(news.startTime, 'yyyy-MM-dd')}"></p>
+
+                <p class="date" th:if="${news.startTime != null}" th:text="'發布於 ' + ${#temporals.format(news.startTime, 'yyyy-MM-dd')}"></p>
+
                 <p class="card-text" th:text="${#strings.abbreviate(news.content, 80)}"></p>
                 <div class="mt-auto">
                     <a th:href="@{/news/{id}(id=${news.newsId})}" class="btn-outline">閱讀更多</a>
                 </div>
+            </div>
             </div>
         </div>
     </div>
