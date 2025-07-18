@@ -242,303 +242,129 @@
 
         /* 優化刪除模態框的特殊樣式 */
         .delete-modal-content {
-            animation: slideInDown 0.4s ease-out;
-            max-width: 800px;  /* 從 900px 調整為 720px，提供更多空間 */
-            max-height: 90vh;  /* 從 150vh 調整為 90vh，避免超出視窗 */
-            width: 88%;        /* 從 90% 調整為 88% */
+            max-width: 500px;
+            width: 90%;
             background: white;
-            border-radius: 0.875rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
             border: 1px solid #e5e7eb;
             overflow: hidden;
-            overflow-y: auto;  /* 添加垂直滾动条 */
-            transform-origin: center top;
         }
 
         .delete-modal-header {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-            padding: 1rem 1.5rem;          /* 從 1.25rem 1.75rem 縮小到 1rem 1.5rem */
-            border-bottom: 3px solid #991b1b;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .delete-modal-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 100%;
-            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-            animation: shimmer 3s infinite;
+            background: #dc2626;
+            padding: 1rem;
+            border-bottom: 1px solid #b91c1c;
         }
 
         .delete-modal-body {
-            padding: 1.5rem;              /* 從 1.75rem 縮小到 1.5rem */
+            padding: 1.5rem;
         }
 
         .delete-modal-footer {
-            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-            padding: 1rem 1.5rem;         /* 從 1.25rem 1.75rem 縮小到 1rem 1.5rem */
+            background: #f9fafb;
+            padding: 1rem;
             border-top: 1px solid #e5e7eb;
-        }
-
-        .danger-warning-box {
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-            border: 2px solid #fecaca;
-            border-radius: 0.75rem;       /* 從 0.875rem 縮小到 0.75rem */
-            padding: 1rem;                /* 從 1.25rem 縮小到 1rem */
-            margin-bottom: 1rem;          /* 從 1.25rem 縮小到 1rem */
-            position: relative;
-            overflow: hidden;
-            transform: translateY(0);
-            transition: all 0.3s ease;
-        }
-
-        .danger-warning-box:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(220, 38, 38, 0.1);  /* 從 0 8px 20px 縮小到 0 6px 16px */
-        }
-
-        .danger-warning-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #dc2626, #ef4444, #dc2626);
-            animation: warningPulse 2s infinite;
-        }
-
-        .member-info-card {
-            background: white;
-            border: 2px solid #fecaca;
-            border-radius: 0.75rem;       /* 從 0.875rem 縮小到 0.75rem */
-            padding: 1rem;                /* 從 1.25rem 縮小到 1rem */
-            margin-bottom: 1rem;          /* 從 1.25rem 縮小到 1rem */
-            box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.1);  /* 從 0 6px 12px 縮小到 0 4px 10px */
-            transform: translateY(0);
-            transition: all 0.3s ease;
-        }
-
-        .member-info-card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 14px -2px rgba(0, 0, 0, 0.15);  /* 從 0 8px 16px 縮小到 0 6px 14px */
-        }
-
-        .member-info-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.875rem;                /* 從 1rem 縮小到 0.875rem */
-        }
-
-        @media (min-width: 768px) {
-            .member-info-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 1rem;                 /* 從 1.25rem 縮小到 1rem */
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .member-info-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        .member-info-item {
             display: flex;
-            align-items: flex-start;
-            padding: 0.75rem;             /* 從 0.875rem 縮小到 0.75rem */
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+        .simple-warning-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .simple-member-info {
             background: #f8fafc;
-            border-radius: 0.5rem;        /* 從 0.625rem 縮小到 0.5rem */
-            border-left: 4px solid #e5e7eb;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
         }
 
-        .member-info-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.6s ease;
+        .simple-member-info div {
+            margin-bottom: 0.5rem;
         }
 
-        .member-info-item:hover {
-            background: #f1f5f9;
-            border-left-color: #6b7280;
-            transform: translateX(3px);
+        .simple-member-info div:last-child {
+            margin-bottom: 0;
         }
 
-        .member-info-item:hover::before {
-            transform: translateX(100%);
-        }
-
-        .security-confirmation-box {
-            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-            border: 2px solid #fcd34d;
-            border-radius: 0.75rem;       /* 從 0.875rem 縮小到 0.75rem */
-            padding: 1rem;                /* 從 1.25rem 縮小到 1rem */
-            position: relative;
-            overflow: hidden;
-            transform: translateY(0);
-            transition: all 0.3s ease;
-        }
-
-        .security-confirmation-box:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 5px 14px rgba(245, 158, 11, 0.1);  /* 從 0 6px 16px 縮小到 0 5px 14px */
-        }
-
-        .security-confirmation-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #f59e0b, #eab308, #f59e0b);
-            animation: securityPulse 2.5s infinite;
-        }
-
-        .delete-confirm-input {
+        .simple-confirm-input {
             width: 100%;
-            padding: 0.75rem;             /* 從 0.875rem 縮小到 0.75rem */
-            border: 3px solid #fca5a5;
-            border-radius: 0.75rem;       /* 從 0.875rem 縮小到 0.75rem */
+            padding: 0.75rem;
+            border: 2px solid #fca5a5;
+            border-radius: 6px;
             text-align: center;
-            font-size: 1rem;              /* 從 1.125rem 縮小到 1rem */
+            font-size: 1rem;
             font-weight: 600;
-            letter-spacing: 0.1em;
-            transition: all 0.4s ease;
-            background: #fefefe;
-            font-family: 'Courier New', monospace;
+            margin-bottom: 1rem;
         }
 
-        .delete-confirm-input:focus {
+        .simple-confirm-input:focus {
             outline: none;
             border-color: #dc2626;
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-            transform: scale(1.015);
         }
 
-        .delete-confirm-input.valid {
+        .simple-confirm-input.valid {
             border-color: #10b981;
             background: #f0fdf4;
-            transform: scale(1.015);
-            animation: successPulse 1s ease-out;
         }
 
-        .delete-confirm-input.invalid {
+        .simple-confirm-input.invalid {
             border-color: #ef4444;
             background: #fef2f2;
-            animation: shake 0.6s ease-in-out;
         }
 
-        .delete-button {
-            padding: 0.75rem 2rem;        /* 從 0.875rem 2.25rem 縮小到 0.75rem 2rem */
-            border-radius: 0.75rem;       /* 從 0.875rem 縮小到 0.75rem */
+        .simple-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
             font-weight: 600;
-            font-size: 0.9rem;            /* 從 1rem 縮小到 0.9rem */
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border: none;
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;                  /* 從 0.625rem 縮小到 0.5rem */
-            min-width: 140px;             /* 從 160px 縮小到 140px */
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.2s;
         }
 
-        .delete-button::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            transition: all 0.4s ease;
-            transform: translate(-50%, -50%);
+        .simple-button.cancel {
+            background: #6b7280;
+            color: white;
         }
 
-        .delete-button:hover::before {
-            width: 240px;                 /* 從 280px 縮小到 240px */
-            height: 240px;                /* 從 280px 縮小到 240px */
+        .simple-button.cancel:hover {
+            background: #4b5563;
+        }
+
+        .simple-button.delete {
+            background: #dc2626;
+            color: white;
+        }
+
+        .simple-button.delete:hover:not(:disabled) {
+            background: #b91c1c;
+        }
+
+        .simple-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
         }
 
         /* 響應式調整 */
         @media (max-width: 768px) {
-            .modal-content {
-                width: 96%;
-                max-width: none;
+            .delete-modal-content {
+                width: 95%;
                 margin: 1rem;
             }
             
-            .delete-modal-content {
-                width: 94%;
-                max-width: none;
-                max-width: 93vw;
-            }
-            
-            .delete-modal-header {
-                padding: 1rem 1.25rem;
-            }
-            
-            .delete-modal-body {
-                padding: 1.25rem;
-            }
-            
             .delete-modal-footer {
-                padding: 1rem 1.25rem;
-            }
-            
-            .member-info-grid {
-                grid-template-columns: 1fr;
-                gap: 0.875rem;
-            }
-            
-            .delete-button {
-                padding: 0.75rem 1.75rem;
-                min-width: 140px;
-                font-size: 0.9rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .delete-modal-content {
-                width: 96%;
-                margin: 0.5rem;
-            }
-            
-            .delete-modal-header {
-                padding: 0.875rem 1rem;
-            }
-            
-            .delete-modal-body {
-                padding: 1rem;
-            }
-            
-            .delete-modal-footer {
-                padding: 0.875rem 1rem;
                 flex-direction: column;
-                gap: 0.625rem;
             }
             
-            .delete-button {
+            .simple-button {
                 width: 100%;
-                min-width: auto;
-                font-size: 0.875rem;
             }
         }
 
@@ -1211,135 +1037,67 @@
         </div>
     </div>
 
-    <!-- 強化版刪除確認 Modal -->
+    <!-- 簡化版刪除確認 Modal -->
     <div id="deleteConfirmModal" class="modal-backdrop">
         <div class="delete-modal-content">
-            <!-- 危險警告標題 -->
+            <!-- 標題 -->
             <div class="delete-modal-header">
-                <h2 class="text-xl font-bold text-white flex items-center relative z-10">
-                    <i class="fas fa-exclamation-triangle mr-2 text-yellow-300"></i>
-                    ⚠️ 危險操作：刪除會員
+                <h2 class="text-xl font-bold text-white">
+                    <i class="fas fa-trash-alt mr-2"></i>刪除會員
                 </h2>
             </div>
             
             <!-- 內容區域 -->
             <div class="delete-modal-body">
-                <!-- 警告提示 -->
-                <div class="danger-warning-box">
-                    <div class="flex items-start">
-                        <i class="fas fa-skull-crossbones text-red-500 text-2xl mr-3 mt-1"></i>
-                        <div class="flex-1">
-                            <h3 class="font-bold text-red-800 mb-2">注意：此操作具有風險！</h3>
-                            <p class="text-red-700 text-sm leading-relaxed">
-                                您即將執行會員刪除操作，此動作會將會員標記為「已刪除」狀態。
-                                刪除後的會員資料可在「已刪除會員」頁面中查看和復原。
-                            </p>
-                        </div>
-                    </div>
+                <!-- 簡單警告 -->
+                <div class="text-center mb-4">
+                    <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-2"></i>
+                    <p class="text-gray-700">確定要刪除此會員嗎？</p>
                 </div>
                 
-                <!-- 會員資訊卡片 -->
-                <div class="member-info-card">
-                    <h3 class="font-semibold text-red-800 mb-3 flex items-center">
-                        <i class="fas fa-user-times mr-2"></i>即將刪除的會員資訊
-                    </h3>
-                    <div class="member-info-grid">
-                        <div class="member-info-item">
-                            <i class="fas fa-id-badge text-blue-500 mr-3 text-lg"></i>
-                            <div class="flex-1">
-                                <span class="text-sm text-gray-600 block">會員編號</span>
-                                <div id="deleteMemberId_display" class="font-semibold text-blue-800 mt-1"></div>
-                            </div>
-                        </div>
-                        <div class="member-info-item">
-                            <i class="fas fa-user text-green-500 mr-3 text-lg"></i>
-                            <div class="flex-1">
-                                <span class="text-sm text-gray-600 block">姓名</span>
-                                <div id="deleteMemberName" class="font-semibold mt-1"></div>
-                            </div>
-                        </div>
-                        <div class="member-info-item">
-                            <i class="fas fa-at text-purple-500 mr-3 text-lg"></i>
-                            <div class="flex-1">
-                                <span class="text-sm text-gray-600 block">登入帳號</span>
-                                <div id="deleteMemberAccount" class="font-semibold mt-1"></div>
-                            </div>
-                        </div>
-                        <div class="member-info-item">
-                            <i class="fas fa-envelope text-orange-500 mr-3 text-lg"></i>
-                            <div class="flex-1">
-                                <span class="text-sm text-gray-600 block">電子郵件</span>
-                                <div id="deleteMemberEmail" class="font-semibold mt-1"></div>
-                            </div>
-                        </div>
-                        <div class="member-info-item">
-                            <i class="fas fa-phone text-gray-500 mr-3 text-lg"></i>
-                            <div class="flex-1">
-                                <span class="text-sm text-gray-600 block">連絡電話</span>
-                                <div id="deleteMemberPhone" class="font-semibold mt-1"></div>
-                            </div>
-                        </div>
-                    </div>
+                <!-- 會員資訊 -->
+                <div class="bg-gray-50 p-3 rounded mb-4">
+                    <p><strong>會員編號：</strong><span id="deleteMemberId_display"></span></p>
+                    <p><strong>姓名：</strong><span id="deleteMemberName"></span></p>
+                    <p><strong>帳號：</strong><span id="deleteMemberAccount"></span></p>
                 </div>
                 
-                <!-- 安全確認區域 -->
-                <div class="security-confirmation-box">
-                    <h3 class="font-semibold text-yellow-800 mb-3 flex items-center">
-                        <i class="fas fa-shield-alt mr-2"></i>安全確認
-                    </h3>
-                    <div class="text-red-600 mb-4">
-                        <div class="flex items-start">
-                            <i class="fas fa-info-circle mt-1 mr-2"></i>
-                            <p class="text-sm leading-relaxed">
-                                為了防止誤操作，請在下方輸入框中輸入 
-                                <code class="bg-red-100 text-red-800 px-2 py-1 rounded font-mono">DELETE</code> 
-                                來確認此操作
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label for="deleteConfirmText" class="block font-medium mb-2 flex items-center">
-                            <i class="fas fa-keyboard mr-2"></i>請輸入 "DELETE" (大寫)：
-                        </label>
-                        <input type="text" 
-                               id="deleteConfirmText" 
-                               class="delete-confirm-input"
-                               placeholder="請輸入 DELETE 來確認刪除"
-                               autocomplete="off"
-                               spellcheck="false">
-                        <div id="deleteTextFeedback" class="mt-2"></div>
-                    </div>
-                    
-                    <!-- 確認狀態指示器 -->
-                    <div id="deleteStatusIndicator" class="text-center">
-                        <div class="bg-gray-100 text-gray-700 p-3 rounded-lg">
-                            <i class="fas fa-lock mr-2"></i>
-                            <strong>刪除功能已鎖定</strong> - 請完成安全確認
-                        </div>
-                    </div>
+                <!-- 安全確認輸入 -->
+                <div class="mb-4">
+                    <label for="deleteConfirmText" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-shield-alt mr-1"></i>
+                        為確認刪除，請輸入 <span class="text-red-600 font-bold">DELETE</span> (必須全部大寫)：
+                    </label>
+                    <input type="text" 
+                           id="deleteConfirmText" 
+                           class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-center focus:outline-none focus:border-red-500"
+                           placeholder="請輸入 DELETE"
+                           autocomplete="off"
+                           spellcheck="false">
+                    <div id="deleteConfirmFeedback" class="mt-2 text-sm text-center"></div>
                 </div>
+                
+                <p class="text-sm text-gray-600 text-center">
+                    刪除後會員將被標記為已刪除狀態，可在「已刪除會員」頁面復原
+                </p>
             </div>
             
             <!-- 按鈕區域 -->
             <div class="delete-modal-footer">
-                <div class="flex justify-end gap-4">
-                    <button type="button" 
-                            class="delete-button cancel-button" 
-                            onclick="closeModal('deleteConfirmModal')">
-                        <i class="fas fa-times mr-2"></i>取消
+                <button type="button" 
+                        class="simple-button cancel" 
+                        onclick="closeModal('deleteConfirmModal')">
+                    取消
+                </button>
+                <form id="deleteMemberForm" method="post" th:action="@{/member/delete}" style="display: inline;">
+                    <input type="hidden" name="memberId" id="deleteMemberId" />
+                    <button type="submit" 
+                            id="confirmDeleteBtn" 
+                            class="simple-button delete" 
+                            disabled>
+                        <span id="deleteButtonText">請先輸入 DELETE</span>
                     </button>
-                    <form id="deleteMemberForm" method="post" th:action="@{/member/delete}" style="display: inline;">
-                        <input type="hidden" name="memberId" id="deleteMemberId" />
-                        <button type="submit" 
-                                id="confirmDeleteBtn" 
-                                class="delete-button confirm-delete-button" 
-                                disabled>
-                            <i class="fas fa-trash-alt mr-2"></i>
-                            <span id="deleteButtonText">刪除會員 (已鎖定)</span>
-                        </button>
-                    </form>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -1711,188 +1469,137 @@
             const memberId = buttonElement.getAttribute('data-member-id');
             const memberName = buttonElement.getAttribute('data-member-name');
             const memberAccount = buttonElement.getAttribute('data-member-account');
-            const memberEmail = buttonElement.getAttribute('data-member-email');
-            const memberPhone = buttonElement.getAttribute('data-member-phone');
 
-            currentDeleteMemberId = memberId;
-            currentDeleteMemberData = {
-                id: memberId,
-                name: memberName,
-                account: memberAccount,
-                email: memberEmail,
-                phone: memberPhone
-            };
+            // 填入會員資訊
+            document.getElementById('deleteMemberId_display').textContent = memberId;
+            document.getElementById('deleteMemberName').textContent = memberName || 'N/A';
+            document.getElementById('deleteMemberAccount').textContent = memberAccount || 'N/A';
+            document.getElementById('deleteMemberId').value = memberId;
 
-            populateMemberInfoInModal(currentDeleteMemberData);
+            // 重置輸入框和按鈕狀態
             resetDeleteConfirmationState();
-            showModal('deleteConfirmModal');
 
+            // 顯示模態框
+            showModal('deleteConfirmModal');
+            
+            // 聚焦到輸入框
             setTimeout(() => {
                 document.getElementById('deleteConfirmText').focus();
-            }, 500);
-        }
-
-        function populateMemberInfoInModal(memberData) {
-            document.getElementById('deleteMemberId_display').textContent = memberData.id;
-            document.getElementById('deleteMemberName').textContent = memberData.name || 'N/A';
-            document.getElementById('deleteMemberAccount').textContent = memberData.account || 'N/A';
-            document.getElementById('deleteMemberEmail').textContent = memberData.email || 'N/A';
-            document.getElementById('deleteMemberPhone').textContent = memberData.phone || 'N/A';
-            document.getElementById('deleteMemberId').value = memberData.id;
+            }, 300);
         }
 
         function resetDeleteConfirmationState() {
             const confirmText = document.getElementById('deleteConfirmText');
-            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const feedback = document.getElementById('deleteConfirmFeedback');
+            const confirmButton = document.getElementById('confirmDeleteBtn');
             const buttonText = document.getElementById('deleteButtonText');
-            const feedback = document.getElementById('deleteTextFeedback');
-            const statusIndicator = document.getElementById('deleteStatusIndicator');
-
+            
+            // 重置輸入框
             confirmText.value = '';
-            confirmText.className = 'w-full px-3 py-2 border-2 border-red-300 rounded-lg text-center text-lg focus:outline-none focus:border-red-500';
+            confirmText.className = 'w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-center focus:outline-none focus:border-red-500';
             
-            confirmBtn.disabled = true;
-            confirmBtn.className = 'px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed';
-            buttonText.textContent = '刪除會員 (已鎖定)';
+            // 重置反饋訊息
+            feedback.textContent = '';
+            feedback.className = 'mt-2 text-sm text-center';
             
-            feedback.innerHTML = '';
-            statusIndicator.innerHTML = `
-                <div class="bg-gray-100 text-gray-700 p-3 rounded-lg">
-                    <i class="fas fa-lock mr-2"></i>
-                    <strong>刪除功能已鎖定</strong> - 請完成安全確認
-                </div>
-            `;
+            // 重置按鈕狀態
+            confirmButton.disabled = true;
+            confirmButton.className = 'simple-button delete opacity-50 cursor-not-allowed';
+            buttonText.textContent = '請先輸入 DELETE';
             
             deleteConfirmationValid = false;
         }
 
-        function validateDeleteConfirmation(inputValue) {
-            const confirmText = document.getElementById('deleteConfirmText');
-            const confirmBtn = document.getElementById('confirmDeleteBtn');
-            const buttonText = document.getElementById('deleteButtonText');
-            const feedback = document.getElementById('deleteTextFeedback');
-            const statusIndicator = document.getElementById('deleteStatusIndicator');
-
-            const trimmedValue = inputValue.trim();
-
-            if (trimmedValue === '') {
-                setValidationState('empty', confirmText, confirmBtn, buttonText, feedback, statusIndicator);
-            } else if (trimmedValue === 'DELETE') {
-                setValidationState('valid', confirmText, confirmBtn, buttonText, feedback, statusIndicator);
-                deleteConfirmationValid = true;
-            } else {
-                setValidationState('invalid', confirmText, confirmBtn, buttonText, feedback, statusIndicator);
-            }
-        }
-
-        function setValidationState(state, input, button, buttonText, feedback, statusIndicator) {
-            switch (state) {
-                case 'empty':
-                    input.className = 'w-full px-3 py-2 border-2 border-red-300 rounded-lg text-center text-lg focus:outline-none focus:border-red-500';
-                    button.disabled = true;
-                    buttonText.textContent = '刪除會員 (已鎖定)';
-                    feedback.innerHTML = '';
-                    statusIndicator.innerHTML = `
-                        <div class="bg-gray-100 text-gray-700 p-3 rounded-lg">
-                            <i class="fas fa-lock mr-2"></i>
-                            <strong>刪除功能已鎖定</strong> - 請完成安全確認
-                        </div>
-                    `;
-                    deleteConfirmationValid = false;
-                    break;
-
-                case 'valid':
-                    input.className = 'w-full px-3 py-2 border-2 border-green-500 rounded-lg text-center text-lg focus:outline-none focus:border-green-500';
-                    button.disabled = false;
-                    buttonText.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>確認刪除會員';
-                    feedback.innerHTML = `
-                        <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-green-700">
-                            <i class="fas fa-check-circle mr-2"></i>
-                            <strong>驗證成功！</strong> 現在可以執行刪除操作
-                        </div>
-                    `;
-                    statusIndicator.innerHTML = `
-                        <div class="bg-green-100 text-green-700 p-3 rounded-lg">
-                            <i class="fas fa-unlock mr-2"></i>
-                            <strong>安全確認完成</strong> - 刪除功能已解鎖
-                        </div>
-                    `;
-                    deleteConfirmationValid = true;
-                    break;
-
-                case 'invalid':
-                    input.className = 'w-full px-3 py-2 border-2 border-red-500 rounded-lg text-center text-lg focus:outline-none focus:border-red-500';
-                    button.disabled = true;
-                    buttonText.textContent = '刪除會員 (已鎖定)';
-                    feedback.innerHTML = `
-                        <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700">
-                            <i class="fas fa-times-circle mr-2"></i>
-                            <strong>輸入錯誤！</strong> 請輸入大寫的 "DELETE"
-                        </div>
-                    `;
-                    statusIndicator.innerHTML = `
-                        <div class="bg-red-100 text-red-700 p-3 rounded-lg">
-                            <i class="fas fa-lock mr-2"></i>
-                            <strong>驗證失敗</strong> - 請輸入正確的確認文字
-                        </div>
-                    `;
-                    deleteConfirmationValid = false;
-                    break;
-            }
-        }
-
-        function handleDeleteFormSubmit(event) {
-            if (!deleteConfirmationValid) {
-                event.preventDefault();
-                event.stopPropagation();
-                
-                const feedback = document.getElementById('deleteTextFeedback');
-                feedback.innerHTML = `
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-yellow-700">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>
-                        <strong>操作被阻止！</strong> 請先完成安全確認
-                    </div>
-                `;
-                
-                return false;
-            }
-
-            const confirmBtn = document.getElementById('confirmDeleteBtn');
-            const buttonText = document.getElementById('deleteButtonText');
-            
-            confirmBtn.disabled = true;
-            buttonText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>執行刪除中...';
-            
-            return true;
-        }
-
-        // 事件監聽器設定
+        // 等待DOM載入完成後再添加事件監聽器
         document.addEventListener('DOMContentLoaded', function() {
-            const deleteConfirmInput = document.getElementById('deleteConfirmText');
-            if (deleteConfirmInput) {
-                deleteConfirmInput.addEventListener('input', function(e) {
-                    validateDeleteConfirmation(e.target.value);
-                });
-
-                deleteConfirmInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (deleteConfirmationValid) {
-                            document.getElementById('confirmDeleteBtn').click();
-                        }
+            const deleteConfirmText = document.getElementById('deleteConfirmText');
+            const deleteConfirmFeedback = document.getElementById('deleteConfirmFeedback');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const deleteButtonText = document.getElementById('deleteButtonText');
+            
+            if (deleteConfirmText) {
+                // 刪除確認輸入框即時驗證
+                deleteConfirmText.addEventListener('input', function() {
+                    const confirmText = this.value.trim();
+                    
+                    if (confirmText === 'DELETE') {
+                        // 輸入正確
+                        deleteConfirmFeedback.textContent = '✓ 確認刪除';
+                        deleteConfirmFeedback.className = 'mt-2 text-sm text-center text-green-600 font-medium';
+                        
+                        this.className = 'w-full px-3 py-2 border-2 border-green-500 rounded-lg text-center focus:outline-none focus:border-green-500 bg-green-50';
+                        
+                        confirmDeleteBtn.disabled = false;
+                        confirmDeleteBtn.className = 'simple-button delete';
+                        deleteButtonText.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>確認刪除';
+                        
+                        deleteConfirmationValid = true;
+                    } else if (confirmText === '') {
+                        // 空輸入
+                        deleteConfirmFeedback.textContent = '';
+                        deleteConfirmFeedback.className = 'mt-2 text-sm text-center';
+                        
+                        this.className = 'w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-center focus:outline-none focus:border-red-500';
+                        
+                        confirmDeleteBtn.disabled = true;
+                        confirmDeleteBtn.className = 'simple-button delete opacity-50 cursor-not-allowed';
+                        deleteButtonText.textContent = '請先輸入 DELETE';
+                        
+                        deleteConfirmationValid = false;
+                    } else {
+                        // 輸入錯誤
+                        deleteConfirmFeedback.textContent = '✗ 請輸入 DELETE (全部大寫)';
+                        deleteConfirmFeedback.className = 'mt-2 text-sm text-center text-red-600 font-medium';
+                        
+                        this.className = 'w-full px-3 py-2 border-2 border-red-500 rounded-lg text-center focus:outline-none focus:border-red-500 bg-red-50';
+                        
+                        confirmDeleteBtn.disabled = true;
+                        confirmDeleteBtn.className = 'simple-button delete opacity-50 cursor-not-allowed';
+                        deleteButtonText.textContent = '請先輸入 DELETE';
+                        
+                        deleteConfirmationValid = false;
                     }
                 });
 
-                deleteConfirmInput.addEventListener('paste', function(e) {
-                    setTimeout(() => {
-                        validateDeleteConfirmation(e.target.value);
-                    }, 10);
+                // 支援 Enter 鍵提交
+                deleteConfirmText.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (deleteConfirmationValid) {
+                            confirmDeleteBtn.click();
+                        }
+                    }
                 });
             }
 
-            const deleteForm = document.getElementById('deleteMemberForm');
-            if (deleteForm) {
-                deleteForm.addEventListener('submit', handleDeleteFormSubmit);
+            // 表單提交驗證
+            const deleteMemberForm = document.getElementById('deleteMemberForm');
+            if (deleteMemberForm) {
+                deleteMemberForm.addEventListener('submit', function(e) {
+                    if (!deleteConfirmationValid) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // 顯示錯誤訊息
+                        deleteConfirmFeedback.textContent = '⚠ 請先輸入 DELETE 以確認刪除';
+                        deleteConfirmFeedback.className = 'mt-2 text-sm text-center text-red-600 font-medium';
+                        
+                        // 搖動效果
+                        deleteConfirmText.style.animation = 'shake 0.5s';
+                        setTimeout(() => {
+                            deleteConfirmText.style.animation = '';
+                        }, 500);
+                        
+                        return false;
+                    }
+                    
+                    // 提交時顯示載入狀態
+                    confirmDeleteBtn.disabled = true;
+                    confirmDeleteBtn.className = 'simple-button delete opacity-50 cursor-not-allowed';
+                    deleteButtonText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>刪除中...';
+                    
+                    return true;
+                });
             }
         });
     </script>
