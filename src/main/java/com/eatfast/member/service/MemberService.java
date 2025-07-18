@@ -1012,6 +1012,18 @@ public class MemberService {
     }
     
     /**
+     * 【功能】復原已刪除的會員（別名方法）
+     * 
+     * @param memberId 要復原的會員ID
+     * @throws EntityNotFoundException 如果找不到會員
+     * @throws IllegalStateException 如果會員狀態不正確
+     */
+    @Transactional
+    public void restoreMemberById(Long memberId) {
+        restoreMember(memberId);
+    }
+    
+    /**
      * 【功能】獲取會員資料（包括已刪除的）
      * 
      * @param memberId 會員ID
