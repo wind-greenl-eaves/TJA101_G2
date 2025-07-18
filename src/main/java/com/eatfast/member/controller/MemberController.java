@@ -130,7 +130,10 @@ public class MemberController {
      * 【請求路徑】: 處理 POST /member/getOne_For_Update 請求。
      */
     @PostMapping("/getOne_For_Update")
-    public String showUpdateForm(@RequestParam("memberId") Long memberId, Model model, RedirectAttributes redirectAttributes) {
+    public String showUpdateForm(@RequestParam("memberId") Long memberId, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
+        // 添加管理員登入資訊到模型中
+        addAdminInfoToModel(session, model);
+        
         // 【業務邏輯路徑】: 呼叫 Service 獲取 Optional<MemberEntity>。
         return memberService.getMemberById(memberId)
             .map(memberEntity -> { // 【成功路徑】如果 Optional 中有值...
@@ -173,10 +176,28 @@ public class MemberController {
     public String update(@Validated(UpdateValidation.class) @ModelAttribute("memberUpdateRequest") MemberUpdateRequest updateRequest,
                          BindingResult result,
                          RedirectAttributes redirectAttributes,
-                         Model model) { // 加入 Model
+                         Model model,
+                         HttpSession session) { // 加入 HttpSession
 
         // 【驗證路徑】: 檢查 DTO 欄位驗證。
         if (result.hasErrors()) {
+            // 添加管理員登入資訊到模型中
+            addAdminInfoToModel(session, model);
+            
+            // 【修復】重新從資料庫查詢會員資訊，確保顯示區塊的資料正確
+            try {
+                Optional<MemberEntity> memberEntityOpt = memberService.getMemberById(updateRequest.getMemberId());
+                if (memberEntityOpt.isPresent()) {
+                    MemberEntity memberEntity = memberEntityOpt.get();
+                    // 重新設置唯讀欄位的正確值
+                    updateRequest.setAccount(memberEntity.getAccount());
+                    updateRequest.setCreatedAt(memberEntity.getCreatedAt());
+                    updateRequest.setEnabled(memberEntity.isEnabled());
+                }
+            } catch (Exception e) {
+                log.error("重新查詢會員資料失敗: {}", e.getMessage());
+            }
+            
             // 【錯誤路徑】: 如果更新失敗，需要重新準備「密碼表單」的 DTO，否則頁面會出錯。
             PasswordUpdateRequest passwordRequest = new PasswordUpdateRequest();
             passwordRequest.setMemberId(updateRequest.getMemberId());
@@ -206,11 +227,15 @@ public class MemberController {
     public String handleChangePassword(@Validated @ModelAttribute("passwordUpdateRequest") PasswordUpdateRequest request,
                                      BindingResult result,
                                      RedirectAttributes redirectAttributes,
-                                     Model model) {
+                                     Model model,
+                                     HttpSession session) { // 添加 HttpSession 參數
         
         // 【優化】: 準備一個私有方法來處理「錯誤時重新渲染頁面」的共同邏輯。
         // 這個方法會重新查詢會員資料，並將其放入 Model，避免頁面因缺少資料而崩潰。
         if (result.hasErrors()) {
+            // 【關鍵修復】添加管理員登入資訊到模型中
+            addAdminInfoToModel(session, model);
+            
             // 將 JSR-303 的格式驗證錯誤訊息，以 passwordUpdateErrors 的名義傳遞給前端。
             model.addAttribute("passwordUpdateErrors", result.getAllErrors());
             // 呼叫輔助方法，重新準備頁面所需的另一個表單資料。
@@ -361,7 +386,11 @@ public class MemberController {
     @GetMapping("/getOne_For_Update_view")
     public String showUpdateFormAfterRedirect(@RequestParam("memberId") Long memberId, 
                                              Model model, 
-                                             RedirectAttributes redirectAttributes) {
+                                             RedirectAttributes redirectAttributes,
+                                             HttpSession session) {
+        
+        // 添加管理員登入資訊到模型中
+        addAdminInfoToModel(session, model);
         
         // 【業務邏輯路徑】: 呼叫 Service 獲取 Optional<MemberEntity>。
         return memberService.getMemberById(memberId)
@@ -700,7 +729,7 @@ public class MemberController {
             model.addAttribute("orderStats", orderStats);
             model.addAttribute("member", member);
             
-            // 【保持篩选參數】
+            // 【保持篩選參數】
             model.addAttribute("currentStatus", status);
             model.addAttribute("currentStartDate", startDate);
             model.addAttribute("currentEndDate", endDate);
@@ -770,10 +799,13 @@ public class MemberController {
             MemberUpdateRequest updateRequest = new MemberUpdateRequest();
             updateRequest.setMemberId(member.getMemberId());
             updateRequest.setUsername(member.getUsername());
+            updateRequest.setAccount(member.getAccount()); // 添加帳號欄位
             updateRequest.setEmail(member.getEmail());
             updateRequest.setPhone(member.getPhone());
             updateRequest.setBirthday(member.getBirthday());
             updateRequest.setGender(member.getGender());
+            updateRequest.setEnabled(member.isEnabled()); // 添加啟用狀態
+            updateRequest.setCreatedAt(member.getCreatedAt()); // 添加註冊時間
             model.addAttribute("memberUpdateRequest", updateRequest);
         });
     }
@@ -1839,12 +1871,11 @@ public class MemberController {
                 model.addAttribute("currentAdminName", employeeName);
                 model.addAttribute("currentAdminAccount", employeeAccount);
                 
-                // 將角色轉換為中文顯示名稱
+                // 處理角色顯示名稱
                 String roleDisplayName = "未知角色";
                 if (employeeRole instanceof com.eatfast.common.enums.EmployeeRole) {
                     roleDisplayName = ((com.eatfast.common.enums.EmployeeRole) employeeRole).getDisplayName();
                 } else if (employeeRole != null) {
-                    // 如果是字符串形式的角色，嘗試轉換為枚舉
                     try {
                         com.eatfast.common.enums.EmployeeRole role = com.eatfast.common.enums.EmployeeRole.valueOf(employeeRole.toString());
                         roleDisplayName = role.getDisplayName();
@@ -1947,7 +1978,7 @@ public class MemberController {
     }
 
     // ================================================================
-    // 					已刪除會員管理功能 (Deleted Member Management)
+    // 					已刪除會員管理功能 (Deleted Members Management)
     // ================================================================
     
     /**
@@ -1955,32 +1986,47 @@ public class MemberController {
      * 【請求路徑】: 處理 GET /member/deleted 請求
      */
     @GetMapping("/deleted")
-    public String showDeletedMembers(Model model, HttpSession session) {
-        // 添加管理員登入資訊到模型中
-        addAdminInfoToModel(session, model);
+    public String showDeletedMembers(HttpSession session, Model model) {
+        // 獲取當前登入的管理員資訊
+        Object loggedInEmployee = session.getAttribute("loggedInEmployee");
+        String employeeName = (String) session.getAttribute("employeeName");
+        String employeeAccount = (String) session.getAttribute("employeeAccount");
+        Object employeeRole = session.getAttribute("employeeRole");
+        Boolean isEmployeeLoggedIn = (Boolean) session.getAttribute("isEmployeeLoggedIn");
         
-        try {
-            // 獲取所有已刪除（停用）的會員
-            List<MemberEntity> deletedMembers = memberService.getDeletedMembers();
+        // 將管理員資訊添加到模型中
+        if (isEmployeeLoggedIn != null && isEmployeeLoggedIn) {
+            model.addAttribute("currentAdmin", loggedInEmployee);
+            model.addAttribute("currentAdminName", employeeName);
+            model.addAttribute("currentAdminAccount", employeeAccount);
             
-            // 將已刪除會員資料傳遞給視圖
-            model.addAttribute("deletedMembers", deletedMembers);
-            
-            if (deletedMembers.isEmpty()) {
-                model.addAttribute("infoMessage", "目前沒有已刪除的會員");
-            } else {
-                model.addAttribute("successMessage", "找到 " + deletedMembers.size() + " 筆已刪除的會員資料");
+            // 處理角色顯示名稱
+            String roleDisplayName = "未知角色";
+            if (employeeRole instanceof com.eatfast.common.enums.EmployeeRole) {
+                roleDisplayName = ((com.eatfast.common.enums.EmployeeRole) employeeRole).getDisplayName();
+            } else if (employeeRole != null) {
+                try {
+                    com.eatfast.common.enums.EmployeeRole role = com.eatfast.common.enums.EmployeeRole.valueOf(employeeRole.toString());
+                    roleDisplayName = role.getDisplayName();
+                } catch (IllegalArgumentException e) {
+                    log.warn("無法解析角色: {}", employeeRole);
+                    roleDisplayName = employeeRole.toString();
+                }
             }
             
-            log.info("顯示已刪除會員列表，共 {} 筆資料", deletedMembers.size());
-            
-        } catch (Exception e) {
-            log.error("載入已刪除會員列表失敗: {}", e.getMessage(), e);
-            model.addAttribute("errorMessage", "載入已刪除會員列表失敗：" + e.getMessage());
-            model.addAttribute("deletedMembers", new ArrayList<>());
+            model.addAttribute("currentAdminRole", roleDisplayName);
+            model.addAttribute("isAdminLoggedIn", true);
+        } else {
+            model.addAttribute("isAdminLoggedIn", false);
         }
         
-        return MemberViewConstants.VIEW_DELETED_MEMBERS;
+        // 獲取已刪除的會員列表
+        List<MemberEntity> deletedMembers = memberService.getDeletedMembers();
+        model.addAttribute("deletedMembers", deletedMembers);
+        
+        log.info("顯示已刪除會員列表，共 {} 筆資料", deletedMembers.size());
+        
+        return "back-end/member/deleted_members";
     }
     
     /**
@@ -1990,48 +2036,19 @@ public class MemberController {
     @PostMapping("/restore")
     public String restoreMember(@RequestParam("memberId") Long memberId, 
                                RedirectAttributes redirectAttributes) {
-        
         try {
-            MemberEntity restoredMember = memberService.restoreMember(memberId);
+            memberService.restoreMemberById(memberId);
             redirectAttributes.addFlashAttribute("successMessage", 
-                "會員「" + restoredMember.getUsername() + "」已成功復原並重新啟用！");
-            
-            log.info("會員復原成功 - ID: {}, 帳號: {}", memberId, restoredMember.getAccount());
-            
+                "會員編號 " + memberId + " 復原成功！");
+            log.info("會員復原成功，ID: {}", memberId);
         } catch (EntityNotFoundException e) {
-            log.error("復原會員失敗 - 會員不存在: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", "復原失敗：找不到指定的會員");
-        } catch (IllegalStateException e) {
-            log.error("復原會員失敗 - 狀態錯誤: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", "復原失敗：" + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                "復原失敗：找不到會員 ID " + memberId);
+            log.error("會員復原失敗: {}", e.getMessage());
         } catch (Exception e) {
-            log.error("復原會員失敗 - 未預期錯誤: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", "復原失敗：系統錯誤");
-        }
-        
-        return "redirect:/member/deleted";
-    }
-    
-    /**
-     * 【功能】: 永久刪除會員（真正的刪除，不可復原）
-     * 【請求路徑】: 處理 POST /member/permanent-delete 請求
-     */
-    @PostMapping("/permanent-delete")
-    public String permanentlyDeleteMember(@RequestParam("memberId") Long memberId, 
-                                         RedirectAttributes redirectAttributes) {
-        
-        try {
-            memberService.permanentlyDeleteMember(memberId);
-            redirectAttributes.addFlashAttribute("successMessage", "會員已永久刪除（此操作不可復原）");
-            
-            log.warn("會員永久刪除成功 - ID: {}", memberId);
-            
-        } catch (EntityNotFoundException e) {
-            log.error("永久刪除會員失敗 - 會員不存在: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", "永久刪除失敗：找不到指定的會員");
-        } catch (Exception e) {
-            log.error("永久刪除會員失敗 - 未預期錯誤: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("errorMessage", "永久刪除失敗：系統錯誤");
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                "復原失敗：" + e.getMessage());
+            log.error("會員復原時發生錯誤: {}", e.getMessage());
         }
         
         return "redirect:/member/deleted";

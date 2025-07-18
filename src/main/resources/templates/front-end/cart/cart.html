@@ -58,7 +58,7 @@
             box-sizing: border-box;
         }
         
-        body {
+        .body {
             font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
             line-height: 1.6;
             color: var(--text-color);
@@ -702,39 +702,74 @@
         }
 
         // 渲染購物車列表
-        function renderCartItems(items) {
-            cartItemsBody.innerHTML = '';
-            let totalAmount = 0;
-            items.forEach(item => {
-                const mealPrice = parseFloat(item.mealPrice) || 0;
-                const quantity = parseInt(item.quantity) || 0;
-                const subtotal = mealPrice * quantity;
-                totalAmount += subtotal;
-                const row = document.createElement('tr');
-                row.className = 'border-b';
-                row.innerHTML = `
-                    <td class="py-4 flex items-center">
-                        <img src="${item.mealPicUrl || contextPath + 'images/meal_default.png'}" alt="${item.mealName}" class="w-16 h-16 rounded-md mr-4 object-cover">
-                        <div><span class="font-medium">${item.mealName || '未知餐點'}</span><p class="text-sm text-gray-500">${item.mealCustomization ? `<br>備註: ${item.mealCustomization}` : ''}</p></div>
-                    </td>
-                    <td class="py-4 align-middle text-right">NT$ ${mealPrice}</td>
-                    <td class="py-4 align-middle text-center"><div class="flex items-center justify-center"><button class="px-2 py-1 border rounded-l-md minus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">-</button><input type="number" value="${quantity}" min="1" class="w-12 text-center border-t border-b quantity-input" data-meal-id="${item.mealId}" data-store-id="${item.storeId}"><button class="px-2 py-1 border rounded-r-md plus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">+</button></div></td>
-                    <td class="py-4 align-middle text-right font-medium">NT$ ${subtotal}</td>
-                    <td class="py-4 align-middle text-center"><button class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors shadow-sm delete-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">刪除</button></td>
-                `;
-                cartItemsBody.appendChild(row);
-            });
-            if (items && items.length > 0 && items[0].storeName) {
-                const pickupStoreInput = document.getElementById('pickup-store');
-                if (pickupStoreInput) {
-                    pickupStoreInput.value = items[0].storeName;
-                }
-            }
-            cartTotalAmountSpan.textContent = `NT$ ${totalAmount}`;
-            displayCartContent();
-            attachItemEventListeners();
-        }
+function renderCartItems(items) {
+    cartItemsBody.innerHTML = '';
+    let totalAmount = 0;
+    
+    const defaultImg = contextPath + 'images/nopic.png';
 
+    items.forEach(item => {
+        const mealPrice = parseFloat(item.mealPrice) || 0;
+        const quantity = parseInt(item.quantity) || 0;
+        const subtotal = mealPrice * quantity;
+        totalAmount += subtotal;
+
+        // ▼▼▼【✔️ 最終修正邏輯】▼▼▼
+        let imageUrl;
+        const rawPicUrl = item.mealPicUrl; // 從 API 取得的原始路徑
+
+        if (!rawPicUrl) {
+            // 情況1：路徑為空，使用預設圖片
+            imageUrl = defaultImg;
+        } else {
+            // 判斷是否為新圖片：新圖片的檔名 (UUID) 包含連字號 "-"
+            const isNewImage = rawPicUrl.includes('-');
+
+            if (isNewImage) {
+                // 情況2：是新圖片。將錯誤的前綴 /images/meal_pic/ 替換為正確的 /meal-pic/
+                imageUrl = rawPicUrl.replace('/images/meal_pic/', '/meal-pic/');
+            } else {
+                // 情況3：是舊圖片 (例如 /images/meal_pic/102.png)，路徑正確，直接使用
+                imageUrl = rawPicUrl;
+            }
+        } 
+        
+        // 為所有真實圖片加上時間戳，強制瀏覽器載入最新版本
+        if (imageUrl !== defaultImg) {
+            imageUrl += '?t=' + new Date().getTime();
+        }
+        // ▲▲▲【✔️ 最終修正邏輯結束】▲▲▲
+
+        const row = document.createElement('tr');
+        row.className = 'border-b';
+        // 在 <img> 的 src 中使用我們最終處理好的 imageUrl
+        row.innerHTML = `
+            <td class="py-4 flex items-center">
+                <img src="${imageUrl}" 
+                     alt="${item.mealName}" 
+                     class="w-16 h-16 rounded-md mr-4 object-cover"
+                     onerror="this.onerror=null;this.src='${defaultImg}';">
+                <div><span class="font-medium">${item.mealName || '未知餐點'}</span><p class="text-sm text-gray-500">${item.mealCustomization ? `<br>備註: ${item.mealCustomization}` : ''}</p></div>
+            </td>
+            <td class="py-4 align-middle text-right">NT$ ${mealPrice}</td>
+            <td class="py-4 align-middle text-center"><div class="flex items-center justify-center"><button class="px-2 py-1 border rounded-l-md minus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">-</button><input type="number" value="${quantity}" min="1" class="w-12 text-center border-t border-b quantity-input" data-meal-id="${item.mealId}" data-store-id="${item.storeId}"><button class="px-2 py-1 border rounded-r-md plus-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">+</button></div></td>
+            <td class="py-4 align-middle text-right font-medium">NT$ ${subtotal}</td>
+            <td class="py-4 align-middle text-center"><button class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors shadow-sm delete-btn" data-meal-id="${item.mealId}" data-store-id="${item.storeId}">刪除</button></td>
+        `;
+        cartItemsBody.appendChild(row);
+    });
+
+    // ... 以下程式碼不變 ...
+    if (items && items.length > 0 && items[0].storeName) {
+        const pickupStoreInput = document.getElementById('pickup-store');
+        if (pickupStoreInput) {
+            pickupStoreInput.value = items[0].storeName;
+        }
+    }
+    cartTotalAmountSpan.textContent = `NT$ ${totalAmount}`;
+    displayCartContent();
+    attachItemEventListeners();
+}
         // 更新商品數量
         async function updateQuantity(element, change) {
             const mealId = element.dataset.mealId;
