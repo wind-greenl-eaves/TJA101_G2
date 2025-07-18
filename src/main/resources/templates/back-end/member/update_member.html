@@ -607,6 +607,74 @@
                 opacity: 1;
             }
         }
+
+        /* 會員資訊側邊欄樣式 */
+        .member-info-sidebar {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            height: fit-content;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .member-info-header {
+            font-weight: 600;
+            font-size: 1.125rem;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .member-info-body {
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .info-value {
+            color: #374151;
+            text-align: right;
+        }
+
+        /* 狀態標籤樣式 */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .status-inactive {
+            background: rgba(220, 38, 38, 0.1);
+            color: #dc2626;
+        }
     </style>
 </head>
 
@@ -655,233 +723,251 @@
         </header>
 
         <!-- 訊息顯示區 -->
-        <div th:if="${errorMessage}" class="error-message">
+        <div th:if="${errorMessage}" class="error-message max-w-4xl mx-auto">
             <i class="fas fa-exclamation-circle mr-2"></i><span th:utext="${errorMessage}"></span>
         </div>
-        <div th:if="${successMessage}" class="success-message">
+        <div th:if="${successMessage}" class="success-message max-w-4xl mx-auto">
             <i class="fas fa-check-circle mr-2"></i><span th:utext="${successMessage}"></span>
         </div>
-        <div th:if="${passwordUpdateError}" class="error-message">
+        <div th:if="${passwordUpdateError}" class="error-message max-w-4xl mx-auto">
             <i class="fas fa-exclamation-circle mr-2"></i><span th:text="${passwordUpdateError}"></span>
         </div>
 
-        <!-- 會員基本資料卡片 -->
-        <div class="form-card mx-auto" style="max-width: 1000px;">
-            <div class="form-header">
-                <i class="fas fa-user-edit mr-2"></i>修改會員基本資料
-            </div>
-            <div class="p-6">
-                <!-- 會員資訊顯示 -->
-                <div class="member-info-display">
-                    <div class="info-row">
-                        <span class="info-label">會員編號：</span>
-                        <span class="info-value" th:text="${memberUpdateRequest.memberId}">123</span>
+        <!-- 主要內容區域 - 恢復為左右分離布局 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- 左側：表單區域 -->
+            <div class="lg:col-span-2">
+                <!-- 會員基本資料卡片 -->
+                <div class="form-card">
+                    <div class="form-header">
+                        <i class="fas fa-user-edit mr-2"></i>修改會員基本資料
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">註冊時間：</span>
-                        <span class="info-value" th:text="${memberUpdateRequest.createdAt != null ? #temporals.format(memberUpdateRequest.createdAt, 'yyyy-MM-dd HH:mm:ss') : 'N/A'}">2024-01-01 12:00:00</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">帳號狀態：</span>
-                        <span class="info-value">
-                            <span th:if="${memberUpdateRequest.isEnabled()}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                <i class="fas fa-check-circle mr-1"></i>啟用中
-                            </span>
-                            <span th:unless="${memberUpdateRequest.isEnabled()}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                <i class="fas fa-times-circle mr-1"></i>已停用
-                            </span>
-                        </span>
+                    <div class="p-6">
+                        <!-- 第一個表單：更新基本資料 -->
+                        <form id="memberUpdateForm" method="post" th:action="@{/member/update}" th:object="${memberUpdateRequest}">
+                            <!-- 隱藏的會員ID欄位 -->
+                            <input type="hidden" th:field="*{memberId}" />
+                            
+                            <!-- 驗證錯誤訊息顯示區 -->
+                            <div th:if="${#fields.hasErrors('*')}" class="error-message">
+                                <b><i class="fas fa-exclamation-triangle"></i> 請修正以下錯誤：</b>
+                                <ul class="mt-2 list-disc list-inside">
+                                    <li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
+                                </ul>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-group">
+                                    <label for="username" class="form-label">會員姓名：<span class="required">*</span></label>
+                                    <input type="text" id="username" 
+                                           th:field="*{username}"
+                                           th:class="${#fields.hasErrors('username')} ? 'form-input input-error' : 'form-input'"
+                                           placeholder="請輸入真實姓名"/>
+                                    <div class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">
+                                        姓名錯誤訊息
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="account" class="form-label">登入帳號：</label>
+                                    <input type="text" id="account" class="form-input" 
+                                           th:value="${memberUpdateRequest.account}"
+                                           disabled placeholder="帳號不可修改"/>
+                                    <div class="info-text">登入帳號建立後不可修改</div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email" class="form-label">電子郵件：<span class="required">*</span></label>
+                                <input type="email" id="email" 
+                                       th:field="*{email}"
+                                       th:class="${#fields.hasErrors('email')} ? 'form-input input-error' : 'form-input'"
+                                       placeholder="例如：user@example.com"/>
+                                <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">
+                                    電子郵件錯誤訊息
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-group">
+                                    <label for="phone" class="form-label">連絡電話：<span class="required">*</span></label>
+                                    <input type="tel" id="phone" 
+                                           th:field="*{phone}"
+                                           th:class="${#fields.hasErrors('phone')} ? 'form-input input-error' : 'form-input'"
+                                           placeholder="格式：09xx-xxxxxx"/>
+                                    <div class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">
+                                        電話錯誤訊息
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="birthday" class="form-label">生日：</label>
+                                    <input type="date" id="birthday" 
+                                           th:field="*{birthday}"
+                                           th:class="${#fields.hasErrors('birthday')} ? 'form-input input-error' : 'form-input'"/>
+                                    <div class="info-text">如不修改可保持空白</div>
+                                    <div class="field-error" th:if="${#fields.hasErrors('birthday')}" th:errors="*{birthday}">
+                                        生日錯誤訊息
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">性別：<span class="required">*</span></label>
+                                <div class="radio-group">
+                                    <div class="radio-item">
+                                        <input type="radio" th:field="*{gender}" id="genderM" value="M">
+                                        <label for="genderM"><i class="fas fa-mars mr-1"></i> 男性</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" th:field="*{gender}" id="genderF" value="F">
+                                        <label for="genderF"><i class="fas fa-venus mr-1"></i> 女性</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" th:field="*{gender}" id="genderO" value="O">
+                                        <label for="genderO"><i class="fas fa-genderless mr-1"></i> 其他</label>
+                                    </div>
+                                </div>
+                                <div class="field-error" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}">
+                                    性別錯誤訊息
+                                </div>
+                            </div>
+
+                            <div class="flex justify-center gap-4 mt-6">
+                                <button type="button" class="btn-primary" onclick="showConfirmModal()">
+                                    <i class="fas fa-save"></i> 確認修改
+                                </button>
+                                <a th:href="@{/member/select_page}" class="btn-secondary">
+                                    <i class="fas fa-times"></i> 取消返回
+                                </a>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
-                <!-- 第一個表單：更新基本資料 -->
-                <form id="memberUpdateForm" method="post" th:action="@{/member/update}" th:object="${memberUpdateRequest}">
-                    <!-- 隱藏的會員ID欄位 -->
-                    <input type="hidden" th:field="*{memberId}" />
-                    
-                    <!-- 驗證錯誤訊息顯示區 -->
-                    <div th:if="${#fields.hasErrors('*')}" class="error-message">
-                        <b><i class="fas fa-exclamation-triangle"></i> 請修正以下錯誤：</b>
-                        <ul class="mt-2 list-disc list-inside">
-                            <li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
-                        </ul>
+                <!-- 密碼變更卡片 -->
+                <div class="password-card mt-6">
+                    <div class="password-header">
+                        <h5 class="mb-0"><i class="fas fa-key mr-2"></i> 變更密碼</h5>
                     </div>
+                    <div class="password-body">
+                        <!-- 密碼更新驗證錯誤 -->
+                        <div th:if="${passwordUpdateErrors}" class="error-message">
+                            <b><i class="fas fa-exclamation-triangle"></i> 請修正以下錯誤：</b>
+                            <ul class="mt-2 list-disc list-inside">
+                                <li th:each="err : ${passwordUpdateErrors}" th:text="${err.defaultMessage}"></li>
+                            </ul>
+                        </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-group">
-                            <label for="username" class="form-label">會員姓名：<span class="required">*</span></label>
-                            <input type="text" id="username" 
-                                   th:field="*{username}"
-                                   th:class="${#fields.hasErrors('username')} ? 'form-input input-error' : 'form-input'"
-                                   placeholder="請輸入真實姓名"/>
-                            <div class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">
-                                姓名錯誤訊息
+                        <form method="post" th:action="@{/member/admin/change-password}" th:object="${passwordUpdateRequest}">
+                            <input type="hidden" th:field="*{memberId}" id="passwordMemberId" />
+                            
+                            <!-- 為了符合可訪問性標準，添加隱藏的用戶名欄位 -->
+                            <input type="text" 
+                                   th:value="${memberUpdateRequest.account}" 
+                                   name="username" 
+                                   autocomplete="username" 
+                                   style="display: none;" 
+                                   readonly />
+                            
+                            <div class="form-group">
+                                <label for="oldPassword" class="form-label">目前密碼：<span class="required">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" 
+                                           id="oldPassword" 
+                                           th:field="*{oldPassword}" 
+                                           th:class="${#fields.hasErrors('oldPassword')} ? 'form-input input-error' : 'form-input'"
+                                           placeholder="請輸入目前使用的密碼" 
+                                           autocomplete="current-password" />
+                                    <span class="toggle-password" data-target="oldPassword">
+                                        <i class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                                <div class="field-error" th:if="${#fields.hasErrors('oldPassword')}" th:errors="*{oldPassword}">
+                                    目前密碼錯誤訊息
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="account" class="form-label">登入帳號：</label>
-                            <input type="text" id="account" class="form-input" 
-                                   th:value="${memberUpdateRequest.account}"
-                                   disabled placeholder="帳號不可修改"/>
-                            <div class="info-text">登入帳號建立後不可修改</div>
-                        </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label for="email" class="form-label">電子郵件：<span class="required">*</span></label>
-                        <input type="email" id="email" 
-                               th:field="*{email}"
-                               th:class="${#fields.hasErrors('email')} ? 'form-input input-error' : 'form-input'"
-                               placeholder="例如：user@example.com"/>
-                        <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">
-                            電子郵件錯誤訊息
-                        </div>
-                    </div>
+                            <div class="form-group">
+                                <label for="newPassword" class="form-label">新密碼：<span class="required">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" 
+                                           id="newPassword" 
+                                           th:field="*{newPassword}" 
+                                           th:class="${#fields.hasErrors('newPassword')} ? 'form-input input-error' : 'form-input'"
+                                           placeholder="請輸入新密碼（至少8位數）" 
+                                           autocomplete="new-password" />
+                                    <span class="toggle-password" data-target="newPassword">
+                                        <i class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                                <div class="info-text">密碼建議包含英文字母與數字，長度至少8位數</div>
+                                <div class="field-error" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}">
+                                    新密碼錯誤訊息
+                                </div>
+                            </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-group">
-                            <label for="phone" class="form-label">連絡電話：<span class="required">*</span></label>
-                            <input type="tel" id="phone" 
-                                   th:field="*{phone}"
-                                   th:class="${#fields.hasErrors('phone')} ? 'form-input input-error' : 'form-input'"
-                                   placeholder="格式：09xx-xxxxxx"/>
-                            <div class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">
-                                電話錯誤訊息
+                            <div class="form-group">
+                                <label for="confirmPassword" class="form-label">確認新密碼：<span class="required">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" 
+                                           id="confirmPassword" 
+                                           th:field="*{confirmPassword}"
+                                           th:class="${#fields.hasErrors('confirmPassword')} ? 'form-input input-error' : 'form-input'"
+                                           placeholder="請再次輸入新密碼" 
+                                           autocomplete="new-password" />
+                                    <span class="toggle-password" data-target="confirmPassword">
+                                        <i class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                                <div class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}">
+                                    確認密碼錯誤訊息
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="birthday" class="form-label">生日：</label>
-                            <input type="date" id="birthday" 
-                                   th:field="*{birthday}"
-                                   th:class="${#fields.hasErrors('birthday')} ? 'form-input input-error' : 'form-input'"/>
-                            <div class="info-text">如不修改可保持空白</div>
-                            <div class="field-error" th:if="${#fields.hasErrors('birthday')}" th:errors="*{birthday}">
-                                生日錯誤訊息
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">性別：<span class="required">*</span></label>
-                        <div class="radio-group">
-                            <div class="radio-item">
-                                <input type="radio" th:field="*{gender}" id="genderM" value="M">
-                                <label for="genderM"><i class="fas fa-mars mr-1"></i> 男性</label>
-                            </div>
-                            <div class="radio-item">
-                                <input type="radio" th:field="*{gender}" id="genderF" value="F">
-                                <label for="genderF"><i class="fas fa-venus mr-1"></i> 女性</label>
-                            </div>
-                            <div class="radio-item">
-                                <input type="radio" th:field="*{gender}" id="genderO" value="O">
-                                <label for="genderO"><i class="fas fa-genderless mr-1"></i> 其他</label>
-                            </div>
-                        </div>
-                        <div class="field-error" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}">
-                            性別錯誤訊息
-                        </div>
-                    </div>
 
-                    <div class="flex justify-center gap-4 mt-6">
-                        <button type="button" class="btn-primary" onclick="showConfirmModal()">
-                            <i class="fas fa-save"></i> 確認修改
-                        </button>
-                        <a th:href="@{/member/select_page}" class="btn-secondary">
-                            <i class="fas fa-times"></i> 取消返回
-                        </a>
+                            <div class="flex justify-center mt-6">
+                                <button type="submit" class="btn-warning">
+                                    <i class="fas fa-key"></i> 更新密碼
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- 密碼變更卡片 -->
-        <div class="password-card mx-auto" style="max-width: 1000px;">
-            <div class="password-header">
-                <h5 class="mb-0"><i class="fas fa-key mr-2"></i> 變更密碼</h5>
-            </div>
-            <div class="password-body">
-                <!-- 密碼更新驗證錯誤 -->
-                <div th:if="${passwordUpdateErrors}" class="error-message">
-                    <b><i class="fas fa-exclamation-triangle"></i> 請修正以下錯誤：</b>
-                    <ul class="mt-2 list-disc list-inside">
-                        <li th:each="err : ${passwordUpdateErrors}" th:text="${err.defaultMessage}"></li>
-                    </ul>
                 </div>
+            </div>
 
-                <form method="post" th:action="@{/member/admin/change-password}" th:object="${passwordUpdateRequest}">
-                    <input type="hidden" th:field="*{memberId}" id="passwordMemberId" />
-                    
-                    <!-- 為了符合可訪問性標準，添加隱藏的用戶名欄位 -->
-                    <input type="text" 
-                           th:value="${memberUpdateRequest.account}" 
-                           name="username" 
-                           autocomplete="username" 
-                           style="display: none;" 
-                           readonly />
-                    
-                    <div class="form-group">
-                        <label for="oldPassword" class="form-label">目前密碼：<span class="required">*</span></label>
-                        <div class="input-group">
-                            <input type="password" 
-                                   id="oldPassword" 
-                                   th:field="*{oldPassword}" 
-                                   th:class="${#fields.hasErrors('oldPassword')} ? 'form-input input-error' : 'form-input'"
-                                   placeholder="請輸入目前使用的密碼" 
-                                   autocomplete="current-password" />
-                            <span class="toggle-password" data-target="oldPassword">
-                                <i class="fas fa-eye"></i>
+            <!-- 右側：會員資訊區塊 -->
+            <div class="lg:col-span-1">
+                <div class="member-info-sidebar sticky top-4">
+                    <div class="member-info-header">
+                        <i class="fas fa-info-circle mr-2"></i>會員資訊
+                    </div>
+                    <div class="member-info-body">
+                        <div class="info-row">
+                            <span class="info-label">會員編號</span>
+                            <span class="info-value" th:text="${memberUpdateRequest.memberId}">123</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">登入帳號</span>
+                            <span class="info-value" th:text="${memberUpdateRequest.account}">account123</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">註冊時間</span>
+                            <span class="info-value" th:text="${memberUpdateRequest.createdAt != null ? #temporals.format(memberUpdateRequest.createdAt, 'yyyy-MM-dd HH:mm:ss') : 'N/A'}">2024-01-01 12:00:00</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">帳號狀態</span>
+                            <span class="info-value">
+                                <span th:if="${memberUpdateRequest.isEnabled()}" class="status-badge status-active">
+                                    <i class="fas fa-check-circle mr-1"></i>啟用中
+                                </span>
+                                <span th:unless="${memberUpdateRequest.isEnabled()}" class="status-badge status-inactive">
+                                    <i class="fas fa-times-circle mr-1"></i>已停用
+                                </span>
                             </span>
                         </div>
-                        <div class="field-error" th:if="${#fields.hasErrors('oldPassword')}" th:errors="*{oldPassword}">
-                            目前密碼錯誤訊息
-                        </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="newPassword" class="form-label">新密碼：<span class="required">*</span></label>
-                        <div class="input-group">
-                            <input type="password" 
-                                   id="newPassword" 
-                                   th:field="*{newPassword}" 
-                                   th:class="${#fields.hasErrors('newPassword')} ? 'form-input input-error' : 'form-input'"
-                                   placeholder="請輸入新密碼（至少8位數）" 
-                                   autocomplete="new-password" />
-                            <span class="toggle-password" data-target="newPassword">
-                                <i class="fas fa-eye"></i>
-                            </span>
-                        </div>
-                        <div class="info-text">密碼建議包含英文字母與數字，長度至少8位數</div>
-                        <div class="field-error" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}">
-                            新密碼錯誤訊息
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="confirmPassword" class="form-label">確認新密碼：<span class="required">*</span></label>
-                        <div class="input-group">
-                            <input type="password" 
-                                   id="confirmPassword" 
-                                   th:field="*{confirmPassword}"
-                                   th:class="${#fields.hasErrors('confirmPassword')} ? 'form-input input-error' : 'form-input'"
-                                   placeholder="請再次輸入新密碼" 
-                                   autocomplete="new-password" />
-                            <span class="toggle-password" data-target="confirmPassword">
-                                <i class="fas fa-eye"></i>
-                            </span>
-                        </div>
-                        <div class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}">
-                            確認密碼錯誤訊息
-                        </div>
-                    </div>
-
-                    <div class="flex justify-center mt-6">
-                        <button type="submit" class="btn-warning">
-                            <i class="fas fa-key"></i> 更新密碼
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>

@@ -1,157 +1,421 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-TW" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>新增會員資料 - 溫馨奶茶風</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新增會員資料 - 早餐店後台</title>
 
-    <!-- ★【路徑重點 1】: 引入外部 CSS 資源。 -->
-    <!-- th:href="@{...}" 是 Thymeleaf 的標準寫法，它會自動產生正確的相對路徑。 -->
-    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- 外部函式庫 -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-
-    <!-- ★【路徑重點 2】: 引入你自訂的 CSS 樣式表。 -->
-    <link rel="stylesheet" th:href="@{/css/member/style.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- ★【新增樣式】: 為密碼切換圖示增加點擊手勢 -->
+    <!-- 引入外部自定義的 CSS 檔案 -->
+    <link rel="stylesheet" th:href="@{/css/member/member-styles.css}">
+
+    <!-- 自定義樣式 -->
     <style>
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #F5EFE6;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --table-header-bg: #EFEBE2;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            background-image: url('/images/eastfast124.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: var(--text-color);
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(253, 251, 246, 0.2);
+            z-index: -1;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .form-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .form-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem 0.75rem 0 0;
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            background: #fefefe;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(166, 123, 91, 0.1);
+            transform: scale(1.01);
+        }
+
+        .form-input:disabled {
+            background-color: #f3f4f6;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .required {
+            color: #dc2626;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
         .toggle-password {
             cursor: pointer;
+            padding: 0.75rem;
+            background: #f3f4f6;
+            border: 2px solid var(--border-color);
+            border-left: none;
+            border-radius: 0 0.5rem 0.5rem 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 3rem;
+        }
+
+        .toggle-password:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: stretch;
+        }
+
+        .input-group .form-input {
+            border-radius: 0.5rem 0 0 0.5rem;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            border-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(166, 123, 91, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            border: 2px solid #6b7280;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+            border-color: #4b5563;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+        }
+
+        .btn-info {
+            background: #3b82f6;
+            border: 2px solid #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-info:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .radio-item:hover {
+            border-color: var(--primary-color);
+            background: rgba(166, 123, 91, 0.05);
+        }
+
+        .radio-item input[type="radio"] {
+            margin: 0;
+        }
+
+        .radio-item input[type="radio"]:checked + label {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .radio-item:has(input[type="radio"]:checked) {
+            border-color: var(--primary-color);
+            background: rgba(166, 123, 91, 0.1);
+        }
+
+        .info-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .field-error {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .input-error {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
         }
     </style>
 </head>
-<body>
 
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-        <div class="container">
-            <!-- ★【路徑重點 3】: 導覽列的 Logo 與標題連結。 -->
-            <a class="navbar-brand d-flex align-items-center" th:href="@{/member/select_page}">
-                <img th:src="@{/images/eatfasticon.png}" alt="EatFast 圖示" width="40" height="40" class="mr-3">
-                <span style="font-weight: 500; font-size: 1.25rem;">早餐店後台 - 新增會員</span>
-            </a>
-            <!-- ★【路徑重點 4】: 「回首頁」按鈕。 -->
-            <a class="btn btn-outline-light" th:href="@{/}">
-                <i class="fas fa-home"></i> 回首頁
-            </a>
-        </div>
-    </nav>
-
-    <div class="container mt-4">
-
-        <div class="card mx-auto" style="max-width: 800px;">
-            <div class="card-header">
-                <i class="fas fa-user-plus"></i> 請輸入新會員資料
+<body class="antialiased">
+    <div class="container mx-auto my-8 px-4">
+        <!-- 頂部標題與按鈕 -->
+        <header class="flex justify-between items-center p-4 bg-[var(--container-bg)] border border-[var(--border-color)] rounded-xl shadow-sm mb-4">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center">
+                    <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" class="w-8 h-8 mr-2">
+                    <h3 class="text-xl font-bold">早餐店後台 - 新增會員資料</h3>
+                </div>
             </div>
-            <div class="card-body">
-                <!-- ★【路徑重點 5】: 新增會員的表單。 -->
-                <form method="post" th:action="@{/member/insert}" th:object="${memberCreateRequest}">
-                    
-                    <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger" role="alert">
-                         <b>請修正以下錯誤:</b>
-                         <ul>
-                            <li th:each="err : ${#fields.errors('*')}" th:text="${err}" />
-                         </ul>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="username">會員姓名:</label>
-                            <input type="text" id="username" class="form-control" th:field="*{username}" placeholder="請輸入真實姓名" />
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="account">登入帳號:</label>
-                            <input type="text" id="account" class="form-control" th:field="*{account}" placeholder="請輸入4-50個英數字元" />
-                        </div>
-                    </div>
+            <div class="flex gap-3">
+                <a th:href="@{/member/select_page}" class="bg-[var(--primary-color)] text-white font-semibold py-2 px-5 rounded-lg hover:bg-[var(--primary-hover)] transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>返回會員管理
+                </a>
+                <a th:href="@{/}" class="bg-gray-200 text-[var(--text-color)] font-semibold py-2 px-5 rounded-lg hover:bg-gray-300 transition-colors">
+                    <i class="fas fa-home mr-2"></i>回首頁
+                </a>
+            </div>
+        </header>
 
-                    <!-- ★★★★★【HTML 已修改】密碼欄位 ★★★★★ -->
-                    <div class="form-group">
-                        <label for="password">登入密碼:</label>
-                        <!-- 1. 使用 Bootstrap 的 input-group 將輸入框和圖示包在一起 -->
-                        <div class="input-group">
-                            <input type="password" id="password" class="form-control" th:field="*{password}" placeholder="請設定8位數以上密碼" />
-                            <!-- 2. 這是附加在輸入框後方的圖示區塊 -->
-                            <div class="input-group-append">
-                                <!-- 3. 在圖示區塊中放入一個 span，並給予 ID 和自訂 class -->
-                                <span class="input-group-text toggle-password" id="togglePassword">
-                                    <!-- 4. 這是 FontAwesome 的眼睛圖示 -->
-                                    <i class="fas fa-eye"></i>
-                                </span>
+        <!-- 主要內容區域 -->
+        <div class="flex justify-center">
+            <div class="w-full max-w-4xl">
+                <!-- 新增會員資料卡片 -->
+                <div class="form-card">
+                    <div class="form-header">
+                        <i class="fas fa-user-plus mr-2"></i>新增會員資料
+                    </div>
+                    <div class="p-6">
+                        <!-- 表單 -->
+                        <form method="post" th:action="@{/member/insert}" th:object="${memberCreateRequest}">
+                            
+                            <!-- 驗證錯誤訊息顯示區 -->
+                            <div th:if="${#fields.hasErrors('*')}" class="error-message">
+                                <b><i class="fas fa-exclamation-triangle"></i> 請修正以下錯誤：</b>
+                                <ul class="mt-2 list-disc list-inside">
+                                    <li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
+                                </ul>
                             </div>
-                        </div>
-                    </div>
-                    <!-- ★★★★★【HTML 修改結束】★★★★★ -->
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-group">
+                                    <label for="username" class="form-label">會員姓名：<span class="required">*</span></label>
+                                    <input type="text" id="username" 
+                                           th:field="*{username}"
+                                           class="form-input"
+                                           placeholder="請輸入真實姓名"/>
+                                </div>
+                                <div class="form-group">
+                                    <label for="account" class="form-label">登入帳號：<span class="required">*</span></label>
+                                    <input type="text" id="account" 
+                                           th:field="*{account}"
+                                           class="form-input"
+                                           placeholder="請輸入4-50個英數字元"/>
+                                </div>
+                            </div>
 
-                    <div class="form-group">
-                        <label for="email">電子郵件:</label>
-                        <input type="email" id="email" class="form-control" th:field="*{email}" placeholder="例如: user@example.com" />
-                    </div>
+                            <div class="form-group">
+                                <label for="password" class="form-label">登入密碼：<span class="required">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" id="password" 
+                                           th:field="*{password}"
+                                           class="form-input"
+                                           placeholder="請設定8位數以上密碼"/>
+                                    <span class="toggle-password" id="togglePassword">
+                                        <i class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                            </div>
 
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="phone">連絡電話:</label>
-                            <input type="text" id="phone" class="form-control" th:field="*{phone}" placeholder="格式: 09xx-xxxxxx" />
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="birthday">生日:</label>
-                            <input type="date" id="birthday" class="form-control" th:field="*{birthday}" />
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>性別:</label>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" th:field="*{gender}" id="genderM" value="M">
-                            <label class="form-check-label" for="genderM">男性</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" th:field="*{gender}" id="genderF" value="F">
-                            <label class="form-check-label" for="genderF">女性</label>
-                        </div>
-<!--                         <div class="form-check form-check-inline"> -->
-<!--                             <input class="form-check-input" type="radio" th:field="*{gender}" id="genderO" value="O"> -->
-<!--                             <label class="form-check-label" for="genderO">其他</label> -->
-<!--                         </div> -->
-                    </div>
-                    
-                    <hr>
+                            <div class="form-group">
+                                <label for="email" class="form-label">電子郵件：<span class="required">*</span></label>
+                                <input type="email" id="email" 
+                                       th:field="*{email}"
+                                       class="form-input"
+                                       placeholder="例如：user@example.com"/>
+                            </div>
 
-                    <div class="d-flex justify-content-center">
-                        <button type="submit" class="btn btn-primary mx-2"><i class="fas fa-check"></i> 確認新增</button>
-                        <button type="button" class="btn btn-info mx-2" id="randomFillBtn"><i class="fas fa-random"></i> 隨機填入</button>
-                        <!-- ★【路徑重點 6】: 「取消返回」按鈕。 -->
-                        <a th:href="@{/member/select_page}" class="btn btn-secondary mx-2"><i class="fas fa-times"></i> 取消返回</a>
-                    </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-group">
+                                    <label for="phone" class="form-label">連絡電話：<span class="required">*</span></label>
+                                    <input type="text" id="phone" 
+                                           th:field="*{phone}"
+                                           class="form-input"
+                                           placeholder="格式：09xx-xxxxxx"/>
+                                </div>
+                                <div class="form-group">
+                                    <label for="birthday" class="form-label">生日：</label>
+                                    <input type="date" id="birthday" 
+                                           th:field="*{birthday}"
+                                           class="form-input"/>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">性別：<span class="required">*</span></label>
+                                <div class="radio-group">
+                                    <div class="radio-item">
+                                        <input type="radio" th:field="*{gender}" id="genderM" value="M">
+                                        <label for="genderM"><i class="fas fa-mars mr-1"></i> 男性</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" th:field="*{gender}" id="genderF" value="F">
+                                        <label for="genderF"><i class="fas fa-venus mr-1"></i> 女性</label>
+                                    </div>
+                                </div>
+                            </div>
 
-                </form>
+                            <hr class="my-6">
+
+                            <div class="flex justify-center gap-4">
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-check"></i> 確認新增
+                                </button>
+                                <button type="button" class="btn-info" id="randomFillBtn">
+                                    <i class="fas fa-random"></i> 隨機填入
+                                </button>
+                                <a th:href="@{/member/select_page}" class="btn-secondary">
+                                    <i class="fas fa-times"></i> 取消返回
+                                </a>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ★【路徑重點 7】: 引入外部 JavaScript 資源。 -->
-    <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
-    <script th:src="@{/webjars/popper.js/1.14.3/umd/popper.min.js}"></script>
-    <script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
-
+    <!-- JavaScript -->
     <script>
         // 等待整個網頁文件都載入完成後，再執行裡面的程式碼
         document.addEventListener("DOMContentLoaded", function() {
-            // ★★★★★【JavaScript 已新增】密碼顯示/隱藏邏輯 ★★★★★
-            
-            // 1. 取得 DOM 元素
-            // 這是可自定義的變數名稱
+            // 密碼顯示/隱藏邏輯
             const passwordInput = document.getElementById('password');
             const togglePasswordIcon = document.getElementById('togglePassword');
 
-            // 2. 監聽圖示的點擊事件
+            // 監聽圖示的點擊事件
             togglePasswordIcon.addEventListener('click', function (e) {
-                // 3. 取得目前輸入框的類型 (是 'password' 還是 'text')
+                // 取得目前輸入框的類型 (是 'password' 還是 'text')
                 const currentType = passwordInput.getAttribute('type');
 
-                // 4. 判斷並切換類型
+                // 判斷並切換類型
                 if (currentType === 'password') {
                     // 如果是密碼模式，就切換成文字模式
                     passwordInput.setAttribute('type', 'text');
@@ -166,7 +430,6 @@
                     this.querySelector('i').classList.add('fa-eye');
                 }
             });
-            // ★★★★★【JavaScript 新增結束】★★★★★
 
             // 隨機填入按鈕的點擊事件
             document.getElementById('randomFillBtn').addEventListener('click', function() {
@@ -221,8 +484,42 @@
                 document.getElementById('birthday').value = yyyy + '-' + mm + '-' + dd;
 
                 // 隨機選擇性別
-                const genders = ['M', 'F']; // 這裡可以擴展更多性別選項
+                const genders = ['M', 'F'];
                 document.getElementById('gender' + genders[Math.floor(Math.random() * genders.length)]).checked = true;
+            });
+
+            // 表單動畫效果
+            const formInputs = document.querySelectorAll('.form-input');
+            formInputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.01)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+            });
+
+            // 單選按鈕動畫效果
+            const radioItems = document.querySelectorAll('.radio-item');
+            radioItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const radio = this.querySelector('input[type="radio"]');
+                    if (radio) {
+                        radio.checked = true;
+                        
+                        // 移除其他項目的選中狀態視覺效果
+                        radioItems.forEach(otherItem => {
+                            otherItem.style.transform = 'scale(1)';
+                        });
+                        
+                        // 添加當前項目的選中動畫
+                        this.style.transform = 'scale(1.05)';
+                        setTimeout(() => {
+                            this.style.transform = 'scale(1)';
+                        }, 200);
+                    }
+                });
             });
         });
     </script>
