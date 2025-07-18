@@ -89,7 +89,7 @@ public class MealController {
             return "back-end/meal/addMeal";
         }
         try {
-            mealService.addMeal(mealEntity.getMealName());
+            mealService.addMeal(mealEntity);
             redirectAttributes.addFlashAttribute("successMessage", "新增成功！");
         } catch (IllegalArgumentException e) {
             // 捕獲 Service 拋出的業務例外，並將錯誤訊息傳回。
