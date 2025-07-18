@@ -29,6 +29,7 @@ public class StoreMapper {
         dto.setStoreTime(entity.getStoreTime());
         dto.setStoreStatus(entity.getStoreStatus());
         dto.setCreateTime(entity.getCreateTime());
+        dto.setGoogleMapUrl(entity.getGoogleMapUrl());
         return dto;
     }
 
