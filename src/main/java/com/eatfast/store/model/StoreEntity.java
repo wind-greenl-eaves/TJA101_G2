@@ -75,7 +75,7 @@ public class StoreEntity {
     @Column(name = "store_time", nullable = false, length = 50)
     private String storeTime;
 
-    // 【架構修正 1】: storeStatus 欄位改用 Enum
+    // storeStatus 欄位改用 Enum
     // [不可變動的關鍵字/語法]: @NotNull, @Enumerated, EnumType.STRING, @Column
     // 說明: @Enumerated(EnumType.STRING) 會讓 JPA 將 Enum 的名稱 (如 "OPERATING") 直接存成字串到資料庫，可讀性最高。
     @NotNull(message = "門市狀態不可為空")
@@ -87,6 +87,11 @@ public class StoreEntity {
     @Column(name = "create_time", nullable = false, updatable = false)
     private LocalDateTime createTime;
 
+    // Google Map 嵌入式網址欄位
+    @Column(name = "google_map_url", length = 512)
+    private String googleMapUrl;
+    
+    
     // ================================================================
     // 反向一對多關聯 (Bidirectional @OneToMany)
     // ================================================================
@@ -117,7 +122,6 @@ public class StoreEntity {
     // ================================================================
     public StoreEntity() {}
 
-    // ... 原有 Getter / Setter ...
     public Long getStoreId() { return storeId; }
     public void setStoreId(Long storeId) { this.storeId = storeId; }
     public String getStoreName() { return storeName; }
@@ -130,8 +134,8 @@ public class StoreEntity {
     public void setStoreTime(String storeTime) { this.storeTime = storeTime; }
     public LocalDateTime getCreateTime() { return createTime; }
     public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
-
-    // Getter/Setter 型別更新為 StoreStatus
+    public String getGoogleMapUrl() { return googleMapUrl;}
+    public void setGoogleMapUrl(String googleMapUrl) { this.googleMapUrl = googleMapUrl; }
     public StoreStatus getStoreStatus() { return storeStatus; }
     public void setStoreStatus(StoreStatus storeStatus) { this.storeStatus = storeStatus; }
 
