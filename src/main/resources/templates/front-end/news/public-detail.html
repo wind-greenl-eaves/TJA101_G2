@@ -57,8 +57,9 @@
 
                     <!-- 作者與時間資訊 -->
                     <div class="text-muted small mb-4">
-                        <span>發布於: <span th:text="${#temporals.format(startTime, 'yyyy-MM-dd HH:mm')}"></span></span>
-                    </div>
+    <span>
+        發布於: <span th:text="${#temporals.format(newsDetail.startTime, 'yyyy-MM-dd HH:mm')}"></span>
+    </span> </div>
 
                     <!-- 內文 -->
                     <div class="news-content fs-5" th:utext="*{content}">

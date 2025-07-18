@@ -129,9 +129,9 @@
             <a th:href="@{/news}" class="nav-link">最新消息</a>
             <a href="/store/storelist" class="nav-link">門市據點</a>
             <a href="/menu" class="nav-link">餐點菜單</a>
-            <a th:href="${session.isLoggedIn} ? @{/member/dashboard} : @{/api/v1/auth/member-login}" class="nav-link">會員專區</a>
+            <a th:href="@{${session.isLoggedIn ? '/member/dashboard' : '/api/v1/auth/member-login'}}" class="nav-link">會員專區</a>
             <a href="/feedback/form" class="nav-link">聯繫我們</a>
-            <a th:href="${session.isLoggedIn} ? @{/cart} : @{/api/v1/auth/member-login}" class="nav-link">購物車</a>
+            <a th:href="@{${session.isLoggedIn ? '/cart' : '/api/v1/auth/member-login'}}" class="nav-link">購物車</a>
         </div>
 
         <div th:if="${session.isLoggedIn}" class="nav-user-info" style="display: flex; align-items: center; gap: 1rem;">
@@ -156,7 +156,6 @@
     <form th:action="@{/feedback/submit}" method="post" th:object="${feedback}">
         <div class="form-group">
             <label for="memberName">會員姓名</label>
-            <!-- 確認是使用 ${memberName}，而不是 ${feedback.member.username} -->
             <input type="text" class="form-control" id="memberName" th:value="${memberName}" readonly>
         </div>
         <div class="form-group">
@@ -177,6 +176,9 @@
         </div>
         <button type="submit" class="btn btn-submit">送出意見</button>
     </form>
+    <div class="mt-3 text-center">
+        <a th:href="@{/welcome}" class="btn btn-secondary">回到首頁</a>
+    </div>
 </div>
 
 <footer class="footer">

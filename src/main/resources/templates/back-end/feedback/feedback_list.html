@@ -4,74 +4,133 @@
     <meta charset="UTF-8">
     <title>意見回饋清單 - 後台管理</title>
     <base th:href="@{/}">
+
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #FFFFFF;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --header-bg: #F5EFE6;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+        }
+
         body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f8f0e3; /* 淡米色背景 */
-            padding: 30px;
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+            color: var(--text-color);
+            background: linear-gradient(135deg, var(--bg-color) 0%, var(--header-bg) 100%);
+            padding-top: 60px; /* 為固定的導覽列預留空間 */
         }
-        .list-container {
-            max-width: 1300px; /* 稍微加寬以容納新欄位 */
-            margin: auto;
-            background-color: #fffaf0; /* 象牙白容器背景 */
-            padding: 40px;
+
+        /* --- 導覽列 --- */
+        .nav-fixed {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px var(--shadow-light);
+            z-index: 1000; backdrop-filter: blur(10px);
+        }
+        .nav-container {
+            max-width: 1200px; margin: 0 auto; display: flex;
+            justify-content: space-between; align-items: center;
+            height: 100%; padding: 0 2rem;
+        }
+        .nav-logo-text {
+            font-size: 1.2rem; font-weight: 700; color: var(--primary-color); text-decoration: none;
+        }
+
+        /* --- 主內容區 --- */
+        .main-container {
+            max-width: 1600px;
+            margin: 2rem auto;
+            padding: 2.5rem;
+            background-color: var(--container-bg);
             border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(160, 82, 45, 0.1);
+            box-shadow: 0 8px 25px var(--shadow-light);
+            border: 1px solid var(--border-color);
         }
-        .list-container h2 {
-            color: #8B4513; /* 鞍褐色標題 */
-            text-align: center;
-            margin-bottom: 35px;
+        .main-container h2 {
+            color: var(--primary-color);
             font-weight: 700;
         }
-        .table {
-            background-color: #fff;
-        }
-        .table thead {
-            background-color: #e0d8c4; /* 奶茶色表頭 */
-            color: #8B4513;
-        }
-        .table th, .table td {
-            vertical-align: middle;
-            text-align: center;
-        }
+
+        /* --- 列表與表格樣式 --- */
+        .table { background-color: #fff; }
+        .table thead { background-color: #F5EFE6; color: var(--primary-hover); }
+        .table th, .table td { vertical-align: middle; text-align: center; }
         .content-cell {
-            max-width: 280px; /* 調整寬度 */
-            white-space: pre-wrap;
-            text-align: left !important;
-            word-wrap: break-word;
+            max-width: 280px; white-space: pre-wrap;
+            text-align: left !important; word-wrap: break-word;
         }
-        .btn-refresh {
-            background-color: #8B4513;
-            color: white;
-            border: none;
+
+        /* --- 按鈕與狀態標籤 --- */
+        .btn-refresh, .action-btn {
+            background-color: var(--primary-color); color: white; border: none;
+            transition: background-color 0.3s ease;
         }
-        .btn-refresh:hover {
-            background-color: #A0522D;
-            color: white;
+        .btn-refresh:hover, .action-btn:hover {
+            background-color: var(--primary-hover); color: white;
         }
-        /* ★★★ 奶茶風樣式 (整合進來) ★★★ */
         .status-badge { padding: 0.35rem 0.85rem; border-radius: 50px; font-size: 0.9rem; }
-        .status-pending { background-color: #E5C28F; color: #784F17; } /* 焦糖色 */
-        .status-processed { background-color: #D1C3B2; color: #5B4E3E; } /* 奶蓋色 */
-        .action-btn { background-color: #6F4E37; color: white; padding: 0.4rem 1rem; border-radius: 5px; text-decoration: none; transition: background-color 0.2s; }
-        .action-btn:hover { background-color: #4a3525; text-decoration: none; color:white; }
+        .status-pending { background-color: #E5C28F; color: #784F17; } /* 待處理: 焦糖色 */
+        .status-processed { background-color: #D1C3B2; color: #5B4E3E; } /* 已處理: 奶蓋色 */
+        .action-btn { padding: 0.4rem 1rem; border-radius: 5px; text-decoration: none; }
+        .action-btn:hover { text-decoration: none; }
+
+        /* --- 登出對話框 --- */
+        .logout-modal {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);
+            z-index: 10000; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .logout-modal.show { display: flex; align-items: center; justify-content: center; opacity: 1; }
+        .logout-modal-content {
+            background: var(--container-bg); border-radius: 20px; padding: 2.5rem;
+            max-width: 450px; width: 90%; text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); transform: scale(0.7);
+            transition: transform 0.3s ease; border: 1px solid var(--border-color);
+        }
+        .logout-modal.show .logout-modal-content { transform: scale(1); }
+        .logout-modal-title { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); margin-bottom: 1rem; }
+        .logout-modal-message { font-size: 1.1rem; margin-bottom: 2rem; }
+        .logout-modal-actions { display: flex; gap: 1rem; justify-content: center; }
+        .logout-btn { padding: 0.8rem 2rem; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .logout-btn-confirm { background: #c82333; color: white; }
+        .logout-btn-confirm:hover { background: #bd2130; transform: translateY(-2px); }
+        .logout-btn-cancel { background: #f0f0f0; color: var(--text-color); }
+        .logout-btn-cancel:hover { background: #e0e0e0; }
+
+        /* --- 頁腳 --- */
+        .footer {
+            background: var(--primary-hover); color: white; text-align: center;
+            padding: 2rem; margin-top: 4rem;
+        }
+        .copyright { opacity: 0.8; font-size: 0.9rem; }
+
     </style>
 </head>
 <body>
 
-<div class="list-container">
+<main class="main-container">
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="fas fa-list-alt"></i> 顧客意見回饋清單</h2>
-        <a th:href="@{/feedback/list}" class="btn btn-refresh">
-            <i class="fas fa-sync-alt"></i> 重新整理
-        </a>
+        <div>
+            <a th:href="@{/employee/select_page}" class="btn btn-secondary mr-2">
+                <i class="fas fa-arrow-left"></i> 返回員工後台
+            </a>
+            <a th:href="@{/feedback/list}" class="btn btn-refresh">
+                <i class="fas fa-sync-alt"></i> 重新整理
+            </a>
+        </div>
     </div>
 
-    <!-- 成功/失敗訊息提示 -->
     <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
     <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
 
@@ -87,14 +146,12 @@
                 <th>用餐門市</th>
                 <th>提交時間</th>
                 <th>狀態</th>
-                <th>操作</th> <!-- ★★★ 新增欄位 ★★★ -->
+                <th>操作</th>
             </tr>
             </thead>
             <tbody>
-            <!-- Controller 傳來的是 feedbackDtoList，但我們在模板中仍用 fb 變數名即可 -->
             <tr th:each="fb : ${feedbackList}">
                 <td th:text="${fb.feedbackId}"></td>
-                <!-- ★★★ 核心修正 1：直接使用 DTO 的 memberName ★★★ -->
                 <td class="font-weight-bold" th:text="${fb.memberName}"></td>
                 <td th:text="${fb.phone}"></td>
                 <td class="content-cell" th:text="${fb.content}"></td>
@@ -107,7 +164,6 @@
                           class="status-badge"></span>
                 </td>
                 <td>
-                    <!-- ★★★ 核心修正 2：加入回覆按鈕 ★★★ -->
                     <a th:if="${fb.status == '待處理'}"
                        th:href="@{/feedback/{id}/reply(id=${fb.feedbackId})}"
                        class="action-btn">
@@ -129,10 +185,16 @@
         <h4><i class="fas fa-info-circle"></i> 目前尚無任何意見回饋</h4>
         <p>當顧客提交意見回饋時，會顯示在這裡。</p>
     </div>
-</div>
 
-<script th:src="@{/webjars/jquery/3.4.1/jquery.min.js}"></script>
-<script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
+</main>
+
+<footer class="footer">
+    <div class="copyright">
+        © 2025 EatFast 早餐店 - 版權所有
+    </div>
+</footer>
+
+</script>
 
 </body>
 </html>
