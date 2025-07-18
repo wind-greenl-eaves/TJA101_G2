@@ -213,11 +213,15 @@ public class MemberController {
     public String handleChangePassword(@Validated @ModelAttribute("passwordUpdateRequest") PasswordUpdateRequest request,
                                      BindingResult result,
                                      RedirectAttributes redirectAttributes,
-                                     Model model) {
+                                     Model model,
+                                     HttpSession session) { // 添加 HttpSession 參數
         
         // 【優化】: 準備一個私有方法來處理「錯誤時重新渲染頁面」的共同邏輯。
         // 這個方法會重新查詢會員資料，並將其放入 Model，避免頁面因缺少資料而崩潰。
         if (result.hasErrors()) {
+            // 【關鍵修復】添加管理員登入資訊到模型中
+            addAdminInfoToModel(session, model);
+            
             // 將 JSR-303 的格式驗證錯誤訊息，以 passwordUpdateErrors 的名義傳遞給前端。
             model.addAttribute("passwordUpdateErrors", result.getAllErrors());
             // 呼叫輔助方法，重新準備頁面所需的另一個表單資料。
@@ -711,7 +715,7 @@ public class MemberController {
             model.addAttribute("orderStats", orderStats);
             model.addAttribute("member", member);
             
-            // 【保持篩选參數】
+            // 【保持篩選參數】
             model.addAttribute("currentStatus", status);
             model.addAttribute("currentStartDate", startDate);
             model.addAttribute("currentEndDate", endDate);
@@ -781,10 +785,13 @@ public class MemberController {
             MemberUpdateRequest updateRequest = new MemberUpdateRequest();
             updateRequest.setMemberId(member.getMemberId());
             updateRequest.setUsername(member.getUsername());
+            updateRequest.setAccount(member.getAccount()); // 添加帳號欄位
             updateRequest.setEmail(member.getEmail());
             updateRequest.setPhone(member.getPhone());
             updateRequest.setBirthday(member.getBirthday());
             updateRequest.setGender(member.getGender());
+            updateRequest.setEnabled(member.isEnabled()); // 添加啟用狀態
+            updateRequest.setCreatedAt(member.getCreatedAt()); // 添加註冊時間
             model.addAttribute("memberUpdateRequest", updateRequest);
         });
     }
