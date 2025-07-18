@@ -321,6 +321,292 @@
         .member-info-display .info-value {
             color: #374151;
         }
+
+        /* 成功彈出視窗樣式 */
+        .success-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .success-modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .success-modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid #e5e7eb;
+            transform: scale(0.9) translateY(-20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .success-modal.show .success-modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .success-modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+            animation: successPulse 2s infinite;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            animation: successBounce 0.6s ease-out;
+        }
+
+        .success-icon i {
+            color: white;
+            font-size: 2.5rem;
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #047857;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            color: #374151;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .success-btn {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .success-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(166, 123, 91, 0.3);
+        }
+
+        @keyframes successPulse {
+            0%, 100% { 
+                opacity: 1; 
+                background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+            }
+            50% { 
+                opacity: 0.8; 
+                background: linear-gradient(90deg, #34d399, #6ee7b7, #34d399);
+            }
+        }
+
+        @keyframes successBounce {
+            0% {
+                transform: scale(0) rotate(-180deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1) rotate(-90deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        /* 背景模糊效果 */
+        .success-modal.show {
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+        }
+
+        /* 確認修改彈出視窗樣式 */
+        .confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .confirm-modal.show {
+            display: flex;
+            opacity: 1;
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+        }
+
+        .confirm-modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid #e5e7eb;
+            transform: scale(0.9) translateY(-20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .confirm-modal.show .confirm-modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .confirm-modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #f59e0b, #eab308, #f59e0b);
+            animation: confirmPulse 2s infinite;
+        }
+
+        .confirm-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            animation: confirmBounce 0.6s ease-out;
+        }
+
+        .confirm-icon i {
+            color: white;
+            font-size: 2.5rem;
+        }
+
+        .confirm-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #d97706;
+            margin-bottom: 1rem;
+        }
+
+        .confirm-message {
+            color: #374151;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .confirm-btn-yes {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .confirm-btn-yes:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(166, 123, 91, 0.3);
+        }
+
+        .confirm-btn-no {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .confirm-btn-no:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(107, 114, 128, 0.3);
+        }
+
+        @keyframes confirmPulse {
+            0%, 100% { 
+                opacity: 1; 
+                background: linear-gradient(90deg, #f59e0b, #eab308, #f59e0b);
+            }
+            50% { 
+                opacity: 0.8; 
+                background: linear-gradient(90deg, #eab308, #fbbf24, #eab308);
+            }
+        }
+
+        @keyframes confirmBounce {
+            0% {
+                transform: scale(0) rotate(-180deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1) rotate(-90deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 
@@ -409,7 +695,7 @@
                 </div>
 
                 <!-- 第一個表單：更新基本資料 -->
-                <form method="post" th:action="@{/member/update}" th:object="${memberUpdateRequest}">
+                <form id="memberUpdateForm" method="post" th:action="@{/member/update}" th:object="${memberUpdateRequest}">
                     <!-- 隱藏的會員ID欄位 -->
                     <input type="hidden" th:field="*{memberId}" />
                     
@@ -499,7 +785,7 @@
                     </div>
 
                     <div class="flex justify-center gap-4 mt-6">
-                        <button type="submit" class="btn-primary">
+                        <button type="button" class="btn-primary" onclick="showConfirmModal()">
                             <i class="fas fa-save"></i> 確認修改
                         </button>
                         <a th:href="@{/member/select_page}" class="btn-secondary">
@@ -598,9 +884,55 @@
         </div>
     </div>
 
+    <!-- 成功修改彈出視窗 -->
+    <div id="successModal" class="success-modal">
+        <div class="success-modal-content">
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <h2 class="success-title">修改成功！</h2>
+            <div class="success-message">
+                <p>會員資料已成功更新</p>
+                <p class="text-sm text-gray-500 mt-2">所有變更已儲存至系統</p>
+            </div>
+            <button type="button" class="success-btn" onclick="closeSuccessModal()">
+                <i class="fas fa-arrow-left"></i>
+                返回會員管理
+            </button>
+        </div>
+    </div>
+
+    <!-- 確認修改彈出視窗 -->
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-modal-content">
+            <div class="confirm-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 class="confirm-title">確認修改資料</h2>
+            <div class="confirm-message">
+                <p>您確定要修改會員資料嗎？</p>
+                <p class="text-sm text-gray-500 mt-2">請確認所有資料正確無誤</p>
+            </div>
+            <div class="confirm-buttons">
+                <button type="button" class="confirm-btn-yes" onclick="submitForm()">
+                    <i class="fas fa-check"></i> 確認修改
+                </button>
+                <button type="button" class="confirm-btn-no" onclick="closeConfirmModal()">
+                    <i class="fas fa-times"></i> 取消
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // 檢查是否有成功訊息，如果有就顯示彈出視窗
+            const successMessage = /*[[${successMessage}]]*/ null;
+            if (successMessage && successMessage.trim() !== '') {
+                showSuccessModal();
+            }
+
             // 密碼顯示/隱藏功能
             const togglePasswordButtons = document.querySelectorAll('.toggle-password');
             
@@ -676,6 +1008,76 @@
                 });
             });
         });
+
+        // 顯示成功彈出視窗
+        function showSuccessModal() {
+            const modal = document.getElementById('successModal');
+            modal.classList.add('show');
+            
+            // 添加點擊背景關閉功能
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeSuccessModal();
+                }
+            });
+            
+            // 添加ESC鍵關閉功能
+            document.addEventListener('keydown', function escKeyHandler(e) {
+                if (e.key === 'Escape') {
+                    closeSuccessModal();
+                    document.removeEventListener('keydown', escKeyHandler);
+                }
+            });
+        }
+
+        // 關閉成功彈出視窗並跳轉到會員管理頁面
+        function closeSuccessModal() {
+            const modal = document.getElementById('successModal');
+            modal.classList.remove('show');
+            
+            // 等待動畫完成後跳轉
+            setTimeout(() => {
+                window.location.href = /*[[@{/member/select_page}]]*/ '/member/select_page';
+            }, 300);
+        }
+
+        // 顯示確認修改彈出視窗
+        function showConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.add('show');
+            
+            // 添加點擊背景關閉功能
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeConfirmModal();
+                }
+            });
+            
+            // 添加ESC鍵關閉功能
+            document.addEventListener('keydown', function escKeyHandler(e) {
+                if (e.key === 'Escape') {
+                    closeConfirmModal();
+                    document.removeEventListener('keydown', escKeyHandler);
+                }
+            });
+        }
+
+        // 關閉確認修改彈出視窗
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.remove('show');
+        }
+
+        // 提交表單
+        function submitForm() {
+            const form = document.getElementById('memberUpdateForm');
+            if (form) {
+                form.submit();
+            } else {
+                console.error('找不到表單元素');
+                alert('系統錯誤：找不到表單，請重新整理頁面後再試');
+            }
+        }
     </script>
 </body>
 </html>
