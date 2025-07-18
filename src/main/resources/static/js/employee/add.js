@@ -270,13 +270,71 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 表單提交事件監聽（完全依賴後端驗證）
+    // 表單提交事件監聽（先檢查基本必填欄位，再顯示確認彈窗）
     form.addEventListener('submit', async function(event) {
         event.preventDefault();
+        
+        // 先進行基本必填欄位檢查
+        if (!checkRequiredFields()) {
+            return; // 如果必填欄位未填寫，不顯示確認彈窗
+        }
         
         // 顯示確認彈窗
         showConfirmModal();
     });
+
+    // 檢查必填欄位函數
+    function checkRequiredFields() {
+        let hasErrors = false;
+        const requiredFields = [
+            { id: 'username', name: '員工姓名' },
+            { id: 'account', name: '登入帳號' },
+            { id: 'email', name: '電子郵件' },
+            { id: 'phone', name: '聯絡電話' },
+            { id: 'nationalId', name: '身分證字號' },
+            { id: 'password', name: '登入密碼' },
+            { id: 'role', name: '員工角色' },
+            { id: 'gender', name: '員工性別' },
+            { id: 'storeId', name: '所屬門市' }
+        ];
+
+        // 清除之前的錯誤訊息
+        clearAllErrors();
+
+        // 檢查每個必填欄位
+        requiredFields.forEach(field => {
+            const element = document.getElementById(field.id);
+            if (element) {
+                const value = element.value.trim();
+                
+                if (!value || value === '') {
+                    // 顯示錯誤訊息
+                    const errorElement = document.getElementById(`error-${field.id}`);
+                    if (errorElement) {
+                        errorElement.textContent = `${field.name}為必填欄位`;
+                        errorElement.style.color = 'var(--input-error)';
+                    }
+                    
+                    // 標記輸入框為錯誤狀態
+                    element.classList.add('border-red-500');
+                    
+                    hasErrors = true;
+                }
+            }
+        });
+
+        if (hasErrors) {
+            showMessage('請填寫所有必填欄位', 'error');
+            // 滾動到第一個錯誤欄位
+            const firstErrorField = document.querySelector('.border-red-500');
+            if (firstErrorField) {
+                firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstErrorField.focus();
+            }
+        }
+
+        return !hasErrors;
+    }
 
     // 顯示確認彈窗函數
     function showConfirmModal() {
