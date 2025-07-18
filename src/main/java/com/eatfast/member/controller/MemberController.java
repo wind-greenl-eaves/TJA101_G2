@@ -130,7 +130,10 @@ public class MemberController {
      * 【請求路徑】: 處理 POST /member/getOne_For_Update 請求。
      */
     @PostMapping("/getOne_For_Update")
-    public String showUpdateForm(@RequestParam("memberId") Long memberId, Model model, RedirectAttributes redirectAttributes) {
+    public String showUpdateForm(@RequestParam("memberId") Long memberId, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
+        // 添加管理員登入資訊到模型中
+        addAdminInfoToModel(session, model);
+        
         // 【業務邏輯路徑】: 呼叫 Service 獲取 Optional<MemberEntity>。
         return memberService.getMemberById(memberId)
             .map(memberEntity -> { // 【成功路徑】如果 Optional 中有值...
@@ -173,10 +176,14 @@ public class MemberController {
     public String update(@Validated(UpdateValidation.class) @ModelAttribute("memberUpdateRequest") MemberUpdateRequest updateRequest,
                          BindingResult result,
                          RedirectAttributes redirectAttributes,
-                         Model model) { // 加入 Model
+                         Model model,
+                         HttpSession session) { // 加入 HttpSession
 
         // 【驗證路徑】: 檢查 DTO 欄位驗證。
         if (result.hasErrors()) {
+            // 添加管理員登入資訊到模型中
+            addAdminInfoToModel(session, model);
+            
             // 【錯誤路徑】: 如果更新失敗，需要重新準備「密碼表單」的 DTO，否則頁面會出錯。
             PasswordUpdateRequest passwordRequest = new PasswordUpdateRequest();
             passwordRequest.setMemberId(updateRequest.getMemberId());
@@ -361,7 +368,11 @@ public class MemberController {
     @GetMapping("/getOne_For_Update_view")
     public String showUpdateFormAfterRedirect(@RequestParam("memberId") Long memberId, 
                                              Model model, 
-                                             RedirectAttributes redirectAttributes) {
+                                             RedirectAttributes redirectAttributes,
+                                             HttpSession session) {
+        
+        // 添加管理員登入資訊到模型中
+        addAdminInfoToModel(session, model);
         
         // 【業務邏輯路徑】: 呼叫 Service 獲取 Optional<MemberEntity>。
         return memberService.getMemberById(memberId)
@@ -700,7 +711,7 @@ public class MemberController {
             model.addAttribute("orderStats", orderStats);
             model.addAttribute("member", member);
             
-            // 【保持篩選參數】
+            // 【保持篩选參數】
             model.addAttribute("currentStatus", status);
             model.addAttribute("currentStartDate", startDate);
             model.addAttribute("currentEndDate", endDate);
