@@ -1,7 +1,7 @@
 -- =======================================================================================
 -- 檔案名稱：eatfast_db_initialization_integrated.sql
 -- 資料庫：eatfast_db
--- 版本：v1.4.9 - 已整合員工申請功能
+-- 版本：v1.5.1 - 已整合員工申請功能
 -- 功能：此腳本為早餐店系統「eatfast_db」的完整初始化腳本。
 --      它會執行以下操作：
 --      1. 建立資料庫 (如果不存在)。
@@ -140,27 +140,29 @@ INSERT INTO member (username, account, password, email, phone, birthday, gender,
 -- 功能: 儲存所有分店的基本資訊，如地址、電話、營業時間等。此為員工和訂單的關聯對象。
 -- =======================================================================================
 CREATE TABLE store (
-    store_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '門市編號 (主鍵，自動增長)',
-    store_name VARCHAR(10) NOT NULL COMMENT '門市名稱 (例如: 中山南京店)',
-    store_type VARCHAR(30) NOT NULL COMMENT '門市類型(如：總部、一般門市)',
-    store_loc VARCHAR(50) NOT NULL COMMENT '門市詳細地址',
-    store_phone VARCHAR(10) NOT NULL COMMENT '門市聯絡電話 (區碼+號碼)',
-    store_time VARCHAR(50) NOT NULL COMMENT '營業時間描述 (純文字，方便彈性顯示)',
-    store_status VARCHAR(15) NOT NULL COMMENT '營業狀態 (由後台控制，例如: 營業中, 休息中, 裝修中)',
-    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '此門市資料的建立時間',
-    PRIMARY KEY (store_id)
+  store_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '門市編號 (主鍵，自動增長)',
+  store_name VARCHAR(10) NOT NULL COMMENT '門市名稱 (例如: 中山南京店)',
+  store_type VARCHAR(30) NOT NULL COMMENT '門市類型(如：總部、一般門市)',
+  store_loc VARCHAR(50) NOT NULL COMMENT '門市詳細地址',
+  store_phone VARCHAR(10) NOT NULL COMMENT '門市聯絡電話 (區碼+號碼)',
+  store_time VARCHAR(50) NOT NULL COMMENT '營業時間描述 (純文字，方便彈性顯示)',
+  store_status VARCHAR(15) NOT NULL COMMENT '營業狀態 (由後台控制，例如: 營業中, 休息中, 裝修中)',
+  google_map_url VARCHAR(512) NULL COMMENT 'Google Maps 嵌入式網址 (由後端自動生成)',
+  create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '此門市資料的建立時間',
+  PRIMARY KEY (store_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='門市基本資料表。';
+
 
 /*
  * -----------------------------------------------------
  * 範例資料: store
- * 說明: 新增 2 間分店作為系統的主要營運據點。
+ * 說明: 新增 2 間分店+總部作為系統的主要營運據點。
  * -----------------------------------------------------
  */
-INSERT INTO store (store_name,store_type, store_loc, store_phone, store_time, store_status) VALUES
-('中山南京店','BRANCH','台北市中山區南京東路三段219號4F','0227120589','05:00~14:00 周三公休','OPERATING'), -- '一般門市營業中' -> 'BRANCH,OPERATING'
-('中壢復興店','BRANCH','桃園市中壢區復興路46號9樓','034251108','05:00~14:00 周一公休','OPERATING'),    -- '一般門市營業中' -> 'BRANCH,OPERATING'
-('總部', 'HEADQUARTERS','台北市中山區南京東路三段219號5F', '0281017777', '不適用', 'HEADQUARTERS'); -- '總部營運' -> 'HEADQUARTERS''HEADQUARTERS'
+INSERT INTO store (store_name,store_type, store_loc, store_phone, store_time, store_status, google_map_url) VALUES
+('中山南京店','BRANCH','台北市中山區南京東路三段219號4F','0227120589','05:00~14:00 周三公休','OPERATING','https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=%E5%8F%B0%E5%8C%97%E5%B8%82%E4%B8%AD%E5%B1%B1%E5%8D%80%E5%8D%97%E4%BA%AC%E6%9D%B1%E8%B7%AF%E4%B8%89%E6%AE%B5219%E8%99%9F4F'), -- '一般門市營業中' -> 'BRANCH,OPERATING'
+('中壢復興店','BRANCH','桃園市中壢區復興路46號9樓','034251108','05:00~14:00 周一公休','OPERATING','https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=%E6%A1%83%E5%9C%92%E5%B8%82%E4%B8%AD%E5%A3%A2%E5%8D%80%E5%BE%A9%E8%88%88%E8%B7%AF46%E8%99%9F9%E6%A8%93'),    -- '一般門市營業中' -> 'BRANCH,OPERATING'
+('總部', 'HEADQUARTERS','台北市中山區南京東路三段219號5F', '0281017777', '不適用', 'HEADQUARTERS','https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=%E5%8F%B0%E5%8C%97%E5%B8%82%E4%B8%AD%E5%B1%B1%E5%8D%80%E5%8D%97%E4%BA%AC%E6%9D%B1%E8%B7%AF%E4%B8%89%E6%AE%B5219%E8%99%9F5F'); -- '總部營運' -> 'HEADQUARTERS''HEADQUARTERS'
 
 
 -- =======================================================================================
@@ -818,9 +820,9 @@ INSERT INTO fav (member_id, meal_id) VALUES
 (20, 107);-- 會員 20 (李美芳) 收藏了 雞腿漢堡
 
 
--- =======================================================================================
--- 資料表: feedback (顧客意見回饋表) - 【已加入用餐時間和門市欄位】
--- 功能: 儲存來自顧客的意見或問題回饋。
+-- 更新後的「顧客意見回饋表」
+-- 功能: 儲存顧客意見，並增加了處理狀態與回覆內容的欄位。
+-- 版本: 已移除 Foreign Key (外鍵) 限制，以簡化開發。
 -- =======================================================================================
 CREATE TABLE feedback (
   feedback_id BIGINT NOT NULL AUTO_INCREMENT,
@@ -829,13 +831,16 @@ CREATE TABLE feedback (
   create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '建檔時間',
   phone VARCHAR(20) NOT NULL COMMENT '連絡電話',
   content VARCHAR(5000) NOT NULL COMMENT '內文',
-  -- ★★★ 新增欄位開始 ★★★
   dining_time VARCHAR(255) NULL COMMENT '顧客填寫的用餐時間',
   dining_store VARCHAR(255) NULL COMMENT '顧客填寫的用餐門市',
-  -- ★★★ 新增欄位結束 ★★★
-  PRIMARY KEY (feedback_id),
-  FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (store_id) REFERENCES store(store_id) ON DELETE CASCADE ON UPDATE CASCADE
+
+
+
+  status VARCHAR(20) NOT NULL DEFAULT '待處理' COMMENT '狀態 (例如: 待處理, 已處理)',
+  reply_content TEXT NULL COMMENT '管理員回覆的內容',
+  replied_at TIMESTAMP NULL COMMENT '回覆送出的時間',
+  
+  PRIMARY KEY (feedback_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='顧客意見回饋紀錄表。';
 /*
  * -----------------------------------------------------
@@ -891,8 +896,8 @@ CREATE TABLE news (
  * -----------------------------------------------------
  */
 INSERT INTO news (employee_id, title, content, start_time, end_time, status) VALUES
-(2, '會員專屬優惠開跑', '即日起加入會員即可享有消費滿 $300 折 $50 的專屬優惠，只到 2025-06-30，別錯過！', '2025-06-01 10:00:00', '2025-08-30 23:59:59', 1),
-(7, '二號店內部整修公告', '為提供更舒適的用餐環境，二號店將於 2025-07-01 至 2025-07-05 進行內部整修，暫停營業五天，造成不便敬請見諒。', '2025-08-15 09:00:00', NULL, 1),
+(2, '會員專屬優惠開跑', '即日起加入會員即可享有消費滿 $300 折 $50 的專屬優惠，只到 2025-08-30，別錯過！', '2025-06-01 10:00:00', '2025-08-30 23:59:59', 1),
+(7, '中壢復興店內部整修公告', '為提供更舒適的用餐環境，二號店將於 2025-07-01 至 2025-08-15 進行內部整修，暫停營業，造成不便敬請見諒。', '2025-08-15 09:00:00', NULL, 1),
 (1, '新品上市：草莓戀人吐司 (草稿)', '夢幻新品「草莓戀人吐司」即將上市，敬請期待！', '2025-06-20 00:00:00', '2025-09-20 00:00:00', 0);
 
 -- =======================================================================================
