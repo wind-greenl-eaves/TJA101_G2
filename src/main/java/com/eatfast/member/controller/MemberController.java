@@ -130,7 +130,10 @@ public class MemberController {
      * 【請求路徑】: 處理 POST /member/getOne_For_Update 請求。
      */
     @PostMapping("/getOne_For_Update")
-    public String showUpdateForm(@RequestParam("memberId") Long memberId, Model model, RedirectAttributes redirectAttributes) {
+    public String showUpdateForm(@RequestParam("memberId") Long memberId, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
+        // 添加管理員登入資訊到模型中
+        addAdminInfoToModel(session, model);
+        
         // 【業務邏輯路徑】: 呼叫 Service 獲取 Optional<MemberEntity>。
         return memberService.getMemberById(memberId)
             .map(memberEntity -> { // 【成功路徑】如果 Optional 中有值...
@@ -173,10 +176,28 @@ public class MemberController {
     public String update(@Validated(UpdateValidation.class) @ModelAttribute("memberUpdateRequest") MemberUpdateRequest updateRequest,
                          BindingResult result,
                          RedirectAttributes redirectAttributes,
-                         Model model) { // 加入 Model
+                         Model model,
+                         HttpSession session) { // 加入 HttpSession
 
         // 【驗證路徑】: 檢查 DTO 欄位驗證。
         if (result.hasErrors()) {
+            // 添加管理員登入資訊到模型中
+            addAdminInfoToModel(session, model);
+            
+            // 【修復】重新從資料庫查詢會員資訊，確保顯示區塊的資料正確
+            try {
+                Optional<MemberEntity> memberEntityOpt = memberService.getMemberById(updateRequest.getMemberId());
+                if (memberEntityOpt.isPresent()) {
+                    MemberEntity memberEntity = memberEntityOpt.get();
+                    // 重新設置唯讀欄位的正確值
+                    updateRequest.setAccount(memberEntity.getAccount());
+                    updateRequest.setCreatedAt(memberEntity.getCreatedAt());
+                    updateRequest.setEnabled(memberEntity.isEnabled());
+                }
+            } catch (Exception e) {
+                log.error("重新查詢會員資料失敗: {}", e.getMessage());
+            }
+            
             // 【錯誤路徑】: 如果更新失敗，需要重新準備「密碼表單」的 DTO，否則頁面會出錯。
             PasswordUpdateRequest passwordRequest = new PasswordUpdateRequest();
             passwordRequest.setMemberId(updateRequest.getMemberId());
@@ -206,11 +227,15 @@ public class MemberController {
     public String handleChangePassword(@Validated @ModelAttribute("passwordUpdateRequest") PasswordUpdateRequest request,
                                      BindingResult result,
                                      RedirectAttributes redirectAttributes,
-                                     Model model) {
+                                     Model model,
+                                     HttpSession session) { // 添加 HttpSession 參數
         
         // 【優化】: 準備一個私有方法來處理「錯誤時重新渲染頁面」的共同邏輯。
         // 這個方法會重新查詢會員資料，並將其放入 Model，避免頁面因缺少資料而崩潰。
         if (result.hasErrors()) {
+            // 【關鍵修復】添加管理員登入資訊到模型中
+            addAdminInfoToModel(session, model);
+            
             // 將 JSR-303 的格式驗證錯誤訊息，以 passwordUpdateErrors 的名義傳遞給前端。
             model.addAttribute("passwordUpdateErrors", result.getAllErrors());
             // 呼叫輔助方法，重新準備頁面所需的另一個表單資料。
@@ -361,7 +386,11 @@ public class MemberController {
     @GetMapping("/getOne_For_Update_view")
     public String showUpdateFormAfterRedirect(@RequestParam("memberId") Long memberId, 
                                              Model model, 
-                                             RedirectAttributes redirectAttributes) {
+                                             RedirectAttributes redirectAttributes,
+                                             HttpSession session) {
+        
+        // 添加管理員登入資訊到模型中
+        addAdminInfoToModel(session, model);
         
         // 【業務邏輯路徑】: 呼叫 Service 獲取 Optional<MemberEntity>。
         return memberService.getMemberById(memberId)
@@ -770,10 +799,13 @@ public class MemberController {
             MemberUpdateRequest updateRequest = new MemberUpdateRequest();
             updateRequest.setMemberId(member.getMemberId());
             updateRequest.setUsername(member.getUsername());
+            updateRequest.setAccount(member.getAccount()); // 添加帳號欄位
             updateRequest.setEmail(member.getEmail());
             updateRequest.setPhone(member.getPhone());
             updateRequest.setBirthday(member.getBirthday());
             updateRequest.setGender(member.getGender());
+            updateRequest.setEnabled(member.isEnabled()); // 添加啟用狀態
+            updateRequest.setCreatedAt(member.getCreatedAt()); // 添加註冊時間
             model.addAttribute("memberUpdateRequest", updateRequest);
         });
     }

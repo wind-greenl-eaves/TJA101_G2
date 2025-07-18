@@ -33,17 +33,12 @@ public class MealService {
 	
 	// 新增餐點
 	@Transactional
-	public MealEntity addMeal(String mealName) {
-        // 檢查餐點名稱是否已存在
-        repository.findByMealName(mealName).ifPresent(existingMeal -> {
-            throw new IllegalArgumentException("餐點名稱 '" + mealName + "' 已存在。");
-        });
-
-        // 儲存新的餐點實體到資料庫
-        MealEntity mealEntity = new MealEntity();
-        mealEntity.setMealName(mealName);
-        return repository.save(mealEntity);
-    }
+	public MealEntity addMeal(MealEntity mealEntity) {
+	    repository.findByMealName(mealEntity.getMealName()).ifPresent(existingMeal -> {
+	        throw new IllegalArgumentException("餐點名稱 '" + mealEntity.getMealName() + "' 已存在。");
+	    });
+	    return repository.save(mealEntity);
+	}
 
 	// 儲存或更新餐點（JPA 自動判斷新增/更新）
 	@Transactional
