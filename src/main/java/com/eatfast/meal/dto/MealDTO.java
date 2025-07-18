@@ -8,7 +8,7 @@ public class MealDTO {
     private String mealPicUrl;          // 餐點圖片網址
     private Boolean favored;            // 會員是否已收藏
     private Long favMealId;             // 收藏餐點ID（如果已收藏，則有值）
-    private String mealPic;             // 餐點圖片（Base64編碼的圖片字串）
+    private String mealPic;             // 餐點圖片
     private Double avgStars;            // 平均星級
 
     public MealDTO() {}

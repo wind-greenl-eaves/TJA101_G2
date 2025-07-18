@@ -325,6 +325,13 @@
             <i class="fas fa-plus-circle"></i> 新增餐點資料
         </div>
         <div class="card-body-style">
+        <div th:if="${successMessage}" class="bg-green-100 text-green-700 px-4 py-3 rounded-lg mb-3 shadow">
+				        <p th:text="${successMessage}"></p>
+				    </div>
+				
+				    <div th:if="${errorMessage}" class="bg-red-100 text-red-700 px-4 py-3 rounded-lg mb-3 shadow">
+				        <p th:text="${errorMessage}"></p>
+				    </div>
             <form method="post" th:action="@{/meal/insert}" th:object="${mealEntity}" enctype="multipart/form-data">
 
                 <div th:if="${#fields.hasErrors('*')}" class="alert-style alert-danger-style">

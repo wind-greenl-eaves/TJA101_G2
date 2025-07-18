@@ -29,7 +29,53 @@ public class FavController {
         this.favService = favService;
     }
     
-    // 新增收藏餐點
+    // AJAX 新增收藏餐點
+	@PostMapping("/api/fav")
+	@ResponseBody
+	public ResponseEntity<?> ajaxAddFav(HttpSession session, @RequestParam("mealId") Long mealId) {
+	    Long memberId = (Long) session.getAttribute("loggedInMemberId");
+	    System.out.println("Session memberId = " + memberId);
+	
+	    if (memberId == null) {
+	        // 未登入，回傳 401 狀態和 json 結果
+	        return ResponseEntity.status(401).body(
+	            java.util.Map.of("success", false, "msg", "未登入")
+	        );
+	    }
+	    // 呼叫service新增收藏（回傳收藏主鍵 favMealId）
+	    Long favMealId = favService.addFav(memberId, mealId);
+	
+	    // 回傳 json 給前端，前端可拿 favMealId 動態同步 UI 狀態
+	    return ResponseEntity.ok(
+	        java.util.Map.of(
+	            "success", true,
+	            "msg", "已加入最愛",
+	            "favMealId", favMealId
+	        )
+	    );
+	}
+
+	// RESTful 移除（for AJAX）
+	@DeleteMapping("/favorites/{favMealId}/remove")
+	@ResponseBody
+	public ResponseEntity<?> removeFavById(@PathVariable Long favMealId) {
+	    favService.removeFavById(favMealId);
+	    return ResponseEntity.ok().build();
+	}
+
+	// 顯示會員收藏頁面
+	@GetMapping("/favorites")
+	public String showFav(HttpSession session, Model model) {
+	    Long memberId = (Long) session.getAttribute("loggedInMemberId");
+	
+	    List<FavMealDTO> favorites = favService.getFavMeals(memberId);
+	    model.addAttribute("favorites", favorites);
+	    return MemberViewConstants.VIEW_MEMBER_FAVORITES;
+	    // 返回會員收藏頁面，顯示該會員的收藏餐點列表
+	}
+	
+
+	// 新增收藏餐點 (表單版)
     @PostMapping("/addFav")
     public String addFav(HttpSession session, @RequestParam("mealId") Long mealId, 
     		@RequestParam(value = "redirectUrl", required = false, defaultValue = "/menu") String redirectUrl) {
@@ -45,7 +91,7 @@ public class FavController {
 		
 		 return "redirect:" + redirectUrl;
 		}
-
+    
     // 根據主鍵移除收藏 (表單版)
     @PostMapping("/removeFav")
     public String removeFav(@RequestParam("favMealId") Long favMealId,
@@ -53,26 +99,6 @@ public class FavController {
         favService.removeFavById(favMealId);
         return "redirect:" + redirectUrl;
     }
-
-    // RESTful 移除（for AJAX）
-    @DeleteMapping("/favorites/{favMealId}/remove")
-    @ResponseBody
-    public ResponseEntity<?> removeFavById(@PathVariable Long favMealId) {
-        favService.removeFavById(favMealId);
-        return ResponseEntity.ok().build();
-    }
-
-
-	// 顯示會員收藏頁面
-	@GetMapping("/favorites")
-	public String showFav(HttpSession session, Model model) {
-	    Long memberId = (Long) session.getAttribute("loggedInMemberId");
-	
-	    List<FavMealDTO> favorites = favService.getFavMeals(memberId);
-	    model.addAttribute("favorites", favorites);
-	    return MemberViewConstants.VIEW_MEMBER_FAVORITES;
-	    // 返回會員收藏頁面，顯示該會員的收藏餐點列表
-	}
     
     
 }

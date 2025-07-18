@@ -127,17 +127,17 @@ public class MealTypeController {
 		return mealTypeService.getAll();
 	}
     
-    @PostMapping("/delete")
-    public String delete(@RequestParam("mealTypeId") Long mealTypeId, RedirectAttributes redirectAttributes) {
-        try {
-            mealTypeService.deleteMealType(mealTypeId);
-            redirectAttributes.addFlashAttribute("successMessage", "刪除成功！");
-        } catch (DataIntegrityViolationException e) {
-             // 因外鍵關聯導致的刪除失敗，並給予友善提示。
-            redirectAttributes.addFlashAttribute("errorMessage", "刪除失敗: 此種類底下尚有餐點，無法刪除。");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "刪除失敗: " + e.getMessage());
-        }
-        return "redirect:/mealtype/listAllMealType";
-    }
+//    @PostMapping("/delete")
+//    public String delete(@RequestParam("mealTypeId") Long mealTypeId, RedirectAttributes redirectAttributes) {
+//        try {
+//            mealTypeService.deleteMealType(mealTypeId);
+//            redirectAttributes.addFlashAttribute("successMessage", "刪除成功！");
+//        } catch (DataIntegrityViolationException e) {
+//             // 因外鍵關聯導致的刪除失敗，並給予友善提示。
+//            redirectAttributes.addFlashAttribute("errorMessage", "刪除失敗: 此種類底下尚有餐點，無法刪除。");
+//        } catch (Exception e) {
+//            redirectAttributes.addFlashAttribute("errorMessage", "刪除失敗: " + e.getMessage());
+//        }
+//        return "redirect:/mealtype/listAllMealType";
+//    }
 }

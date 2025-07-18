@@ -525,7 +525,8 @@
 			<div
 				class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 pb-8">
 				<div th:each="meal : ${mealListData}"
-					class="bg-card rounded-2xl shadow-xl border border-milktea flex flex-col items-center p-6 hover:shadow-2xl transition-shadow duration-200 relative">
+					class="bg-card rounded-2xl shadow-xl border border-milktea flex flex-col items-center p-6 hover:shadow-2xl transition-shadow duration-200 relative"
+					th:attr="data-mealid=${meal.mealId}, data-favid=${meal.favMealId}, data-favored=${meal.favored}">
 					<!-- 圖片區 + 漂浮購物車按鈕 -->
 					<div
 						class="relative w-40 h-40 mb-4 flex justify-center items-center">
@@ -555,53 +556,34 @@
 
 					<div class="flex gap-2 w-full mt-auto">
 						<!-- 已收藏表單 -->
-						<form th:if="${meal.favored}" th:action="@{/member/removeFav}"
-							method="post" class="flex-1">
-							<input type="hidden" name="favMealId"
-								th:value="${meal.favMealId}" /> <input type="hidden"
-								name="redirectUrl"
-								th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
-							<button type="submit"
-								class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex flex-col items-center justify-center btn-outline group"
-								title="移除收藏">
-								<i class="fas fa-heart" style="color: #d45a6b;"></i> <span
-									class="ml-1 text-[#d45a6b] group-hover:text-[#b63a53]"></span>
-							</button>
-						</form>
-						<!-- 未收藏表單 -->
-						<form th:unless="${meal.favored}" th:action="@{/member/addFav}"
-							method="post" class="flex-1" onsubmit="return checkLogin(event)">
-							<input type="hidden" name="mealId" th:value="${meal.mealId}" />
-							<input type="hidden" name="redirectUrl"
-								th:value="${param.type != null and !#strings.isEmpty(param.type[0]) ? '/menu?type=' + param.type[0] : '/menu'}" />
-							<button type="submit"
-								class="w-full rounded-lg px-3 py-2 text-sm text-center transition-all flex flex-col items-center justify-center btn-outline group"
-								title="加入收藏">
-								<i class="far fa-heart group-hover:text-[#d45a6b]"
-									style="color: #ccc;"></i> <span
-									class="ml-1 text-[#A67B5B] group-hover:text-[#d45a6b]"></span>
-							</button>
-						</form>
+						<div class="flex-1">
+						  <button type="button"
+						    class="fav-toggle-btn w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1"
+						    th:attr="data-mealid=${meal.mealId}, data-favid=${meal.favMealId}, data-favored=${meal.favored}"
+						    th:title="${meal.favored} ? '移除收藏' : '加入收藏'">
+						    <i th:if="${meal.favored}" class="fas fa-heart" style="color: #d45a6b;"></i>
+						    <i th:unless="${meal.favored}" class="far fa-heart group-hover:text-[#d45a6b]" style="color: #ccc;"></i>
+						  </button>
+						</div>
 
-						<!-- 加入購物車：點擊會跳modal -->
-						<form th:action="@{/cart}" method="post" class="flex-1"
-							onsubmit="return checkLogin(event)">
-							<input type="hidden" name="mealId" th:value="${meal.mealId}" />
-							<button type="button"
-								class="w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1"
-								th:attr="data-mealid=${meal.mealId}"
-								onclick="return handleAddToCartClick(this)">
-								<i class="fas fa-shopping-cart"></i>
-							</button>
-						</form>
-					</div>
-
-
-				</div>
-				<div th:if="${#lists.isEmpty(mealListData)}"
-					class="col-span-full text-center text-milktea-dark py-10">
-					查無符合的餐點！</div>
-			</div>
+      <!-- 加入購物車：點擊會跳modal -->
+      <form th:action="@{/cart}" method="post" class="flex-1"
+        onsubmit="return checkLogin(event)">
+        <input type="hidden" name="mealId" th:value="${meal.mealId}" />
+        <button type="button"
+          class="w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1"
+          th:attr="data-mealid=${meal.mealId}"
+          onclick="return handleAddToCartClick(this)">
+          <i class="fas fa-shopping-cart"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+  <div th:if="${#lists.isEmpty(mealListData)}"
+    class="col-span-full text-center text-milktea-dark py-10">
+    查無符合的餐點！
+  </div>
+</div>
 		</main>
 	</div>
 
@@ -1093,6 +1075,101 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.target === logoutModal) closeLogoutModal();
         });
     }
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    // 綁定所有收藏按鈕的點擊事件
+    document.querySelectorAll('.fav-toggle-btn').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+            // 檢查使用者是否登入，未登入則顯示登入提示並中止操作
+            if (!isLoggedIn) {
+                showLoginModal(); // 顯示登入提示
+                return;
+            }
+
+            const mealId = btn.getAttribute('data-mealid');
+            const favored = btn.getAttribute('data-favored') === 'true'; // 判斷當前是否已收藏
+            const favId = btn.getAttribute('data-favid'); // 收藏ID，移除收藏時會用到
+
+            // 取得按鈕內部的 Font Awesome 圖標元素
+            const heartIcon = btn.querySelector('i');
+
+            // 禁用按鈕，避免重複點擊
+            btn.disabled = true;
+
+            try {
+                let resp;
+                let result;
+
+                if (!favored) {
+                    // 執行【加入收藏】操作
+                    resp = await fetch('/member/api/fav', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `mealId=${mealId}`
+                    });
+                    result = await resp.json(); // 假設後端會回傳 JSON 格式的結果
+
+                    if (result.success) {
+                        // 更新按鈕的收藏狀態屬性
+                        btn.setAttribute('data-favored', 'true');
+                        btn.setAttribute('data-favid', result.favMealId); // 儲存後端回傳的收藏ID
+
+                        // **只更新 <i> 標籤的 class 和 style，保持置中**
+                        if (heartIcon) {
+                            heartIcon.classList.remove('far'); // 移除空心愛心 class
+                            heartIcon.classList.add('fas');    // 添加實心愛心 class
+                            heartIcon.style.color = '#d45a6b'; // 設定實心愛心顏色
+                        }
+                        btn.title = '移除收藏'; // 更新按鈕的 title 提示
+                        showToast('已加入收藏 ❤️', true); // 顯示成功提示
+                    } else {
+                        // 處理加入收藏失敗的情況
+                        showToast(result.msg || '加入收藏失敗 😔', false);
+                        console.error('加入收藏失敗:', result);
+                    }
+                } else {
+                    // 執行【移除收藏】操作
+                    // 檢查 favId 是否存在，避免發送無效請求
+                    if (!favId) {
+                        showToast('移除收藏失敗，無效的收藏ID', false);
+                        btn.disabled = false; // 重新啟用按鈕
+                        return;
+                    }
+                    resp = await fetch(`/member/favorites/${favId}/remove`, {
+                        method: 'DELETE'
+                    });
+
+                    if (resp.ok) { // 檢查 HTTP 狀態碼是否為 2xx
+                        // 更新按鈕的收藏狀態屬性
+                        btn.setAttribute('data-favored', 'false');
+                        btn.setAttribute('data-favid', ''); // 清空收藏ID
+
+                        // **只更新 <i> 標籤的 class 和 style，保持置中**
+                        if (heartIcon) {
+                            heartIcon.classList.remove('fas'); // 移除實心愛心 class
+                            heartIcon.classList.add('far');    // 添加空心愛心 class
+                            heartIcon.style.color = '#ccc';    // 設定空心愛心顏色
+                        }
+                        btn.title = '加入收藏'; // 更新按鈕的 title 提示
+                        showToast('已移除收藏 💔', true); // 顯示成功提示
+                    } else {
+                        // 處理移除收藏失敗的情況
+                        const errorText = await resp.text(); // 嘗試讀取後端返回的錯誤訊息
+                        showToast(`移除最愛失敗 ❌: ${errorText || '未知錯誤'}`, false);
+                        console.error('移除收藏失敗:', resp.status, errorText);
+                    }
+                }
+            } catch (err) {
+                // 捕獲網路請求過程中發生的錯誤
+                showToast('系統錯誤，請稍後再試 🛠️', false);
+                console.error('收藏操作時發生錯誤:', err);
+            } finally {
+                // 無論操作成功或失敗，都重新啟用按鈕
+                btn.disabled = false;
+            }
+        });
+    });
 });
 </script>
 

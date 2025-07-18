@@ -1,6 +1,7 @@
 package com.eatfast.meal.model;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +12,6 @@ import com.eatfast.common.enums.MealStatus;
 @Repository
 public interface MealRepository extends JpaRepository<MealEntity, Long> {
 	// 查特定類別餐點（自動命名規則）
-	 @Query("SELECT m FROM MealEntity m JOIN FETCH m.mealType WHERE m.mealType.mealTypeId = :mealTypeId") 
     List<MealEntity> findByMealTypeMealTypeId(Long mealTypeId);
 
     // 依餐點狀態查詢（1:上架, 0:下架）
@@ -26,6 +26,11 @@ public interface MealRepository extends JpaRepository<MealEntity, Long> {
     // 查特定類別餐點 + 狀態（例如上架 / 下架）
     @Query("SELECT m FROM MealEntity m JOIN FETCH m.mealType WHERE m.mealType.mealTypeId = :mealTypeId AND m.status = :status")
     List<MealEntity> findByMealTypeMealTypeIdAndStatus(Long mealTypeId, MealStatus status);
+
+    // 查詢餐點名稱是否已存在
+    @Query(value = "SELECT * FROM meal WHERE meal_name = ?1", nativeQuery = true)
+	Optional<MealEntity> findByMealName(String mealName);
+    
 
 }
 
