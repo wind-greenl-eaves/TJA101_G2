@@ -47,13 +47,12 @@
         }
 
         body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: var(--new-bg-color);
-            color: var(--new-text-color);
-            font-size: 15px; /* 稍微放大基礎字體大小 */
-            line-height: 1.6;
-            padding-top: 5rem; /* 根據導覽列的高度調整，這裡預設給 80px (約 5rem) */
-        }
+        font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+        background: linear-gradient(135deg, #FDFBF6 0%, #F5EFE6 100%);
+        color: #5D534A;
+        min-height: 100vh;
+        padding-top: 4rem;
+      }
 
         /* 頁面整體容器 - 兩欄佈局 */
         .page-container {
@@ -301,18 +300,18 @@
 </head>
 <body class="antialiased">
 
-<nav class="bg-[#9D7C64] text-white fixed w-full z-10 top-0 left-0 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <a class="flex items-center space-x-3" th:href="@{/meal/select_page_meal}">
-            <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" class="w-10 h-10 rounded-full">
-            <span class="text-lg font-semibold">餐點資料管理 - EatFast 後台</span>
-        </a>
-        
-        <a class="bg-white text-[var(--new-primary-color)] font-semibold py-2 px-4 rounded-lg hover:bg-gray-100 transition-colors flex items-center"
-        	 th:href="@{/employee/select_page}">
-            <i class="fas fa-home mr-2"></i>回後台管理系統首頁
-        </a>
+<!-- Navbar -->
+<nav class="fixed top-0 left-0 w-full h-16 flex items-center bg-white bg-opacity-95 shadow-lg z-50" style="backdrop-filter: blur(8px);">
+  <div class="max-w-7xl w-full mx-auto flex justify-between items-center px-6">
+    <div class="flex items-center gap-3">
+      <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" class="w-10 h-10">
+      <span class="text-lg font-bold text-[#A67B5B]">餐點資料管理 - EatFast 後台</span>
     </div>
+    <a th:href="@{/employee/select_page}"
+           class="flex items-center gap-2 border border-[#A67B5B] text-[#A67B5B] rounded-full px-4 py-2 hover:bg-[#F0E6D3] transition shadow">
+          <i class="fas fa-door-open"></i> 回後台管理系統
+        </a>
+  </div>
 </nav>
 
 <div class="page-container">
@@ -371,13 +370,15 @@
             </section>
         </div>
 
-		<div class="right-panel-content">
-		    <div th:if="${errorMessage}" class="alert alert-danger w-full" role="alert">
-        	<i class="fas fa-exclamation-circle"></i> <span th:utext="${errorMessage}"></span>
-	    </div>
-	    <div th:if="${success}" class="alert alert-success w-full" role="alert">
-	        <i class="fas fa-check-circle"></i> <span th:utext="${success}"></span>
-	    </div>
+		<div class="max-w-7xl mx-auto px-4 pb-12">
+
+    <!-- 成功與錯誤訊息 -->
+    <div th:if="${errorMessage}" class="mb-4 px-6 py-3 rounded-lg bg-red-100 text-red-700 flex items-center gap-2 shadow">
+      <i class="fas fa-exclamation-circle"></i> <span th:utext="${errorMessage}"></span>
+    </div>
+    <div th:if="${success}" class="mb-4 px-6 py-3 rounded-lg bg-green-100 text-green-700 flex items-center gap-2 shadow">
+      <i class="fas fa-check-circle"></i> <span th:utext="${success}"></span>
+    </div>
             <section>
                 <div class="section-title-container">
                     <h2 class="section-title">單一條件查詢</h2>
@@ -491,16 +492,15 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('reset-btn');
-    const form = document.getElementById('searchForm');
+    const form = document.getElementById('composite-query-form');
 
-    resetBtn.addEventListener('click', () => {
+    resetBtn.addEventListener('click', (e) => {
+    	e.preventDefault(); // 防止表單提交
       // 清空所有欄位值（input、select）
       form.querySelectorAll('input, select').forEach(el => {
         el.value = '';
       });
 
-      // 送出空白表單
-      form.submit();
     });
   });
 </script>
