@@ -20,14 +20,23 @@
 <!-- Navbar（統一樣式） -->
 <nav class="w-full bg-white shadow-lg rounded-b-2xl border-b border-[#E5D0B6] h-16 flex items-center z-50" style="backdrop-filter: blur(8px);">
   <div class="max-w-7xl w-full mx-auto flex justify-between items-center px-6">
+          <div class="flex items-center gap-3">
         <a th:href="@{/mealtype/select_page_mealtype}" class="flex items-center gap-2">
             <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" class="w-10 h-10 object-contain">
             <span class="font-bold text-lg tracking-wide text-[#A67B5B]">修改餐點種類 - EatFast 後台</span>
         </a>
-        <a th:href="@{/mealtype/select_page_mealtype}"
-           class="flex items-center gap-2 border border-[#A67B5B] text-[#A67B5B] rounded-full px-4 py-2 hover:bg-[#F0E6D3] font-semibold transition shadow">
-            <i class="fas fa-home"></i> 回首頁
+        </div>
+        
+        <div class="flex gap-3">
+      <a th:href="@{/mealtype/select_page_mealtype}"
+         class="flex items-center gap-2 border border-[#A67B5B] text-[#A67B5B] rounded-full px-4 py-2 hover:bg-[#F0E6D3] transition shadow">
+        <i class="fas fa-home mr-2"></i>回餐點種類主頁
+      </a>
+      <a th:href="@{/employee/select_page}"
+           class="flex items-center gap-2 border border-[#A67B5B] text-[#A67B5B] rounded-full px-4 py-2 hover:bg-[#F0E6D3] transition shadow">
+          <i class="fas fa-door-open"></i> 回後台管理系統
         </a>
+    </div>
     </div>
 </nav>
 

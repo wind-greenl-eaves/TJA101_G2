@@ -9,8 +9,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     body {
-      font-family: 'Noto Sans TC', sans-serif;
-      background-color: #f8f5ee;
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #FDFBF6 0%, #F5EFE6 100%);
+      color: #5D534A;
+      min-height: 100vh;
+      padding-top: 4rem;
     }
     .meal-img {
       width: 100px;
@@ -108,25 +111,31 @@
   </style>
 </head>
 <body class="min-h-screen text-[#4A403A]">
-  <nav class="bg-[#9D7C64] text-white fixed w-full z-10 top-0 left-0 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-      <div class="flex items-center space-x-3">
-        <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" class="w-10 h-10 rounded-full">
-        <span class="text-lg font-semibold">所有餐點 - EatFast 後台</span>
+  <nav class="fixed top-0 left-0 w-full h-16 flex items-center bg-white bg-opacity-95 shadow-lg z-50" style="backdrop-filter: blur(8px);">
+    <div class="max-w-7xl w-full mx-auto flex justify-between items-center px-6">
+      <div class="flex items-center gap-3">
+        <img th:src="@{/images/eatfasticon.png}" alt="EatFast Icon" class="w-10 h-10">
+        <span class="text-lg font-bold text-[#A67B5B]">所有餐點 - EatFast 後台</span>
       </div>
-      <div class="flex space-x-2">
-       <a th:href="@{/meal/addMeal}" 
-		   class="bg-[#a8c3b7] hover:bg-[#94b1a5] text-white px-3 py-2 rounded text-sm">
-		  <i class="fas fa-plus-circle mr-1"></i>新增餐點
-		</a>
-        <a th:href="@{/meal/select_page_meal}" class="bg-white text-[#9D7C64] border border-[#9D7C64] hover:bg-[#f0e8dd] px-3 py-2 rounded text-sm">
-          <i class="fas fa-home mr-1"></i>回首頁
+      <div class="flex gap-2">
+        <a th:href="@{/meal/addMeal}"
+           class="flex items-center gap-2 border border-[#A67B5B] bg-[#A67B5B] text-white rounded-full px-4 py-2 hover:bg-[#8B5A3C] transition shadow">
+          <i class="fas fa-plus"></i> 新增餐點
+        </a>
+        <a th:href="@{/meal/select_page_meal}"
+           class="flex items-center gap-2 border border-[#A67B5B] text-[#A67B5B] rounded-full px-4 py-2 hover:bg-[#F0E6D3] transition shadow">
+          <i class="fas fa-home"></i> 回餐點管理首頁
+        </a>
+        <a th:href="@{/employee/select_page}"
+           class="flex items-center gap-2 border border-[#A67B5B] text-[#A67B5B] rounded-full px-4 py-2 hover:bg-[#F0E6D3] transition shadow">
+          <i class="fas fa-door-open"></i> 回後台管理系統
         </a>
       </div>
     </div>
   </nav>
 
-  <main class="pt-24 px-4 max-w-7xl mx-auto">
+
+  <main class="pt-10 px-4 max-w-7xl mx-auto">
     <h2 class="text-2xl font-bold text-center text-[#9D7C64] mb-6">餐點列表</h2>
 
     <div th:if="${successMessage}" class="bg-[#D4EDDA] border border-[#155724] text-[#155724] px-4 py-3 rounded mb-4" role="alert">

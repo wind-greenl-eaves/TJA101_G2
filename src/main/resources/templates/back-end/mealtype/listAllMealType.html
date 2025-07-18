@@ -29,13 +29,17 @@ body {
     </div>
     <div class="flex gap-3">
       <a th:href="@{/mealtype/addMealType}"
-         class="inline-flex items-center px-5 py-2 rounded-full border border-[#A67B5B] text-[#A67B5B] bg-white hover:bg-[#F0E6D3] font-semibold text-base shadow transition">
+         class="flex items-center gap-2 border border-[#A67B5B] text-[#A67B5B] rounded-full px-4 py-2 hover:bg-[#F0E6D3] transition shadow">
         <i class="fas fa-plus-circle mr-2"></i>新增餐點種類
       </a>
       <a th:href="@{/mealtype/select_page_mealtype}"
-         class="inline-flex items-center px-5 py-2 rounded-full border border-[#A67B5B] text-[#A67B5B] bg-white hover:bg-[#F0E6D3] font-semibold text-base shadow transition">
+         class="flex items-center gap-2 border border-[#A67B5B] text-[#A67B5B] rounded-full px-4 py-2 hover:bg-[#F0E6D3] transition shadow">
         <i class="fas fa-home mr-2"></i>回餐點種類主頁
       </a>
+      <a th:href="@{/employee/select_page}"
+           class="flex items-center gap-2 border border-[#A67B5B] text-[#A67B5B] rounded-full px-4 py-2 hover:bg-[#F0E6D3] transition shadow">
+          <i class="fas fa-door-open"></i> 回後台管理系統
+        </a>
     </div>
   </div>
 </nav>
