@@ -33,9 +33,17 @@ public class MealService {
 	
 	// 新增餐點
 	@Transactional
-	public void addMeal(MealEntity mealEntity) {
-		repository.save(mealEntity);
-	}
+	public MealEntity addMeal(String mealName) {
+        // 檢查餐點名稱是否已存在
+        repository.findByMealName(mealName).ifPresent(existingMeal -> {
+            throw new IllegalArgumentException("餐點名稱 '" + mealName + "' 已存在。");
+        });
+
+        // 儲存新的餐點實體到資料庫
+        MealEntity mealEntity = new MealEntity();
+        mealEntity.setMealName(mealName);
+        return repository.save(mealEntity);
+    }
 
 	// 儲存或更新餐點（JPA 自動判斷新增/更新）
 	@Transactional
@@ -134,7 +142,7 @@ public class MealService {
         
         // 4. 遍歷每個 MealEntity，將其轉換為 MealDTO，並補上平均評分
         for (MealEntity meal : meals) {
-            MealDTO dto = toDTOWithFavored(meal, memberId); // 轉換基本資訊和收藏狀態
+            MealDTO dto = toDTOWithFavored(meal, memberId); // 轉換基本資訊和收藏狀態 
             
             // 從 Map 中查找該餐點的平均評分，如果沒有就給 0.0
             Double avgStars = mealRatingsMap.getOrDefault(meal.getMealId(), 0.0);
@@ -167,8 +175,8 @@ public class MealService {
         
         if (memberId != null) {
             // 檢查會員是否已收藏此餐點
-        	var favOpt = favRepository.findByMemberMemberIdAndMealMealId(memberId, meal.getMealId());
-            if (favOpt.isPresent()) {
+        	var favOpt = favRepository.findByMemberMemberIdAndMealMealId(memberId, meal.getMealId()); 
+            if (favOpt.isPresent()) { // 如果會員已收藏此餐點
                 favored = true;
                 favMealId = favOpt.get().getFavMealId();
             }
@@ -234,7 +242,7 @@ public class MealService {
         MealDTO dto = new MealDTO();
         dto.setMealId(meal.getMealId());
         dto.setMealName(meal.getMealName());
-        dto.setMealPrice(meal.getMealPrice()); // <--- 確保這裡使用 Long
+        dto.setMealPrice(meal.getMealPrice()); 
         dto.setMealTypeName(meal.getMealType() != null ? meal.getMealType().getMealName() : "");
         dto.setMealPicUrl(buildMealPicUrl(meal.getMealPic()));
         dto.setMealPic(meal.getMealPic());

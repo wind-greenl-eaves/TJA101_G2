@@ -88,9 +88,16 @@ public class MealController {
         if (result.hasErrors()) {
             return "back-end/meal/addMeal";
         }
-
-        mealService.addMeal(mealEntity);
-        redirectAttributes.addFlashAttribute("success", "- (新增成功)");
+        try {
+            mealService.addMeal(mealEntity.getMealName());
+            redirectAttributes.addFlashAttribute("successMessage", "新增成功！");
+        } catch (IllegalArgumentException e) {
+            // 捕獲 Service 拋出的業務例外，並將錯誤訊息傳回。
+            redirectAttributes.addFlashAttribute("errorMessage", "新增失敗: " + e.getMessage());
+            // 返回新增頁面，並保留使用者輸入的資料
+            return "redirect:/meal/addMeal";
+        }
+       
         return "redirect:/meal/listAllMeal";
     }
 
@@ -101,7 +108,7 @@ public class MealController {
 	    final String UPLOAD_DIR = "uploads/meal_pic/";
 	
 	    MultipartFile mealPic = mealEntity.getMealPicFile();
-	    removeFieldError(mealEntity, result, "mealPic"); // 直接呼叫，不要再 result = ...
+	    removeFieldError(mealEntity, result, "mealPic"); // 移除 mealPic 欄位的錯誤紀錄，避免圖片上傳錯誤影響其他欄位驗證
 
 	
 	    MealEntity existingMeal = mealService.getOneMeal(mealEntity.getMealId());
@@ -307,7 +314,10 @@ public class MealController {
         String[] mealTypeIdArr = map.get("mealTypeId");
         Long selectedMealTypeId = null;
         if (mealTypeIdArr != null && mealTypeIdArr.length > 0 && !mealTypeIdArr[0].isBlank()) {
-            try { selectedMealTypeId = Long.valueOf(mealTypeIdArr[0]); } catch(Exception e) {}
+            try { selectedMealTypeId = Long.valueOf(mealTypeIdArr[0]); 
+            } catch(Exception e) {
+            	
+            }
         }
         model.addAttribute("selectedMealTypeId", selectedMealTypeId);
         
@@ -341,6 +351,7 @@ public class MealController {
         return mealTypeService.getAll();
     }
     
+    
     @ModelAttribute("mealListData")
     public List<MealEntity> getAllMeals() {
         return mealService.getAll();
@@ -354,26 +365,26 @@ public class MealController {
         return "back-end/meal/select_page_meal";       // 統一導向餐點列表頁面
     }
     
-    // 刪除餐點
-    @PostMapping("/delete")
-    public String deleteMeal(@RequestParam("mealId") Long mealId, RedirectAttributes redirectAttributes) {
-    	try {
-        	// 先刪除圖片檔案
-            MealEntity meal = mealService.getOneMeal(mealId);
-            // 檢查圖片是否存在，若存在則刪除
-            if (meal != null && meal.getMealPic() != null && !meal.getMealPic().isBlank()) {
-            	// 使用 Paths.get() 取得圖片的完整路徑
-                Path imgPath = Paths.get(IMAGE_UPLOAD_DIR, meal.getMealPic());
-                if (Files.exists(imgPath)) {
-                    Files.delete(imgPath); // 只刪 uploads 裡的圖檔
-                }
-            }
-            mealService.deleteMeal(mealId);
-            redirectAttributes.addFlashAttribute("successMessage", "刪除成功！");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "刪除失敗：" + e.getMessage());
-        }
-        return "redirect:/meal/listAllMeal";
-    }
+//    // 刪除餐點
+//    @PostMapping("/delete")
+//    public String deleteMeal(@RequestParam("mealId") Long mealId, RedirectAttributes redirectAttributes) {
+//    	try {
+//        	// 先刪除圖片檔案
+//            MealEntity meal = mealService.getOneMeal(mealId);
+//            // 檢查圖片是否存在，若存在則刪除
+//            if (meal != null && meal.getMealPic() != null && !meal.getMealPic().isBlank()) {
+//            	// 使用 Paths.get() 取得圖片的完整路徑
+//                Path imgPath = Paths.get(IMAGE_UPLOAD_DIR, meal.getMealPic());
+//                if (Files.exists(imgPath)) {
+//                    Files.delete(imgPath); // 只刪 uploads 裡的圖檔
+//                }
+//            }
+//            mealService.deleteMeal(mealId);
+//            redirectAttributes.addFlashAttribute("successMessage", "刪除成功！");
+//        } catch (Exception e) {
+//            redirectAttributes.addFlashAttribute("errorMessage", "刪除失敗：" + e.getMessage());
+//        }
+//        return "redirect:/meal/listAllMeal";
+//    }
 
 }

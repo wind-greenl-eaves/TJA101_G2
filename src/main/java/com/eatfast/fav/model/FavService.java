@@ -52,31 +52,22 @@ public class FavService {
 
     // 新增會員收藏的餐點
     @Transactional
-	public void addFav(Long memberId, Long mealId) {
-		if (favRepo.existsByMemberMemberIdAndMealMealId(memberId, mealId)) {
-			// 如果已經存在收藏，則不做任何操作
-			return;
-		}
-		
-		MealEntity meal = mealRepo.findById(mealId)
-				.orElseThrow(() -> new IllegalArgumentException("找不到餐點: " + mealId));
-		
-		FavEntity fav = new FavEntity();
-		fav.setMember(memberRepo.findById(memberId)
-				.orElseThrow(() -> new IllegalArgumentException("找不到會員編號: " + memberId)));
-		fav.setMeal(meal);
-		
-		favRepo.save(fav);		
-	}
-    
-//    // 判斷某餐點有沒有被該會員收藏
-//    public List<Long> getFavMealIds(Long memberId) {
-//        if (memberId == null) return List.of();
-//        return favRepo.findByMemberMemberId(memberId) 
-//                      .stream() 
-//                      .map(fav -> fav.getMeal().getMealId()) // 對每個收藏紀錄，取得對應的餐點物件（fav.getMeal()），再取得該餐點的ID
-//                      .collect(Collectors.toList());  // 把上面那串mealId的Stream收集起來，變成一個List<Long>，回傳「該會員收藏過的所有餐點ID清單」
-//    }
+    public Long addFav(Long memberId, Long mealId) {
+        // 已存在時直接回傳
+        var exist = favRepo.findByMemberMemberIdAndMealMealId(memberId, mealId);
+        if (exist.isPresent()) {
+            return exist.get().getFavMealId();
+        }
+        MealEntity meal = mealRepo.findById(mealId)
+                .orElseThrow(() -> new IllegalArgumentException("找不到餐點: " + mealId));
+        FavEntity fav = new FavEntity();
+        fav.setMember(memberRepo.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("找不到會員編號: " + memberId)));
+        fav.setMeal(meal);
+        FavEntity saved = favRepo.save(fav);
+        return saved.getFavMealId();
+    }
+
     
     // 取得會員收藏的餐點ID與收藏ID的對應關係
     public Map<Long, Long> getFavMealIdMap(Long memberId) {  // Key 是 mealId，Value 是 favMealId
@@ -91,16 +82,27 @@ public class FavService {
     }
 
 
-    // 移除會員收藏的餐點
-	@Transactional
-	public void removeFav(Long memberId, Long mealId) {
-	    favRepo.deleteByMemberMemberIdAndMealMealId(memberId, mealId);
-	}
-
-	// 根據主鍵移除收藏
+	// 根據主鍵移除會員收藏的餐點(AJAX 和表單移除)
     @Transactional
     public void removeFavById(Long favMealId) {
         favRepo.deleteById(favMealId);
     }
+    
+
+//    // 移除會員收藏的餐點
+//	@Transactional
+//	public void removeFav(Long memberId, Long mealId) {
+//	    favRepo.deleteByMemberMemberIdAndMealMealId(memberId, mealId);
+//	}
+    
+    
+	// 判斷某餐點有沒有被該會員收藏
+//	public List<Long> getFavMealIds(Long memberId) {
+//	    if (memberId == null) return List.of();
+//	    return favRepo.findByMemberMemberId(memberId) 
+//	                  .stream() 
+//	                  .map(fav -> fav.getMeal().getMealId()) // 對每個收藏紀錄，取得對應的餐點物件（fav.getMeal()），再取得該餐點的ID
+//	                  .collect(Collectors.toList());  // 把上面那串mealId的Stream收集起來，變成一個List<Long>，回傳「該會員收藏過的所有餐點ID清單」
+//	}
 
 }
