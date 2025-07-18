@@ -14,10 +14,14 @@ import com.eatfast.store.exception.StoreNotFoundException;
 import com.eatfast.store.mapper.StoreMapper;
 import com.eatfast.store.model.StoreEntity;
 import com.eatfast.store.repository.StoreRepository;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +31,9 @@ public class StoreServiceImpl implements StoreService {
 
     private final StoreRepository storeRepository;
     private final StoreMapper storeMapper;
+ // 【新增】使用 @Value 註解從 application.properties 注入 Google Maps API Key
+    @Value("${google.maps.api.key}")
+    private String googleMapsApiKey;
 
     public StoreServiceImpl(StoreRepository storeRepository, StoreMapper storeMapper) {
         this.storeRepository = storeRepository;
@@ -42,6 +49,9 @@ public class StoreServiceImpl implements StoreService {
         });
         
         StoreEntity newStore = storeMapper.toEntity(request);
+        // 【核心修改】在儲存到資料庫前，根據地址生成地圖 URL
+        String mapUrl = generateGoogleMapEmbedUrl(request.getStoreLoc());
+        newStore.setGoogleMapUrl(mapUrl);
         StoreEntity savedStore = storeRepository.save(newStore);
         return storeMapper.toDto(savedStore);
     }
@@ -63,8 +73,12 @@ public class StoreServiceImpl implements StoreService {
         }
         
         // 只更新 UpdateStoreRequest 中有提供值的欄位
+        // 如果這次更新包含了地址，就要重新生成地圖 URL
         if (StringUtils.hasText(request.getStoreLoc())) {
             existingStore.setStoreLoc(request.getStoreLoc());
+            // 呼叫輔助方法，用新的地址生成新的 URL
+            String newMapUrl = generateGoogleMapEmbedUrl(request.getStoreLoc());
+            existingStore.setGoogleMapUrl(newMapUrl);
         }
         if (StringUtils.hasText(request.getStorePhone())) {
             existingStore.setStorePhone(request.getStorePhone());
@@ -75,6 +89,7 @@ public class StoreServiceImpl implements StoreService {
         if (request.getStoreStatus() != null) {
             existingStore.setStoreStatus(request.getStoreStatus());
         }
+        
 
         StoreEntity updatedStore = storeRepository.save(existingStore);
         return storeMapper.toDto(updatedStore);
@@ -138,15 +153,32 @@ public class StoreServiceImpl implements StoreService {
 //     }
     
     
-
-    
-    
     @Override
     public List<StoreDto> getAllStoreDTOs() {
         List<StoreEntity> stores = storeRepository.findAll();
         return stores.stream()
                      .map(store -> new StoreDto(store.getStoreId(), store.getStoreName()))
                      .toList();
+    }
+    
+    
+ // 【新增】一個私有的輔助方法，專門用來生成 Google Map 嵌入 URL
+    private String generateGoogleMapEmbedUrl(String address) {
+        // 如果地址為空，則返回空字串
+        if (address == null || address.trim().isEmpty()) {
+            return "";
+        }
+        try {
+            // 對地址進行 URL 編碼，以處理特殊字元和空格
+            String encodedAddress = URLEncoder.encode(address, StandardCharsets.UTF_8);
+            // 組合成標準的 Google Maps Embed API URL
+            return String.format("https://www.google.com/maps/embed/v1/place?key=%s&q=%s",
+                                 googleMapsApiKey, encodedAddress);
+        } catch (Exception e) {
+            // 在真實專案中，這裡應該記錄錯誤日誌 (log.error)
+            System.err.println("Error encoding address: " + address);
+            return ""; // 編碼失敗時返回空字串
+        }
     }
     
     
