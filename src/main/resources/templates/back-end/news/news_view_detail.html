@@ -34,7 +34,7 @@
                         <span>發布狀態: <span th:text="*{status.displayName}"></span></span> |
                         <span>開始時間: <span th:text="${#temporals.format(startTime, 'yyyy-MM-dd HH:mm')}"></span></span>
                     </div>
-                    <div class="news-content fs-5" th:text="*{content}"></div>
+                    <div class="news-content fs-5" th:utext="*{content}"></div>
                 </div>
             </div>
         </div>
