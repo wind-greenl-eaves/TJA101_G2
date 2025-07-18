@@ -684,10 +684,10 @@
                     <div class="info-row">
                         <span class="info-label">帳號狀態：</span>
                         <span class="info-value">
-                            <span th:if="${memberUpdateRequest.enabled}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <span th:if="${memberUpdateRequest.isEnabled()}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                 <i class="fas fa-check-circle mr-1"></i>啟用中
                             </span>
-                            <span th:unless="${memberUpdateRequest.enabled}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            <span th:unless="${memberUpdateRequest.isEnabled()}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                 <i class="fas fa-times-circle mr-1"></i>已停用
                             </span>
                         </span>
@@ -811,7 +811,7 @@
                 </div>
 
                 <form method="post" th:action="@{/member/admin/change-password}" th:object="${passwordUpdateRequest}">
-                    <input type="hidden" th:field="*{memberId}" />
+                    <input type="hidden" th:field="*{memberId}" id="passwordMemberId" />
                     
                     <!-- 為了符合可訪問性標準，添加隱藏的用戶名欄位 -->
                     <input type="text" 

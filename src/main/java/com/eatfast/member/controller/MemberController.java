@@ -184,6 +184,20 @@ public class MemberController {
             // 添加管理員登入資訊到模型中
             addAdminInfoToModel(session, model);
             
+            // 【修復】重新從資料庫查詢會員資訊，確保顯示區塊的資料正確
+            try {
+                Optional<MemberEntity> memberEntityOpt = memberService.getMemberById(updateRequest.getMemberId());
+                if (memberEntityOpt.isPresent()) {
+                    MemberEntity memberEntity = memberEntityOpt.get();
+                    // 重新設置唯讀欄位的正確值
+                    updateRequest.setAccount(memberEntity.getAccount());
+                    updateRequest.setCreatedAt(memberEntity.getCreatedAt());
+                    updateRequest.setEnabled(memberEntity.isEnabled());
+                }
+            } catch (Exception e) {
+                log.error("重新查詢會員資料失敗: {}", e.getMessage());
+            }
+            
             // 【錯誤路徑】: 如果更新失敗，需要重新準備「密碼表單」的 DTO，否則頁面會出錯。
             PasswordUpdateRequest passwordRequest = new PasswordUpdateRequest();
             passwordRequest.setMemberId(updateRequest.getMemberId());
