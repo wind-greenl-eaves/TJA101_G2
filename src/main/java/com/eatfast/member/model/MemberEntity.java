@@ -178,10 +178,10 @@ public class MemberEntity {
     /**
      * 此會員的所有意見回饋。
      */
-    @JsonIgnore
-    @BatchSize(size = 10)
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Set<FeedbackEntity> feedback = new HashSet<>();
+//    @JsonIgnore
+//    @BatchSize(size = 10)
+//    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+//    private Set<FeedbackEntity> feedback = new HashSet<>();
 
     //================================================================
     //					 建構子、Getters、Setters
@@ -219,8 +219,8 @@ public class MemberEntity {
 
     public Set<CartEntity> getCartItems() { return cartItems; }
     public void setCartItems(Set<CartEntity> cartItems) { this.cartItems = cartItems; }
-    public Set<FeedbackEntity> getFeedback() { return feedback; }
-    public void setFeedback(Set<FeedbackEntity> feedback) { this.feedback = feedback; }
+//    public Set<FeedbackEntity> getFeedback() { return feedback; }
+//    public void setFeedback(Set<FeedbackEntity> feedback) { this.feedback = feedback; }
 
     //================================================================
     // 物件核心方法 (equals, hashCode, toString)

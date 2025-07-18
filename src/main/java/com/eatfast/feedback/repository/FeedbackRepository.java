@@ -1,19 +1,18 @@
 package com.eatfast.feedback.repository;
 
-
-import java.util.List;
-
+import com.eatfast.feedback.model.FeedbackEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.eatfast.feedback.model.FeedbackEntity;
+import java.util.List;
 
 @Repository
 public interface FeedbackRepository extends JpaRepository<FeedbackEntity, Long> {
-    // 這裡可以加上自訂查詢方法
-	List<FeedbackEntity> findByMember_MemberId(Long memberId);
-	//針對會員提出的回饋做查詢
-	List<FeedbackEntity> findByStore_StoreId(Long storeId);
-	//針對分店提出的回饋做查詢
 
+	// Spring Data JPA 會根據方法名稱自動生成查詢
+	// 由於 FeedbackEntity 中的欄位是 "memberId"，所以方法名稱是 findByMemberId
+	List<FeedbackEntity> findByMemberId(Long memberId);
+
+	// 同理，對應 "storeId" 欄位
+	List<FeedbackEntity> findByStoreId(Long storeId);
 }
