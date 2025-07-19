@@ -12,8 +12,6 @@ import com.eatfast.common.enums.MealStatus;
 import com.eatfast.fav.model.FavEntity;
 import com.eatfast.mealtype.model.MealTypeEntity;
 import com.eatfast.orderlistinfo.model.OrderListInfoEntity;
-import com.eatfast.storemeal.model.StoreMealEntity;
-
 // 引入 Jakarta Validation API 進行資料驗證
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -112,14 +110,14 @@ public class MealEntity {
     //                  反向一對多關聯 (Bidirectional @OneToMany)
     // ================================================================
 
-    /**
-     * 此餐點在各門市的供應狀態集合。
-     * mappedBy 指向 StoreMealEntity 中維護關聯的屬性 "meal"。
-     * CascadeType.ALL 表示對 MealEntity 的操作會級聯到 StoreMealEntity。
-     * orphanRemoval = true 表示如果一個 StoreMealEntity 從此集合中移除，它將從資料庫中刪除。
-     */
-    @OneToMany(mappedBy = "meal", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Set<StoreMealEntity> storeStatuses = new HashSet<>(); // 門市餐點供應狀態集合
+//    /**
+//     * 此餐點在各門市的供應狀態集合。
+//     * mappedBy 指向 StoreMealEntity 中維護關聯的屬性 "meal"。
+//     * CascadeType.ALL 表示對 MealEntity 的操作會級聯到 StoreMealEntity。
+//     * orphanRemoval = true 表示如果一個 StoreMealEntity 從此集合中移除，它將從資料庫中刪除。
+//     */
+//    @OneToMany(mappedBy = "meal", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+//    private Set<StoreMealEntity> storeStatuses = new HashSet<>(); // 門市餐點供應狀態集合
 
     /**
      * 包含此餐點的所有訂單明細集合。
@@ -214,14 +212,14 @@ public class MealEntity {
         this.mealType = mealType;
     }
 
-    // Store Statuses (反向關聯集合) 的 Getter 和 Setter
-    public Set<StoreMealEntity> getStoreStatuses() {
-        return storeStatuses;
-    }
-
-    public void setStoreStatuses(Set<StoreMealEntity> storeStatuses) {
-        this.storeStatuses = storeStatuses;
-    }
+//    // Store Statuses (反向關聯集合) 的 Getter 和 Setter
+//    public Set<StoreMealEntity> getStoreStatuses() {
+//        return storeStatuses;
+//    }
+//
+//    public void setStoreStatuses(Set<StoreMealEntity> storeStatuses) {
+//        this.storeStatuses = storeStatuses;
+//    }
 
     // Order List Infos (反向關聯集合) 的 Getter 和 Setter
     public Set<OrderListInfoEntity> getOrderListInfos() {
