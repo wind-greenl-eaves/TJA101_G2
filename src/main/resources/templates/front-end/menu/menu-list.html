@@ -57,319 +57,352 @@
 }
 
 :root {
-    --bg-color: #FDFBF6;
-    --container-bg: #FFFFFF;
-    --primary-color: #A67B5B;
-    --primary-hover: #8C684A;
-    --text-color: #5D534A;
-    --border-color: #DED0B6;
-    --header-bg: #F5EFE6;
-    --accent-color: #E1A87A;
-    --shadow-light: rgba(0, 0, 0, 0.1);
-    --shadow-medium: rgba(0, 0, 0, 0.15);
+	--bg-color: #FDFBF6;
+	--container-bg: #FFFFFF;
+	--primary-color: #A67B5B;
+	--primary-hover: #8C684A;
+	--text-color: #5D534A;
+	--border-color: #DED0B6;
+	--header-bg: #F5EFE6;
+	--accent-color: #E1A87A;
+	--shadow-light: rgba(0, 0, 0, 0.1);
+	--shadow-medium: rgba(0, 0, 0, 0.15);
 }
 
- body {
-            font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            background: linear-gradient(135deg, var(--bg-color) 0%, var(--header-bg) 100%);
-            min-height: 100vh;
-        }
-        
+body {
+	font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+	line-height: 1.6;
+	color: var(--text-color);
+	background: linear-gradient(135deg, var(--bg-color) 0%, var(--header-bg)
+		100%);
+	min-height: 100vh;
+}
+
 /* Navigation Bar */
-        .nav-fixed {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 60px; /* 固定導航欄高度 */
-            background: rgba(255, 255, 255, 0.95);
-            padding: 0.5rem 0;
-            box-shadow: 0 2px 10px var(--shadow-light);
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
+.nav-fixed {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 60px; /* 固定導航欄高度 */
+	background: rgba(255, 255, 255, 0.95);
+	padding: 0.5rem 0;
+	box-shadow: 0 2px 10px var(--shadow-light);
+	z-index: 1000;
+	backdrop-filter: blur(10px);
+}
 
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-        }
+.nav-container {
+	max-width: 1200px;
+	margin: 0 auto;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0 2rem;
+}
 
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            text-decoration: none;
-            color: var(--primary-color);
-        }
+.nav-logo {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	text-decoration: none;
+	color: var(--primary-color);
+}
 
-        .nav-logo-icon {
-            width: 35px; /* 調整 logo 大小 */
-            height: 35px;
-            object-fit: contain;
-        }
+.nav-logo-icon {
+	width: 35px; /* 調整 logo 大小 */
+	height: 35px;
+	object-fit: contain;
+}
 
-       .nav-logo-text {
-            font-size: 1.2rem; /* 調整導航欄文字大小 */
-            font-weight: 700;
-        }
+.nav-logo-text {
+	font-size: 1.2rem; /* 調整導航欄文字大小 */
+	font-weight: 700;
+}
 
+.nav-menu {
+	display: flex;
+	gap: 2rem;
+	align-items: center;
+}
 
+.nav-link {
+	color: var(--text-color);
+	text-decoration: none;
+	font-weight: 500;
+	transition: color 0.3s ease;
+	position: relative;
+}
 
-        .nav-menu {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
+.nav-link::after {
+	content: '';
+	position: absolute;
+	bottom: -5px;
+	left: 0;
+	width: 0;
+	height: 2px;
+	background: var(--primary-color);
+	transition: width 0.3s ease;
+}
 
-        .nav-link {
-            color: var(--text-color);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-            position: relative;
-        }
+.nav-link:hover::after {
+	width: 100%;
+}
 
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--primary-color);
-            transition: width 0.3s ease;
-        }
+.nav-login {
+	background: var(--primary-color);
+	color: white;
+	padding: 0.5rem 1.5rem;
+	border-radius: 50px;
+	text-decoration: none;
+	transition: all 0.3s ease;
+}
 
-        .nav-link:hover::after {
-            width: 100%;
-        }
+.nav-login:hover {
+	background: var(--primary-hover);
+	transform: translateY(-2px);
+}
+/* 響應式設計 */
+@media ( max-width : 768px) {
+	.header {
+		padding: 4rem 0 3rem;
+	}
+	.brand-title {
+		font-size: 2.5rem;
+	}
+	.brand-subtitle {
+		font-size: 1.2rem;
+	}
+	.nav-logo-text {
+		font-size: 1rem;
+	}
+	.nav-fixed {
+		height: 50px;
+	}
+	.nav-logo-icon {
+		width: 30px;
+		height: 30px;
+	}
+}
 
-        .nav-login {
-            background: var(--primary-color);
-            color: white;
-            padding: 0.5rem 1.5rem;
-            border-radius: 50px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
+@media ( max-width : 480px) {
+	.main-content {
+		padding: 2rem 1rem;
+	}
+	.header-content {
+		padding: 0 1rem;
+	}
+	.feature-card {
+		padding: 1.5rem;
+	}
+	.stats-grid {
+		grid-template-columns: 1fr;
+	}
+	.feature-actions {
+		flex-direction: column;
+	}
+	.news-grid {
+		grid-template-columns: 1fr;
+	}
+	.product-grid {
+		grid-template-columns: 1fr;
+	}
+}
 
-        .nav-login:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-        }
-		/* 響應式設計 */
-        @media (max-width: 768px) {
-            .header {
-                padding: 4rem 0 3rem;
-            }
-            
-            .brand-title {
-                font-size: 2.5rem;
-            }
-            
-            .brand-subtitle {
-                font-size: 1.2rem;
-            }
-            
-            .nav-logo-text {
-                font-size: 1rem;
-            }
-            
-            .nav-fixed {
-                height: 50px;
-            }
-            
-            .nav-logo-icon {
-                width: 30px;
-                height: 30px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .main-content {
-                padding: 2rem 1rem;
-            }
-            
-            .header-content {
-                padding: 0 1rem;
-            }
-            
-            .feature-card {
-                padding: 1.5rem;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .feature-actions {
-                flex-direction: column;
-            }
-            
-            .news-grid {
-                grid-template-columns: 1fr;
-            }
-            .product-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        /* Footer 區域 */
-        .footer {
-            background: var(--primary-hover);
-            color: white;
-            text-align: center;
-            padding: 2rem;
-            margin-top: 4rem;
-        }
-        
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-        
-        .footer-link {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-        
-        .footer-link:hover {
-            color: var(--accent-color);
-        }
-        
-        .copyright {
-            opacity: 0.8;
-            font-size: 0.9rem;
-        }
+/* Footer 區域 */
+.footer {
+	background: var(--primary-hover);
+	color: white;
+	text-align: center;
+	padding: 2rem;
+	margin-top: 4rem;
+}
+
+.footer-content {
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+.footer-links {
+	display: flex;
+	justify-content: center;
+	gap: 2rem;
+	margin-bottom: 1rem;
+	flex-wrap: wrap;
+}
+
+.footer-link {
+	color: white;
+	text-decoration: none;
+	font-weight: 500;
+	transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+	color: var(--accent-color);
+}
+
+.copyright {
+	opacity: 0.8;
+	font-size: 0.9rem;
+}
 /* 登出確認模態框樣式 */
-        .logout-modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(5px);
-    z-index: 10000;
-    opacity: 0;
-    transition: opacity 0.3s;
+.logout-modal {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: rgba(0, 0, 0, 0.5);
+	backdrop-filter: blur(5px);
+	z-index: 10000;
+	opacity: 0;
+	transition: opacity 0.3s;
 }
+
 .logout-modal.show {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 1;
 }
+
 .logout-modal-content {
-    background: var(--container-bg);
-    border-radius: 20px;
-    padding: 2.5rem;
-    max-width: 450px;
-    width: 90%;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    transform: scale(0.7);
-    transition: transform 0.3s;
-    border: 1px solid var(--border-color);
+	background: var(--container-bg);
+	border-radius: 20px;
+	padding: 2.5rem;
+	max-width: 450px;
+	width: 90%;
+	text-align: center;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+	transform: scale(0.7);
+	transition: transform 0.3s;
+	border: 1px solid var(--border-color);
 }
+
 .logout-modal.show .logout-modal-content {
-    transform: scale(1);
+	transform: scale(1);
 }
+
 .logout-modal-icon {
-    width: 80px; height: 80px;
-    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 1.5rem;
-    color: white; font-size: 2.5rem;
-    animation: pulse 2s infinite;
+	width: 80px;
+	height: 80px;
+	background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0 auto 1.5rem;
+	color: white;
+	font-size: 2.5rem;
+	animation: pulse 2s infinite;
 }
+
 @keyframes pulse {
     0% {transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);}
     70% {transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255,107,107,0);}
     100% {transform: scale(1); box-shadow: 0 0 0 0 rgba(255,107,107,0);}
 }
-.logout-modal-title { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); margin-bottom: 1rem; }
-.logout-modal-message { font-size: 1.1rem; color: var(--text-color); margin-bottom: 2rem; line-height: 1.6; }
-.logout-modal-actions { display: flex; gap: 1rem; justify-content: center; }
+.logout-modal-title {
+	font-size: 1.8rem;
+	font-weight: 700;
+	color: var(--primary-color);
+	margin-bottom: 1rem;
+}
+
+.logout-modal-message {
+	font-size: 1.1rem;
+	color: var(--text-color);
+	margin-bottom: 2rem;
+	line-height: 1.6;
+}
+
+.logout-modal-actions {
+	display: flex;
+	gap: 1rem;
+	justify-content: center;
+}
+
 .logout-btn {
-    padding: 0.8rem 2rem; border: none; border-radius: 50px;
-    font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.3s;
-    display: flex; align-items: center; gap: 0.5rem; min-width: 120px; justify-content: center;
+	padding: 0.8rem 2rem;
+	border: none;
+	border-radius: 50px;
+	font-weight: 600;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: all 0.3s;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	min-width: 120px;
+	justify-content: center;
 }
+
 .logout-btn-confirm {
-    background: linear-gradient(135deg, #dc3545, #c82333);
-    color: white;
-    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+	background: linear-gradient(135deg, #dc3545, #c82333);
+	color: white;
+	box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
 }
+
 .logout-btn-confirm:hover {
-    background: linear-gradient(135deg, #c82333, #bd2130);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+	background: linear-gradient(135deg, #c82333, #bd2130);
+	transform: translateY(-2px);
+	box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
 }
+
 .logout-btn-cancel {
-    background: var(--container-bg);
-    color: var(--text-color);
-    border: 2px solid var(--border-color);
+	background: var(--container-bg);
+	color: var(--text-color);
+	border: 2px solid var(--border-color);
 }
+
 .logout-btn-cancel:hover {
-    background: var(--header-bg);
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-    transform: translateY(-2px);
+	background: var(--header-bg);
+	border-color: var(--primary-color);
+	color: var(--primary-color);
+	transform: translateY(-2px);
 }
+
 .logout-loading {
-    display: none;
-    align-items: center;
-    gap: 0.5rem;
-    justify-content: center;
-    margin-top: 1.5rem;
+	display: none;
+	align-items: center;
+	gap: 0.5rem;
+	justify-content: center;
+	margin-top: 1.5rem;
 }
+
 .logout-spinner {
-    width: 20px; height: 20px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-radius: 50%;
-    border-top-color: #c82333;
-    animation: spin 1s ease-in-out infinite;
+	width: 20px;
+	height: 20px;
+	border: 2px solid rgba(255, 255, 255, 0.3);
+	border-radius: 50%;
+	border-top-color: #c82333;
+	animation: spin 1s ease-in-out infinite;
 }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* 響應式模態框 */
-        @media (max-width: 480px) {
-            .logout-modal-content {
-                padding: 2rem;
-                margin: 1rem;
-            }
+/* 響應式模態框 */
+@media ( max-width : 480px) {
+	.logout-modal-content {
+		padding: 2rem;
+		margin: 1rem;
+	}
+	.logout-modal-actions {
+		flex-direction: column;
+	}
+	.logout-btn {
+		width: 100%;
+	}
+}
 
-            .logout-modal-actions {
-                flex-direction: column;
-            }
+/* 動畫效果 */
+.fade-in {
+	animation: fadeIn 0.8s ease-in;
+}
 
-            .logout-btn {
-                width: 100%;
-            }
-        }
-        
-        /* 動畫效果 */
-        .fade-in {
-            animation: fadeIn 0.8s ease-in;
-        }
-        
-        @keyframes fadeIn {
+ @keyframes fadeIn {
             from {
                 opacity: 0;
                 transform: translateY(20px);
@@ -395,12 +428,101 @@
             }
         }
 
-</style>
+		/* 【新增】門市休息中的彈出 Modal 樣式 */
+		.info-modal {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.5);
+			backdrop-filter: blur(5px);
+			z-index: 10000;
+			opacity: 0;
+			transition: opacity 0.3s ease;
+			align-items: center;
+			justify-content: center;
+		}
+		
+		.info-modal.show {
+			display: flex;
+			opacity: 1;
+		}
+		
+		.info-modal-content {
+			background: white;
+			border-radius: 20px;
+			padding: 2.5rem;
+			max-width: 450px;
+			width: 90%;
+			text-align: center;
+			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+			transform: scale(0.7);
+			transition: transform 0.3s ease;
+			border-top: 8px solid #FF9800; /* 警告色 */
+		}
+		
+		.info-modal.show .info-modal-content {
+			transform: scale(1);
+		}
+		
+		.info-modal-icon {
+			font-size: 3rem;
+			color: #FF9800;
+			margin-bottom: 1.5rem;
+		}
+		
+		.info-modal-title {
+			font-size: 1.8rem;
+			font-weight: 700;
+			color: #3C2A21;
+			margin-bottom: 1rem;
+		}
+		
+		.info-modal-message {
+			font-size: 1.1rem;
+			color: #5D534A;
+			margin-bottom: 2rem;
+		}
+		
+		.info-modal-close-btn {
+			background: #A67B5B;
+			color: white;
+			padding: 0.8rem 2rem;
+			border: none;
+			border-radius: 50px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: background-color 0.3s ease;
+		}
+		
+		.info-modal-close-btn:hover {
+			background: #8C684A;
+		}
+		</style>
 </head>
+
 <body class="bg-milktea min-h-screen">
+
 	<!-- 成功加入購物車的提示彈窗 -->
 	<div id="toast-container"
 		class="fixed inset-0 flex items-center justify-center z-[1001] pointer-events-none"></div>
+
+	<!-- 【新增】休息中提示 Modal -->
+	<div id="restingStoreModal" class="info-modal">
+		<div class="info-modal-content">
+			<div class="info-modal-icon">
+				<i class="fas fa-mug-hot"></i>
+			</div>
+			<h3 class="info-modal-title">門市休息中</h3>
+			<p class="info-modal-message">
+				本店目前正在休息，暫不接受點餐。<br>請返回並選擇其他營業中的門市，謝謝！
+			</p>
+			<button id="closeRestingModalBtn" class="info-modal-close-btn">我知道了</button>
+		</div>
+	</div>
+
 	<!-- 動態設定是否登入 -->
 	<script th:inline="javascript">
 	    var isLoggedIn = /*[[${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}]]*/ false;
@@ -409,79 +531,88 @@
 
 	<!-- Navbar -->
 	<nav class="nav-fixed">
-        <div class="nav-container">
-            <a href="/welcome" class="nav-logo">
-                <img src="images/123.png" alt="EatFast Logo" class="nav-logo-icon">
-                <span class="nav-logo-text">EatFast 早餐店</span>
-            </a>
-            
-            <div class="nav-menu">
-            	<a href="/news" class="nav-link">最新消息</a>
-            	<a href="/store/storelist" class="nav-link">門市據點</a>
-                <a href="/menu" class="nav-link">餐點菜單</a>
-                <!-- 根據登入狀態顯示不同內容 -->
-                <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
-                   th:href="@{/member/dashboard}" class="nav-link">會員專區</a>
-                <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
-                   th:href="@{/api/v1/auth/member-login}" class="nav-link">會員專區</a>
-                <a href="/feedback/form" class="nav-link">聯繫我們</a>
-                <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
-                   th:href="@{/cart}" class="nav-link">購物車</a>
-                <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
-                   th:href="@{/api/v1/auth/member-login}" class="nav-link">購物車</a>
+		<div class="nav-container">
+			<a href="/welcome" class="nav-logo"> <img src="images/123.png"
+				alt="EatFast Logo" class="nav-logo-icon"> <span
+				class="nav-logo-text">EatFast 早餐店</span>
+			</a>
+
+			<div class="nav-menu">
+				<a href="/news" class="nav-link">最新消息</a> <a href="/store/storelist"
+					class="nav-link">門市據點</a> <a href="/menu" class="nav-link">餐點菜單</a>
+				<!-- 根據登入狀態顯示不同內容 -->
+				<a
+					th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
+					th:href="@{/member/dashboard}" class="nav-link">會員專區</a> <a
+					th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
+					th:href="@{/api/v1/auth/member-login}" class="nav-link">會員專區</a> <a
+					href="/feedback/form" class="nav-link">聯繫我們</a> <a
+					th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
+					th:href="@{/cart}" class="nav-link">購物車</a> <a
+					th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
+					th:href="@{/api/v1/auth/member-login}" class="nav-link">購物車</a>
 			</div>
 
-<!-- 登入按鈕根據登入狀態變化 -->
-            <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
-                 class="nav-user-info" style="display: flex; align-items: center; gap: 1rem;">
-                <span style="color: var(--primary-color);">歡迎, <span th:text="${session.memberName}"></span></span>
-                <button type="button" class="nav-login" style="background-color: #dc3545; border: none; cursor: pointer;" 
-                        onclick="confirmLogout()">
-                    <i class="fas fa-sign-out-alt"></i> 登出
-                </button>
-                <!-- 隱藏的登出表單 -->
-                <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display: none;">
-                    <input type="hidden" name="_method" value="POST">
-                </form>
-            </div>
-            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
-               th:href="@{/api/v1/auth/member-login}" class="nav-login">
-                <i class="fas fa-sign-in-alt"></i> 會員登入
-            </a>
-        </div>
+			<!-- 登入按鈕根據登入狀態變化 -->
+			<div
+				th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
+				class="nav-user-info"
+				style="display: flex; align-items: center; gap: 1rem;">
+				<span style="color: var(--primary-color);">歡迎, <span
+					th:text="${session.memberName}"></span></span>
+				<button type="button" class="nav-login"
+					style="background-color: #dc3545; border: none; cursor: pointer;"
+					onclick="confirmLogout()">
+					<i class="fas fa-sign-out-alt"></i> 登出
+				</button>
+				<!-- 隱藏的登出表單 -->
+				<form id="logout-form" th:action="@{/api/v1/auth/logout}"
+					method="post" style="display: none;">
+					<input type="hidden" name="_method" value="POST">
+				</form>
+			</div>
+			<a
+				th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
+				th:href="@{/api/v1/auth/member-login}" class="nav-login"> <i
+				class="fas fa-sign-in-alt"></i> 會員登入
+			</a>
+		</div>
 
-<!-- 登出 Modal（新版） -->
-<div class="logout-modal" id="logoutModal">
-    <div class="logout-modal-content">
-        <div class="logout-modal-icon">
-            <i class="fas fa-sign-out-alt"></i>
-        </div>
-        <h3 class="logout-modal-title">登出確認</h3>
-        <p class="logout-modal-message">您確定要登出系統嗎？</p>
-        <div class="logout-modal-actions">
-            <button class="logout-btn logout-btn-confirm" onclick="logout()">確定登出</button>
-            <button class="logout-btn logout-btn-cancel" onclick="closeLogoutModal()">取消</button>
-        </div>
-        <div class="logout-loading" id="logoutLoading" style="display:none;">
-            <div class="logout-spinner"></div>
-            <span>登出中...</span>
-        </div>
-    </div>
-</div>
+		<!-- 登出 Modal（新版） -->
+		<div class="logout-modal" id="logoutModal">
+			<div class="logout-modal-content">
+				<div class="logout-modal-icon">
+					<i class="fas fa-sign-out-alt"></i>
+				</div>
+				<h3 class="logout-modal-title">登出確認</h3>
+				<p class="logout-modal-message">您確定要登出系統嗎？</p>
+				<div class="logout-modal-actions">
+					<button class="logout-btn logout-btn-confirm" onclick="logout()">確定登出</button>
+					<button class="logout-btn logout-btn-cancel"
+						onclick="closeLogoutModal()">取消</button>
+				</div>
+				<div class="logout-loading" id="logoutLoading"
+					style="display: none;">
+					<div class="logout-spinner"></div>
+					<span>登出中...</span>
+				</div>
+			</div>
+		</div>
 	</nav>
 
 
 	<!-- 主內容區 -->
-	<div class="max-w-7xl mx-auto py-8 flex flex-col md:flex-row gap-6 pt-24">
+	<div
+		class="max-w-7xl mx-auto py-8 flex flex-col md:flex-row gap-6 pt-24">
 
 		<!-- 左側分類區 -->
 		<aside
 			class="w-1/5 min-w-[180px] bg-card rounded-2xl shadow-lg border border-milktea mr-8 p-6 h-fit">
 			<!-- 門市下拉選單 -->
 			<div class="mb-6 flex flex-col justify-start gap-2">
-				<label for="storeSelector"
-					class="text-milktea-dark font-semibold">選擇門市：</label> <select
-					id="storeSelector" name="storeId" class="border rounded px-3 py-2 border-milktea focus:ring-milktea-dark focus:border-milktea-dark text-[#A67B5B] bg-white shadow-sm"
+				<label for="storeSelector" class="text-milktea-dark font-semibold">選擇門市：</label>
+				<select id="storeSelector" name="storeId"
+					class="border rounded px-3 py-2 border-milktea focus:ring-milktea-dark focus:border-milktea-dark text-[#A67B5B] bg-white shadow-sm"
 					onchange="handleStoreChange(this)">
 					<option value="" disabled selected>請選擇門市</option>
 					<option th:each="store : ${storeList}" th:value="${store.storeId}"
@@ -542,48 +673,54 @@
 					</div>
 
 					<div class="flex items-center justify-center gap-2 mb-3">
-					    <span class="star-display" data-meal-id="[[${meal.mealId}]]">
-					      <span th:with="stars=${meal.avgStars}">
-					        <th:block th:each="i : ${#numbers.sequence(1, 5)}">
-					          <i th:if="${i <= T(java.lang.Math).floor(stars)}" class="fas fa-star text-yellow-400"></i>
-					          <i th:if="${i == T(java.lang.Math).ceil(stars)} and ${stars > 0} and ${(stars - T(java.lang.Math).floor(stars)) >= 0.5}" class="fas fa-star-half-alt text-yellow-400"></i>
-					          <i th:if="${(i > stars) and (i > T(java.lang.Math).ceil(stars) or (stars - T(java.lang.Math).floor(stars)) < 0.5)}" class="far fa-star text-[#DED0B6]"></i>
-					        </th:block>
-					        <span th:text="${stars} + ' / 5'" class="ml-1 text-sm text-[#A67B5B]"></span>
-					      </span>
-					    </span>
+						<span class="star-display" data-meal-id="[[${meal.mealId}]]">
+							<span th:with="stars=${meal.avgStars}"> <th:block
+									th:each="i : ${#numbers.sequence(1, 5)}">
+									<i th:if="${i <= T(java.lang.Math).floor(stars)}"
+										class="fas fa-star text-yellow-400"></i>
+									<i
+										th:if="${i == T(java.lang.Math).ceil(stars)} and ${stars > 0} and ${(stars - T(java.lang.Math).floor(stars)) >= 0.5}"
+										class="fas fa-star-half-alt text-yellow-400"></i>
+									<i
+										th:if="${(i > stars) and (i > T(java.lang.Math).ceil(stars) or (stars - T(java.lang.Math).floor(stars)) < 0.5)}"
+										class="far fa-star text-[#DED0B6]"></i>
+								</th:block> <span th:text="${stars} + ' / 5'"
+								class="ml-1 text-sm text-[#A67B5B]"></span>
+						</span>
+						</span>
 					</div>
 
 					<div class="flex gap-2 w-full mt-auto">
 						<!-- 已收藏表單 -->
 						<div class="flex-1">
-						  <button type="button"
-						    class="fav-toggle-btn w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1"
-						    th:attr="data-mealid=${meal.mealId}, data-favid=${meal.favMealId}, data-favored=${meal.favored}"
-						    th:title="${meal.favored} ? '移除收藏' : '加入收藏'">
-						    <i th:if="${meal.favored}" class="fas fa-heart" style="color: #d45a6b;"></i>
-						    <i th:unless="${meal.favored}" class="far fa-heart group-hover:text-[#d45a6b]" style="color: #ccc;"></i>
-						  </button>
+							<button type="button"
+								class="fav-toggle-btn w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1"
+								th:attr="data-mealid=${meal.mealId}, data-favid=${meal.favMealId}, data-favored=${meal.favored}"
+								th:title="${meal.favored} ? '移除收藏' : '加入收藏'">
+								<i th:if="${meal.favored}" class="fas fa-heart"
+									style="color: #d45a6b;"></i> <i th:unless="${meal.favored}"
+									class="far fa-heart group-hover:text-[#d45a6b]"
+									style="color: #ccc;"></i>
+							</button>
 						</div>
 
-      <!-- 加入購物車：點擊會跳modal -->
-      <form th:action="@{/cart}" method="post" class="flex-1"
-        onsubmit="return checkLogin(event)">
-        <input type="hidden" name="mealId" th:value="${meal.mealId}" />
-        <button type="button"
-          class="w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1"
-          th:attr="data-mealid=${meal.mealId}"
-          onclick="return handleAddToCartClick(this)">
-          <i class="fas fa-shopping-cart"></i>
-        </button>
-      </form>
-    </div>
-  </div>
-  <div th:if="${#lists.isEmpty(mealListData)}"
-    class="col-span-full text-center text-milktea-dark py-10">
-    查無符合的餐點！
-  </div>
-</div>
+						<!-- 加入購物車：點擊會跳modal -->
+						<form th:action="@{/cart}" method="post" class="flex-1"
+							onsubmit="return checkLogin(event)">
+							<input type="hidden" name="mealId" th:value="${meal.mealId}" />
+							<button type="button"
+								class="w-full btn-outline rounded-lg px-3 py-2 text-sm text-center transition-all flex items-center justify-center gap-1"
+								th:attr="data-mealid=${meal.mealId}"
+								onclick="return handleAddToCartClick(this)">
+								<i class="fas fa-shopping-cart"></i>
+							</button>
+						</form>
+					</div>
+				</div>
+				<div th:if="${#lists.isEmpty(mealListData)}"
+					class="col-span-full text-center text-milktea-dark py-10">
+					查無符合的餐點！</div>
+			</div>
 		</main>
 	</div>
 
@@ -648,10 +785,8 @@
 					class="w-8 h-8 rounded bg-[#E5D0B6]">+</button>
 			</div>
 			<form method="post" th:action="@{/cart/add}" id="modalCartForm">
-				<input type="hidden" name="mealId" id="modalMealId" /> 
-				<input
-					type="hidden" name="quantity" id="modalMealFormQty" value="1" /> 
-				<input
+				<input type="hidden" name="mealId" id="modalMealId" /> <input
+					type="hidden" name="quantity" id="modalMealFormQty" value="1" /> <input
 					type="hidden" name="storeId" id="modalStoreId" />
 				<button type="submit"
 					class="w-full btn-primary rounded-lg px-4 py-2 mt-2">
@@ -664,6 +799,7 @@
 	<script th:inline="javascript">
 	  // 將 mealListData 轉成 JS 陣列（僅需用到的屬性）
 	  const mealData = /*[[${mealListData}]]*/ [];
+	  const storeData = /*[[${storeList}]]*/ [];
 	</script>
 
 	<script>
@@ -678,6 +814,22 @@ async function handleStoreChange(selectEl) {
         // 如果選擇的門市與目前相同，則不執行任何操作
         if (newStoreId === originalStoreId) {
             return;
+        }
+        
+     // 從我們注入的 storeData 中，找到被選中的門市物件
+        const selectedStore = storeData.find(store => store.storeId == newStoreId);
+
+        // 【關鍵判斷】檢查門市狀態
+        if (selectedStore && selectedStore.storeStatus === 'RESTING') {
+            // 如果是休息中，顯示提示 Modal
+            showRestingModal();
+            // 將下拉選單的值還原成原本的選項
+            if (originalStoreId) {
+                selectEl.value = originalStoreId;
+            } else {
+                selectEl.selectedIndex = 0; // 如果沒有舊選項，回到 "請選擇"
+            }
+            return; // 中斷後續的跳轉邏輯
         }
 
         // 若使用者未登入，後端購物車必為空，直接允許切換
@@ -788,6 +940,13 @@ async function clearCartAndRedirect(newStoreId) {
 	        alert("請先從頁面上方的下拉選單中選擇一個取餐門市！");
 	        return; // 直接結束函式
 	    }
+	    
+	 // 【二次檢查門市是否有營業】
+        const currentStore = storeData.find(store => store.storeId == storeId);
+        if (currentStore && currentStore.storeStatus === 'RESTING') {
+            showRestingModal();
+            return; // 如果當前門市是休息中，一樣跳出提示，不開啓點餐 Modal
+        }
 
 	    const mealId = Number(btn.getAttribute('data-mealid'));
 	    currentMeal = mealData.find(m => m.mealId === mealId);
@@ -806,6 +965,17 @@ async function clearCartAndRedirect(newStoreId) {
 
 	    document.getElementById('mealDetailModal').classList.remove('hidden');
 	}
+  
+//4. 【新增】顯示/關閉休息中 Modal 的輔助函式
+  function showRestingModal() {
+      const modal = document.getElementById('restingStoreModal');
+      if (modal) modal.classList.add('show');
+  }
+
+  function hideRestingModal() {
+      const modal = document.getElementById('restingStoreModal');
+      if (modal) modal.classList.remove('show');
+  }
 
   function closeMealModal() {
       document.getElementById('mealDetailModal').classList.add('hidden');
@@ -1032,7 +1202,7 @@ async function clearCartAndRedirect(newStoreId) {
   });
       
 </script>
-<script>
+	<script>
 // 登出 Modal 控制
 function confirmLogout() {
     document.getElementById('logoutModal').classList.add('show');
@@ -1170,16 +1340,28 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+    
+ // 【新增】為休息中 Modal 的關閉按鈕加上事件監聽
+    const closeRestingBtn = document.getElementById('closeRestingModalBtn');
+    const restingModal = document.getElementById('restingStoreModal');
+
+    if(closeRestingBtn) {
+        closeRestingBtn.addEventListener('click', hideRestingModal);
+    }
+    if(restingModal) {
+        restingModal.addEventListener('click', function(e) {
+            if (e.target === restingModal) hideRestingModal();
+        });
+    }
 });
 </script>
 
 
 
 	<footer class="footer">
-            <div class="copyright">
-                © 2025 EatFast 早餐店 - 版權所有 | 為您提供最優質的早餐服務
-            </div>
-    </footer>
+		<div class="copyright">© 2025 EatFast 早餐店 - 版權所有 | 為您提供最優質的早餐服務
+		</div>
+	</footer>
 
 
 </body>
