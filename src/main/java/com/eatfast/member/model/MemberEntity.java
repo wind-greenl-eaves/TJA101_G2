@@ -102,8 +102,8 @@ public class MemberEntity {
     private String email;
 
     @NotBlank(message = "連絡電話：請勿空白", groups = {CreateValidation.class, UpdateValidation.class})
-    @Pattern(regexp = "^(09\\d{8}|09\\d{2}[\\s-]\\d{3}[\\s-]\\d{3}|09[\\s-]\\d{8}|0[2-8][\\s-]?\\d{7,8}|\\(0[2-8]\\)\\d{7,8})$", 
-             message = "連絡電話：請填寫有效的電話號碼格式（如：0912345678、0912-345-678、02-12345678）", 
+    @Pattern(regexp = "^(09\\d{8}|09\\d{1}[\\s-]\\d{3}[\\s-]\\d{3}|09\\d{2}[\\s-]\\d{3}[\\s-]\\d{3}|09[\\s-]\\d{8}|0[2-8][\\s-]?\\d{7,8}|\\(0[2-8]\\)\\d{7,8})$", 
+             message = "連絡電話：請填寫有效的電話號碼格式（如：0912345678、0912-345-678、098-185-569、02-12345678）", 
              groups = {CreateValidation.class, UpdateValidation.class})
     @Column(name = "phone", nullable = false, length = 20)
     private String phone;

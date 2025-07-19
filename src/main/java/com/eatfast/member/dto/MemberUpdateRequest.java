@@ -22,8 +22,7 @@ import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 
 /**
- * POJO (Plain Old Java Object)，只負責攜帶「更新」操作所需的資料。
- * @Deprecated - 為了向後兼容保留，但建議使用 isEnabled() 代替 getIsEnabled()
+ * POJO (Plain Old Java Object)，只負責承載「更新」操作所需的資料。
  */
 
 public class MemberUpdateRequest {
@@ -59,8 +58,8 @@ public class MemberUpdateRequest {
 
     /**
      * 連絡電話。
-     * - @Pattern: 使用正規表示式驗證格式，支援台灣常見的手機和市話格式。
-     * 修正版支援格式：0912345678, 0912-345-678, 09-12345678, 098-185-569, 098-702-696, (02)12345678, 02-12345678
+     * 【修正】統一電話號碼驗證正則表達式，與其他檔案保持一致
+     * 支援格式：0912345678, 0912-345-678, 09-12345678, 098-185-569, 098-702-696, (02)12345678, 02-12345678
      */
     @NotBlank(message = "連絡電話：請勿空白", groups = UpdateValidation.class)
     @Pattern(regexp = "^(09\\d{8}|09\\d{1}[\\s-]\\d{3}[\\s-]\\d{3}|09\\d{2}[\\s-]\\d{3}[\\s-]\\d{3}|09[\\s-]\\d{8}|0[2-8][\\s-]?\\d{7,8}|\\(0[2-8]\\)\\d{7,8})$", 
@@ -79,7 +78,6 @@ public class MemberUpdateRequest {
     /**
      * 性別。
      */
- // 【檔案路徑配對】: gender 欄位的型別必須是共享的 Gender
     @NotNull(message = "性別：請勿空白", groups = UpdateValidation.class)
     private Gender gender;
     
@@ -90,10 +88,10 @@ public class MemberUpdateRequest {
     private String account;
     
     /**
-     * 帳號啟用狀態。
-     * 管理員可以啟用或停用會員帳號。
+     * 【修正】帳號啟用狀態。
+     * 統一使用 isEnabled 命名，與 MemberEntity 保持一致
      */
-    private Boolean enabled; // 【修正】統一屬性名稱為 enabled
+    private Boolean isEnabled;
     
     /**
      * 會員註冊時間（唯讀顯示用）。
@@ -104,7 +102,6 @@ public class MemberUpdateRequest {
     //================================================================
     // Getters and Setters
     //================================================================
-    // 標準 Java 樣板程式碼，用於讓外部存取私有欄位。
     
     public Long getMemberId() { return memberId; }
     public void setMemberId(Long memberId) { this.memberId = memberId; }
@@ -124,16 +121,16 @@ public class MemberUpdateRequest {
     public void setAccount(String account) { this.account = account; }
     
     /**
-     * 【修正】統一方法名稱 - 使用 isEnabled 與 MemberEntity 保持一致
+     * 【修正】統一方法命名 - 與 MemberEntity 保持一致
      */
-    public Boolean isEnabled() { return enabled; }
-    public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+    public Boolean isEnabled() { return isEnabled; }
+    public void setEnabled(Boolean isEnabled) { this.isEnabled = isEnabled; }
     
     /**
-     * 【修正】提供別名方法以維持向後兼容性
+     * 【新增】提供別名方法以維持向後兼容性
      */
-    public Boolean getEnabled() { return enabled; }
-    
+    public Boolean getEnabled() { return isEnabled; }
+    public Boolean getIsEnabled() { return isEnabled; }
 
     public java.time.LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }

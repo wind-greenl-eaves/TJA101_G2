@@ -111,9 +111,10 @@ public class EmployeeEntity {
      * 這是員工的手機號碼，必須符合台灣手機格式。
      * 對應到 employee 資料表的 phone 欄位。
      */
-    @NotBlank(message = "連絡電話不可為空")
-    @Pattern(regexp = "^09\\d{2}-?\\d{3}-?\\d{3}$", message = "請輸入有效的台灣手機號碼格式 (例如 0912-345-678)")
-    @Column(name = "phone", nullable = false, length = 20)
+    @NotBlank(message = "手機號碼不能為空")
+    @Pattern(regexp = "^(09\\d{8}|09\\d{1}[\\s-]\\d{3}[\\s-]\\d{3}|09\\d{2}[\\s-]\\d{3}[\\s-]\\d{3}|09[\\s-]\\d{8}|0[2-8][\\s-]?\\d{7,8}|\\(0[2-8]\\)\\d{7,8})$", 
+             message = "請輸入有效的台灣電話號碼格式（如：0912345678、0912-345-678、098-185-569、02-12345678）")
+    @Column(name = "employee_phone", nullable = false, length = 15)
     private String phone;
 
     /**
