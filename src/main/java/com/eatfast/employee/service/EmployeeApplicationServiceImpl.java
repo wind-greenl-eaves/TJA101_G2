@@ -103,7 +103,7 @@ public class EmployeeApplicationServiceImpl implements EmployeeApplicationServic
                 request.getUsername(),
                 request.getAccount(),
                 request.getEmail(),
-                request.getPhone(),
+                request.getPhone() != null ? request.getPhone().trim() : null, // 確保電話值正確處理
                 request.getNationalId(),
                 passwordEncoder.encode(request.getPassword()),
                 request.getRole(),

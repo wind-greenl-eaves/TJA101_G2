@@ -69,7 +69,7 @@ public class EmployeeController {
     }
 
     // ========================
-    // 1. 新增員工（Create）- 僅限總部管理員直接創建
+    // 1. 新增員工（Create）- 修改為支援申請流程
     // ========================
     // 這個方法負責處理「新增員工」的請求。
     // 前端會送出一個表單（multipart/form-data），包含員工資料。
@@ -88,24 +88,53 @@ public class EmployeeController {
                         .body(Map.of("message", "請重新登入"));
             }
 
-            // 【修正】只允許總部管理員直接創建員工
-            if (currentEmployee.getRole() != EmployeeRole.HEADQUARTERS_ADMIN) {
-                employeeLogger.logWarn("非總部管理員嘗試直接創建員工: userId={}", currentEmployee.getEmployeeId());
+            employeeLogger.logDebug("當前登入用戶: ID={}, username={}, role={}", 
+                        currentEmployee.getEmployeeId(), currentEmployee.getUsername(), currentEmployee.getRole());
+
+            // 手動檢查權限
+            if (!permissionService.canCreateEmployee(currentEmployee)) {
+                employeeLogger.logWarn("用戶 {} (ID: {}) 嘗試新增員工但權限不足", 
+                           currentEmployee.getUsername(), currentEmployee.getEmployeeId());
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("message", "權限不足：只有總部管理員可以直接創建員工。門市經理請使用申請流程。"));
+                        .body(Map.of("message", "權限不足：您無法新增員工"));
             }
 
-            // 總部管理員直接創建員工
-            EmployeeDTO createdEmployee = employeeService.createEmployee(request);
-            
-            employeeLogger.logInfo("【成功】創建員工: ID={}, username={}, role={}, storeId={}", 
-                       createdEmployee.getEmployeeId(), createdEmployee.getUsername(), 
-                       createdEmployee.getRole(), createdEmployee.getStoreId());
-            
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
+            // 【核心修改】根據角色決定是直接創建還是提交申請
+            if (currentEmployee.getRole() == EmployeeRole.MANAGER) {
+                // 門市經理：提交申請單
+                request.setStoreId(currentEmployee.getStoreId());
+                employeeLogger.logInfo("門市經理提交新增員工申請: username={}", request.getUsername());
+                
+                EmployeeApplicationDTO application = employeeApplicationService.submitApplication(
+                    request, currentEmployee.getEmployeeId());
+                
+                employeeLogger.logInfo("【成功】提交員工申請: applicationId={}, username={}", 
+                           application.getApplicationId(), request.getUsername());
+                
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(Map.of(
+                            "message", "員工申請已提交，等待總部管理員審核",
+                            "applicationId", application.getApplicationId(),
+                            "type", "application"
+                        ));
+                
+            } else if (currentEmployee.getRole() == EmployeeRole.HEADQUARTERS_ADMIN) {
+                // 總部管理員：直接創建員工
+                employeeLogger.logInfo("總部管理員直接創建新員工: username={}", request.getUsername());
+                EmployeeDTO createdEmployee = employeeService.createEmployee(request);
+                
+                employeeLogger.logInfo("【成功】創建員工: ID={}, username={}, role={}, storeId={}", 
+                           createdEmployee.getEmployeeId(), createdEmployee.getUsername(), 
+                           createdEmployee.getRole(), createdEmployee.getStoreId());
+                
+                return ResponseEntity.status(HttpStatus.CREATED).body(createdEmployee);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "權限不足：只有門市經理和總部管理員可以新增員工"));
+            }
             
         } catch (Exception e) {
-            employeeLogger.logError("【失敗】創建員工失敗: username={}, error={}", 
+            employeeLogger.logError("【失敗】處理員工請求失敗: username={}, error={}", 
                     request.getUsername(), e.getMessage());
             return ResponseEntity.badRequest()
                     .body(Map.of("message", e.getMessage()));
