@@ -27,6 +27,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,10 +97,10 @@ public class OrderController {
     @PostMapping("/process-payment")
     public String processPayment(
             @RequestParam String orderId,
-            @RequestParam String cardNumber,
-            @RequestParam String expiryMonth,
-            @RequestParam String expiryYear,
-            @RequestParam String cvv,
+            @RequestParam(required = false) String cardNumber,
+            @RequestParam(required = false) String expiryMonth,
+            @RequestParam(required = false) String expiryYear,
+            @RequestParam(required = false) String cvv,
             Model model,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
@@ -112,6 +113,19 @@ public class OrderController {
             return "redirect:/api/v1/auth/member-login";
         }
         
+        // 後端驗證信用卡資料
+        List<String> validationErrors = validateCreditCardData(cardNumber, expiryMonth, expiryYear, cvv);
+        
+        if (!validationErrors.isEmpty()) {
+            // 將驗證錯誤傳回前端
+            redirectAttributes.addFlashAttribute("validationErrors", validationErrors);
+            redirectAttributes.addFlashAttribute("cardNumber", cardNumber);
+            redirectAttributes.addFlashAttribute("expiryMonth", expiryMonth);
+            redirectAttributes.addFlashAttribute("expiryYear", expiryYear);
+            redirectAttributes.addFlashAttribute("cvv", cvv);
+            return "redirect:/orders/pay";
+        }
+
         try {
             // 獲取購物車資訊
             List<CartItemDto> cartItems = cartService.getCartItemsByMember(memberId);
@@ -145,108 +159,71 @@ public class OrderController {
         }
     }
     
-    // 根據購物車資訊創建訂單
-    private void createOrderFromCart(Long memberId, String orderId, List<CartItemDto> cartItems, HttpSession session, String cardNumber) {
-        try {
-            // 計算總金額
-            Long totalAmount = cartItems.stream()
-                .mapToLong(item -> item.getMealPrice() * item.getQuantity())
-                .sum();
-            
-            // 獲取會員資訊 - 直接使用Repository
-            MemberEntity member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("找不到會員資訊"));
-            
-            // 獲取門市資訊 - 直接使用Repository
-            Long storeId = cartItems.get(0).getStoreId();
-            StoreEntity store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new RuntimeException("找不到門市資訊"));
-            
-            // 獲取取餐時間和備註
-            String pickupTimeStr = (String) session.getAttribute("pickupTime");
-            String orderNotes = (String) session.getAttribute("orderNotes");
-            
-            // 創建訂單主體
-            OrderListEntity orderList = new OrderListEntity();
-            orderList.setOrderListId(orderId);
-            orderList.setOrderAmount(totalAmount);
-            orderList.setOrderDate(LocalDateTime.now());
-            orderList.setOrderStatus(OrderStatus.PENDING); // 預設為處理中
-            orderList.setMember(member);
-            orderList.setStore(store);
-            orderList.setCardNumber(maskCardNumber(cardNumber));
-            orderList.setMealCustomization(orderNotes);
-            
-            // 設定取餐號碼為會員電話末三碼
-            Long pickupNumber = generatePickupNumberFromPhone(member.getPhone());
-            orderList.setMealPickupNumber(pickupNumber);
-            
-            // 設定取餐時間
-            if (pickupTimeStr != null && !pickupTimeStr.trim().isEmpty()) {
-                try {
-                    LocalDateTime pickupTime = LocalDateTime.parse(
-                        LocalDateTime.now().toLocalDate() + "T" + pickupTimeStr + ":00"
-                    );
-                    orderList.setPickupTime(pickupTime);
-                } catch (Exception e) {
-                    // 如果解析失敗，設定為預設時間（當前時間+30分鐘）
-                    orderList.setPickupTime(LocalDateTime.now().plusMinutes(30));
-                }
-            }
-            
-            // 儲存訂單
-            OrderListEntity savedOrder = orderListService.createOrder(orderList);
-            
-            // 創建訂單明細
-            for (CartItemDto cartItem : cartItems) {
-                OrderListInfoEntity orderInfo = new OrderListInfoEntity();
-                orderInfo.setOrderList(savedOrder);
-                
-                // 設定餐點資訊
-                MealEntity meal = new MealEntity();
-                meal.setMealId(cartItem.getMealId());
-                orderInfo.setMeal(meal);
-                
-                orderInfo.setMealPrice(cartItem.getMealPrice());
-                orderInfo.setQuantity(cartItem.getQuantity());
-                orderInfo.setReviewStars(0L); // 初始評論星數為0
-                
-                // 儲存訂單明細
-                orderListInfoService.createOrderListInfo(orderInfo);
-            }
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("創建訂單失敗: " + e.getMessage());
-        }
-    }
-    
-    // 遮罩信用卡號碼
-    private String maskCardNumber(String cardNumber) {
-        if (cardNumber == null || cardNumber.length() < 4) {
-            return cardNumber;
-        }
-        return "**** **** **** " + cardNumber.substring(cardNumber.length() - 4);
-    }
-    
-    // 根據會員電話號碼生成取餐號碼（取末三碼）
-    private Long generatePickupNumberFromPhone(String phone) {
-        if (phone == null || phone.isEmpty()) {
-            // 如果電話號碼為空，產生隨機3位數
-            return (long) (100 + (Math.random() * 900));
-        }
+    // 信用卡資料驗證方法
+    private List<String> validateCreditCardData(String cardNumber, String expiryMonth, String expiryYear, String cvv) {
+        List<String> errors = new ArrayList<>();
         
-        // 移除電話號碼中的非數字字元
-        String cleanPhone = phone.replaceAll("[^0-9]", "");
-        
-        if (cleanPhone.length() >= 3) {
-            // 取末三碼
-            String lastThree = cleanPhone.substring(cleanPhone.length() - 3);
-            return Long.parseLong(lastThree);
+        // 驗證信用卡號碼 - 必須是16位數字
+        if (cardNumber == null || cardNumber.trim().isEmpty()) {
+            errors.add("請輸入信用卡號碼");
         } else {
-            // 如果電話號碼不足3位，產生隨機3位數
-            return (long) (100 + (Math.random() * 900));
+            // 移除空格和非數字字符
+            String cleanCardNumber = cardNumber.replaceAll("\\D", "");
+            if (cleanCardNumber.length() != 16) {
+                errors.add("信用卡號碼必須為16位數字");
+            }
+            // 不使用Luhn算法，允許任何16位數字組合
         }
+        
+        // 驗證有效期限 - 不能過期
+        if (expiryMonth == null || expiryMonth.trim().isEmpty()) {
+            errors.add("請選擇有效期限月份");
+        } else {
+            try {
+                int month = Integer.parseInt(expiryMonth);
+                if (month < 1 || month > 12) {
+                    errors.add("有效期限月份必須在1-12之間");
+                }
+            } catch (NumberFormatException e) {
+                errors.add("有效期限月份格式不正確");
+            }
+        }
+        
+        if (expiryYear == null || expiryYear.trim().isEmpty()) {
+            errors.add("請選擇有效期限年份");
+        } else {
+            try {
+                int year = Integer.parseInt(expiryYear);
+                int currentYear = java.time.Year.now().getValue();
+                if (year < currentYear) {
+                    errors.add("信用卡已過期");
+                } else if (year == currentYear && expiryMonth != null && !expiryMonth.trim().isEmpty()) {
+                    try {
+                        int month = Integer.parseInt(expiryMonth);
+                        int currentMonth = java.time.LocalDate.now().getMonthValue();
+                        if (month < currentMonth) {
+                            errors.add("信用卡已過期");
+                        }
+                    } catch (NumberFormatException e) {
+                        // 月份格式錯誤，已在上面處理
+                    }
+                }
+            } catch (NumberFormatException e) {
+                errors.add("有效期限年份格式不正確");
+            }
+        }
+        
+        // 驗證CVV - 必須是3位數字
+        if (cvv == null || cvv.trim().isEmpty()) {
+            errors.add("請輸入安全碼(CVV)");
+        } else {
+            String cleanCvv = cvv.replaceAll("\\D", "");
+            if (cleanCvv.length() != 3) {
+                errors.add("安全碼必須為3位數字");
+            }
+        }
+        
+        return errors;
     }
     
     @GetMapping("/payment-success")
@@ -384,6 +361,115 @@ public class OrderController {
         }
         
         return orderId;
+    }
+    
+    // 根據購物車資訊創建訂單
+    private void createOrderFromCart(Long memberId, String orderId, List<CartItemDto> cartItems, HttpSession session, String cardNumber) {
+        try {
+            // 計算總金額
+            Long totalAmount = cartItems.stream()
+                .mapToLong(item -> item.getMealPrice() * item.getQuantity())
+                .sum();
+            
+            // 獲取會員資訊 - 直接使用Repository
+            MemberEntity member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("找不到會員資訊"));
+            
+            // 獲取門市資訊 - 直接使用Repository
+            Long storeId = cartItems.get(0).getStoreId();
+            StoreEntity store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new RuntimeException("找不到門市資訊"));
+            
+            // 獲取取餐時間和備註
+            String pickupTimeStr = (String) session.getAttribute("pickupTime");
+            String orderNotes = (String) session.getAttribute("orderNotes");
+            
+            // 創建訂單主體
+            OrderListEntity orderList = new OrderListEntity();
+            orderList.setOrderListId(orderId);
+            orderList.setOrderAmount(totalAmount);
+            orderList.setOrderDate(LocalDateTime.now());
+            orderList.setOrderStatus(OrderStatus.PENDING); // 預設為處理中
+            orderList.setMember(member);
+            orderList.setStore(store);
+            orderList.setCardNumber(maskCardNumber(cardNumber));
+            orderList.setMealCustomization(orderNotes);
+            
+            // 設定取餐號碼為會員電話末三碼
+            Long pickupNumber = generatePickupNumberFromPhone(member.getPhone());
+            orderList.setMealPickupNumber(pickupNumber);
+            
+            // 設定取餐時間
+            if (pickupTimeStr != null && !pickupTimeStr.trim().isEmpty()) {
+                try {
+                    LocalDateTime pickupTime = LocalDateTime.parse(
+                        LocalDateTime.now().toLocalDate() + "T" + pickupTimeStr + ":00"
+                    );
+                    orderList.setPickupTime(pickupTime);
+                } catch (Exception e) {
+                    // 如果解析失敗，設定為預設時間（當前時間+30分鐘）
+                    orderList.setPickupTime(LocalDateTime.now().plusMinutes(30));
+                }
+            }
+            
+            // 儲存訂單
+            OrderListEntity savedOrder = orderListService.createOrder(orderList);
+            
+            // 創建訂單明細
+            for (CartItemDto cartItem : cartItems) {
+                OrderListInfoEntity orderInfo = new OrderListInfoEntity();
+                orderInfo.setOrderList(savedOrder);
+                
+                // 設定餐點資訊
+                MealEntity meal = new MealEntity();
+                meal.setMealId(cartItem.getMealId());
+                orderInfo.setMeal(meal);
+                
+                orderInfo.setMealPrice(cartItem.getMealPrice());
+                orderInfo.setQuantity(cartItem.getQuantity());
+                orderInfo.setReviewStars(0L); // 初始評論星數為0
+                
+                // 儲存訂單明細
+                orderListInfoService.createOrderListInfo(orderInfo);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("創建訂單失敗: " + e.getMessage());
+        }
+    }
+    
+    // 遮罩信用卡號碼 (只顯示後4位)
+    private String maskCardNumber(String cardNumber) {
+        if (cardNumber == null || cardNumber.length() < 4) {
+            return "****";
+        }
+        String cleanCardNumber = cardNumber.replaceAll("\\D", "");
+        if (cleanCardNumber.length() >= 4) {
+            return "************" + cleanCardNumber.substring(cleanCardNumber.length() - 4);
+        }
+        return "****";
+    }
+    
+    // 從電話號碼生成取餐號碼 (取末三位數字)
+    private Long generatePickupNumberFromPhone(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return 999L; // 預設值
+        }
+        
+        // 移除非數字字符
+        String cleanPhone = phone.replaceAll("\\D", "");
+        
+        if (cleanPhone.length() >= 3) {
+            String lastThreeDigits = cleanPhone.substring(cleanPhone.length() - 3);
+            try {
+                return Long.parseLong(lastThreeDigits);
+            } catch (NumberFormatException e) {
+                return 999L; // 預設值
+            }
+        } else {
+            return 999L; // 預設值
+        }
     }
     
     // 訂單付款DTO

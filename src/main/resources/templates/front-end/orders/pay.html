@@ -156,12 +156,47 @@
             margin-bottom: 20px;
             text-align: center;
         }
+        .validation-errors {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .validation-errors ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .validation-errors li {
+            margin-bottom: 5px;
+        }
+        .payment-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
 <div class="checkout-container">
     <h2 class="order-title">訂單付款</h2>
+    
+    <!-- 顯示後端驗證錯誤 -->
+    <div th:if="${validationErrors != null && !validationErrors.isEmpty()}" class="validation-errors">
+        <strong>請修正以下錯誤：</strong>
+        <ul>
+            <li th:each="error : ${validationErrors}" th:text="${error}"></li>
+        </ul>
+    </div>
+    
+    <!-- 顯示付款錯誤 -->
+    <div th:if="${paymentError != null}" class="payment-error" th:text="${paymentError}"></div>
     
     <div class="order-details" th:object="${orderToPay}">
         <div>
@@ -194,12 +229,11 @@
         <div class="form-group">
             <label class="form-label">信用卡號碼 <span class="card-type-indicator" id="cardType"></span></label>
             <div class="card-number-group">
-                <input type="tel" id="cardNumber1" name="cardNumber1" maxlength="4" placeholder="1234" class="card-number-input" required>
-                <input type="tel" id="cardNumber2" name="cardNumber2" maxlength="4" placeholder="5678" class="card-number-input" required>
-                <input type="tel" id="cardNumber3" name="cardNumber3" maxlength="4" placeholder="9012" class="card-number-input" required>
-                <input type="tel" id="cardNumber4" name="cardNumber4" maxlength="4" placeholder="3456" class="card-number-input" required>
+                <input type="tel" id="cardNumber1" name="cardNumber1" maxlength="4" placeholder="1234" class="card-number-input">
+                <input type="tel" id="cardNumber2" name="cardNumber2" maxlength="4" placeholder="5678" class="card-number-input">
+                <input type="tel" id="cardNumber3" name="cardNumber3" maxlength="4" placeholder="9012" class="card-number-input">
+                <input type="tel" id="cardNumber4" name="cardNumber4" maxlength="4" placeholder="3456" class="card-number-input">
             </div>
-            <div class="error-message" id="cardNumberError">請輸入有效的信用卡號碼</div>
             <div class="security-info">
                 <span class="security-icon">🔒</span>
                 您的信用卡資訊採用SSL加密保護
@@ -213,22 +247,22 @@
                     <div>
                         <label class="form-label">有效期限</label>
                         <div style="display: flex; gap: 10px;">
-                            <select id="expiryMonth" name="expiryMonth" class="year-month-input" required>
+                            <select id="expiryMonth" name="expiryMonth" class="year-month-input" th:value="${expiryMonth}">
                                 <option value="">月</option>
-                                <option value="01">01</option>
-                                <option value="02">02</option>
-                                <option value="03">03</option>
-                                <option value="04">04</option>
-                                <option value="05">05</option>
-                                <option value="06">06</option>
-                                <option value="07">07</option>
-                                <option value="08">08</option>
-                                <option value="09">09</option>
-                                <option value="10">10</option>
-                                <option value="11">11</option>
-                                <option value="12">12</option>
+                                <option value="01" th:selected="${expiryMonth == '01'}">01</option>
+                                <option value="02" th:selected="${expiryMonth == '02'}">02</option>
+                                <option value="03" th:selected="${expiryMonth == '03'}">03</option>
+                                <option value="04" th:selected="${expiryMonth == '04'}">04</option>
+                                <option value="05" th:selected="${expiryMonth == '05'}">05</option>
+                                <option value="06" th:selected="${expiryMonth == '06'}">06</option>
+                                <option value="07" th:selected="${expiryMonth == '07'}">07</option>
+                                <option value="08" th:selected="${expiryMonth == '08'}">08</option>
+                                <option value="09" th:selected="${expiryMonth == '09'}">09</option>
+                                <option value="10" th:selected="${expiryMonth == '10'}">10</option>
+                                <option value="11" th:selected="${expiryMonth == '11'}">11</option>
+                                <option value="12" th:selected="${expiryMonth == '12'}">12</option>
                             </select>
-                            <select id="expiryYear" name="expiryYear" class="year-month-input" required>
+                            <select id="expiryYear" name="expiryYear" class="year-month-input" th:value="${expiryYear}">
                                 <option value="">年</option>
                                 <!-- 年份選項將由JavaScript動態生成 -->
                             </select>
@@ -237,14 +271,12 @@
                 </div>
                 <div class="cvv-group">
                     <label class="form-label">安全碼 (CVV)</label>
-                    <input type="tel" id="cvv" name="cvv" maxlength="3" placeholder="123" class="cvv-input" required>
+                    <input type="tel" id="cvv" name="cvv" maxlength="3" placeholder="123" class="cvv-input" th:value="${cvv}">
                     <div class="security-info">
                         <span style="font-size: 10px;">卡片背面3位數字</span>
                     </div>
                 </div>
             </div>
-            <div class="error-message" id="expiryError">請選擇有效的到期日</div>
-            <div class="error-message" id="cvvError">請輸入3位安全碼</div>
         </div>
 
         <button type="submit" class="confirm-button" id="payButton">確認付款</button>
@@ -256,15 +288,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // 生成年份選項
     const currentYear = new Date().getFullYear();
     const expiryYearSelect = document.getElementById('expiryYear');
+    const selectedYear = '[[${expiryYear}]]'; // Thymeleaf變量
+    
     for (let i = 0; i < 15; i++) {
         const year = currentYear + i;
         const option = document.createElement('option');
         option.value = year;
         option.textContent = year.toString().slice(-2); // 只顯示末兩位數
+        if (year.toString() === selectedYear) {
+            option.selected = true;
+        }
         expiryYearSelect.appendChild(option);
     }
 
-    // 信用卡號碼自動跳轉
+    // 恢復信用卡號碼輸入值
+    const savedCardNumber = '[[${cardNumber}]]';
+    if (savedCardNumber && savedCardNumber.length === 16) {
+        document.getElementById('cardNumber1').value = savedCardNumber.substring(0, 4);
+        document.getElementById('cardNumber2').value = savedCardNumber.substring(4, 8);
+        document.getElementById('cardNumber3').value = savedCardNumber.substring(8, 12);
+        document.getElementById('cardNumber4').value = savedCardNumber.substring(12, 16);
+        detectCardType(savedCardNumber.substring(0, 4));
+    }
+
+    // 信用卡號碼自動跳轉 - 僅UI改善，不做驗證
     const cardInputs = ['cardNumber1', 'cardNumber2', 'cardNumber3', 'cardNumber4'];
     cardInputs.forEach((id, index) => {
         const input = document.getElementById(id);
@@ -297,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
         this.value = this.value.replace(/\D/g, '');
     });
 
-    // 信用卡類型檢測
+    // 信用卡類型檢測 - 僅UI顯示
     function detectCardType(firstFour) {
         const cardTypeIndicator = document.getElementById('cardType');
         
@@ -314,74 +361,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 表單驗證
+    // 簡化的表單提交處理 - 移除前端驗證
     document.getElementById('paymentForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+        // 顯示處理中狀態
+        const payButton = document.getElementById('payButton');
+        payButton.disabled = true;
+        payButton.textContent = '處理中...';
         
-        let isValid = true;
-        
-        // 驗證信用卡號碼
+        // 創建隱藏的完整信用卡號碼輸入
         const cardNumber = cardInputs.map(id => document.getElementById(id).value).join('');
-        if (cardNumber.length !== 16 || !/^\d{16}$/.test(cardNumber)) {
-            showError('cardNumberError', 'cardNumber1');
-            isValid = false;
-        } else {
-            hideError('cardNumberError', 'cardNumber1');
-        }
+        const fullCardNumber = document.createElement('input');
+        fullCardNumber.type = 'hidden';
+        fullCardNumber.name = 'cardNumber';
+        fullCardNumber.value = cardNumber;
+        this.appendChild(fullCardNumber);
         
-        // 驗證有效期限
-        const expiryMonth = document.getElementById('expiryMonth').value;
-        const expiryYear = document.getElementById('expiryYear').value;
-        if (!expiryMonth || !expiryYear) {
-            showError('expiryError', 'expiryMonth');
-            isValid = false;
-        } else {
-            const now = new Date();
-            const expiry = new Date(expiryYear, expiryMonth - 1);
-            if (expiry <= now) {
-                showError('expiryError', 'expiryMonth');
-                isValid = false;
-            } else {
-                hideError('expiryError', 'expiryMonth');
-            }
-        }
-        
-        // 驗證CVV
-        const cvv = document.getElementById('cvv').value;
-        if (!/^\d{3}$/.test(cvv)) {
-            showError('cvvError', 'cvv');
-            isValid = false;
-        } else {
-            hideError('cvvError', 'cvv');
-        }
-        
-        if (isValid) {
-            // 顯示處理中狀態
-            const payButton = document.getElementById('payButton');
-            payButton.disabled = true;
-            payButton.textContent = '處理中...';
-            
-            // 創建隱藏的完整信用卡號碼輸入
-            const fullCardNumber = document.createElement('input');
-            fullCardNumber.type = 'hidden';
-            fullCardNumber.name = 'cardNumber';
-            fullCardNumber.value = cardNumber;
-            this.appendChild(fullCardNumber);
-            
-            // 提交表單
-            this.submit();
-        }
+        // 直接提交表單，讓後端處理所有驗證
     });
-
-    function showError(errorId, inputId) {
-        document.getElementById(errorId).style.display = 'block';
-        document.getElementById(inputId).classList.add('input-error');
-    }
-
-    function hideError(errorId, inputId) {
-        document.getElementById(errorId).style.display = 'none';
-        document.getElementById(inputId).classList.remove('input-error');
-    }
 });
 </script>
 
