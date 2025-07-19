@@ -23,7 +23,9 @@ import java.time.LocalDate;
 
 /**
  * POJO (Plain Old Java Object)，只負責攜帶「更新」操作所需的資料。
+ * @Deprecated - 為了向後兼容保留，但建議使用 isEnabled() 代替 getIsEnabled()
  */
+
 public class MemberUpdateRequest {
 
     //================================================================
@@ -132,6 +134,7 @@ public class MemberUpdateRequest {
      */
     public Boolean getEnabled() { return enabled; }
     
+
     public java.time.LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

@@ -171,12 +171,16 @@ public class MemberController {
     /**
      * 【功能】: 處理「更新一般資料」的請求 (不含密碼)。
      * 【請求路徑】: 處理 POST /member/update 請求。
+     * 【驗證路徑】: 使用 @Validated 註解來啟用 JSR-303 驗證。
+     * 【錯誤處理路徑】: 如果驗證失敗，BindingResult 會包含錯誤資訊。
+     * 【成功重定向路徑】: 成功後重定向到會員列表頁。
+     * @ModelAttribute 用於將表單資料綁定到 DTO。
      */
     @PostMapping("/update")
     public String update(@Validated(UpdateValidation.class) @ModelAttribute("memberUpdateRequest") MemberUpdateRequest updateRequest,
-                         BindingResult result,
-                         RedirectAttributes redirectAttributes,
-                         Model model,
+                         BindingResult result, //
+                         RedirectAttributes redirectAttributes, // 使用 RedirectAttributes 來傳遞訊息到重定向後的頁面
+                         Model model, // 添加 Model 參數以便傳遞資料到視圖
                          HttpSession session) { // 加入 HttpSession
 
         // 【驗證路徑】: 檢查 DTO 欄位驗證。
