@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -76,6 +77,7 @@ public class EmployeeController {
     // 對應 API 路徑：POST /api/v1/employees
     //@ModleAttribute 用來處理 multipart/form-data 的表單資料。
     @PostMapping(consumes = "multipart/form-data")
+    @PreAuthorize("hasPermission(null, 'CREATE_EMPLOYEE', 'EMPLOYEE')")
     public ResponseEntity<?> createEmployee(@Valid @ModelAttribute CreateEmployeeRequest request, HttpSession session) {
         employeeLogger.logInfo("收到新增員工請求: username={}, email={}, role={}", 
                    request.getUsername(), request.getEmail(), request.getRole());
@@ -151,6 +153,7 @@ public class EmployeeController {
     //   - 門市經理只能查自己門市的員工
     //   - 一般員工無法查詢
     @GetMapping("/{id}")
+    @PreAuthorize("hasPermission(#id, 'VIEW_EMPLOYEE')")
     public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id, HttpSession session) {
         logger.info("收到查詢員工請求: employeeId={}", id);
         
@@ -191,6 +194,7 @@ public class EmployeeController {
     // 對應 API 路徑：GET /api/v1/employees
     // 權限說明同上。
     @GetMapping
+    @PreAuthorize("hasPermission(null, 'ACCESS_EMPLOYEE_LIST', 'EMPLOYEE')")
     public ResponseEntity<List<EmployeeDTO>> searchEmployees(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) EmployeeRole role,
@@ -255,6 +259,7 @@ public class EmployeeController {
     // 對應 API 路徑：PUT /api/v1/employees/{id}
     // 權限說明同上。
     @PutMapping("/{id}")
+    @PreAuthorize("hasPermission(#id, 'EDIT_EMPLOYEE')")
     public ResponseEntity<EmployeeDTO> updateEmployee(
             @PathVariable Long id,
             @ModelAttribute @Valid UpdateEmployeeRequest request,
@@ -302,6 +307,7 @@ public class EmployeeController {
     // 對應 API 路徑：DELETE /api/v1/employees/{id}
     // 權限說明同上。
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasPermission(#id, 'DELETE_EMPLOYEE')")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id, HttpSession session) {
         logger.info("收到刪除員工請求: employeeId={}", id);
         
@@ -346,6 +352,7 @@ public class EmployeeController {
     //   - POST /api/v1/employees/{employeeId}/permissions/{permissionId}（授權）
     //   - DELETE /api/v1/employees/{employeeId}/permissions/{permissionId}（收回）
     @PostMapping("/{employeeId}/permissions/{permissionId}")
+    @PreAuthorize("hasPermission(#employeeId, 'EDIT_EMPLOYEE')")
     public ResponseEntity<Void> grantPermission(@PathVariable Long employeeId, @PathVariable Long permissionId) {
         logger.info("收到授權請求: employeeId={}, permissionId={}", employeeId, permissionId);
         
@@ -361,6 +368,7 @@ public class EmployeeController {
     }
 
     @DeleteMapping("/{employeeId}/permissions/{permissionId}")
+    @PreAuthorize("hasPermission(#employeeId, 'EDIT_EMPLOYEE')")
     public ResponseEntity<Void> revokePermission(@PathVariable Long employeeId, @PathVariable Long permissionId) {
         logger.info("收到收回權限請求: employeeId={}, permissionId={}", employeeId, permissionId);
         
@@ -494,6 +502,7 @@ public class EmployeeController {
     // 對應 API 路徑：PUT /api/v1/employees/{id}/photo
     // 會檢查檔案格式、大小與權限。
     @PutMapping("/{id}/photo")
+    @PreAuthorize("hasPermission(#id, 'EDIT_EMPLOYEE')")
     public ResponseEntity<?> updateEmployeePhoto(
             @PathVariable Long id,
             @RequestParam("photo") MultipartFile photo,
