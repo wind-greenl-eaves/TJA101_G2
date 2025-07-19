@@ -1,7 +1,6 @@
 package com.eatfast.employee.filter;
 
 import jakarta.servlet.*;
-import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -23,8 +22,8 @@ import java.nio.charset.StandardCharsets;
  * - 【新增】保護後台會員管理功能，只有登入員工才能訪問
  * 
  * 適用路徑：/employee/**, /member/**, /back-end/member/**
+ * 註冊方式：透過 EmployeeFilterConfig 的 FilterRegistrationBean
  */
-@WebFilter(urlPatterns = {"/employee/*",  "/back-end/member/*"})
 public class EmployeeAuthenticationFilter implements Filter {
 
     private static final Logger log = LoggerFactory.getLogger(EmployeeAuthenticationFilter.class);
