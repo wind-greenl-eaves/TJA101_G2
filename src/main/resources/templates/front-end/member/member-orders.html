@@ -4,46 +4,263 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>訂單紀錄 - 早餐店會員系統</title>
+
+<!-- 引入 Font Awesome 圖示庫 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 <style>
+:root {
+    --bg-color: #FDFBF6;
+    --container-bg: #FFFFFF;
+    --primary-color: #A67B5B;
+    --primary-hover: #8C684A;
+    --text-color: #5D534A;
+    --border-color: #DED0B6;
+    --header-bg: #F5EFE6;
+    --accent-color: #E1A87A;
+    --shadow-light: rgba(0, 0, 0, 0.1);
+    --shadow-medium: rgba(0, 0, 0, 0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-	font-family: 'Microsoft JhengHei', Arial, sans-serif;
-	margin: 0;
-	padding: 20px;
-	background: url('/images/eatfast5.png') center center/cover no-repeat
-		fixed;
-	/* 添加半透明遮罩層確保內容可讀性 */
-	position: relative;
+    font-family: 'Microsoft JhengHei', Arial, sans-serif;
+    margin: 0;
+    padding-top: 60px; /* 為固定導航欄留出空間 */
+    background: url('/images/eatfast5.png') center center / cover no-repeat fixed;
+    position: relative;
+}
+
+/* Navigation Bar - 與welcome頁面相同 */
+.nav-fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.5rem 0;
+    box-shadow: 0 2px 10px var(--shadow-light);
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    color: var(--primary-color);
+}
+
+.nav-logo-icon {
+    width: 35px;
+    height: 35px;
+    object-fit: contain;
+}
+
+.nav-logo-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.nav-link {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    position: relative;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+.nav-login {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.nav-login:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+.admin-button-nav {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-right: 1rem;
+}
+
+.admin-button-nav:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(166, 123, 91, 0.3);
+}
+
+.nav-user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 /* 添加背景遮罩層 */
 body::before {
-	content: '';
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: rgba(245, 245, 245, 0.85);
-	z-index: -1;
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(245, 245, 245, 0.85);
+    z-index: -1;
+}
+
+/* 主要布局 */
+.main-layout {
+    display: flex;
+    max-width: 1400px;
+    margin: 20px auto;
+    gap: 20px;
+    padding: 0 20px;
+}
+
+/* 左側導航欄 - 改為垂直排列 */
+.sidebar {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+.navigation-bar {
+    background: linear-gradient(135deg, #a67b5b 0%, #6f4e37 100%);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 80px;
+}
+
+.navigation-bar h3 {
+    color: white;
+    margin: 0 0 20px 0;
+    font-size: 1.1em;
+    text-align: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.navigation-bar a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.navigation-bar a:hover {
+    background-color: rgba(255,255,255,0.15);
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.navigation-bar a.active {
+    background-color: rgba(255,255,255,0.25);
+    font-weight: 600;
+}
+
+.navigation-bar a:last-child {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    color: #ffcccb;
+}
+
+.navigation-bar a:last-child:hover {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: white;
+}
+
+/* 主要內容區域 */
+.content-area {
+    flex: 1;
+    background-color: transparent;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 1;
 }
 
 .container {
-	max-width: 1200px;
-	margin: 0 auto;
-	background-color: transparent;
-	padding: 30px;
-	border-radius: 10px;
-	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-	backdrop-filter: blur(10px);
-	position: relative;
-	z-index: 1;
+    max-width: none; /* 移除最大寬度限制，使用flex布局 */
+    margin: 0;
+    background-color: transparent;
+    padding: 0; /* 移除額外的padding，因為content-area已經有了 */
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    position: relative;
+    z-index: auto;
 }
 
 h1 {
-	color: #A67B5B;
-	text-align: center;
-	margin-bottom: 30px;
-	font-size: 2.2em;
+    color: #A67B5B;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2.2em;
 }
 
 .navigation-bar {
@@ -500,205 +717,264 @@ h1 {
 </style>
 </head>
 <body>
-	<div class="container">
-		<h1>📋 訂單紀錄</h1>
+    <!-- Navigation Bar -->
+    <nav class="nav-fixed">
+        <div class="nav-container">
+            <a th:href="@{/welcome}" class="nav-logo">
+                <img th:src="@{/images/123.png}" alt="EatFast Logo" class="nav-logo-icon">
+                <span class="nav-logo-text">EatFast 早餐店</span>
+            </a>
+            
+            <div class="nav-menu">
+                <a th:href="@{/news}" class="nav-link">最新消息</a>
+                <a href="/store/storelist" class="nav-link">門市據點</a>
+                <a href="/menu" class="nav-link">餐點菜單</a>
+                <a th:href="@{/member/dashboard}" class="nav-link" style="color: var(--primary-color); font-weight: 600;">會員專區</a>
+                <a href="/feedback/form" class="nav-link">聯繫我們</a>
+                <a th:href="@{/cart}" class="nav-link">購物車</a>
+            </div>
+            
+            <!-- 登入按鈕根據登入狀態變化 -->
+            <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                 class="nav-user-info">
+                <span style="color: var(--primary-color);">歡迎, <span th:text="${session.memberName ?: member?.username}"></span></span>
+                <button type="button" class="nav-login" style="background-color: #dc3545;" 
+                        onclick="confirmLogout()">
+                    <i class="fas fa-sign-out-alt"></i> 登出
+                </button>
+                <!-- 隱藏的登出表單 -->
+                <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display: none;">
+                    <input type="hidden" name="_method" value="POST">
+                </form>
+            </div>
+            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+               th:href="@{/api/v1/auth/member-login}" class="nav-login">
+                <i class="fas fa-sign-in-alt"></i> 會員登入
+            </a>
+        </div>
+    </nav>
 
-		<!-- 導航欄 -->
-		<div class="navigation-bar">
-			<a href="/member/dashboard">🏠 首頁</a> <a href="/member/profile">👤
-				個人資料</a> <a href="/member/orders" class="active">📋 訂單紀錄</a> <a
-				href="/member/favorites">❤️ 我的收藏</a> <a href="/member/settings">⚙️
-				帳號設定</a> <a href="/logout" onclick="return confirm('確定要登出嗎？')">🚪 登出</a>
-		</div>
+    <div class="main-layout">
+        <!-- 左側導航欄 -->
+        <div class="sidebar">
+            <div class="navigation-bar">
+                <h3>🏠 會員功能選單</h3>
+                <a href="/member/dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    會員專區
+                </a>
+                <a href="/member/profile">
+                    <i class="fas fa-user"></i>
+                    個人資料
+                </a>
+                <a href="/member/orders" class="active">
+                    <i class="fas fa-clipboard-list"></i>
+                    訂單紀錄
+                </a>
+                <a href="/member/favorites">
+                    <i class="fas fa-heart"></i>
+                    我的收藏
+                </a>
+                <a href="/member/settings">
+                    <i class="fas fa-cog"></i>
+                    帳號設定
+                </a>
+            </div>
+        </div>
+        
+        <!-- 主要內容區域 -->
+        <div class="content-area">
+            <div class="container">
+                <h1>📋 訂單紀錄</h1>
 
-
-		<!-- 訂單篩選器 -->
-		<div class="order-filters">
-			<div class="filter-row">
-				<div class="filter-group">
-					<label>訂單狀態：</label>
-					<div style="display: flex; gap: 10px; margin-top: 5px;">
-						<a th:href="@{/member/orders}" class="btn"
-							th:classappend="${param.status == null or param.status == '' ? 'btn-active' : 'btn-inactive'}"
-							style="text-decoration: none;"> 📋 全部訂單 </a> <a
-							th:href="@{/member/orders(status='COMPLETED')}" class="btn"
-							th:classappend="${param.status == 'COMPLETED' ? 'btn-active' : 'btn-inactive'}"
-							style="text-decoration: none;"> ✅ 已完成 </a> <a
-							th:href="@{/member/orders(status='INCOMPLETE')}" class="btn"
-							th:classappend="${param.status == 'INCOMPLETE' ? 'btn-active' : 'btn-inactive'}"
-							style="text-decoration: none;"> ⏳ 未完成 </a>
+				<!-- 訂單篩選器 -->
+				<div class="order-filters">
+					<div class="filter-row">
+						<div class="filter-group">
+							<label>訂單狀態：</label>
+							<div style="display: flex; gap: 10px; margin-top: 5px;">
+								<a th:href="@{/member/orders}" class="btn"
+									th:classappend="${param.status == null or param.status == '' ? 'btn-active' : 'btn-inactive'}"
+									style="text-decoration: none;"> 📋 全部訂單 </a> <a
+									th:href="@{/member/orders(status='COMPLETED')}" class="btn"
+									th:classappend="${param.status == 'COMPLETED' ? 'btn-active' : 'btn-inactive'}"
+									style="text-decoration: none;"> ✅ 已完成 </a> <a
+									th:href="@{/member/orders(status='INCOMPLETE')}" class="btn"
+									th:classappend="${param.status == 'INCOMPLETE' ? 'btn-active' : 'btn-inactive'}"
+									style="text-decoration: none;"> ⏳ 未完成 </a>
+							</div>
+						</div>
 					</div>
 				</div>
-			</div>
-		</div>
 
-		<!-- 訂單列表 -->
-		<div class="order-list">
-			<!-- 如果沒有訂單 -->
-			<div th:if="${#lists.isEmpty(orders)}" class="empty-state">
-				<div style="font-size: 48px; margin-bottom: 20px;">📋</div>
-				<h3>尚無訂單紀錄</h3>
-				<p>您還沒有任何訂單，趕快去選購美味的早餐吧！</p>
-				<a href="/menu" class="btn">🛒 開始購物</a>
-			</div>
-
-			<!-- 全部展開/收起控制按鈕 -->
-			<div th:if="${!#lists.isEmpty(orders)}" class="collapse-all-controls">
-				<button onclick="expandAllOrders()">📖 全部展開</button>
-				<button onclick="collapseAllOrders()">📕 全部收起</button>
-			</div>
-
-			<!-- 訂單卡片 -->
-			<div th:each="order : ${orders}" class="order-card">
-				<div class="order-header"
-					onclick="toggleOrderDetails(this.querySelector('.toggle-btn'))">
-					<div class="order-header-left">
-						<span class="order-id" th:text="'訂單編號：' + ${order.orderListId}"></span>
-						<div class="order-date"
-							th:text="'訂單時間：'+ ${#temporals.format(order.orderDate, 'yyyy年MM月dd日 HH:mm')}"></div>
-						<!-- 添加門市資訊 -->
-						<div class="store-info"
-							style="color: #A67B5B; font-size: 14px; margin-top: 5px;">
-							<span style="font-weight: bold;">🏪 門市：</span> <span
-								th:text="${order.store?.storeName ?: '未知門市'}"></span>
-						</div>
-						<!-- 在收起狀態下顯示簡要資訊 -->
-						<div class="order-summary-mini">
-							<span class="order-amount-mini"
-								th:text="'總金額：$' + ${order.orderAmount}"></span>
-						</div>
+				<!-- 訂單列表 -->
+				<div class="order-list">
+					<!-- 如果沒有訂單 -->
+					<div th:if="${#lists.isEmpty(orders)}" class="empty-state">
+						<div style="font-size: 48px; margin-bottom: 20px;">📋</div>
+						<h3>尚無訂單紀錄</h3>
+						<p>您還沒有任何訂單，趕快去選購美味的早餐吧！</p>
+						<a href="/menu" class="btn">🛒 開始購物</a>
 					</div>
-					<div class="order-header-right">
-						<span class="order-status"
-							th:classappend="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? 'status-pending' : 
+
+					<!-- 全部展開/收起控制按鈕 -->
+					<div th:if="${!#lists.isEmpty(orders)}" class="collapse-all-controls">
+						<button onclick="expandAllOrders()">📖 全部展開</button>
+						<button onclick="collapseAllOrders()">📕 全部收起</button>
+					</div>
+
+					<!-- 訂單卡片 -->
+					<div th:each="order : ${orders}" class="order-card">
+						<div class="order-header"
+							onclick="toggleOrderDetails(this.querySelector('.toggle-btn'))">
+							<div class="order-header-left">
+								<span class="order-id" th:text="'訂單編號：' + ${order.orderListId}"></span>
+								<div class="order-date"
+									th:text="'訂單時間：'+ ${#temporals.format(order.orderDate, 'yyyy年MM月dd日 HH:mm')}"></div>
+								<!-- 添加門市資訊 -->
+								<div class="store-info"
+									style="color: #A67B5B; font-size: 14px; margin-top: 5px;">
+									<span style="font-weight: bold;">🏪 門市：</span> <span
+										th:text="${order.store?.storeName ?: '未知門市'}"></span>
+								</div>
+								<!-- 在收起狀態下顯示簡要資訊 -->
+								<div class="order-summary-mini">
+									<span class="order-amount-mini"
+										th:text="'總金額：$' + ${order.orderAmount}"></span>
+								</div>
+							</div>
+							<div class="order-header-right">
+								<span class="order-status"
+									th:classappend="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? 'status-pending' : 
                                               order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? 'status-confirmed' : 
                                               order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? 'status-preparing' : 
                                               order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? 'status-completed' : 
                                               'status-cancelled'}"
-							th:text="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? '處理中' : 
+									th:text="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING ? '處理中' : 
                                        order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).CONFIRMED ? '已確認' : 
                                        order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).SHIPPED ? '待取餐' : 
                                        order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED ? '已完成' : 
                                        '已取消'}"></span>
-						<!-- 摺疊按鈕 -->
-						<button class="toggle-btn"
-							onclick="event.stopPropagation(); toggleOrderDetails(this)">
-							▼</button>
-					</div>
-				</div>
-
-				<div class="order-body collapsed">
-					<!-- 客製化備註區域 -->
-					<div
-						th:if="${order.mealCustomization != null and order.mealCustomization != ''}"
-						class="order-customization"
-						style="margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #A67B5B; border-radius: 4px;">
-						<strong style="color: #A67B5B;">客製化備註：</strong> <span
-							th:text="${order.mealCustomization}"></span>
-					</div>
-
-					<!-- 訂單項目 -->
-					<div class="order-items">
-						<div th:each="item : ${order.orderListInfos}" class="order-item">
-							<div>
-								<div class="item-name"
-									th:text="${item.meal?.mealName ?: '未知餐點'}"></div>
-								<div class="item-details"
-									th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.mealPrice}"></div>
-							</div>
-							<div class="item-price"
-								th:text="'$' + ${item.quantity * item.mealPrice}"></div>
+							<!-- 摺疊按鈕 -->
+							<button class="toggle-btn"
+								onclick="event.stopPropagation(); toggleOrderDetails(this)">
+								▼</button>
 						</div>
 					</div>
 
-					<!-- 訂單總計 -->
-					<div class="order-total">
-						<span>訂單總額：</span> <span class="total-amount"
-							th:text="'$' + ${order.orderAmount}"></span>
-					</div>
+					<div class="order-body collapsed">
+						<!-- 客製化備註區域 -->
+						<div
+							th:if="${order.mealCustomization != null and order.mealCustomization != ''}"
+							class="order-customization"
+							style="margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #A67B5B; border-radius: 4px;">
+							<strong style="color: #A67B5B;">客製化備註：</strong> <span
+								th:text="${order.mealCustomization}"></span>
+						</div>
 
-					<!-- 取餐號碼 -->
-					<div
-						th:if="${order.mealPickupNumber != null and order.orderStatus != T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}"
-						style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
-						<strong>取餐號碼：</strong> <span
-							style="font-size: 18px; color: #A67B5B; font-weight: bold;"
-							th:text="${order.mealPickupNumber}"></span>
-					</div>
-
-					<!-- 取餐時間 -->
-					<div th:if="${order.pickupTime != null}"
-						style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
-						<strong>取餐時間：</strong> <span
-							style="font-size: 16px; color: #A67B5B; font-weight: bold;"
-							th:text="${#temporals.format(order.pickupTime, 'yyyy年MM月dd日 HH:mm')}"></span>
-					</div>
-
-					<!-- 訂單操作 -->
-					<div class="order-actions">
-						<button
-							th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING}"
-							class="btn btn-sm" style="background-color: #dc3545;"
-							onclick="cancelOrder(this)"
-							th:data-order-id="${order.orderListId}">❌ 取消訂單</button>
-					</div>
-
-					<!-- 評分區域 - 只在已完成訂單顯示 -->
-					<div
-						th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}"
-						class="rating-section">
-						<div class="rating-title">🌟 評分您的餐點</div>
-						<div th:each="item : ${order.orderListInfos}"
-							class="meal-rating-item">
-							<div class="meal-info">
-								<div class="meal-name"
-									th:text="${item.meal?.mealName ?: '未知餐點'}"></div>
-								<div class="meal-details"
-									th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.mealPrice}"></div>
-							</div>
-							<div class="rating-controls">
-								<!-- 星星評分 - 可直接點擊 -->
-								<div class="star-rating"
-									th:data-order-info-id="${item.orderListInfoId}"
-									th:data-current-rating="${item.reviewStars ?: 0}"
-									th:data-rated="${item.reviewStars != null && item.reviewStars > 0}">
-									<span class="star"
-										th:classappend="${item.reviewStars >= 1 ? 'rated' : ''}"
-										data-rating="1">★</span> <span class="star"
-										th:classappend="${item.reviewStars >= 2 ? 'rated' : ''}"
-										data-rating="2">★</span> <span class="star"
-										th:classappend="${item.reviewStars >= 3 ? 'rated' : ''}"
-										data-rating="3">★</span> <span class="star"
-										th:classappend="${item.reviewStars >= 4 ? 'rated' : ''}"
-										data-rating="4">★</span> <span class="star"
-										th:classappend="${item.reviewStars >= 5 ? 'rated' : ''}"
-										data-rating="5">★</span>
+						<!-- 訂單項目 -->
+						<div class="order-items">
+							<div th:each="item : ${order.orderListInfos}" class="order-item">
+								<div>
+									<div class="item-name"
+										th:text="${item.meal?.mealName ?: '未知餐點'}"></div>
+									<div class="item-details"
+										th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.mealPrice}"></div>
 								</div>
-								<!-- 評分狀態顯示 -->
+								<div class="item-price"
+									th:text="'$' + ${item.quantity * item.mealPrice}"></div>
+							</div>
+						</div>
+
+						<!-- 訂單總計 -->
+						<div class="order-total">
+							<span>訂單總額：</span> <span class="total-amount"
+								th:text="'$' + ${order.orderAmount}"></span>
+						</div>
+
+						<!-- 取餐號碼 -->
+						<div
+							th:if="${order.mealPickupNumber != null and order.orderStatus != T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}"
+							style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
+							<strong>取餐號碼：</strong> <span
+								style="font-size: 18px; color: #A67B5B; font-weight: bold;"
+								th:text="${order.mealPickupNumber}"></span>
+						</div>
+
+						<!-- 取餐時間 -->
+						<div th:if="${order.pickupTime != null}"
+							style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border-radius: 5px;">
+							<strong>取餐時間：</strong> <span
+								style="font-size: 16px; color: #A67B5B; font-weight: bold;"
+								th:text="${#temporals.format(order.pickupTime, 'yyyy年MM月dd日 HH:mm')}"></span>
+						</div>
+
+						<!-- 訂單操作 -->
+						<div class="order-actions">
+							<button
+								th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).PENDING}"
+								class="btn btn-sm" style="background-color: #dc3545;"
+								onclick="cancelOrder(this)"
+								th:data-order-id="${order.orderListId}">❌ 取消訂單</button>
+						</div>
+
+						<!-- 評分區域 - 只在已完成訂單顯示 -->
+						<div
+							th:if="${order.orderStatus == T(com.eatfast.orderlist.model.OrderStatus).COMPLETED}"
+							class="rating-section">
+							<div class="rating-title">🌟 評分您的餐點</div>
+							<div th:each="item : ${order.orderListInfos}"
+								class="meal-rating-item">
+								<div class="meal-info">
+									<div class="meal-name"
+										th:text="${item.meal?.mealName ?: '未知餐點'}"></div>
+									<div class="meal-details"
+										th:text="'數量：' + ${item.quantity} + ' | 單價：$' + ${item.mealPrice}"></div>
+								</div>
+								<div class="rating-controls">
+									<!-- 星星評分 - 可直接點擊 -->
+									<div class="star-rating"
+										th:data-order-info-id="${item.orderListInfoId}"
+										th:data-current-rating="${item.reviewStars ?: 0}"
+										th:data-rated="${item.reviewStars != null && item.reviewStars > 0}">
+										<span class="star"
+											th:classappend="${item.reviewStars >= 1 ? 'rated' : ''}"
+											data-rating="1">★</span> <span class="star"
+											th:classappend="${item.reviewStars >= 2 ? 'rated' : ''}"
+											data-rating="2">★</span> <span class="star"
+											th:classappend="${item.reviewStars >= 3 ? 'rated' : ''}"
+											data-rating="3">★</span> <span class="star"
+											th:classappend="${item.reviewStars >= 4 ? 'rated' : ''}"
+											data-rating="4">★</span> <span class="star"
+											th:classappend="${item.reviewStars >= 5 ? 'rated' : ''}"
+											data-rating="5">★</span>
+									</div>
+									<!-- 評分狀態顯示 -->
+									<div
+										th:if="${item.reviewStars == null || item.reviewStars == 0}"
+										class="rating-hint" style="font-size: 0.8rem; color: #666;">
+										點擊星星評分</div>
+									<div th:if="${item.reviewStars != null && item.reviewStars > 0}"
+										class="rated-badge">
+										<span>✅ 已評分</span>
+									</div>
+									<span class="rating-feedback"></span>
+								</div>
+							</div>
+							<!-- 統一送出按鈕 - 只有當有未評分的餐點時才顯示 -->
+							<div class="rating-submit-area"
+								style="text-align: center; margin-top: 15px;">
+
 								<div
-									th:if="${item.reviewStars == null || item.reviewStars == 0}"
-									class="rating-hint" style="font-size: 0.8rem; color: #666;">
-									點擊星星評分</div>
-								<div th:if="${item.reviewStars != null && item.reviewStars > 0}"
-									class="rated-badge">
-									<span>✅ 已評分</span>
+									th:with="unratedItemsCount = ${#lists.size(order.orderListInfos.?[reviewStars == null or reviewStars == 0])}">
+
+									<button th:if="${unratedItemsCount > 0}"
+										class="btn-submit-rating"
+										th:data-order-id="${order.orderListId}"
+										style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+										📝 送出評分</button>
+
 								</div>
-								<span class="rating-feedback"></span>
-							</div>
-						</div>
-						<!-- 統一送出按鈕 - 只有當有未評分的餐點時才顯示 -->
-						<div class="rating-submit-area"
-							style="text-align: center; margin-top: 15px;">
-
-							<div
-								th:with="unratedItemsCount = ${#lists.size(order.orderListInfos.?[reviewStars == null or reviewStars == 0])}">
-
-								<button th:if="${unratedItemsCount > 0}"
-									class="btn-submit-rating"
-									th:data-order-id="${order.orderListId}"
-									style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
-									📝 送出評分</button>
-
 							</div>
 						</div>
 					</div>
@@ -706,7 +982,7 @@ h1 {
 			</div>
 		</div>
 	</div>
-
+	
 	<script>
         function cancelOrder(button) {
             const orderId = button.getAttribute('data-order-id');

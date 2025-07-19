@@ -4,14 +4,150 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的收藏 - 早餐店會員系統</title>
+    
+    <!-- 引入 Font Awesome 圖示庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <style>
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #FFFFFF;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --header-bg: #F5EFE6;
+            --accent-color: #E1A87A;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: 'Microsoft JhengHei', Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding-top: 60px; /* 為固定導航欄留出空間 */
             background: url('/images/eatfast5.png') center center / cover no-repeat fixed;
-            /* 添加半透明遮罩層確保內容可讀性 */
             position: relative;
+        }
+        
+        /* Navigation Bar - 與welcome頁面相同 */
+        .nav-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.5rem 0;
+            box-shadow: 0 2px 10px var(--shadow-light);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: var(--primary-color);
+        }
+
+        .nav-logo-icon {
+            width: 35px;
+            height: 35px;
+            object-fit: contain;
+        }
+
+        .nav-logo-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-login {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-login:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+        
+        .admin-button-nav {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-right: 1rem;
+        }
+        
+        .admin-button-nav:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(166, 123, 91, 0.3);
+        }
+
+        .nav-user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
         
         /* 添加背景遮罩層 */
@@ -26,10 +162,80 @@
             z-index: -1;
         }
         
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color:transparent;
+        /* 主要布局 */
+        .main-layout {
+            display: flex;
+            max-width: 1400px;
+            margin: 20px auto;
+            gap: 20px;
+            padding: 0 20px;
+        }
+        
+        /* 左側導航欄 - 改為垂直排列 */
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+        }
+        
+        .navigation-bar {
+            background: linear-gradient(135deg, #a67b5b 0%, #6f4e37 100%);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 80px;
+        }
+        
+        .navigation-bar h3 {
+            color: white;
+            margin: 0 0 20px 0;
+            font-size: 1.1em;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .navigation-bar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navigation-bar a:hover {
+            background-color: rgba(255,255,255,0.15);
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .navigation-bar a.active {
+            background-color: rgba(255,255,255,0.25);
+            font-weight: 600;
+        }
+        
+        .navigation-bar a:last-child {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            color: #ffcccb;
+        }
+        
+        .navigation-bar a:last-child:hover {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: white;
+        }
+        
+        /* 主要內容區域 */
+        .content-area {
+            flex: 1;
+            background-color: transparent;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -37,28 +243,12 @@
             position: relative;
             z-index: 1;
         }
+        
         h1 {
             color: #A67B5B;
             text-align: center;
             margin-bottom: 30px;
             font-size: 2.2em;
-        }
-        .navigation-bar {
-            background: linear-gradient(90deg, #a67b5b 0%, #6f4e37 100%);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .navigation-bar a {
-            color: white;
-            text-decoration: none;
-            margin-right: 20px;
-            padding: 8px 15px;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
-        }
-        .navigation-bar a:hover, .navigation-bar a.active {
-            background-color: rgba(255,255,255,0.2);
         }
         .favorites-grid {
 		    display: grid;
@@ -239,6 +429,30 @@
             position: relative;
         }
         @media (max-width: 768px) {
+            .nav-menu {
+                gap: 1rem;
+            }
+            
+            .nav-link {
+                font-size: 0.9rem;
+            }
+            
+            .nav-container {
+                padding: 0 1rem;
+            }
+            
+            .main-layout {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .navigation-bar {
+                position: static;
+            }
+            
             .favorites-grid {
                 grid-template-columns: 1fr;
             }
@@ -254,81 +468,140 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>❤️ 我的收藏</h1>
-        
-        <!-- 導航欄 -->
-        <div class="navigation-bar">
-            <a href="/member/dashboard">🏠 首頁</a>
-            <a href="/member/profile">👤 個人資料</a>
-            <a href="/member/orders">📋 訂單紀錄</a>
-            <a href="/member/favorites" class="active">❤️ 我的收藏</a>
-            <a href="/member/settings">⚙️ 帳號設定</a>
-            <a href="/logout" onclick="return confirm('確定要登出嗎？')">🚪 登出</a>
+    <!-- Navigation Bar -->
+    <nav class="nav-fixed">
+        <div class="nav-container">
+            <a th:href="@{/welcome}" class="nav-logo">
+                <img th:src="@{/images/123.png}" alt="EatFast Logo" class="nav-logo-icon">
+                <span class="nav-logo-text">EatFast 早餐店</span>
+            </a>
+            
+            <div class="nav-menu">
+                <a th:href="@{/news}" class="nav-link">最新消息</a>
+                <a href="/store/storelist" class="nav-link">門市據點</a>
+                <a href="/menu" class="nav-link">餐點菜單</a>
+                <a th:href="@{/member/dashboard}" class="nav-link" style="color: var(--primary-color); font-weight: 600;">會員專區</a>
+                <a href="/feedback/form" class="nav-link">聯繫我們</a>
+                <a th:href="@{/cart}" class="nav-link">購物車</a>
+            </div>
+            
+            <!-- 登入按鈕根據登入狀態變化 -->
+            <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                 class="nav-user-info">
+                <span style="color: var(--primary-color);">歡迎, <span th:text="${session.memberName ?: member?.username}"></span></span>
+                <!-- 隱藏的登出表單 -->
+                <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display: none;">
+                    <input type="hidden" name="_method" value="POST">
+                </form>
+            </div>
+            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+               th:href="@{/api/v1/auth/member-login}" class="nav-login">
+                <i class="fas fa-sign-in-alt"></i> 會員登入
+            </a>
+        </div>
+    </nav>
+
+    <div class="main-layout">
+        <!-- 左側導航欄 -->
+        <div class="sidebar">
+            <div class="navigation-bar">
+                <h3>🏠 會員功能選單</h3>
+                <a href="/member/dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    會員專區
+                </a>
+                <a href="/member/profile">
+                    <i class="fas fa-user"></i>
+                    個人資料
+                </a>
+                <a href="/member/orders">
+                    <i class="fas fa-clipboard-list"></i>
+                    訂單紀錄
+                </a>
+                <a href="/member/favorites" class="active">
+                    <i class="fas fa-heart"></i>
+                    我的收藏
+                </a>
+                <a href="/member/settings">
+                    <i class="fas fa-cog"></i>
+                    帳號設定
+                </a>
+            </div>
         </div>
         
-        <!-- 收藏統計和排序 -->
-        <div class="favorites-header">
-            <div class="favorites-count">
-                共有 <span th:text="${#lists.size(favorites) ?: 0}">0</span> 項收藏商品
+        <!-- 主要內容區域 -->
+        <div class="content-area">
+            <h1>❤️ 我的收藏</h1>
+            
+            <!-- 收藏統計和排序 -->
+            <div class="favorites-header">
+                <div class="favorites-count">
+                    共有 <span th:text="${#lists.size(favorites) ?: 0}">0</span> 項收藏商品
+                </div>
+                <div class="sort-options">
+                    <label for="sortBy">排序：</label>
+                    <select id="sortBy" onchange="sortFavorites(this.value)">
+                        <option value="price-high">價格高到低</option>
+                        <option value="price-low">價格低到高</option>
+                    </select>
+                </div>
             </div>
-            <div class="sort-options">
-                <label for="sortBy">排序：</label>
-                <select id="sortBy" onchange="sortFavorites(this.value)">
-                    <option value="price-high">價格高到低</option>
-                    <option value="price-low">價格低到高</option>
-                </select>
+            
+            <!-- 分類篩選 -->
+            <div class="category-filter">
+                <span style="font-weight: bold; margin-right: 10px;">分類篩選：</span>
+                <button class="filter-btn active" onclick="filterByCategory('all')">全部</button>
+                <button class="filter-btn" onclick="filterByCategory('meal')">餐點</button>
+                <button class="filter-btn" onclick="filterByCategory('drink')">飲品</button>
             </div>
-        </div>
-        
-        <!-- 分類篩選 -->
-        <div class="category-filter">
-            <span style="font-weight: bold; margin-right: 10px;">分類篩選：</span>
-            <button class="filter-btn active" onclick="filterByCategory('all')">全部</button>
-            <button class="filter-btn" onclick="filterByCategory('meal')">餐點</button>
-            <button class="filter-btn" onclick="filterByCategory('drink')">飲品</button>
-        </div>
-        
-        <!-- 收藏商品網格 -->
-        <div class="favorites-grid" th:if="${!#lists.isEmpty(favorites)}">
-		    <div th:each="favorite : ${favorites}" class="favorite-card"
-		    	 th:attr="data-category=${favorite.mealTypeId == 5 ? 'drink' : 'meal'}">
-	        <div class="card-container">
-            <div class="product-image">
-                <img th:src="${favorite.mealPicUrl}" onerror="this.src='/images/nopic.png'">
-            </div>
-            <div class="card-body">
-		        <div class="product-name" th:text="${favorite.mealName}">餐點名稱</div>
-		        <div class="product-price" th:text="'$' + ${favorite.mealPrice}"></div>
-		        <div class="card-actions">
-		          <!-- RESTful按鈕：AJAX移除 -->
-		          <button type="button" class="btn btn-danger w-full"
-		                  th:attr="data-fav-id=${favorite.favMealId}"
-		                  onclick="removeFavorite(this)">
-		              💔 取消收藏
-		          </button>
-		          <!-- 表單fallback（支援 noscript） -->
-		          <form th:action="@{/member/removeFav}" method="post" style="display:none;">
-		            <input type="hidden" name="favMealId" th:value="${favorite.favMealId}" />
-		            <input type="hidden" name="redirectUrl" value="/member/favorites" />
-		            <button type="submit">取消收藏</button>
-		          </form>
+            
+            <!-- 收藏商品網格 -->
+            <div class="favorites-grid" th:if="${!#lists.isEmpty(favorites)}">
+    		    <div th:each="favorite : ${favorites}" class="favorite-card"
+    		    	 th:attr="data-category=${favorite.mealTypeId == 5 ? 'drink' : 'meal'}">
+    	        <div class="card-container">
+                <div class="product-image">
+                    <img th:src="${favorite.mealPicUrl}" onerror="this.src='/images/nopic.png'">
+                </div>
+                <div class="card-body">
+    		        <div class="product-name" th:text="${favorite.mealName}">餐點名稱</div>
+    		        <div class="product-price" th:text="'$' + ${favorite.mealPrice}"></div>
+    		        <div class="card-actions">
+    		          <!-- RESTful按鈕：AJAX移除 -->
+    		          <button type="button" class="btn btn-danger w-full"
+    		                  th:attr="data-fav-id=${favorite.favMealId}"
+    		                  onclick="removeFavorite(this)">
+    		              💔 取消收藏
+    		          </button>
+    		          <!-- 表單fallback（支援 noscript） -->
+    		          <form th:action="@{/member/removeFav}" method="post" style="display:none;">
+    		            <input type="hidden" name="favMealId" th:value="${favorite.favMealId}" />
+    		            <input type="hidden" name="redirectUrl" value="/member/favorites" />
+    		            <button type="submit">取消收藏</button>
+    		          </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- 空狀態 -->
-<div th:if="${#lists.isEmpty(favorites)}" class="empty-state">
-    <div class="icon">💔</div>
-    <h3>還沒有收藏任何餐點</h3>
-    <p>趕快去瀏覽菜單，將喜愛的早餐加入收藏吧！<br>收藏的餐點會顯示在這裡，方便您下次快速找到。</p>
-    <a href="/menu" class="btn btn-primary">🍳 瀏覽菜單</a>
-</div>
+    <!-- 空狀態 -->
+    <div th:if="${#lists.isEmpty(favorites)}" class="empty-state">
+        <div class="icon">💔</div>
+        <h3>還沒有收藏任何餐點</h3>
+        <p>趕快去瀏覽菜單，將喜愛的早餐加入收藏吧！<br>收藏的餐點會顯示在這裡，方便您下次快速找到。</p>
+        <a href="/menu" class="btn btn-primary">🍳 瀏覽菜單</a>
+    </div>
 
     
     <script>
+        // 登出確認函數
+        function confirmLogout() {
+            if (confirm('確定要登出嗎？')) {
+                document.getElementById('logout-form').submit();
+            }
+        }
+        
         // 加入購物車
         function addToCart(button) {
             const productId = button.getAttribute('data-product-id');

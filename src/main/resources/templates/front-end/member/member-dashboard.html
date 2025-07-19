@@ -4,14 +4,150 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>會員專區 - 早餐店會員系統</title>
+    
+    <!-- 引入 Font Awesome 圖示庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <style>
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #FFFFFF;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --header-bg: #F5EFE6;
+            --accent-color: #E1A87A;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: 'Microsoft JhengHei', Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding-top: 60px; /* 為固定導航欄留出空間 */
             background: url('/images/eatfast5.png') center center / cover no-repeat fixed;
-            /* 添加半透明遮罩層確保內容可讀性 */
             position: relative;
+        }
+        
+        /* Navigation Bar - 與welcome頁面相同 */
+        .nav-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.5rem 0;
+            box-shadow: 0 2px 10px var(--shadow-light);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: var(--primary-color);
+        }
+
+        .nav-logo-icon {
+            width: 35px;
+            height: 35px;
+            object-fit: contain;
+        }
+
+        .nav-logo-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-login {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-login:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+        
+        .admin-button-nav {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-right: 1rem;
+        }
+        
+        .admin-button-nav:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(166, 123, 91, 0.3);
+        }
+
+        .nav-user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
         
         /* 添加背景遮罩層 */
@@ -26,9 +162,79 @@
             z-index: -1;
         }
         
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        /* 主要布局 */
+        .main-layout {
+            display: flex;
+            max-width: 1400px;
+            margin: 20px auto;
+            gap: 20px;
+            padding: 0 20px;
+        }
+        
+        /* 左側導航欄 - 改為垂直排列 */
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+        }
+        
+        .navigation-bar {
+            background: linear-gradient(135deg, #a67b5b 0%, #6f4e37 100%);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 80px;
+        }
+        
+        .navigation-bar h3 {
+            color: white;
+            margin: 0 0 20px 0;
+            font-size: 1.1em;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .navigation-bar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navigation-bar a:hover {
+            background-color: rgba(255,255,255,0.15);
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .navigation-bar a.active {
+            background-color: rgba(255,255,255,0.25);
+            font-weight: 600;
+        }
+        
+        .navigation-bar a:last-child {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            color: #ffcccb;
+        }
+        
+        .navigation-bar a:last-child:hover {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: white;
+        }
+        
+        /* 主要內容區域 */
+        .content-area {
+            flex: 1;
             background-color: transparent;
             padding: 30px;
             border-radius: 10px;
@@ -37,6 +243,7 @@
             position: relative;
             z-index: 1;
         }
+        
         h1 {
             color: #A67B5B;
             text-align: center;
@@ -168,35 +375,6 @@
             border: 1px solid #f5c6cb;
             color: #721c24;
         }
-       .navigation-bar {
-            background: linear-gradient(90deg, #a67b5b 0%, #6f4e37 100%);
-            padding: 15px;
-            border-radius: 8px;	
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 5px;
-            min-height: 30px;
-        }
-        .navigation-bar a {
-            color: white;
-            text-decoration: none;
-            margin-right: 20px;
-            padding: 8px 15px;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
-        }
-        .navigation-bar a:hover {
-            background-color: rgba(255,255,255,0.2);
-        }
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            color: #666;
-        }
         .custom-modal-overlay {
             position: fixed;
             top: 0;
@@ -266,136 +444,228 @@
         .custom-modal .modal-btn.cancel:hover {
             background: #e0e0e0;
         }
+        
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .nav-menu {
+                gap: 1rem;
+            }
+            
+            .nav-link {
+                font-size: 0.9rem;
+            }
+            
+            .nav-container {
+                padding: 0 1rem;
+            }
+            
+            .main-layout {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .navigation-bar {
+                position: static;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🏠 會員專區</h1>
-        
-        <!-- 導航欄 -->
-        <div class="navigation-bar">
-            <a th:href="@{/welcome}">🏠 首頁</a>
-            <a href="/member/profile">👤 個人資料</a>
-            <a href="/member/orders">📋 訂單紀錄</a>
-            <a href="/member/favorites">❤️ 我的收藏</a>
-            <a href="/member/settings">⚙️ 帳號設定</a>
-            <a href="#" id="logoutBtn">🚪 登出</a>
+    <!-- Navigation Bar -->
+    <nav class="nav-fixed">
+        <div class="nav-container">
+            <a th:href="@{/welcome}" class="nav-logo">
+                <img th:src="@{/images/123.png}" alt="EatFast Logo" class="nav-logo-icon">
+                <span class="nav-logo-text">EatFast 早餐店</span>
+            </a>
+            
+            <div class="nav-menu">
+                <a th:href="@{/news}" class="nav-link">最新消息</a>
+                <a href="/store/storelist" class="nav-link">門市據點</a>
+                <a href="/menu" class="nav-link">餐點菜單</a>
+                <a th:href="@{/member/dashboard}" class="nav-link" style="color: var(--primary-color); font-weight: 600;">會員專區</a>
+                <a href="/feedback/form" class="nav-link">聯繫我們</a>
+                <a th:href="@{/cart}" class="nav-link">購物車</a>
+            </div>
+            
+            <!-- 登入按鈕根據登入狀態變化 -->
+            <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                 class="nav-user-info">
+                <span style="color: var(--primary-color);">歡迎, <span th:text="${session.memberName ?: member?.username}"></span></span>
+                <button type="button" class="nav-login" style="background-color: #dc3545;" 
+                        onclick="confirmLogout()">
+                    <i class="fas fa-sign-out-alt"></i> 登出
+                </button>
+                <!-- 隱藏的登出表單 -->
+                <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display: none;">
+                    <input type="hidden" name="_method" value="POST">
+                </form>
+            </div>
+            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+               th:href="@{/api/v1/auth/member-login}" class="nav-login">
+                <i class="fas fa-sign-in-alt"></i> 會員登入
+            </a>
         </div>
-        
-        <!-- 顯示操作結果 -->
-        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-        <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
-        
-        <!-- 歡迎區塊 -->
-        <div class="welcome-section">
-            <h2>歡迎回來！<span th:text="${member?.username ?: '親愛的會員'}"></span></h2>
-            <p>享受美味早餐，開啟美好的一天 ☀️</p>
-        </div>
-        
-        <!-- 會員資訊摘要 -->
-        <div class="member-info-summary" th:if="${member}">
-            <h3>📊 會員資訊摘要</h3>
-            <div class="info-row">
-                <span class="info-label">會員帳號：</span>
-                <span class="info-value" th:text="${member.account}"></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">會員姓名：</span>
-                <span class="info-value" th:text="${member.username}"></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">電子郵件：</span>
-                <span class="info-value" th:text="${member.email}"></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">帳號狀態：</span>
-                <span th:class="${member.enabled} ? 'info-value status-active' : 'info-value status-inactive'" 
-                      th:text="${member.enabled} ? '正常' : '已停用'"></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">註冊日期：</span>
-                <span class="info-value" th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd')}"></span>
-            </div>
-        </div>
-        
-        <!-- 功能卡片區域 -->
-        <div class="dashboard-grid">
-            <div class="dashboard-card">
-                <h3><span class="icon">👤</span>個人資料管理</h3>
-                <p>查看和修改您的個人資料，包括姓名、電話、生日等基本資訊。</p>
-                <a href="/member/profile" class="btn">查看個人資料</a>
-            </div>
-            
-            <div class="dashboard-card">
-                <h3><span class="icon">🔒</span>帳號安全設定</h3>
-                <p>變更登入密碼，確保您的帳號安全性。</p>
-                <a href="/member/change-password" class="btn">修改密碼</a>
-            </div>
-            
-            <div class="dashboard-card">
-                <h3><span class="icon">📋</span>訂單紀錄</h3>
-                <p>檢視您的所有訂單紀錄，追蹤訂單狀態和配送資訊。</p>
-                <a href="/member/orders" class="btn">查看訂單</a>
-            </div>
-            
-            <div class="dashboard-card">
-                <h3><span class="icon">❤️</span>我的收藏</h3>
-                <p>管理您收藏的商品，快速找到喜愛的早餐選項。</p>
-                <a href="/member/favorites" class="btn">管理收藏</a>
-            </div>
-            
-            <div class="dashboard-card">
-                <h3><span class="icon">🛒</span>購物車</h3>
-                <p>查看購物車內容，完成您的早餐訂購。</p>
-                <a href="/cart" class="btn">查看購物車</a>
-            </div>
-            
-            <div class="dashboard-card">
-                <h3><span class="icon">💬</span>意見回饋</h3>
-                <p>提供寶貴的意見和建議，幫助我們改善服務品質。</p>
-                <a href="/feedback/form" class="btn">提供意見</a>
+    </nav>
+
+    <div class="main-layout">
+        <!-- 左側導航欄 -->
+        <div class="sidebar">
+            <div class="navigation-bar">
+                <h3>🏠 會員功能選單</h3>
+                <a href="/member/dashboard" class="active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    會員專區
+                </a>
+                <a href="/member/profile">
+                    <i class="fas fa-user"></i>
+                    個人資料
+                </a>
+                <a href="/member/orders">
+                    <i class="fas fa-clipboard-list"></i>
+                    訂單紀錄
+                </a>
+                <a href="/member/favorites">
+                    <i class="fas fa-heart"></i>
+                    我的收藏
+                </a>
+                <a href="/member/settings">
+                    <i class="fas fa-cog"></i>
+                    帳號設定
+                </a>
             </div>
         </div>
         
-        <!-- 頁尾 -->
-        <div class="footer">
-            <p>© 2025 早餐店會員系統 - 為您提供最優質的早餐服務</p>
-        </div>
-        <!-- 自訂登出 Modal -->
-        <div class="custom-modal-overlay" id="logoutModal">
-            <div class="custom-modal">
-                <div class="modal-icon">🚪</div>
-                <div class="modal-title">確定要登出嗎？</div>
-                <div class="modal-text">您即將登出會員專區，確定要繼續嗎？</div>
-                <div class="modal-actions">
-                    <button class="modal-btn confirm" id="confirmLogout">確定</button>
-                    <button class="modal-btn cancel" id="cancelLogout">取消</button>
+        <!-- 主要內容區域 -->
+        <div class="content-area">
+            <h1>🏠 會員專區</h1>
+            
+            <!-- 顯示操作結果 -->
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+            
+            <!-- 歡迎區塊 -->
+            <div class="welcome-section">
+                <h2>歡迎回來！<span th:text="${member?.username ?: '親愛的會員'}"></span></h2>
+                <p>享受美味早餐，開啟美好的一天 ☀️</p>
+            </div>
+            
+            <!-- 會員資訊摘要 -->
+            <div class="member-info-summary" th:if="${member}">
+                <h3>📊 會員資訊摘要</h3>
+                <div class="info-row">
+                    <span class="info-label">會員帳號：</span>
+                    <span class="info-value" th:text="${member.account}"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">會員姓名：</span>
+                    <span class="info-value" th:text="${member.username}"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">電子郵件：</span>
+                    <span class="info-value" th:text="${member.email}"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">帳號狀態：</span>
+                    <span th:class="${member.enabled} ? 'info-value status-active' : 'info-value status-inactive'" 
+                          th:text="${member.enabled} ? '正常' : '已停用'"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">註冊日期：</span>
+                    <span class="info-value" th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd')}"></span>
+                </div>
+            </div>
+            
+            <!-- 功能卡片區域 -->
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3><span class="icon">👤</span>個人資料管理</h3>
+                    <p>查看和修改您的個人資料，包括姓名、電話、生日等基本資訊。</p>
+                    <a href="/member/profile" class="btn">查看個人資料</a>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3><span class="icon">🔒</span>帳號安全設定</h3>
+                    <p>變更登入密碼，確保您的帳號安全性。</p>
+                    <a href="/member/change-password" class="btn">修改密碼</a>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3><span class="icon">📋</span>訂單紀錄</h3>
+                    <p>檢視您的所有訂單紀錄，追蹤訂單狀態和配送資訊。</p>
+                    <a href="/member/orders" class="btn">查看訂單</a>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3><span class="icon">❤️</span>我的收藏</h3>
+                    <p>管理您收藏的商品，快速找到喜愛的早餐選項。</p>
+                    <a href="/member/favorites" class="btn">管理收藏</a>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3><span class="icon">🛒</span>購物車</h3>
+                    <p>查看購物車內容，完成您的早餐訂購。</p>
+                    <a href="/cart" class="btn">查看購物車</a>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3><span class="icon">💬</span>意見回饋</h3>
+                    <p>提供寶貴的意見和建議，幫助我們改善服務品質。</p>
+                    <a href="/feedback/form" class="btn">提供意見</a>
+                </div>
+            </div>
+            
+            <!-- 頁尾 -->
+            <div class="footer">
+                <p>© 2025 早餐店會員系統 - 為您提供最優質的早餐服務</p>
+            </div>
+            <!-- 自訂登出 Modal -->
+            <div class="custom-modal-overlay" id="logoutModal">
+                <div class="custom-modal">
+                    <div class="modal-icon">🚪</div>
+                    <div class="modal-title">確定要登出嗎？</div>
+                    <div class="modal-text">您即將登出會員專區，確定要繼續嗎？</div>
+                    <div class="modal-actions">
+                        <button class="modal-btn confirm" id="confirmLogout">確定</button>
+                        <button class="modal-btn cancel" id="cancelLogout">取消</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    
     <script>
-// 登出彈窗控制
-const logoutBtn = document.getElementById('logoutBtn');
-const logoutModal = document.getElementById('logoutModal');
-const confirmLogout = document.getElementById('confirmLogout');
-const cancelLogout = document.getElementById('cancelLogout');
+        // 登出確認函數
+        function confirmLogout() {
+            if (confirm('確定要登出嗎？')) {
+                document.getElementById('logout-form').submit();
+            }
+        }
+        
+        // 登出彈窗控制
+        const logoutBtn = document.getElementById('logoutBtn');
+        const logoutModal = document.getElementById('logoutModal');
+        const confirmLogout = document.getElementById('confirmLogout');
+        const cancelLogout = document.getElementById('cancelLogout');
 
-logoutBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    logoutModal.style.display = 'flex';
-});
-cancelLogout.addEventListener('click', function() {
-    logoutModal.style.display = 'none';
-});
-logoutModal.addEventListener('click', function(e) {
-    if (e.target === logoutModal) {
-        logoutModal.style.display = 'none';
-    }
-});
-confirmLogout.addEventListener('click', function() {
-    window.location.href = '/logout';
-});
-</script>
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logoutModal.style.display = 'flex';
+        });
+        cancelLogout.addEventListener('click', function() {
+            logoutModal.style.display = 'none';
+        });
+        logoutModal.addEventListener('click', function(e) {
+            if (e.target === logoutModal) {
+                logoutModal.style.display = 'none';
+            }
+        });
+        confirmLogout.addEventListener('click', function() {
+            window.location.href = '/logout';
+        });
+    </script>
 </body>
 </html>
