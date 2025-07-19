@@ -23,7 +23,9 @@ import java.time.LocalDate;
 
 /**
  * POJO (Plain Old Java Object)，只負責攜帶「更新」操作所需的資料。
+ * @Deprecated - 為了向後兼容保留，但建議使用 isEnabled() 代替 getIsEnabled()
  */
+
 public class MemberUpdateRequest {
 
     //================================================================
@@ -129,7 +131,7 @@ public class MemberUpdateRequest {
     public void setEnabled(Boolean isEnabled) { this.isEnabled = isEnabled; }
     
     // 【棄用舊方法】為了向後兼容保留，但建議使用 isEnabled()
-    @Deprecated
+    @Deprecated // 使用 isEnabled() 代替 getIsEnabled()
     public Boolean getIsEnabled() { return isEnabled; }
     public void setIsEnabled(Boolean isEnabled) { this.isEnabled = isEnabled; }
     

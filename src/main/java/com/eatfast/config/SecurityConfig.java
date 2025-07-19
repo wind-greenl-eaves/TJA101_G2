@@ -1,11 +1,14 @@
 package com.eatfast.config;
 
+import com.eatfast.employee.security.EmployeePermissionEvaluator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
@@ -14,21 +17,27 @@ import org.springframework.security.web.SecurityFilterChain;
  *
  * - @Configuration: 標記此類別為 Spring 設定檔。
  * - @EnableWebSecurity: 啟用 Spring Security 的 Web 安全性功能。
+ * - @EnableMethodSecurity: 啟用方法級安全性，支援 @PreAuthorize, @PostAuthorize 等註解
+ * 
+ * 注意：PasswordEncoder 已移至 PasswordEncoderConfig 類中，避免循環依賴
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
+    @Autowired
+    private EmployeePermissionEvaluator permissionEvaluator;
+
     /**
-     * [方法名稱]: passwordEncoder
-     * [說明]: 註冊一個 PasswordEncoder Bean，供整個應用程式注入並用於密碼加密。
-     * - @Bean: 將此方法的返回物件交由 Spring 容器管理。
-     * - BCryptPasswordEncoder: 採用業界推薦的 BCrypt 強雜湊演算法。
-     * @return 一個 PasswordEncoder 的實例。
+     * 配置方法級安全性表達式處理器
+     * 註冊自定義的權限評估器，支援複雜的權限邏輯
      */
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+        DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
+        expressionHandler.setPermissionEvaluator(permissionEvaluator);
+        return expressionHandler;
     }
 
     /**
