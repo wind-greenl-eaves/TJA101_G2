@@ -45,19 +45,43 @@ public interface StoreRepository extends JpaRepository<StoreEntity, Long>, JpaSp
     
  // 【新增方法 1】查詢所有「非總部」的門市，並按名稱排序
     // Spring Data JPA 會自動解析方法名稱，產生對應的 JPQL
-    List<StoreEntity> findAllByStoreTypeNotOrderByStoreNameAsc(StoreType storeType);
+    List<StoreEntity> findAllByStoreTypeNotOrderByStoreIdAsc(StoreType storeType);
 
-    // 【新增方法 2】提供給前端的複雜搜尋，自動排除總部
-    // 使用 @Query 讓我們可以撰寫更複雜的 JPQL
+    /**
+    /**
+     * 【新增 @Query 註解】
+     * 為這個複雜的搜尋方法明確指定 JPQL 查詢語句。
+     * Spring Data JPA 將會執行這個查詢，而不是去解析方法名稱。
+     * 這個查詢會動態地根據傳入的參數是否為 null 來組合查詢條件。
+     * 同時，它會過濾掉「總部」和「已歇業」的門市。
+     */
     @Query("SELECT s FROM StoreEntity s WHERE " +
            "(:storeName IS NULL OR s.storeName LIKE %:storeName%) AND " +
            "(:storeLoc IS NULL OR s.storeLoc LIKE %:storeLoc%) AND " +
            "(:storeTime IS NULL OR s.storeTime LIKE %:storeTime%) AND " +
            "(:storeStatus IS NULL OR s.storeStatus = :storeStatus) AND " +
-           "s.storeType != 'HEADQUARTERS'") // 核心過濾條件，排除總部可以被前端查詢
+           "s.storeType != com.eatfast.common.enums.StoreType.HEADQUARTERS AND " +
+           "s.storeStatus != com.eatfast.common.enums.StoreStatus.ENDED")
     List<StoreEntity> searchPublicStores(
             @Param("storeName") String storeName,
             @Param("storeLoc") String storeLoc,
             @Param("storeTime") String storeTime,
             @Param("storeStatus") StoreStatus storeStatus);
+    
+    
+    /**
+     * 【修改】查詢所有「非總部」且「非已歇業」的公開門市，並按名稱排序。
+     * 我們使用 @Query 來明確定義查詢邏輯，取代原先冗長的方法名稱。
+     * 這裡的 com.eatfast.common.enums.StoreType.HEADQUARTERS 是 Enum 的完整路徑，
+     * 確保 JPQL 能夠正確解析。
+     * @return 符合條件的公開門市實體列表
+     */
+    @Query("SELECT s FROM StoreEntity s WHERE " +
+           "s.storeType != com.eatfast.common.enums.StoreType.HEADQUARTERS AND " +
+           "s.storeStatus != com.eatfast.common.enums.StoreStatus.ENDED " +
+           "ORDER BY s.storeName ASC")
+    List<StoreEntity> findPublicAndActiveStores();
+
+
 }
+

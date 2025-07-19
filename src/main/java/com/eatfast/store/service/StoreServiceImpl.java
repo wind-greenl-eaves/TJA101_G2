@@ -110,6 +110,13 @@ public class StoreServiceImpl implements StoreService {
         
         storeRepository.deleteById(storeId);
     }
+    
+    @Override
+    public List<StoreDto> findAllPublicStores() {
+        // 【修改】呼叫我們在 Repository 中使用 @Query 定義的新方法
+        List<StoreEntity> publicStores = storeRepository.findPublicAndActiveStores();
+        return storeMapper.toDtoList(publicStores);
+    }
 
     @Override
     public StoreDto findStoreById(Long storeId) {
@@ -184,20 +191,6 @@ public class StoreServiceImpl implements StoreService {
     
     //  前端客戶用方法 (Customer-facing methods) - 【★★ 本次新增 ★★】
     // =================================================================================
-
-    /**
-     * 【新增】提供給前端客戶頁面，查詢所有可顯示的「分店」門市列表。
-     * 這個方法會自動過濾掉類型為 HEADQUARTERS 的總部資料。
-     * findAllPublicStores 這個方法名稱是可以自定義的。
-     * @return 不包含總部的門市 DTO 列表
-     */
-    @Override
-    public List<StoreDto> findAllPublicStores() {
-        // 2. 呼叫我們在 Repository 新增的方法，傳入要排除的類型
-        // StoreType.HEADQUARTERS 是 Enum 的值，為不可變的語法結構
-        List<StoreEntity> publicStores = storeRepository.findAllByStoreTypeNotOrderByStoreNameAsc(StoreType.HEADQUARTERS);
-        return storeMapper.toDtoList(publicStores);
-    }
 
     
 //  前端客戶用方法

@@ -29,6 +29,7 @@
             'brand-text': '#5D534A',    // 主要文字 - 炭焙棕
             'brand-deep': '#3C2A21',     // 極深咖啡色，用於強調
             'brand-accent': '#E1A87A',  // 點綴色 - 焦糖橘
+            'brand-warning': '#FFC107', // 新增警告色，用於 Modal
           }
         }
       }
@@ -93,6 +94,78 @@
             padding: 1rem;
             margin-bottom: 1.5rem;
             border-radius: 0.25rem;
+        }
+        
+        /* Modal 樣式 */
+        .info-modal {
+            display: none; /* 預設隱藏 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .info-modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .info-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+            border-top: 8px solid #FFC107; /* 使用警告色 */
+        }
+
+        .info-modal.show .info-modal-content {
+            transform: scale(1);
+        }
+
+        .info-modal-icon {
+            font-size: 3rem;
+            color: #FFC107;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #3C2A21;
+            margin-bottom: 1rem;
+        }
+
+        .info-modal-message {
+            font-size: 1.1rem;
+            color: #5D534A;
+            margin-bottom: 2rem;
+        }
+
+        .info-modal-close-btn {
+            background: #A67B5B;
+            color: white;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .info-modal-close-btn:hover {
+            background: #8C684A;
         }
 
         .message-error {
@@ -490,7 +563,8 @@
                                 th:data-loc="${store.storeLoc}"
                                 th:data-phone="${store.storePhone}"
                                 th:data-time="${store.storeTime}"
-                                th:data-map-url="${store.googleMapUrl}">
+                                th:data-map-url="${store.googleMapUrl}"
+                                th:data-status="${store.storeStatus.name()}">
                                 <span th:text="${store.storeName}">一號店</span>
                             </button>
                         </th:block>
@@ -533,6 +607,7 @@
 					<div class="mt-8 text-center">
                          <a id="order-now-button"
                            th:href="@{/menu(storeId=${currentStore.storeId})}"
+                           th:data-status="${currentStore.storeStatus.name()}"
                            class="bg-brand-accent text-brand-deep font-bold py-3 px-8 rounded-full shadow-lg hover:bg-orange-400 transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
                            前往點餐
                         </a>
@@ -569,6 +644,17 @@
 	        </div>
 	    </div>
 	</div>
+	
+	<div id="resting-store-modal" class="info-modal">
+        <div class="info-modal-content">
+            <div class="info-modal-icon">
+                <i class="fas fa-mug-hot"></i>
+            </div>
+            <h3 class="info-modal-title">門市休息中</h3>
+            <p class="info-modal-message">本店休息中，暫不接受點餐。<br>請參考其他營業中的門市，謝謝！</p>
+            <button id="close-resting-modal-btn" class="info-modal-close-btn">我知道了</button>
+        </div>
+    </div>
 
     <script th:inline="javascript">
     function confirmLogout() {
@@ -615,46 +701,74 @@
         
         // 等待整個網頁文件都載入完成後，再執行裡面的程式碼
         document.addEventListener('DOMContentLoaded', function() {
-            
-            // 找到所有代表門市的按鈕
-            const storeButtons = document.querySelectorAll('.store-button');
-            
-            // 找到右側要被更新內容的各個元素
-            const storeNameEl = document.getElementById('store-name');
-            const storeLocEl = document.getElementById('store-loc');
-            const storePhoneEl = document.getElementById('store-phone');
-            const storeTimeEl = document.getElementById('store-time');
-            const storeMapIframeEl = document.getElementById('store-map-iframe');
-            const orderNowButtonEl = document.getElementById('order-now-button');
+        	console.log("偵錯日誌：頁面 DOM 已載入，開始執行腳本。");
 
-            // 為每一個按鈕加上點擊事件的監聽
+            // --- 元素選擇 ---
+            const storeButtons = document.querySelectorAll('.store-button');
+            const orderNowButtonEl = document.getElementById('order-now-button');
+            const restingModal = document.getElementById('resting-store-modal');
+            
+            console.log("偵錯日誌：'前往點餐'按鈕元素:", orderNowButtonEl);
+            console.log("偵錯日誌：'休息中 Modal'元素:", restingModal);
+
+            if (!orderNowButtonEl || !restingModal) {
+                console.error("【錯誤】：找不到必要的按鈕或 Modal 元素，請檢查 HTML 的 id 是否正確！");
+                return; // 如果找不到關鍵元素，就停止後續腳本執行
+            }
+
+            const closeRestingModalBtn = document.getElementById('close-resting-modal-btn');
+
+            // --- 門市切換邏輯 ---
             storeButtons.forEach(button => {
                 button.addEventListener('click', function() {
-                    
-                    // --- 更新右側詳細資訊 ---
-                    // 從被點擊的按鈕的 data-* 屬性中，讀取儲存的資料
+                    console.log(`偵錯日誌：點擊了門市按鈕 - ${this.dataset.name}`);
                     const data = this.dataset;
                     
-                    storeNameEl.textContent = data.name;
-                    storeLocEl.textContent = data.loc;
-                    storePhoneEl.textContent = data.phone;
-                    storeTimeEl.textContent = data.time;
-                    storeMapIframeEl.src = data.mapUrl;
+                    // ... 更新右側資訊 ...
+                    document.getElementById('store-name').textContent = data.name;
+                    document.getElementById('store-loc').textContent = data.loc;
+                    document.getElementById('store-phone').textContent = data.phone;
+                    document.getElementById('store-time').textContent = data.time;
+                    document.getElementById('store-map-iframe').src = data.mapUrl || '';
                     
-                    // 更新 "前往點餐" 按鈕的連結，讓原先頁面剛載入時寫入的 storeId 變成當前被點擊的門市 ID
-                 	// 讀取被點擊按鈕的 data-id 屬性，並組合出新的 URL
-                    const orderUrl = `/menu?storeId=${data.id}`;
-                    
-                 	// 將 "前往點餐" 按鈕的 href 屬性更新為新的 URL
-                    orderNowButtonEl.href = orderUrl;
+                    orderNowButtonEl.href = `/menu?storeId=${data.id}`;
+                    orderNowButtonEl.dataset.status = data.status;
 
-                    // --- 更新按鈕的啟用狀態樣式 ---
-                    // 1. 先移除所有按鈕的 'active' class
+                    console.log(`偵錯日誌：已將 '前往點餐' 按鈕的 data-status 更新為: ${orderNowButtonEl.dataset.status}`);
+
                     storeButtons.forEach(btn => btn.classList.remove('active'));
-                    // 2. 只為當前被點擊的按鈕加上 'active' class
                     this.classList.add('active');
                 });
             });
+
+            // --- Modal 控制邏輯 ---
+            orderNowButtonEl.addEventListener('click', function(event) {
+                console.log("偵錯日誌：'前往點餐' 按鈕被點擊了！");
+                console.log(`偵錯日誌：當前按鈕的 data-status 是: '${this.dataset.status}'`);
+
+                if (this.dataset.status === 'RESTING') {
+                    console.log("偵錯日誌：條件符合 (status === 'RESTING')，準備顯示 Modal。");
+                    event.preventDefault();
+                    restingModal.classList.add('show');
+                } else {
+                    console.log("偵錯日誌：條件不符合，允許連結正常跳轉。");
+                }
+            });
+
+            // --- Modal 關閉邏輯 ---
+            if (closeRestingModalBtn) {
+                closeRestingModalBtn.addEventListener('click', function() {
+                    restingModal.classList.remove('show');
+                });
+            }
+            
+            if (restingModal) {
+                restingModal.addEventListener('click', function(event) {
+                    if (event.target === restingModal) {
+                        restingModal.classList.remove('show');
+                    }
+                });
+            }
         });
     </script>
 </body>
