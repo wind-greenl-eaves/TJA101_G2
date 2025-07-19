@@ -73,17 +73,19 @@ public class AuthController {
      * - 完整 URL: http://localhost:8080/api/v1/auth/logout
      * 
      * 功能說明：
-     * 1. 接收登出請求
-     * 2. 清除用戶的 Session
-     * 3. 返回成功響應
+     * 1. 檢查當前是否有有效的 Session
+     * 2. 如果有 Session，則使其失效（清除所有 Session 數據）
+     * 3. 重定向到首頁
      * 
-     * @ResponseBody: 直接返回響應體，不進行視圖解析
+     * 注意事項：
+     * - 此方法使用 POST 請求方式
+     * - 登出後會重定向到首頁
+     * 
      * @param request HTTP 請求對象，用於獲取 Session
-     * @return ResponseEntity<Void> 空響應體，狀態碼 200 表示成功
+     * @return String 重定向到首頁
      */
     @PostMapping("/logout")
-    @ResponseBody
-    public ResponseEntity<Void> logout(HttpServletRequest request) {
+    public String logout(HttpServletRequest request) {
         // 獲取當前 Session（如果存在）
         // false 參數表示：如果 Session 不存在，則返回 null 而不是創建新的
         HttpSession session = request.getSession(false);
@@ -93,8 +95,8 @@ public class AuthController {
             session.invalidate();
         }
         
-        // 返回 HTTP 200 OK 響應
-        return ResponseEntity.ok().build();
+        // 重定向到首頁
+        return "redirect:/welcome";
     }
 
     /**
