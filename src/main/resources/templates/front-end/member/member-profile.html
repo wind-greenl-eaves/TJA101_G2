@@ -4,14 +4,150 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>個人資料管理 - 早餐店會員系統</title>
+    
+    <!-- 引入 Font Awesome 圖示庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <style>
+        :root {
+            --bg-color: #FDFBF6;
+            --container-bg: #FFFFFF;
+            --primary-color: #A67B5B;
+            --primary-hover: #8C684A;
+            --text-color: #5D534A;
+            --border-color: #DED0B6;
+            --header-bg: #F5EFE6;
+            --accent-color: #E1A87A;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: 'Microsoft JhengHei', Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding-top: 60px; /* 為固定導航欄留出空間 */
             background: url('/images/eatfast5.png') center center / cover no-repeat fixed;
-            /* 添加半透明遮罩層確保內容可讀性 */
             position: relative;
+        }
+        
+        /* Navigation Bar - 與welcome頁面相同 */
+        .nav-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.5rem 0;
+            box-shadow: 0 2px 10px var(--shadow-light);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: var(--primary-color);
+        }
+
+        .nav-logo-icon {
+            width: 35px;
+            height: 35px;
+            object-fit: contain;
+        }
+
+        .nav-logo-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-login {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-login:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+        
+        .admin-button-nav {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-right: 1rem;
+        }
+        
+        .admin-button-nav:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(166, 123, 91, 0.3);
+        }
+
+        .nav-user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
         
         /* 添加背景遮罩層 */
@@ -26,10 +162,80 @@
             z-index: -1;
         }
         
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background-color:transparent;
+        /* 主要布局 */
+        .main-layout {
+            display: flex;
+            max-width: 1400px;
+            margin: 20px auto;
+            gap: 20px;
+            padding: 0 20px;
+        }
+        
+        /* 左側導航欄 - 改為垂直排列 */
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+        }
+        
+        .navigation-bar {
+            background: linear-gradient(135deg, #a67b5b 0%, #6f4e37 100%);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 80px;
+        }
+        
+        .navigation-bar h3 {
+            color: white;
+            margin: 0 0 20px 0;
+            font-size: 1.1em;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .navigation-bar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navigation-bar a:hover {
+            background-color: rgba(255,255,255,0.15);
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .navigation-bar a.active {
+            background-color: rgba(255,255,255,0.25);
+            font-weight: 600;
+        }
+        
+        .navigation-bar a:last-child {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            color: #ffcccb;
+        }
+        
+        .navigation-bar a:last-child:hover {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: white;
+        }
+        
+        /* 主要內容區域 */
+        .content-area {
+            flex: 1;
+            background-color: transparent;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -37,33 +243,24 @@
             position: relative;
             z-index: 1;
         }
+        
+        .container {
+            max-width: none;
+            margin: 0;
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+            position: relative;
+            z-index: auto;
+        }
+        
         h1 {
             color: #A67B5B;
             text-align: center;
             margin-bottom: 30px;
             font-size: 2.2em;
-        }
-        .navigation-bar {
-            background: linear-gradient(90deg, #a67b5b 0%, #6f4e37 100%);
-            padding: 15px;
-            border-radius: 8px;	
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 5px;
-            min-height: 30px;
-        }
-        .navigation-bar a {
-            color: white;
-            text-decoration: none;
-            margin-right: 20px;
-            padding: 8px 15px;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
-        }
-        .navigation-bar a:hover, .navigation-bar a.active {
-            background-color: rgba(255,255,255,0.2);
         }
         .alert {
             padding: 15px;
@@ -199,130 +396,387 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+        /* 登出Modal樣式 - 與首頁相同 */
+        .logout-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .logout-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+        }
+
+        .logout-modal-content {
+            background: var(--container-bg);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .logout-modal.show .logout-modal-content {
+            transform: scale(1);
+        }
+
+        .logout-modal-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+            }
+        }
+
+        .logout-modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .logout-modal-message {
+            font-size: 1.1rem;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .logout-modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .logout-btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .logout-btn-confirm {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .logout-btn-confirm:hover {
+            background: linear-gradient(135deg, #c82333, #bd2130);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .logout-btn-cancel {
+            background: var(--container-bg);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+        }
+
+        .logout-btn-cancel:hover {
+            background: var(--header-bg);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* 載入動畫樣式 */
+        .logout-loading {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logout-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .nav-menu {
+                gap: 1rem;
+            }
+            .nav-link {
+                font-size: 0.9rem;
+            }
+            .nav-container {
+                padding: 0 1rem;
+            }
+            .main-layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+            }
+            .navigation-bar {
+                position: static;
+            }
+            .logout-modal-content {
+                margin: 1rem;
+                padding: 2rem;
+            }
+            .logout-modal-actions {
+                flex-direction: column;
+            }
+            .logout-btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>👤 個人資料管理</h1>
-        
-        <!-- 導航欄 -->
-        <div class="navigation-bar">
-            <a href="/member/dashboard">🏠 首頁</a>
-            <a href="/member/profile" class="active">👤 個人資料</a>
-            <a href="/member/orders">📋 訂單紀錄</a>
-            <a href="/member/favorites">❤️ 我的收藏</a>
-            <a href="/member/settings">⚙️ 帳號設定</a>
-            <a href="/logout" onclick="return confirm('確定要登出嗎？')">🚪 登出</a>
-        </div>
-        
-        <!-- 顯示操作結果 -->
-        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-        <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
-        
-        <!-- 個人資料編輯表單 -->
-        <div class="profile-section">
-            <h2>📝 編輯個人資料</h2>
+    <!-- Navigation Bar -->
+    <nav class="nav-fixed">
+        <div class="nav-container">
+            <a th:href="@{/welcome}" class="nav-logo">
+                <img th:src="@{/images/123.png}" alt="EatFast Logo" class="nav-logo-icon">
+                <span class="nav-logo-text">EatFast 早餐店</span>
+            </a>
             
-            <div class="info-note">
-                <strong>📌 注意事項：</strong> 為了您的帳號安全，登入帳號無法修改。如需變更密碼，請使用「帳號設定」功能。
+            <div class="nav-menu">
+                <a th:href="@{/news}" class="nav-link">最新消息</a>
+                <a href="/store/storelist" class="nav-link">門市據點</a>
+                <a href="/menu" class="nav-link">餐點菜單</a>
+                <a th:href="@{/member/dashboard}" class="nav-link" style="color: var(--primary-color); font-weight: 600;">會員專區</a>
+                <a href="/feedback/form" class="nav-link">聯繫我們</a>
+                <a th:href="@{/cart}" class="nav-link">購物車</a>
             </div>
             
-            <form th:action="@{/member/profile/update}" method="post" th:object="${memberUpdateRequest}" id="profileForm">
-                <input type="hidden" th:field="*{memberId}">
-                
-                <div class="form-group">
-                    <label for="account">登入帳號：</label>
-                    <input type="text" id="account" th:value="${member?.account}" class="readonly-field" readonly>
-                    <small class="info-note" style="background: none; border: none; padding: 0; margin-top: 5px; display: block;">
-                        🔒 登入帳號無法修改，以確保帳號安全性
-                    </small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="username">會員姓名：<span style="color: red;">*</span></label>
-                    <input type="text" id="username" th:field="*{username}" 
-                           placeholder="請輸入您的真實姓名" data-field="username">
-                    <div class="error-message" id="username-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
-                    <div class="validation-message" id="username-validation"></div>
-                </div>
-                
-                <div class="two-column">
-                    <div class="form-group">
-                        <label for="email">電子郵件：<span style="color: red;">*</span></label>
-                        <input type="email" id="email" th:field="*{email}" 
-                               placeholder="example@email.com" data-field="email">
-                        <div class="error-message" id="email-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-                        <div class="validation-message" id="email-validation"></div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="phone">連絡電話：<span style="color: red;">*</span></label>
-                        <input type="tel" id="phone" th:field="*{phone}" 
-                               placeholder="0912-345-678" data-field="phone">
-                        <div class="error-message" id="phone-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
-                        <div class="validation-message" id="phone-validation"></div>
-                    </div>
-                </div>
-                
-                <div class="two-column">
-                    <div class="form-group">
-                        <label for="birthday">出生日期：</label>
-                        <input type="date" id="birthday" th:field="*{birthday}" data-field="birthday">
-                        <small class="info-note" style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
-                            💡 如不修改出生日期，請保持此欄位不變
-                        </small>
-                        <div class="error-message" id="birthday-error" th:if="${#fields.hasErrors('birthday')}" th:errors="*{birthday}"></div>
-                        <div class="validation-message" id="birthday-validation"></div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="gender">性別：<span style="color: red;">*</span></label>
-                        <select id="gender" th:field="*{gender}" data-field="gender">
-                            <option value="">請選擇性別</option>
-                            <option value="M">男性</option>
-                            <option value="F">女性</option>
-                        </select>
-                        <div class="error-message" id="gender-error" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></div>
-                        <div class="validation-message" id="gender-validation"></div>
-                    </div>
-                </div>
-                
-                <!-- 帳號狀態欄位 - 完全禁止更新 -->
-                <div class="form-group">
-                    <label for="isEnabledDisplay">帳號狀態：</label>
-                    <!-- 【安全修正】移除 th:field 綁定，防止表單提交時包含此欄位 -->
-                    <select id="isEnabledDisplay" class="readonly-field" disabled>
-                        <option th:selected="${member.isEnabled}">正常使用</option>
-                        <option th:selected="${!member.isEnabled}">已停用</option>
-                    </select>
-                    <!-- 【安全修正】完全移除隱藏欄位，防止惡意提交 -->
-                    <small class="info-note" style="background: none; border: none; padding: 0; margin-top: 5px; display: block;">
-                        🔒 帳號狀態由系統管理，請至帳號設定修改
-                    </small>
-                </div>
-                
-                <div style="margin-top: 30px;">
-                    <button type="submit" class="btn" id="submitBtn">
-                        💾 儲存變更
-                    </button>
-                    <a href="/member/dashboard" class="btn btn-secondary">
-                        ↩️ 返回首頁
-                    </a>
-                </div>
-            </form>
+            <!-- 登入按鈕根據登入狀態變化 -->
+            <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+                 class="nav-user-info" style="display: flex; align-items: center; gap: 1rem;">
+                <span style="color: var(--primary-color);">歡迎, <span th:text="${session.memberName}"></span></span>
+                <button type="button" class="nav-login" style="background-color: #dc3545; border: none; cursor: pointer;" 
+                        onclick="confirmLogout()">
+                    <i class="fas fa-sign-out-alt"></i> 登出
+                </button>
+                <!-- 隱藏的登出表單 -->
+                <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display: none;">
+                    <input type="hidden" name="_method" value="POST">
+                </form>
+            </div>
+            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+               th:href="@{/api/v1/auth/member-login}" class="nav-login">
+                <i class="fas fa-sign-in-alt"></i> 會員登入
+            </a>
+        </div>
+    </nav>
+
+	 <!-- 登出確認模態框 -->
+    <div class="logout-modal" id="logoutModal">
+        <div class="logout-modal-content">
+            <div class="logout-modal-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h3 class="logout-modal-title">登出確認</h3>
+            <p class="logout-modal-message">您確定要登出系統嗎？</p>
+            <div class="logout-modal-actions">
+                <button class="logout-btn logout-btn-confirm" onclick="logout()">確定登出</button>
+                <button class="logout-btn logout-btn-cancel" onclick="closeLogoutModal()">取消</button>
+            </div>
+            <div class="logout-loading" id="logoutLoading" style="display: none;">
+                <div class="logout-spinner"></div>
+                <span>登出中...</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-layout">
+        <!-- 左側導航欄 -->
+        <div class="sidebar">
+            <div class="navigation-bar">
+                <h3>🏠 會員功能選單</h3>
+                <a href="/member/dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    會員專區
+                </a>
+                <a href="/member/profile" class="active">
+                    <i class="fas fa-user"></i>
+                    個人資料
+                </a>
+                <a href="/member/orders">
+                    <i class="fas fa-clipboard-list"></i>
+                    訂單紀錄
+                </a>
+                <a href="/member/favorites">
+                    <i class="fas fa-heart"></i>
+                    我的收藏
+                </a>
+                <a href="/member/settings">
+                    <i class="fas fa-cog"></i>
+                    帳號設定
+                </a>
+            </div>
         </div>
         
-        <!-- 帳號資訊摘要 -->
-        <div class="profile-section" th:if="${member}">
-            <h2>📊 帳號資訊</h2>
-            <div class="two-column">
-                <div>
-                    <strong>註冊日期：</strong>
-                    <span th:text="${#temporals.format(member.createdAt, 'yyyy年MM月dd日')}"></span>
+        <!-- 主要內容區域 -->
+        <div class="content-area">
+            <div class="container">
+                <h1>👤 個人資料管理</h1>
+                <!-- 顯示操作結果 -->
+                <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+                <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+                
+                <!-- 個人資料編輯表單 -->
+                <div class="profile-section">
+                    <h2>📝 編輯個人資料</h2>
+                    
+                    <div class="info-note">
+                        <strong>📌 注意事項：</strong> 為了您的帳號安全，登入帳號無法修改。如需變更密碼，請使用「帳號設定」功能。
+                    </div>
+                    
+                    <form th:action="@{/member/profile/update}" method="post" th:object="${memberUpdateRequest}" id="profileForm">
+                        <input type="hidden" th:field="*{memberId}">
+                        
+                        <div class="form-group">
+                            <label for="account">登入帳號：</label>
+                            <input type="text" id="account" th:value="${member?.account}" class="readonly-field" readonly>
+                            <small class="info-note" style="background: none; border: none; padding: 0; margin-top: 5px; display: block;">
+                                🔒 登入帳號無法修改，以確保帳號安全性
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="username">會員姓名：<span style="color: red;">*</span></label>
+                            <input type="text" id="username" th:field="*{username}" 
+                                   placeholder="請輸入您的真實姓名" data-field="username">
+                            <div class="error-message" id="username-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+                            <div class="validation-message" id="username-validation"></div>
+                        </div>
+                        
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label for="email">電子郵件：<span style="color: red;">*</span></label>
+                                <input type="email" id="email" th:field="*{email}" 
+                                       placeholder="example@email.com" data-field="email">
+                                <div class="error-message" id="email-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                                <div class="validation-message" id="email-validation"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="phone">連絡電話：<span style="color: red;">*</span></label>
+                                <input type="tel" id="phone" th:field="*{phone}" 
+                                       placeholder="0912-345-678" data-field="phone">
+                                <div class="error-message" id="phone-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                                <div class="validation-message" id="phone-validation"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label for="birthday">出生日期：</label>
+                                <input type="date" id="birthday" th:field="*{birthday}" data-field="birthday">
+                                <small class="info-note" style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                                    💡 如不修改出生日期，請保持此欄位不變
+                                </small>
+                                <div class="error-message" id="birthday-error" th:if="${#fields.hasErrors('birthday')}" th:errors="*{birthday}"></div>
+                                <div class="validation-message" id="birthday-validation"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="gender">性別：<span style="color: red;">*</span></label>
+                                <select id="gender" th:field="*{gender}" data-field="gender">
+                                    <option value="">請選擇性別</option>
+                                    <option value="M">男性</option>
+                                    <option value="F">女性</option>
+                                </select>
+                                <div class="error-message" id="gender-error" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></div>
+                                <div class="validation-message" id="gender-validation"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- 帳號狀態欄位 - 完全禁止更新 -->
+                        <div class="form-group">
+                            <label for="isEnabledDisplay">帳號狀態：</label>
+                            <!-- 【安全修正】移除 th:field 綁定，防止表單提交時包含此欄位 -->
+                            <select id="isEnabledDisplay" class="readonly-field" disabled>
+                                <option th:selected="${member.isEnabled}">正常使用</option>
+                                <option th:selected="${!member.isEnabled}">已停用</option>
+                            </select>
+                            <!-- 【安全修正】完全移除隱藏欄位，防止惡意提交 -->
+                            <small class="info-note" style="background: none; border: none; padding: 0; margin-top: 5px; display: block;">
+                                🔒 帳號狀態由系統管理，請至帳號設定修改
+                            </small>
+                        </div>
+                        
+                        <div style="margin-top: 30px;">
+                            <button type="submit" class="btn" id="submitBtn">
+                                💾 儲存變更
+                            </button>
+                            <a href="/member/dashboard" class="btn btn-secondary">
+                                ↩️ 返回首頁
+                            </a>
+                        </div>
+                    </form>
                 </div>
-                <div>
-                    <strong>最後更新：</strong>
-                    <span th:text="${member.lastUpdatedAt != null ? #temporals.format(member.lastUpdatedAt, 'yyyy年MM月dd日') : '尚未更新'}"></span>
+                
+                <!-- 帳號資訊摘要 -->
+                <div class="profile-section" th:if="${member}">
+                    <h2>📊 帳號資訊</h2>
+                    <div class="two-column">
+                        <div>
+                            <strong>註冊日期：</strong>
+                            <span th:text="${#temporals.format(member.createdAt, 'yyyy年MM月dd日')}"></span>
+                        </div>
+                        <div>
+                            <strong>最後更新：</strong>
+                            <span th:text="${member.lastUpdatedAt != null ? #temporals.format(member.lastUpdatedAt, 'yyyy年MM月dd日') : '尚未更新'}"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -523,6 +977,50 @@
             // 初始化提交按鈕狀態
             updateSubmitButton();
         });
+    </script>
+    
+    <!-- 登出確認功能 - 與首頁相同 -->
+    <script>
+        function confirmLogout() {
+            // 顯示登出確認模態框
+            document.getElementById('logoutModal').classList.add('show');
+        }
+
+        function closeLogoutModal() {
+            // 隱藏登出確認模態框
+            document.getElementById('logoutModal').classList.remove('show');
+        }
+
+        function logout() {
+            // 顯示載入動畫
+            document.getElementById('logoutLoading').style.display = 'flex';
+
+            // 使用 fetch 發送 POST 請求到登出端點
+            fetch('/api/v1/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (response.ok) {
+                    // 登出成功，重定向到首頁
+                    window.location.href = '/welcome';
+                } else {
+                    alert('登出失敗，請稍後再試');
+                    closeLogoutModal();
+                    document.getElementById('logoutLoading').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('登出錯誤:', error);
+                alert('登出失敗，請稍後再試');
+                closeLogoutModal();
+                document.getElementById('logoutLoading').style.display = 'none';
+            });
+        }
     </script>
 </body>
 </html>
