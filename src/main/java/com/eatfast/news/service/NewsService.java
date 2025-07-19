@@ -29,9 +29,29 @@ public class NewsService {
     }
 
     // --- 查詢、新增、更新、刪除等方法 (保持不變) ---
-    public List<NewsEntity> getAllNews() { return newsRepository.findAll(); }
-    public NewsEntity findById(Long newsId) { return newsRepository.findByIdWithEmployee(newsId).orElseThrow(() -> new RuntimeException("找不到 ID 為 " + newsId + " 的消息")); }
-    public List<NewsEntity> getActivePublishedNews() { return newsRepository.findActivePublishedNews(NewsStatus.PUBLISHED, LocalDateTime.now()); }
+    public List<NewsEntity> getAllNews() { 
+        return newsRepository.findAll(); 
+    }
+    
+    public NewsEntity findById(Long newsId) { 
+        try {
+            return newsRepository.findByIdWithEmployee(newsId).orElse(null);
+        } catch (Exception e) {
+            System.err.println("Error finding news by ID " + newsId + ": " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    public List<NewsEntity> getActivePublishedNews() { 
+        try {
+            return newsRepository.findActivePublishedNews(NewsStatus.PUBLISHED, LocalDateTime.now()); 
+        } catch (Exception e) {
+            System.err.println("Error loading active published news: " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
+        }
+    }
 
     @Transactional
     public NewsEntity saveNews(NewsEntity news, Long employeeId) {

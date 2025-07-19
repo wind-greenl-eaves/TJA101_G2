@@ -9,10 +9,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-    <!-- ✅ 沿用你首頁的完整奶茶風樣式 -->
     <style>
         :root {
             --bg-color: #FDFBF6;
@@ -23,17 +23,43 @@
             --border-color: #DED0B6;
             --header-bg: #F5EFE6;
             --accent-color: #E1A87A;
+            --light-accent: #F7F1E8;
+            --shadow-light: rgba(166, 123, 91, 0.1);
+            --shadow-medium: rgba(166, 123, 91, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            line-height: 1.6;
+            line-height: 1.7;
             color: var(--text-color);
-            background-color: var(--bg-color);
-            padding-top: 60px; /* 為固定的導航欄預留空間 */
+            background: linear-gradient(135deg, var(--bg-color) 0%, #F8F3ED 100%);
+            min-height: 100vh;
+            padding-top: 60px;
+            overflow-x: hidden;
         }
 
-        /* --- 導覽列樣式 (從 welcome.html 複製過來) --- */
+        /* 背景裝飾 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(225, 168, 122, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(166, 123, 91, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* --- 導覽列樣式 (保持不變) --- */
         .nav-fixed {
             position: fixed;
             top: 0;
@@ -70,57 +96,497 @@
         .nav-login { background: var(--primary-color); color: white; padding: 0.5rem 1.5rem; border-radius: 50px; text-decoration: none; transition: all 0.3s ease; }
         .nav-login:hover { background: var(--primary-hover); transform: translateY(-2px); }
 
-        /* --- 主要內容區塊 --- */
-        .page-header {
-            padding: 4rem 2rem;
-            background-color: var(--header-bg);
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        .page-title {
-            font-size: 2.8rem;
-            color: var(--primary-color);
-            font-weight: 700;
+        /* --- 優化的頁面標題 --- */
+.page-header {
+    padding: 6rem 2rem 4rem;
+    background: url('/images/news/news001.png') center/cover no-repeat;
+    text-align: center;
+    margin-bottom: 4rem;
+    position: relative;
+    overflow: hidden;
+     
+}
+
+.page-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(166, 123, 91, 0.05) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+}
+
+.page-title {
+    font-size: 3.5rem;
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.page-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-color);
+    font-weight: 400;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+    margin: 0 auto;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+
+
+        /* --- 優化的主要內容區域 --- */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
         }
 
-        /* --- 新聞卡片樣式 (從 welcome.html 複製並微調) --- */
+        /* --- 搜索和篩選區域 --- */
+        .news-controls {
+            background: var(--container-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 8px 25px var(--shadow-light);
+            border: 1px solid var(--border-color);
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem 1rem 3.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            font-size: 1rem;
+            background: var(--light-accent);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(166, 123, 91, 0.1);
+            background: white;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        /* --- 統計信息 --- */
+        .news-stats {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: rgba(166, 123, 91, 0.05);
+            border-radius: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .stats-text {
+            color: var(--text-color);
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        /* --- 優化的新聞網格 --- */
         .news-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 4rem;
         }
+
+        /* --- 重新設計的新聞卡片 --- */
         .news-card {
             background: var(--container-bg);
-            border-radius: 15px;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px var(--shadow-light);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
             display: flex;
             flex-direction: column;
+            border: 1px solid var(--border-color);
+            position: relative;
+            transform: translateY(0);
         }
-        .news-card:hover { transform: translateY(-8px); box-shadow: 0 12px 25px rgba(0,0,0,0.1); }
-        .news-image { position: relative; padding-bottom: 60%; overflow: hidden; }
-        .news-image img { position: absolute; width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
-        .news-card:hover .news-image img { transform: scale(1.1); }
-        .news-content { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
-        .news-content h5 { font-size: 1.3rem; color: var(--primary-hover); margin-bottom: 0.75rem; }
-        .news-content .date { font-size: 0.85rem; color: #999; margin-bottom: 1rem; }
-        .news-content .card-text {
-            color: var(--text-color);
-            margin-bottom: 1.5rem;
-            flex-grow: 1;}
-        .btn-outline { background: transparent; color: var(--primary-color); border: 2px solid var(--primary-color); padding: 0.6rem 1.2rem; border-radius: 50px; text-decoration: none; font-weight: 500; transition: all 0.3s ease; }
-        .btn-outline:hover { background: var(--primary-color); color: white; }
 
-        /* --- Footer 樣式 --- */
-        .footer {
+        .news-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .news-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .news-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 20px 40px var(--shadow-medium);
+        }
+
+        .news-image {
+            position: relative;
+            padding-bottom: 55%;
+            overflow: hidden;
+            background: var(--light-accent);
+        }
+
+        .news-image img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+            filter: brightness(0.95);
+        }
+
+        .news-card:hover .news-image img {
+            transform: scale(1.08);
+            filter: brightness(1);
+        }
+
+        .news-image-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: linear-gradient(to top, rgba(0,0,0,0.3), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .news-card:hover .news-image-overlay {
+            opacity: 1;
+        }
+
+        .news-content {
+            padding: 2rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .news-title {
+            font-size: 1.4rem;
+            color: var(--primary-hover);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            line-height: 1.4;
+            transition: color 0.3s ease;
+        }
+
+        .news-title:hover {
+            color: var(--primary-color);
+        }
+
+        .news-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        .news-date {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .news-category {
+            background: var(--light-accent);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .news-excerpt {
+            color: var(--text-color);
+            flex-grow: 1;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .news-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn-read-more {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(166, 123, 91, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-read-more::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-read-more:hover::before {
+            left: 100%;
+        }
+
+        .btn-read-more:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(166, 123, 91, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .news-share {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .share-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: var(--light-accent);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .share-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* --- 空狀態優化 --- */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: var(--container-bg);
+            border-radius: 20px;
+            box-shadow: 0 8px 25px var(--shadow-light);
+            border: 1px solid var(--border-color);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: var(--accent-color);
+            margin-bottom: 1.5rem;
+            opacity: 0.7;
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .empty-text {
+            color: var(--text-color);
+            opacity: 0.8;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* --- 回到頂部按鈕 --- */
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(166, 123, 91, 0.3);
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
             background: var(--primary-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(166, 123, 91, 0.4);
+        }
+
+        /* --- 優化的 Footer --- */
+        .footer {
+            background: linear-gradient(135deg, var(--primary-hover) 0%, #7A5A42 100%);
             color: white;
             text-align: center;
-            padding: 2rem;
-            margin-top: 4rem;
+            padding: 3rem 2rem 2rem;
+            margin-top: 5rem;
+            position: relative;
         }
-        .copyright { opacity: 0.8; font-size: 0.9rem; }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-color), var(--primary-color), var(--accent-color));
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .copyright {
+            opacity: 0.9;
+            font-size: 0.95rem;
+            font-weight: 300;
+        }
+
+        /* --- 動畫效果 --- */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- 響應式設計 --- */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2.5rem;
+            }
+
+            .page-subtitle {
+                font-size: 1rem;
+            }
+
+            .news-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .news-controls {
+                padding: 1.5rem;
+            }
+
+            .main-container {
+                padding: 0 1rem;
+            }
+
+            .page-header {
+                padding: 4rem 1rem 3rem;
+            }
+
+            .news-content {
+                padding: 1.5rem;
+            }
+
+            .back-to-top {
+                bottom: 1rem;
+                right: 1rem;
+                width: 45px;
+                height: 45px;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .news-actions {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .news-share {
+                justify-content: center;
+            }
+        }
+
+        /* --- 輔助功能和可訪問性 --- */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
     </style>
 </head>
 <body>
@@ -128,10 +594,6 @@
 <!-- Navigation Bar -->
 <nav class="nav-fixed">
     <div class="nav-container">
-<!--        <a href="http://localhost:8080/employee/login" class="admin-button-nav">-->
-<!--            <i class="fas fa-cogs"></i>-->
-<!--            後台管理-->
-<!--        </a>-->
         <a th:href="@{/welcome}" class="nav-logo">
             <img th:src="@{/images/123.png}" alt="EatFast Logo" class="nav-logo-icon">
             <span class="nav-logo-text">EatFast 早餐店</span>
@@ -141,7 +603,6 @@
             <a th:href="@{/news}" class="nav-link">最新消息</a>
             <a href="/store/storelist" class="nav-link">門市據點</a>
             <a href="/menu" class="nav-link">餐點菜單</a>
-            <!-- 根據登入狀態顯示不同內容 -->
             <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
                th:href="@{/member/dashboard}" class="nav-link">會員專區</a>
             <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
@@ -151,10 +612,8 @@
                th:href="@{/cart}" class="nav-link">購物車</a>
             <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
                th:href="@{/api/v1/auth/member-login}" class="nav-link">購物車</a>
-
         </div>
 
-        <!-- 登入按鈕根據登入狀態變化 -->
         <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
              class="nav-user-info" style="display: flex; align-items: center; gap: 1rem;">
             <span style="color: var(--primary-color);">歡迎, <span th:text="${session.memberName}"></span></span>
@@ -162,7 +621,6 @@
                     onclick="confirmLogout()">
                 <i class="fas fa-sign-out-alt"></i> 登出
             </button>
-            <!-- 隱藏的登出表單 -->
             <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display: none;">
                 <input type="hidden" name="_method" value="POST">
             </form>
@@ -174,49 +632,190 @@
     </div>
 </nav>
 
-<!-- 頁面標題 -->
+<!-- 優化的頁面標題 -->
 <header class="page-header">
     <h1 class="page-title">最新消息</h1>
+    <p class="page-subtitle">掌握 EatFast 早餐店的最新動態與優惠資訊</p>
 </header>
 
 <!-- 主要內容 -->
-<main class="container">
-    <!-- 如果沒有任何消息，顯示提示 -->
-    <div th:if="${#lists.isEmpty(publicNewsList)}" class="alert alert-secondary text-center">
-        目前沒有任何最新消息。
+<main class="main-container">
+    <!-- 搜索控制區域 -->
+    <div class="news-controls">
+        <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" placeholder="搜索新聞內容..." id="newsSearch">
+        </div>
+    </div>
+
+    <!-- 統計信息 -->
+    <div class="news-stats" th:if="${not #lists.isEmpty(publicNewsList)}">
+        <span class="stats-text">
+            <i class="fas fa-newspaper"></i>
+            共有 <strong th:text="${#lists.size(publicNewsList)}">0</strong> 則最新消息
+        </span>
+    </div>
+
+    <!-- 空狀態 -->
+    <div class="empty-state" th:if="${#lists.isEmpty(publicNewsList)}">
+        <div class="empty-icon">
+            <i class="fas fa-newspaper"></i>
+        </div>
+        <h3 class="empty-title">暫無最新消息</h3>
+        <p class="empty-text">目前沒有任何最新消息，請稍後再來查看或關注我們的社群媒體獲得最新資訊。</p>
     </div>
 
     <!-- 消息卡片網格 -->
     <div class="news-grid" th:if="${not #lists.isEmpty(publicNewsList)}">
-        <div class="news-card" th:each="news : ${publicNewsList}">
-            <a th:href="@{/news/{id}(id=${news.newsId})}" class="text-decoration-none" th:if="${news.imageUrl != null}">
-                <div class="news-image">
+        <article class="news-card" th:each="news : ${publicNewsList}">
+            <!-- 新聞圖片 -->
+            <div class="news-image" th:if="${news.imageUrl != null}">
+                <a th:href="@{/news/{id}(id=${news.newsId})}" class="text-decoration-none">
                     <img th:src="@{${news.imageUrl}}" th:alt="${news.title}">
-                </div>
-            </a>
+                    <div class="news-image-overlay"></div>
+                </a>
+            </div>
+            
+            <!-- 新聞內容 -->
             <div class="news-content">
-                <h5 class="card-title">
-                    <a th:href="@{/news/{id}(id=${news.newsId})}" th:text="${news.title}" class="text-decoration-none" style="color: inherit;"></a>
-                </h5>
+                <h2 class="news-title">
+                    <a th:href="@{/news/{id}(id=${news.newsId})}" th:text="${news.title}" class="text-decoration-none"></a>
+                </h2>
 
-                <p class="date" th:if="${news.startTime != null}" th:text="'發布於 ' + ${#temporals.format(news.startTime, 'yyyy-MM-dd')}"></p>
+                <div class="news-meta">
+                    <div class="news-date" th:if="${news.startTime != null}">
+                        <i class="far fa-calendar-alt"></i>
+                        <time th:datetime="${#temporals.format(news.startTime, 'yyyy-MM-dd')}" 
+                              th:text="${#temporals.format(news.startTime, 'yyyy年MM月dd日')}"></time>
+                    </div>
+                    <span class="news-category">最新消息</span>
+                </div>
 
-                <p class="card-text" th:text="${#strings.abbreviate(news.content, 80)}"></p>
-                <div class="mt-auto">
-                    <a th:href="@{/news/{id}(id=${news.newsId})}" class="btn-outline">閱讀更多</a>
+                <p class="news-excerpt" th:text="${#strings.abbreviate(news.content, 120)}"></p>
+                
+                <div class="news-actions">
+                    <a th:href="@{/news/{id}(id=${news.newsId})}" class="btn-read-more">
+                        <i class="fas fa-arrow-right"></i>
+                        閱讀完整內容
+                    </a>
+                    <div class="news-share">
+                        <a href="#" class="share-btn" title="分享到 Facebook" 
+                           th:attr="data-title=${news.title},data-news-id=${news.newsId}"
+                           onclick="shareToFacebook(this)">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="share-btn" title="分享到 LINE" 
+                           th:attr="data-title=${news.title},data-news-id=${news.newsId}"
+                           onclick="shareToLine(this)">
+                            <i class="fab fa-line"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
-            </div>
-        </div>
+        </article>
     </div>
 </main>
 
-<!-- 頁尾 (Footer) -->
+<!-- 回到頂部按鈕 -->
+<button class="back-to-top" id="backToTop" title="回到頂部">
+    <i class="fas fa-chevron-up"></i>
+    <span class="sr-only">回到頂部</span>
+</button>
+
+<!-- 優化的頁尾 -->
 <footer class="footer">
-    <div class="copyright">
-        © 2025 EatFast 早餐店 - 版權所有
+    <div class="footer-content">
+        <div class="copyright">
+            <i class="far fa-copyright"></i>
+            2025 EatFast 早餐店 - 版權所有 | 用心製作每一份早餐
+        </div>
     </div>
 </footer>
+
+<!-- JavaScript -->
+<script>
+    // 搜索功能
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('newsSearch');
+        const backToTopBtn = document.getElementById('backToTop');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const newsCards = document.querySelectorAll('.news-card');
+                
+                newsCards.forEach(card => {
+                    const title = card.querySelector('.news-title').textContent.toLowerCase();
+                    const content = card.querySelector('.news-excerpt').textContent.toLowerCase();
+                    
+                    if (title.includes(searchTerm) || content.includes(searchTerm)) {
+                        card.style.display = 'block';
+                        card.style.animation = 'fadeInUp 0.5s ease forwards';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // 回到頂部功能
+        if (backToTopBtn) {
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 300) {
+                    backToTopBtn.classList.add('visible');
+                } else {
+                    backToTopBtn.classList.remove('visible');
+                }
+            });
+            
+            backToTopBtn.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        }
+
+        // 鍵盤輔助功能
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && searchInput) {
+                if (searchInput.value) {
+                    searchInput.value = '';
+                    searchInput.dispatchEvent(new Event('input'));
+                }
+            }
+        });
+    });
+
+    // 登出確認功能
+    function confirmLogout() {
+        if (confirm('確定要登出嗎？')) {
+            const logoutForm = document.getElementById('logout-form');
+            if (logoutForm) {
+                logoutForm.submit();
+            }
+        }
+    }
+
+    // 社群分享功能
+    function shareToFacebook(element) {
+        const title = element.getAttribute('data-title');
+        const newsId = element.getAttribute('data-news-id');
+        const url = '/news/' + newsId;
+        const fullUrl = window.location.origin + url;
+        window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(fullUrl) + '&quote=' + encodeURIComponent(title), 
+                   '_blank', 'width=600,height=400');
+    }
+
+    function shareToLine(element) {
+        const title = element.getAttribute('data-title');
+        const newsId = element.getAttribute('data-news-id');
+        const url = '/news/' + newsId;
+        const fullUrl = window.location.origin + url;
+        window.open('https://social-plugins.line.me/lineit/share?url=' + encodeURIComponent(fullUrl) + '&text=' + encodeURIComponent(title), 
+                   '_blank', 'width=600,height=400');
+    }
+</script>
 
 </body>
 </html>
