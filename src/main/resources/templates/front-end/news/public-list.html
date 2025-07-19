@@ -700,11 +700,13 @@
                     </a>
                     <div class="news-share">
                         <a href="#" class="share-btn" title="分享到 Facebook" 
-                           th:onclick="'shareToFacebook(\'' + ${news.title} + '\', \'/news/' + ${news.newsId} + '\')'">
+                           th:attr="data-title=${news.title},data-news-id=${news.newsId}"
+                           onclick="shareToFacebook(this)">
                             <i class="fab fa-facebook-f"></i>
                         </a>
                         <a href="#" class="share-btn" title="分享到 LINE" 
-                           th:onclick="'shareToLine(\'' + ${news.title} + '\', \'/news/' + ${news.newsId} + '\')'">
+                           th:attr="data-title=${news.title},data-news-id=${news.newsId}"
+                           onclick="shareToLine(this)">
                             <i class="fab fa-line"></i>
                         </a>
                     </div>
@@ -796,13 +798,19 @@
     }
 
     // 社群分享功能
-    function shareToFacebook(title, url) {
+    function shareToFacebook(element) {
+        const title = element.getAttribute('data-title');
+        const newsId = element.getAttribute('data-news-id');
+        const url = '/news/' + newsId;
         const fullUrl = window.location.origin + url;
         window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(fullUrl) + '&quote=' + encodeURIComponent(title), 
                    '_blank', 'width=600,height=400');
     }
 
-    function shareToLine(title, url) {
+    function shareToLine(element) {
+        const title = element.getAttribute('data-title');
+        const newsId = element.getAttribute('data-news-id');
+        const url = '/news/' + newsId;
         const fullUrl = window.location.origin + url;
         window.open('https://social-plugins.line.me/lineit/share?url=' + encodeURIComponent(fullUrl) + '&text=' + encodeURIComponent(title), 
                    '_blank', 'width=600,height=400');
