@@ -714,6 +714,154 @@ h1 {
 		grid-template-columns: 1fr;
 	}
 }
+
+/* 登出Modal樣式 - 與首頁相同 */
+.logout-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.logout-modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+}
+
+.logout-modal-content {
+    background: var(--container-bg);
+    border-radius: 20px;
+    padding: 2.5rem;
+    max-width: 450px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    transform: scale(0.7);
+    transition: transform 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.logout-modal.show .logout-modal-content {
+    transform: scale(1);
+}
+
+.logout-modal-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 2.5rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+    }
+}
+
+.logout-modal-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.logout-modal-message {
+    font-size: 1.1rem;
+    color: var(--text-color);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.logout-modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.logout-btn {
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.logout-btn-confirm {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.logout-btn-confirm:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+.logout-btn-cancel {
+    background: var(--container-bg);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+}
+
+.logout-btn-cancel:hover {
+    background: var(--header-bg);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+/* 載入動畫樣式 */
+.logout-loading {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logout-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
 </style>
 </head>
 <body>
@@ -753,7 +901,26 @@ h1 {
             </a>
         </div>
     </nav>
-
+	
+	 <!-- 登出確認模態框 -->
+    <div class="logout-modal" id="logoutModal">
+        <div class="logout-modal-content">
+            <div class="logout-modal-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h3 class="logout-modal-title">登出確認</h3>
+            <p class="logout-modal-message">您確定要登出系統嗎？</p>
+            <div class="logout-modal-actions">
+                <button class="logout-btn logout-btn-confirm" onclick="logout()">確定登出</button>
+                <button class="logout-btn logout-btn-cancel" onclick="closeLogoutModal()">取消</button>
+            </div>
+            <div class="logout-loading" id="logoutLoading" style="display: none;">
+                <div class="logout-spinner"></div>
+                <span>登出中...</span>
+            </div>
+        </div>
+    </div>
+    
     <div class="main-layout">
         <!-- 左側導航欄 -->
         <div class="sidebar">
@@ -1279,6 +1446,48 @@ h1 {
                 // 恢復按鈕狀態
                 button.disabled = false;
                 button.innerHTML = '📝 送出評分';
+            });
+        }
+
+        // 登出確認功能 - 與首頁相同
+        function confirmLogout() {
+            // 顯示登出確認模態框
+            document.getElementById('logoutModal').classList.add('show');
+        }
+
+        function closeLogoutModal() {
+            // 隱藏登出確認模態框
+            document.getElementById('logoutModal').classList.remove('show');
+        }
+
+        function logout() {
+            // 顯示載入動畫
+            document.getElementById('logoutLoading').style.display = 'flex';
+
+            // 使用 fetch 發送 POST 請求到登出端點
+            fetch('/api/v1/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (response.ok) {
+                    // 登出成功，重定向到首頁
+                    window.location.href = '/welcome';
+                } else {
+                    alert('登出失敗，請稍後再試');
+                    closeLogoutModal();
+                    document.getElementById('logoutLoading').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('登出錯誤:', error);
+                alert('登出失敗，請稍後再試');
+                closeLogoutModal();
+                document.getElementById('logoutLoading').style.display = 'none';
             });
         }
     </script>

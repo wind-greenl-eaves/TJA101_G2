@@ -274,7 +274,7 @@
         
         .remember-forgot {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             margin: 20px 0;
             font-size: 14px;
@@ -674,18 +674,13 @@
                     </div>
                 </div>
                 
-                <div class="remember-forgot">
-                    <label class="remember-me">
-                        <input type="checkbox" name="rememberMe" value="true">
-                        <span>記住我</span>
-                    </label>
-                    <a th:href="@{/api/v1/auth/forgot-password}" class="forgot-password">忘記密碼？</a>
-                </div>
-                
                 <button type="submit" class="login-btn" id="loginButton">
                     登入
                     <span class="loading" id="loading"></span>
                 </button>
+                <div class="remember-forgot">
+                    <a th:href="@{/api/v1/auth/forgot-password}" class="forgot-password">忘記密碼？</a>
+                </div>
             </form>
             
             <div class="register-link">
