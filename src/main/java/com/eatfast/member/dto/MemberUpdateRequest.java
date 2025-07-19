@@ -134,8 +134,7 @@ public class MemberUpdateRequest {
      */
     public Boolean getEnabled() { return enabled; }
     
-   
-    
+
     public java.time.LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
