@@ -1205,12 +1205,32 @@
         
         function closeWelcomePopup() {
             document.getElementById('welcomePopup').classList.remove('show');
+            // 設定 sessionStorage 標記，表示已經顯示過歡迎彈窗
+            sessionStorage.setItem('welcomePopupShown', 'true');
         }
 
         window.addEventListener('load', function() {
-            setTimeout(() => {
-                document.getElementById('welcomePopup').classList.add('show');
-            }, 500);
+            // 檢查是否已經在這個會話中顯示過歡迎彈窗
+            const hasShownWelcome = sessionStorage.getItem('welcomePopupShown');
+            
+            if (!hasShownWelcome) {
+                setTimeout(() => {
+                    document.getElementById('welcomePopup').classList.add('show');
+                    // 設定 sessionStorage 標記
+                    sessionStorage.setItem('welcomePopupShown', 'true');
+                }, 500);
+            }
+        });
+        
+        // 當點擊彈窗內的按鈕時也自動關閉彈窗
+        document.addEventListener('DOMContentLoaded', function() {
+            // 為彈窗內的按鈕添加點擊事件監聽器
+            const popupButtons = document.querySelectorAll('.welcome-btn');
+            popupButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    closeWelcomePopup();
+                });
+            });
         });
     </script>
 </body>
