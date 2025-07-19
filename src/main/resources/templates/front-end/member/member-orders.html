@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>訂單記錄 - 早餐店會員系統</title>
+<title>訂單紀錄 - 早餐店會員系統</title>
 <style>
 body {
 	font-family: 'Microsoft JhengHei', Arial, sans-serif;
@@ -501,12 +501,12 @@ h1 {
 </head>
 <body>
 	<div class="container">
-		<h1>📋 訂單記錄</h1>
+		<h1>📋 訂單紀錄</h1>
 
 		<!-- 導航欄 -->
 		<div class="navigation-bar">
 			<a href="/member/dashboard">🏠 首頁</a> <a href="/member/profile">👤
-				個人資料</a> <a href="/member/orders" class="active">📋 訂單記錄</a> <a
+				個人資料</a> <a href="/member/orders" class="active">📋 訂單紀錄</a> <a
 				href="/member/favorites">❤️ 我的收藏</a> <a href="/member/settings">⚙️
 				帳號設定</a> <a href="/logout" onclick="return confirm('確定要登出嗎？')">🚪 登出</a>
 		</div>
@@ -537,7 +537,7 @@ h1 {
 			<!-- 如果沒有訂單 -->
 			<div th:if="${#lists.isEmpty(orders)}" class="empty-state">
 				<div style="font-size: 48px; margin-bottom: 20px;">📋</div>
-				<h3>尚無訂單記錄</h3>
+				<h3>尚無訂單紀錄</h3>
 				<p>您還沒有任何訂單，趕快去選購美味的早餐吧！</p>
 				<a href="/menu" class="btn">🛒 開始購物</a>
 			</div>
