@@ -490,7 +490,8 @@
                                 th:data-loc="${store.storeLoc}"
                                 th:data-phone="${store.storePhone}"
                                 th:data-time="${store.storeTime}"
-                                th:data-map-url="${store.googleMapUrl}">
+                                th:data-map-url="${store.googleMapUrl}"
+                                th:data-status="${store.storeStatus.name()}">
                                 <span th:text="${store.storeName}">一號店</span>
                             </button>
                         </th:block>
@@ -533,6 +534,7 @@
 					<div class="mt-8 text-center">
                          <a id="order-now-button"
                            th:href="@{/menu(storeId=${currentStore.storeId})}"
+                           th:data-status="${currentStore.storeStatus.name()}"
                            class="bg-brand-accent text-brand-deep font-bold py-3 px-8 rounded-full shadow-lg hover:bg-orange-400 transform hover:-translate-y-1 transition-all duration-300 ease-in-out">
                            前往點餐
                         </a>
@@ -626,6 +628,8 @@
             const storeTimeEl = document.getElementById('store-time');
             const storeMapIframeEl = document.getElementById('store-map-iframe');
             const orderNowButtonEl = document.getElementById('order-now-button');
+            const restingModal = document.getElementById('resting-store-modal');
+            const closeRestingModalBtn = document.getElementById('close-resting-modal-btn');
 
             // 為每一個按鈕加上點擊事件的監聽
             storeButtons.forEach(button => {
@@ -646,7 +650,8 @@
                     const orderUrl = `/menu?storeId=${data.id}`;
                     
                  	// 將 "前往點餐" 按鈕的 href 屬性更新為新的 URL
-                    orderNowButtonEl.href = orderUrl;
+                    orderNowButtonEl.href = `/menu?storeId=${data.id}`;
+                    orderNowButtonEl.dataset.status = data.status;
 
                     // --- 更新按鈕的啟用狀態樣式 ---
                     // 1. 先移除所有按鈕的 'active' class
@@ -655,7 +660,33 @@
                     this.classList.add('active');
                 });
             });
+            
+// --- Modal 控制邏輯 ---
+            
+            // 【新增】為「前往點餐」按鈕加上點擊事件監聽
+            orderNowButtonEl.addEventListener('click', function(event) {
+                // 檢查按鈕上儲存的狀態是否為 'RESTING'
+                if (this.dataset.status === 'RESTING') {
+                    // 1. 阻止預設的跳轉行為
+                    event.preventDefault();
+                    // 2. 顯示提示 Modal
+                    restingModal.classList.add('show');
+                }
+                // 如果狀態不是 RESTING，則不執行任何動作，讓連結正常跳轉
+            });
+
+            // 【新增】為 Modal 的關閉按鈕加上點擊事件
+            closeRestingModalBtn.addEventListener('click', function() {
+                restingModal.classList.remove('show');
+            });
+
+            // 【新增】點擊 Modal 背景也可以關閉
+            restingModal.addEventListener('click', function(event) {
+                if (event.target === restingModal) {
+                    restingModal.classList.remove('show');
+                }
         });
+    });
     </script>
 </body>
 </html>
