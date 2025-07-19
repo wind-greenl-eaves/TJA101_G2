@@ -81,8 +81,11 @@ public class EmployeeAuthService {
                 boolean matches = inputPassword.equals(storedPassword);
                 logger.debug("明文密碼驗證結果: {}", matches);
                 
-                // 【修正】移除自動密碼升級，避免登入過程中的異常
-                // 密碼升級功能已移至 EmployeeServiceImpl.authenticateEmployee() 方法中統一處理
+                // 如果明文密碼驗證成功，自動升級為BCrypt
+                if (matches) {
+                    logger.info("明文密碼驗證成功，將自動升級為BCrypt加密");
+                    upgradePasswordToBCrypt(inputPassword, storedPassword);
+                }
                 
                 return matches;
             }
@@ -105,12 +108,24 @@ public class EmployeeAuthService {
 
     /**
      * 將明文密碼升級為BCrypt加密
-     * 【修正】此方法僅供內部測試使用，實際升級邏輯已移至 EmployeeServiceImpl
      */
     private void upgradePasswordToBCrypt(String plainPassword, String currentStoredPassword) {
-        // 【已停用】為避免登入過程中的異常，此方法已停用
-        // 密碼升級功能已移至 EmployeeServiceImpl.authenticateEmployee() 方法中統一處理
-        logger.debug("密碼升級功能已移至服務層統一處理");
+        try {
+            // 查找使用此密碼的員工
+            Optional<EmployeeEntity> employeeOpt = employeeRepository.findByPassword(currentStoredPassword);
+            if (employeeOpt.isPresent()) {
+                EmployeeEntity employee = employeeOpt.get();
+                String encryptedPassword = passwordEncoder.encode(plainPassword);
+                employee.setPassword(encryptedPassword);
+                employeeRepository.save(employee);
+                
+                logger.info("員工 {} (ID: {}) 的密碼已自動升級為BCrypt加密", 
+                          employee.getAccount(), employee.getEmployeeId());
+            }
+        } catch (Exception e) {
+            logger.error("密碼升級過程中發生錯誤: {}", e.getMessage(), e);
+            // 升級失敗不影響登入流程
+        }
     }
 
     /**
