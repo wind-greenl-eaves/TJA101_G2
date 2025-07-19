@@ -51,13 +51,23 @@
         }
         
         body {
-            /* 風格美化：更換字體與背景 */
-            font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
-            line-height: 1.7; /* 增加行高以提升可讀性 */
-            color: var(--text-color);
-            background-color: var(--bg-color); /* 使用溫馨的米白背景 */
-            min-height: 100vh;
-        }
+    /* 風格美化：更換字體與背景 */
+    font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+    line-height: 1.7; /* 增加行高以提升可讀性 */
+    color: var(--text-color);
+    
+    /* 添加背景圖片設定 */
+    background-image: url('/images/big_index_1.png');
+    background-size: cover; /* 覆蓋整個螢幕 */
+    background-position: center center; /* 置中對齊 */
+    background-repeat: no-repeat; /* 不重複 */
+    background-attachment: fixed; /* 固定背景，滾動時不移動 */
+    
+    /* 保留原有的背景色作為後備 */
+    background-color: var(--bg-color);
+    min-height: 100vh;
+}
+
         
         /* --- 以下為 Header 和 Nav Bar 區域，樣式保持不變 --- */
         .header {
@@ -66,25 +76,26 @@
     padding: 6rem 0 4rem;
     text-align: center;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+     background: url('/images/EATFAST_Breakfast_Shop.png') center center / cover no-repeat;
     position: relative;
     overflow: hidden;
     margin-top: 60px;
 }
 
-.header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('/images/EATFAST_Breakfast_Shop.png') center center / cover no-repeat;
-    opacity: 1;
-    z-index: 0;
-    /* 調淡濾鏡效果 */
-    filter: blur(0.1px) brightness(0.95);
-    background-position: center center;
-}
+/* .header::before { */
+/*     content: ''; */
+/*     position: absolute; */
+/*     top: 0; */
+/*     left: 0; */
+/*     width: 100%; */
+/*     height: 100%; */
+/*     background: url('/images/EATFAST_Breakfast_Shop.png') center center / cover no-repeat; */
+/*     opacity: 1; */
+/*     z-index: 0; */
+/*     /* 調淡濾鏡效果 */ */
+/*     filter: none; */
+/*     background-position: center center; */
+/* } */
 
 
         
@@ -146,6 +157,7 @@
             font-weight: 700;
             margin-bottom: 1rem;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            visibility: hidden;
         }
         
       .brand-subtitle {
