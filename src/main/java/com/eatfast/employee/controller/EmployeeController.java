@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -77,7 +76,6 @@ public class EmployeeController {
     // 對應 API 路徑：POST /api/v1/employees
     //@ModleAttribute 用來處理 multipart/form-data 的表單資料。
     @PostMapping(consumes = "multipart/form-data")
-    @PreAuthorize("hasPermission(null, 'CREATE_EMPLOYEE', 'EMPLOYEE')")
     public ResponseEntity<?> createEmployee(@Valid @ModelAttribute CreateEmployeeRequest request, HttpSession session) {
         employeeLogger.logInfo("收到新增員工請求: username={}, email={}, role={}", 
                    request.getUsername(), request.getEmail(), request.getRole());
@@ -93,7 +91,7 @@ public class EmployeeController {
             employeeLogger.logDebug("當前登入用戶: ID={}, username={}, role={}", 
                         currentEmployee.getEmployeeId(), currentEmployee.getUsername(), currentEmployee.getRole());
 
-            // 檢查基本權限
+            // 手動檢查權限
             if (!permissionService.canCreateEmployee(currentEmployee)) {
                 employeeLogger.logWarn("用戶 {} (ID: {}) 嘗試新增員工但權限不足", 
                            currentEmployee.getUsername(), currentEmployee.getEmployeeId());
@@ -153,7 +151,6 @@ public class EmployeeController {
     //   - 門市經理只能查自己門市的員工
     //   - 一般員工無法查詢
     @GetMapping("/{id}")
-    @PreAuthorize("hasPermission(#id, 'VIEW_EMPLOYEE')")
     public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id, HttpSession session) {
         logger.info("收到查詢員工請求: employeeId={}", id);
         
@@ -171,7 +168,7 @@ public class EmployeeController {
             logger.debug("找到目標員工: ID={}, username={}, storeId={}", 
                         targetEmployee.getEmployeeId(), targetEmployee.getUsername(), targetEmployee.getStoreId());
             
-            // 【修正】使用統一權限服務檢查
+            // 手動檢查權限
             if (!permissionService.canViewEmployee(currentEmployee, targetEmployee)) {
                 logger.warn("用戶 {} (ID: {}) 嘗試查看員工 {} (ID: {}) 但權限不足", 
                            currentEmployee.getUsername(), currentEmployee.getEmployeeId(),
@@ -194,7 +191,6 @@ public class EmployeeController {
     // 對應 API 路徑：GET /api/v1/employees
     // 權限說明同上。
     @GetMapping
-    @PreAuthorize("hasPermission(null, 'ACCESS_EMPLOYEE_LIST', 'EMPLOYEE')")
     public ResponseEntity<List<EmployeeDTO>> searchEmployees(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) EmployeeRole role,
@@ -215,7 +211,7 @@ public class EmployeeController {
         logger.debug("當前登入用戶: ID={}, username={}, role={}", 
                     currentEmployee.getEmployeeId(), currentEmployee.getUsername(), currentEmployee.getRole());
 
-        // 【修正】使用統一權限服務檢查
+        // 手動檢查權限
         if (!permissionService.canAccessEmployeeList(currentEmployee)) {
             logger.warn("用戶 {} (ID: {}) 嘗試存取員工清單但權限不足", 
                        currentEmployee.getUsername(), currentEmployee.getEmployeeId());
@@ -259,7 +255,6 @@ public class EmployeeController {
     // 對應 API 路徑：PUT /api/v1/employees/{id}
     // 權限說明同上。
     @PutMapping("/{id}")
-    @PreAuthorize("hasPermission(#id, 'EDIT_EMPLOYEE')")
     public ResponseEntity<EmployeeDTO> updateEmployee(
             @PathVariable Long id,
             @ModelAttribute @Valid UpdateEmployeeRequest request,
@@ -281,7 +276,7 @@ public class EmployeeController {
             logger.debug("找到目標員工: ID={}, username={}, storeId={}", 
                         targetEmployee.getEmployeeId(), targetEmployee.getUsername(), targetEmployee.getStoreId());
             
-            // 【修正】使用統一權限服務檢查
+            // 手動檢查權限
             if (!permissionService.canEditEmployee(currentEmployee, targetEmployee)) {
                 logger.warn("用戶 {} (ID: {}) 嘗試修改員工 {} (ID: {}) 但權限不足", 
                            currentEmployee.getUsername(), currentEmployee.getEmployeeId(),
@@ -307,7 +302,6 @@ public class EmployeeController {
     // 對應 API 路徑：DELETE /api/v1/employees/{id}
     // 權限說明同上。
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasPermission(#id, 'DELETE_EMPLOYEE')")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id, HttpSession session) {
         logger.info("收到刪除員工請求: employeeId={}", id);
         
@@ -325,7 +319,7 @@ public class EmployeeController {
             logger.debug("找到目標員工: ID={}, username={}, storeId={}", 
                         targetEmployee.getEmployeeId(), targetEmployee.getUsername(), targetEmployee.getStoreId());
             
-            // 【修正】使用統一權限服務檢查
+            // 手動檢查權限
             if (!permissionService.canDeleteEmployee(currentEmployee, targetEmployee)) {
                 logger.warn("用戶 {} (ID: {}) 嘗試刪除員工 {} (ID: {}) 但權限不足", 
                            currentEmployee.getUsername(), currentEmployee.getEmployeeId(),
@@ -352,11 +346,26 @@ public class EmployeeController {
     //   - POST /api/v1/employees/{employeeId}/permissions/{permissionId}（授權）
     //   - DELETE /api/v1/employees/{employeeId}/permissions/{permissionId}（收回）
     @PostMapping("/{employeeId}/permissions/{permissionId}")
-    @PreAuthorize("hasPermission(#employeeId, 'EDIT_EMPLOYEE')")
-    public ResponseEntity<Void> grantPermission(@PathVariable Long employeeId, @PathVariable Long permissionId) {
+    public ResponseEntity<Void> grantPermission(@PathVariable Long employeeId, @PathVariable Long permissionId, HttpSession session) {
         logger.info("收到授權請求: employeeId={}, permissionId={}", employeeId, permissionId);
         
+        EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+        if (currentEmployee == null) {
+            logger.warn("未登入用戶嘗試授權員工: employeeId={}", employeeId);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         try {
+            EmployeeDTO targetEmployee = employeeService.findEmployeeById(employeeId);
+            
+            // 手動檢查權限
+            if (!permissionService.canEditEmployee(currentEmployee, targetEmployee)) {
+                logger.warn("用戶 {} (ID: {}) 嘗試授權員工 {} (ID: {}) 但權限不足", 
+                           currentEmployee.getUsername(), currentEmployee.getEmployeeId(),
+                           targetEmployee.getUsername(), targetEmployee.getEmployeeId());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            
             // 直接呼叫服務層進行授權
             employeeService.grantPermissionToEmployee(employeeId, permissionId);
             logger.info("成功授權: employeeId={}, permissionId={}", employeeId, permissionId);
@@ -368,11 +377,26 @@ public class EmployeeController {
     }
 
     @DeleteMapping("/{employeeId}/permissions/{permissionId}")
-    @PreAuthorize("hasPermission(#employeeId, 'EDIT_EMPLOYEE')")
-    public ResponseEntity<Void> revokePermission(@PathVariable Long employeeId, @PathVariable Long permissionId) {
+    public ResponseEntity<Void> revokePermission(@PathVariable Long employeeId, @PathVariable Long permissionId, HttpSession session) {
         logger.info("收到收回權限請求: employeeId={}, permissionId={}", employeeId, permissionId);
         
+        EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+        if (currentEmployee == null) {
+            logger.warn("未登入用戶嘗試收回員工權限: employeeId={}", employeeId);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
         try {
+            EmployeeDTO targetEmployee = employeeService.findEmployeeById(employeeId);
+            
+            // 手動檢查權限
+            if (!permissionService.canEditEmployee(currentEmployee, targetEmployee)) {
+                logger.warn("用戶 {} (ID: {}) 嘗試收回員工 {} (ID: {}) 權限但權限不足", 
+                           currentEmployee.getUsername(), currentEmployee.getEmployeeId(),
+                           targetEmployee.getUsername(), targetEmployee.getEmployeeId());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            
             // 直接呼叫服務層收回權限
             employeeService.revokePermissionFromEmployee(employeeId, permissionId);
             logger.info("成功收回權限: employeeId={}, permissionId={}", employeeId, permissionId);
@@ -502,7 +526,6 @@ public class EmployeeController {
     // 對應 API 路徑：PUT /api/v1/employees/{id}/photo
     // 會檢查檔案格式、大小與權限。
     @PutMapping("/{id}/photo")
-    @PreAuthorize("hasPermission(#id, 'EDIT_EMPLOYEE')")
     public ResponseEntity<?> updateEmployeePhoto(
             @PathVariable Long id,
             @RequestParam("photo") MultipartFile photo,
@@ -526,26 +549,12 @@ public class EmployeeController {
             logger.debug("找到目標員工: ID={}, username={}, storeId={}", 
                         targetEmployee.getEmployeeId(), targetEmployee.getUsername(), targetEmployee.getStoreId());
             
-            // 權限判斷
-            EmployeeRole currentRole = currentEmployee.getRole();
-            switch (currentRole) {
-                case HEADQUARTERS_ADMIN:
-                    logger.debug("總部管理員有權限上傳任何員工照片");
-                    break;
-                case MANAGER:
-                    if (!targetEmployee.getStoreId().equals(currentEmployee.getStoreId())) {
-                        logger.warn("門市經理 {} 嘗試上傳不同門市員工 {} 的照片", 
-                                   currentEmployee.getUsername(), targetEmployee.getUsername());
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-                    }
-                    logger.debug("門市經理有權限上傳同門市員工照片");
-                    break;
-                case STAFF:
-                    logger.warn("一般員工 {} 嘗試上傳員工照片，權限不足", currentEmployee.getUsername());
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-                default:
-                    logger.warn("未知角色 {} 嘗試上傳員工照片", currentRole);
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            // 手動檢查權限
+            if (!permissionService.canEditEmployee(currentEmployee, targetEmployee)) {
+                logger.warn("用戶 {} (ID: {}) 嘗試上傳員工 {} (ID: {}) 照片但權限不足", 
+                           currentEmployee.getUsername(), currentEmployee.getEmployeeId(),
+                           targetEmployee.getUsername(), targetEmployee.getEmployeeId());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
             
             // 驗證照片檔案
