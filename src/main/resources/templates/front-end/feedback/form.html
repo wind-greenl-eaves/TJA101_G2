@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>顧客意見表單 - EatFast</title>
 
-    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
@@ -39,16 +38,90 @@
             justify-content: space-between; align-items: center;
             height: 100%; padding: 0 2rem;
         }
-        .nav-logo { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--primary-color); }
-        .nav-logo-icon { width: 35px; height: 35px; object-fit: contain; }
-        .nav-logo-text { font-size: 1.2rem; font-weight: 700; }
-        .nav-menu { display: flex; gap: 2rem; align-items: center; }
-        .nav-link { color: var(--text-color); text-decoration: none; font-weight: 500; position: relative; }
-        .nav-link::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px; background: var(--primary-color); transition: width 0.3s ease; }
-        .nav-link:hover::after { width: 100%; }
-        .nav-login { background: var(--primary-color); color: white; padding: 0.5rem 1.5rem; border-radius: 50px; text-decoration: none; transition: all 0.3s ease; }
-        .nav-login:hover { background: var(--primary-hover); transform: translateY(-2px); color: white; }
+        .nav-logo { 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+            text-decoration: none; 
+            color: var(--primary-color); 
+        }
+        .nav-logo-icon { 
+            width: 35px; 
+            height: 35px; 
+            object-fit: contain; 
+        }
+        .nav-logo-text { 
+            font-size: 1.2rem; 
+            font-weight: 700; 
+        }
+        .nav-menu { 
+            display: flex; 
+            gap: 2rem; 
+            align-items: center; 
+        }
+        .nav-link { 
+            color: var(--text-color); 
+            text-decoration: none; 
+            font-weight: 500; 
+            transition: color 0.3s ease;
+            position: relative; 
+        }
+        .nav-link::after { 
+            content: ''; 
+            position: absolute; 
+            bottom: -5px; 
+            left: 0; 
+            width: 0; 
+            height: 2px; 
+            background: var(--primary-color); 
+            transition: width 0.3s ease; 
+        }
+        .nav-link:hover::after { 
+            width: 100%; 
+        }
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+        .nav-login { 
+            background: var(--primary-color); 
+            color: white; 
+            padding: 0.5rem 1.5rem; 
+            border-radius: 50px; 
+            text-decoration: none; 
+            transition: all 0.3s ease; 
+        }
+        .nav-login:hover { 
+            background: var(--primary-hover); 
+            transform: translateY(-2px); 
+            color: white; 
+        }
 
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .nav-logo-text {
+                font-size: 1rem;
+            }
+            
+            .nav-fixed {
+                height: 50px;
+            }
+            
+            .nav-logo-icon {
+                width: 30px;
+                height: 30px;
+            }
+            
+            .nav-menu {
+                gap: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+        }
+        
         /* --- 頁尾樣式 --- */
         .footer {
             background: var(--primary-hover);
@@ -61,58 +134,185 @@
 
         /* === 意見回饋表單專用樣式 === */
         .feedback-container {
-            max-width: 650px;
+            max-width: 900px; /* 從 650px 增加到 900px */
             margin: 4rem auto;
             background-color: var(--container-bg);
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px var(--shadow-light);
+            padding: 60px; /* 從 40px 增加到 60px */
+            border-radius: 20px; /* 從 15px 增加到 20px */
+            box-shadow: 0 12px 35px var(--shadow-light); /* 增強陰影效果 */
             border: 1px solid var(--border-color);
         }
         .feedback-container h3 {
             color: var(--primary-color);
             text-align: center;
-            margin-bottom: 35px;
+            margin-bottom: 45px; /* 從 35px 增加到 45px */
             font-weight: 700;
+            font-size: 2.2rem; /* 增加標題字體大小 */
         }
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 35px; /* 從 25px 增加到 35px */
         }
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 12px; /* 從 8px 增加到 12px */
             font-weight: 500;
             color: var(--text-color);
+            font-size: 1.1rem; /* 增加標籤字體大小 */
         }
         .form-control {
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            padding: 12px 15px;
+            border-radius: 12px; /* 從 8px 增加到 12px */
+            border: 2px solid var(--border-color); /* 從 1px 增加到 2px */
+            padding: 18px 20px; /* 從 12px 15px 增加到 18px 20px */
+            font-size: 1.1rem; /* 增加輸入框字體大小 */
+            width: 100%;
+            box-sizing: border-box;
         }
         .form-control:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(166, 123, 91, 0.25);
+            box-shadow: 0 0 0 0.3rem rgba(166, 123, 91, 0.25); /* 增強 focus 效果 */
         }
         .form-control:read-only {
             background-color: #f5f5f5;
             cursor: not-allowed;
         }
+        
+        /* 文字區域特別調整 */
+        textarea.form-control {
+            min-height: 150px; /* 增加文字區域高度 */
+            resize: vertical;
+        }
+        
         .btn-submit {
             background: var(--primary-color);
             border: none;
             color: white;
-            padding: 12px 25px;
-            font-size: 18px;
+            padding: 18px 35px; /* 從 12px 25px 增加到 18px 35px */
+            font-size: 1.2rem; /* 從 18px 增加字體大小 */
             font-weight: bold;
             width: 100%;
-            border-radius: 10px;
+            border-radius: 15px; /* 從 10px 增加到 15px */
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(166, 123, 91, 0.2);
+            box-shadow: 0 6px 20px rgba(166, 123, 91, 0.3); /* 增強陰影 */
+            margin-top: 20px; /* 增加上方間距 */
         }
         .btn-submit:hover {
             background: var(--primary-hover);
+            transform: translateY(-3px); /* 增加懸浮效果 */
+            box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4);
+        }
+        
+        /* 回到首頁按鈕區域 */
+        .mt-3 {
+            margin-top: 2rem !important; /* 增加間距 */
+            text-align: center;
+        }
+        
+        .btn-secondary {
+            padding: 12px 30px; /* 增加按鈕大小 */
+            font-size: 1rem;
+            border-radius: 25px;
+            text-decoration: none;
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            background: transparent;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.3);
+        }
+
+        /* 登出確認模態框樣式 */
+        .logout-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .logout-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+        }
+        .logout-modal-content {
+            background: var(--container-bg);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transform: scale(0.7);
+            transition: transform 0.3s;
+            border: 1px solid var(--border-color);
+        }
+        .logout-modal.show .logout-modal-content {
+            transform: scale(1);
+        }
+        .logout-modal-icon {
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white; font-size: 2.5rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .logout-modal-title {
+            color: var(--text-color);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .logout-modal-message {
+            color: var(--text-color);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+        .logout-modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .logout-btn {
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        .logout-btn-confirm {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+        .logout-btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+        .logout-btn-cancel {
+            background: var(--border-color);
+            color: var(--text-color);
+        }
+        .logout-btn-cancel:hover {
+            background: var(--primary-color);
+            color: white;
         }
     </style>
 </head>
@@ -129,23 +329,52 @@
             <a th:href="@{/news}" class="nav-link">最新消息</a>
             <a href="/store/storelist" class="nav-link">門市據點</a>
             <a href="/menu" class="nav-link">餐點菜單</a>
-            <a th:href="@{${session.isLoggedIn ? '/member/dashboard' : '/api/v1/auth/member-login'}}" class="nav-link">會員專區</a>
+            <!-- 根據登入狀態顯示不同內容 -->
+            <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+               th:href="@{/member/dashboard}" class="nav-link">會員專區</a>
+            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+               th:href="@{/api/v1/auth/member-login}" class="nav-link">會員專區</a>
             <a href="/feedback/form" class="nav-link">聯繫我們</a>
-            <a th:href="@{${session.isLoggedIn ? '/cart' : '/api/v1/auth/member-login'}}" class="nav-link">購物車</a>
+            <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+               th:href="@{/cart}" class="nav-link">購物車</a>
+            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+               th:href="@{/api/v1/auth/member-login}" class="nav-link">購物車</a>
         </div>
 
-        <div th:if="${session.isLoggedIn}" class="nav-user-info" style="display: flex; align-items: center; gap: 1rem;">
+        <!-- 登入按鈕根據登入狀態變化 -->
+        <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+             class="nav-user-info" style="display: flex; align-items: center; gap: 1rem;">
             <span style="color: var(--primary-color);">歡迎, <span th:text="${session.memberName}"></span></span>
-            <button type="button" class="nav-login" onclick="confirmLogout()">
+            <button type="button" class="nav-login" style="background-color: #dc3545; border: none; cursor: pointer;" 
+                    onclick="confirmLogout()">
                 <i class="fas fa-sign-out-alt"></i> 登出
             </button>
-            <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display: none;"></form>
+            <!-- 隱藏的登出表單 -->
+            <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display: none;">
+                <input type="hidden" name="_method" value="POST">
+            </form>
         </div>
-        <a th:unless="${session.isLoggedIn}" th:href="@{/api/v1/auth/member-login}" class="nav-login">
+        <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+           th:href="@{/api/v1/auth/member-login}" class="nav-login">
             <i class="fas fa-sign-in-alt"></i> 會員登入
         </a>
     </div>
 </nav>
+
+<!-- 登出 Modal（新版） -->
+<div class="logout-modal" id="logoutModal">
+    <div class="logout-modal-content">
+        <div class="logout-modal-icon">
+            <i class="fas fa-sign-out-alt"></i>
+        </div>
+        <h3 class="logout-modal-title">登出確認</h3>
+        <p class="logout-modal-message">您確定要登出系統嗎？</p>
+        <div class="logout-modal-actions">
+            <button type="button" class="logout-btn logout-btn-cancel" onclick="closeLogoutModal()">取消</button>
+            <button type="button" class="logout-btn logout-btn-confirm" onclick="performLogout()">確定登出</button>
+        </div>
+    </div>
+</div>
 
 <div class="feedback-container">
     <h3><i class="fas fa-comment-dots"></i> 顧客意見回饋</h3>
@@ -176,9 +405,6 @@
         </div>
         <button type="submit" class="btn btn-submit">送出意見</button>
     </form>
-    <div class="mt-3 text-center">
-        <a th:href="@{/welcome}" class="btn btn-secondary">回到首頁</a>
-    </div>
 </div>
 
 <footer class="footer">
@@ -189,10 +415,25 @@
 
 <script>
     function confirmLogout() {
-        if (confirm('您確定要登出嗎？')) {
-            document.getElementById('logout-form').submit();
-        }
+        const modal = document.getElementById('logoutModal');
+        modal.classList.add('show');
     }
+
+    function closeLogoutModal() {
+        const modal = document.getElementById('logoutModal');
+        modal.classList.remove('show');
+    }
+
+    function performLogout() {
+        document.getElementById('logout-form').submit();
+    }
+
+    // 點擊 Modal 外部區域關閉
+    document.getElementById('logoutModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeLogoutModal();
+        }
+    });
 </script>
 
 </body>
