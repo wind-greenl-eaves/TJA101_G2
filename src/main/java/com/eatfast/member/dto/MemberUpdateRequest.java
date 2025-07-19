@@ -124,7 +124,7 @@ public class MemberUpdateRequest {
      * 【修正】統一方法命名 - 與 MemberEntity 保持一致
      */
     public Boolean isEnabled() { return isEnabled; }
-    public void setEnabled(Boolean isEnabled) { this.isEnabled = isEnabled; }
+    public void setEnabled(Boolean enabled) { this.isEnabled = enabled; }
     
     /**
      * 【新增】提供別名方法以維持向後兼容性

@@ -1116,10 +1116,10 @@ public class MemberController {
                 case "phone":
                     // 【修正】統一電話號碼驗證邏輯，與 DTO 驗證保持一致
                     // 支援格式：0912345678, 0912-345-678, 09-12345678, (02)12345678, 02-12345678
-                    String phonePattern = "^(09\\d{8}|09\\d{2}[\\s-]\\d{3}[\\s-]\\d{3}|09[\\s-]\\d{8}|0[2-8][\\s-]?\\d{7,8}|\\(0[2-8]\\)\\d{7,8})$";
+                    String phonePattern = "^(09\\d{8}|09\\d{1}[\\s-]\\d{3}[\\s-]\\d{3}|09\\d{2}[\\s-]\\d{3}[\\s-]\\d{3}|09[\\s-]\\d{8}|0[2-8][\\s-]?\\d{7,8}|\\(0[2-8]\\)\\d{7,8})$";
                     
                     if (!value.matches(phonePattern)) {
-                        message = "請輸入有效的電話號碼格式（如：0912345678、0912-345-678、02-12345678）";
+                        message = "請輸入有效的電話號碼格式（如：0912345678、0912-345-678、098-185-569、02-12345678）";
                     } else {
                         // 檢查電話是否被其他會員使用 - 【修正】確保與Service層邏輯一致
                         boolean phoneExists = memberService.isPhoneExistsForOtherMember(value, memberId);
