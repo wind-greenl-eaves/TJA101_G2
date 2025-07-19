@@ -61,27 +61,32 @@
         
         /* --- 以下為 Header 和 Nav Bar 區域，樣式保持不變 --- */
         .header {
-            background: linear-gradient(135deg, var(--original-primary-color) 0%, var(--original-primary-hover) 100%);
-            color: white;
-            padding: 6rem 0 4rem;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            position: relative;
-            overflow: hidden;
-            margin-top: 60px;
-        }
-        
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('/images/EATFAST_Index.png') center center / contain no-repeat;
-            opacity: 0.1;
-            z-index: 0;
-        }
+    background: linear-gradient(135deg, var(--original-primary-color) 0%, var(--original-primary-hover) 100%);
+    color: white;
+    padding: 6rem 0 4rem;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+    margin-top: 60px;
+}
+
+.header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('/images/EATFAST_Breakfast_Shop.png') center center / cover no-repeat;
+    opacity: 1;
+    z-index: 0;
+    /* 調淡濾鏡效果 */
+    filter: blur(0.1px) brightness(0.95);
+    background-position: center center;
+}
+
+
         
         .header-content {
             position: relative;
@@ -143,16 +148,18 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
         
-        .brand-subtitle {
-            font-size: 1.4rem;
-            font-weight: 400;
-            opacity: 0.9;
-            margin-bottom: 2.5rem;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
+      .brand-subtitle {
+    font-size: 1.4rem;
+    font-weight: 400;
+    opacity: 0.9;
+    margin-bottom: 2.5rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    /* 隱藏文字但保持空間佔用 */
+    visibility: hidden;
+}
+
         .quick-actions {
             display: flex;
             gap: 1rem;
@@ -331,12 +338,13 @@
             z-index: 1;
         }
 
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            max-width: 800px;
-            padding: 2rem;
-        }
+      .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 600px; /* 從 800px 縮小到 600px */
+    padding: 1.5rem; /* 從 2rem 縮小到 1.5rem */
+}
+
 
         .hero-title {
             /* 風格美化：使用優雅的襯線字體 */
@@ -883,17 +891,19 @@
         <div class="logo-section">
             <h1 class="brand-title">EatFast 早餐店</h1>
             <p class="brand-subtitle">新鮮美味，快速便利 · 您的美好一天從這裡開始</p>
+            <p class="brand-subtitle">新鮮美味，快速便利 · 您的美好一天從這裡開始</p>
+            <p class="brand-subtitle">新鮮美味，快速便利 · 您的美好一天從這裡開始</p>
         </div>
-        <div class="quick-actions">
-            <a th:href="@{/member/register}" class="cta-button">
-                <i class="fas fa-user-plus"></i>
-                立即註冊
-            </a>
-            <a href="#features" class="cta-button">
-                <i class="fas fa-arrow-down"></i>
-                了解更多
-            </a>
-        </div>
+<!--         <div class="quick-actions"> -->
+<!--             <a th:href="@{/member/register}" class="cta-button"> -->
+<!--                 <i class="fas fa-user-plus"></i> -->
+<!--                 立即註冊 -->
+<!--             </a> -->
+<!--             <a href="#features" class="cta-button"> -->
+<!--                 <i class="fas fa-arrow-down"></i> -->
+<!--                 了解更多 -->
+<!--             </a> -->
+<!--         </div> -->
     </header>
     
     <!-- Navigation Bar (保持不變) -->
@@ -944,22 +954,22 @@
         <div class="swiper-wrapper">
             <div class="swiper-slide hero-slide" style="background: url('/images/eatfast0001.png') center/cover;">
                 <div class="hero-content">
-                    <h2 class="hero-title">新鮮現做，美味早餐</h2>
+                    <h2 class="hero-title">新鮮現做,美味早餐</h2>
                     <p class="hero-subtitle">使用嚴選食材，為您打造完美的早晨</p>
                     <a href="/menu" class="hero-cta">立即點餐</a>
                 </div>
             </div>
-            <div class="swiper-slide hero-slide" style="background: url('/images/eatfast0002.png') center/cover;">
+            <div class="swiper-slide hero-slide" style="background: url('/images/eatfast0004.png') center/cover;">
                 <div class="hero-content">
                     <h2 class="hero-title">本月優惠特餐</h2>
-                    <p class="hero-subtitle"></p>
+                    <p class="hero-subtitle">嚴選食材搭配，營養美味雙重享受 </p>
                     <a href="/menu" class="hero-cta">立即點餐</a>
                 </div>
             </div>
             <div class="swiper-slide hero-slide" style="background: url('/images/eatfast0003.png') center/cover;">
                 <div class="hero-content">
                     <h2 class="hero-title">會員專屬福利</h2>
-                    <p class="hero-subtitle"></p>
+                    <p class="hero-subtitle">會員獨享專屬優惠，積分回饋與限定活動等您參加</p>
                     <a href="/menu" class="hero-cta">立即點餐</a>
                 </div>
             </div>
