@@ -11,7 +11,6 @@ import com.eatfast.member.mapper.MemberMapper;
 // 【修正】引入郵件服務和驗證碼服務
 import com.eatfast.common.service.EmailService;
 import com.eatfast.member.service.VerificationCodeService;
-import com.eatfast.member.service.InMemoryVerificationCodeService;
 // (既有 import)
 import com.eatfast.member.model.MemberEntity;
 import com.eatfast.member.repository.MemberRepository;
@@ -55,45 +54,18 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     // 【新增】注入郵件服務和驗證碼服務
     private final EmailService emailService;
-    // 【修正】統一驗證碼服務接口
-    private final VerificationCodeServiceInterface verificationCodeService;
+    // 【修正】直接使用驗證碼服務，移除重複的接口包裝
+    private final VerificationCodeService verificationCodeService;
 
     // 依賴注入的標準建構子模式
     public MemberService(MemberRepository memberRepository, OrderListRepository orderListRepository,
                         PasswordEncoder passwordEncoder, EmailService emailService, 
-                        VerificationCodeService redisVerificationCodeService) {
+                        VerificationCodeService verificationCodeService) {
         this.memberRepository = memberRepository;
         this.orderListRepository = orderListRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
-        
-        // 【修正】根據配置選擇驗證碼服務實現
-        this.verificationCodeService = new VerificationCodeServiceInterface() {
-            @Override
-            public String generateVerificationCode() {
-                return redisVerificationCodeService.generateVerificationCode();
-            }
-            
-            @Override
-            public void storeVerificationCode(String email, String code) {
-                redisVerificationCodeService.storeVerificationCode(email, code);
-            }
-            
-            @Override
-            public boolean verifyCode(String email, String inputCode) {
-                return redisVerificationCodeService.verifyCode(email, inputCode);
-            }
-            
-            @Override
-            public boolean hasVerificationCode(String email) {
-                return redisVerificationCodeService.hasVerificationCode(email);
-            }
-            
-            @Override
-            public void deleteVerificationCode(String email) {
-                redisVerificationCodeService.deleteVerificationCode(email);
-            }
-        };
+        this.verificationCodeService = verificationCodeService;
     }
 
     // ================================================================
@@ -401,7 +373,7 @@ public class MemberService {
     @Transactional
     public boolean verifyMemberRegistration(MemberVerificationRequest request) {
         try {
-            VerificationCodeServiceInterface service = getCurrentVerificationService();
+            VerificationCodeService service = getCurrentVerificationService();
             
             log.info("開始驗證會員註冊 - Email: {}, 驗證碼: {}", request.getEmail(), request.getVerificationCode());
             
@@ -459,7 +431,7 @@ public class MemberService {
                 return false;
             }
             
-            VerificationCodeServiceInterface service = getCurrentVerificationService();
+            VerificationCodeService service = getCurrentVerificationService();
             service.deleteVerificationCode(email);
             sendVerificationEmail(member);
             
@@ -926,23 +898,12 @@ public class MemberService {
     // ================================================================
     
     /**
-     * 【新增】獲取當前使用的驗證碼服務
+     * 【修正】獲取當前使用的驗證碼服務
      */
-    private VerificationCodeServiceInterface getCurrentVerificationService() {
-        // 直接使用 Redis 版驗證碼服務
-        log.info("使用 Redis 版驗證碼服務");
+    private VerificationCodeService getCurrentVerificationService() {
+        // 直接返回注入的驗證碼服務
+        log.info("使用注入的驗證碼服務");
         return verificationCodeService;
-    }
-    
-    /**
-     * 【新增】驗證碼服務接口
-     */
-    private interface VerificationCodeServiceInterface {
-        String generateVerificationCode();
-        void storeVerificationCode(String email, String code);
-        boolean verifyCode(String email, String inputCode);
-        boolean hasVerificationCode(String email);
-        void deleteVerificationCode(String email);
     }
     
     // ================================================================
