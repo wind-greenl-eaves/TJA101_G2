@@ -42,9 +42,25 @@ public class MealService {
 
 	// 儲存或更新餐點（JPA 自動判斷新增/更新）
 	@Transactional
-	public void updateMeal(MealEntity mealEntity) {
-		repository.save(mealEntity);
+	public void updateMeal(MealEntity newData) {
+	    MealEntity existingMeal = repository.findById(newData.getMealId())
+	        .orElseThrow(() -> new IllegalArgumentException("找不到該餐點"));
+
+	    // ✅ 更新基本欄位（你想要更新的欄位）
+	    existingMeal.setMealName(newData.getMealName());
+	    existingMeal.setMealPrice(newData.getMealPrice());
+	    existingMeal.setMealType(newData.getMealType());
+	    existingMeal.setStatus(newData.getStatus());
+
+	    // ✅ 圖片檔名（有送才更新）
+	    if (newData.getMealPic() != null && !newData.getMealPic().isBlank()) {
+	        existingMeal.setMealPic(newData.getMealPic());
+	    }
+
+	    // ✅ 儲存：不會影響原本的收藏關聯
+	    repository.save(existingMeal);
 	}
+
 
 	// 查一筆餐點（依ID）
 	@Transactional(readOnly = true)
