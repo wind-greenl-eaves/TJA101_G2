@@ -8,10 +8,10 @@
     <!-- 引入 Font Awesome 圖示庫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- 引入 Google Fonts -->
+    <!-- 引入 Google Fonts (新增 Noto Serif TC) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
     
     <!-- 引入 Swiper.js -->
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
@@ -22,20 +22,26 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js" defer></script>
     
     <style>
+        /* --- 風格美化：更新色彩配置，營造溫馨典雅感 --- */
         :root {
-            --bg-color: #FDFBF6;
+            /* 原有色彩 (部分保留用於 Header/Nav) */
+            --original-primary-color: #A67B5B;
+            --original-primary-hover: #8C684A;
+            --original-header-bg: #F5EFE6;
+
+            /* 新的典雅風格色彩 */
+            --bg-color: #F9F6F2; /* 溫暖的米白背景 */
             --container-bg: #FFFFFF;
-            --primary-color: #A67B5B;
-            --primary-hover: #8C684A;
-            --text-color: #5D534A;
-            --border-color: #DED0B6;
-            --header-bg: #F5EFE6;
-            --accent-color: #E1A87A;
-            --success-color: #4CAF50;
-            --warning-color: #FF9800;
-            --info-color: #2196F3;
-            --shadow-light: rgba(0, 0, 0, 0.1);
-            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --primary-color: #B98F72; /* 更柔和的棕色 */
+            --primary-hover: #A57C5F;
+            --text-color: #4E443C; /* 溫暖的深棕灰色文字 */
+            --text-light: #7a6e65;
+            --border-color: #EAE0D5; /* 細膩的邊框色 */
+            --accent-color: #D4A276; /* 優雅的點綴色 (金色) */
+            --success-color: #5A9A5D;
+            --info-color: #5E9BCF;
+            --shadow-light: rgba(78, 68, 60, 0.08); /* 更柔和的陰影 */
+            --shadow-medium: rgba(78, 68, 60, 0.12);
         }
         
         * {
@@ -45,33 +51,34 @@
         }
         
         body {
+            /* 風格美化：更換字體與背景 */
             font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
-            line-height: 1.6;
+            line-height: 1.7; /* 增加行高以提升可讀性 */
             color: var(--text-color);
-            background: linear-gradient(135deg, var(--bg-color) 0%, var(--header-bg) 100%);
+            background-color: var(--bg-color); /* 使用溫馨的米白背景 */
             min-height: 100vh;
         }
         
-        /* Header 區域 */
+        /* --- 以下為 Header 和 Nav Bar 區域，樣式保持不變 --- */
         .header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            background: linear-gradient(135deg, var(--original-primary-color) 0%, var(--original-primary-hover) 100%);
             color: white;
-            padding: 6rem 0 4rem; /* 增加上下間距 */
+            padding: 6rem 0 4rem;
             text-align: center;
-            box-shadow: 0 4px 20px var(--shadow-medium);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             position: relative;
             overflow: hidden;
-            margin-top: 60px; /* 為固定導航欄留出空間 */
+            margin-top: 60px;
         }
         
         .header::before {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: url('/images/eatfast2.jpg') center center / cover;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('/images/EATFAST_Index.png') center center / contain no-repeat;
             opacity: 0.1;
             z-index: 0;
         }
@@ -101,7 +108,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            margin-right: auto; /* 推到最左邊 */
+            margin-right: auto;
         }
         
         .admin-button:hover {
@@ -124,19 +131,13 @@
         }
         
         @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
-            }
-            40% {
-                transform: translateY(-10px);
-            }
-            60% {
-                transform: translateY(-5px);
-            }
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
         }
         
         .brand-title {
-            font-size: 3.5rem; /* 調整標題大小 */
+            font-size: 3.5rem;
             font-weight: 700;
             margin-bottom: 1rem;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
@@ -184,22 +185,21 @@
         
         .cta-button.primary {
             background: white;
-            color: var(--primary-color);
+            color: var(--original-primary-color);
             border-color: white;
         }
         
         .cta-button.primary:hover {
-            background: var(--header-bg);
-            color: var(--primary-hover);
+            background: var(--original-header-bg);
+            color: var(--original-primary-hover);
         }
         
-        /* Navigation Bar */
         .nav-fixed {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 60px; /* 固定導航欄高度 */
+            height: 60px;
             background: rgba(255, 255, 255, 0.95);
             padding: 0.5rem 0;
             box-shadow: 0 2px 10px var(--shadow-light);
@@ -221,17 +221,17 @@
             align-items: center;
             gap: 1rem;
             text-decoration: none;
-            color: var(--primary-color);
+            color: var(--original-primary-color);
         }
 
         .nav-logo-icon {
-            width: 35px; /* 調整 logo 大小 */
+            width: 35px;
             height: 35px;
             object-fit: contain;
         }
 
         .nav-logo-text {
-            font-size: 1.2rem; /* 調整導航欄文字大小 */
+            font-size: 1.2rem;
             font-weight: 700;
         }
 
@@ -256,7 +256,7 @@
             left: 0;
             width: 0;
             height: 2px;
-            background: var(--primary-color);
+            background: var(--original-primary-color);
             transition: width 0.3s ease;
         }
 
@@ -265,7 +265,7 @@
         }
 
         .nav-login {
-            background: var(--primary-color);
+            background: var(--original-primary-color);
             color: white;
             padding: 0.5rem 1.5rem;
             border-radius: 50px;
@@ -274,13 +274,12 @@
         }
 
         .nav-login:hover {
-            background: var(--primary-hover);
+            background: var(--original-primary-hover);
             transform: translateY(-2px);
         }
         
-        /* 導航欄後台管理按鈕樣式 */
         .admin-button-nav {
-            background: var(--primary-color);
+            background: var(--original-primary-color);
             color: white;
             padding: 0.5rem 1rem;
             border-radius: 25px;
@@ -295,15 +294,18 @@
         }
         
         .admin-button-nav:hover {
-            background: var(--primary-hover);
+            background: var(--original-primary-hover);
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(166, 123, 91, 0.3);
         }
+        /* --- 以上為 Header 和 Nav Bar 區域，樣式保持不變 --- */
         
-        /* Hero Carousel */
+        /* --- 以下為風格美化區域 --- */
+        
+        /* Hero Carousel 美化 */
         .hero-carousel {
-            margin-top: 0; /* 移除原本的負margin */
-            height: calc(100vh - 60px); /* 調整輪播圖高度 */
+            margin-top: 0;
+            height: calc(100vh - 60px);
             width: 100%;
         }
 
@@ -324,7 +326,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
+            /* 風格美化：使用更溫暖的深色遮罩 */
+            background: rgba(46, 40, 35, 0.45);
             z-index: 1;
         }
 
@@ -336,16 +339,18 @@
         }
 
         .hero-title {
+            /* 風格美化：使用優雅的襯線字體 */
+            font-family: 'Noto Serif TC', serif;
             font-size: 4rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            text-shadow: 1px 1px 8px rgba(0, 0, 0, 0.5);
         }
 
         .hero-subtitle {
             font-size: 1.5rem;
             margin-bottom: 2rem;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
         }
 
         .hero-cta {
@@ -357,92 +362,93 @@
             text-decoration: none;
             font-weight: 600;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .hero-cta:hover {
             background: var(--primary-hover);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
         }
         
         /* Main Content 區域 */
         .main-content {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 4rem 2rem;
+            padding: 6rem 2rem; /* 增加上下間距 */
         }
         
         .welcome-section {
             text-align: center;
-            margin-bottom: 4rem;
+            margin-bottom: 6rem; /* 增加與下方內容的間距 */
         }
         
         .section-title {
-            font-size: 2.5rem;
+            /* 風格美化：使用襯線字體與新的主色 */
+            font-family: 'Noto Serif TC', serif;
+            font-size: 2.8rem;
             color: var(--primary-color);
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             font-weight: 700;
         }
         
         .section-description {
             font-size: 1.2rem;
-            color: var(--text-color);
-            max-width: 600px;
+            color: var(--text-light); /* 使用較淺的文字顏色 */
+            max-width: 700px;
             margin: 0 auto 2rem;
             line-height: 1.8;
         }
         
-        /* 功能卡片區域 */
+        /* 功能卡片區域美化 */
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            margin-bottom: 4rem;
+            gap: 2.5rem; /* 增加卡片間距 */
+            margin-bottom: 6rem;
         }
         
         .feature-card {
             background: var(--container-bg);
-            border-radius: 20px;
+            border-radius: 16px; /* 稍微減小圓角，更顯典雅 */
             padding: 2.5rem;
-            box-shadow: 0 10px 30px var(--shadow-light);
+            box-shadow: 0 8px 30px var(--shadow-light); /* 使用更柔和的陰影 */
             border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* 更流暢的動畫曲線 */
             position: relative;
             overflow: hidden;
         }
         
         .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+             /* 風格美化：移除頂部色條，改為更細膩的設計 */
+            content: none;
         }
         
         .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px var(--shadow-medium);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px var(--shadow-medium);
+            border-color: var(--accent-color);
         }
         
         .feature-icon {
-            font-size: 3rem;
-            color: var(--primary-color);
+            font-size: 2.8rem; /* 稍微縮小圖示 */
+            color: var(--accent-color); /* 使用點綴色 */
             margin-bottom: 1.5rem;
             display: block;
         }
         
         .feature-title {
-            font-size: 1.5rem;
+            font-family: 'Noto Serif TC', serif;
+            font-size: 1.6rem;
             font-weight: 600;
             color: var(--primary-color);
             margin-bottom: 1rem;
         }
         
         .feature-description {
-            color: var(--text-color);
+            color: var(--text-light);
             margin-bottom: 2rem;
-            line-height: 1.7;
+            line-height: 1.8;
         }
         
         .feature-actions {
@@ -451,16 +457,17 @@
             flex-wrap: wrap;
         }
         
+        /* 按鈕風格美化 */
         .btn {
-            padding: 0.8rem 1.5rem;
-            border-radius: 10px;
+            padding: 0.8rem 1.8rem; /* 增加左右 padding */
+            border-radius: 50px; /* 使用膠囊形狀 */
             text-decoration: none;
             font-weight: 500;
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            border: none;
+            gap: 0.6rem;
+            border: 1px solid transparent;
             cursor: pointer;
             font-size: 0.9rem;
         }
@@ -468,88 +475,57 @@
         .btn-primary {
             background: var(--primary-color);
             color: white;
+            box-shadow: 0 4px 15px rgba(185, 143, 114, 0.3);
         }
         
         .btn-primary:hover {
             background: var(--primary-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(166, 123, 91, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(185, 143, 114, 0.4);
         }
         
         .btn-outline {
             background: transparent;
             color: var(--primary-color);
-            border: 2px solid var(--primary-color);
+            border-color: var(--primary-color);
         }
         
         .btn-outline:hover {
             background: var(--primary-color);
             color: white;
+            transform: translateY(-2px);
         }
         
         .btn-success {
             background: var(--success-color);
             color: white;
+            box-shadow: 0 4px 15px rgba(90, 154, 93, 0.3);
         }
         
         .btn-success:hover {
-            background: #45a049;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            background: #4a884d;
+            transform: translateY(-2px);
         }
         
         .btn-info {
             background: var(--info-color);
             color: white;
+            box-shadow: 0 4px 15px rgba(94, 155, 207, 0.3);
         }
         
         .btn-info:hover {
-            background: #1976D2;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+            background: #4e8ac5;
+            transform: translateY(-2px);
         }
         
-        /* 統計數據區域 */
-        .stats-section {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-            color: white;
-            padding: 3rem 2rem;
-            border-radius: 20px;
-            margin-bottom: 4rem;
-            text-align: center;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .stat-item {
-            padding: 1.5rem;
-        }
-        
-        .stat-number {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--accent-color);
-        }
-        
-        .stat-label {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        /* Footer 區域 */
+        /* Footer 區域美化 */
         .footer {
-            background: var(--primary-hover);
-            color: white;
+            background: var(--bg-color); /* 與背景色統一 */
+            color: var(--text-light);
             text-align: center;
-            padding: 2rem;
+            padding: 3rem 2rem; /* 增加 padding */
             margin-top: 4rem;
+            border-top: 1px solid var(--border-color); /* 增加頂部細線 */
         }
         
         .footer-content {
@@ -557,48 +533,31 @@
             margin: 0 auto;
         }
         
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-        
-        .footer-link {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-        
-        .footer-link:hover {
-            color: var(--accent-color);
-        }
-        
         .copyright {
             opacity: 0.8;
             font-size: 0.9rem;
         }
         
-        /* 新聞卡片樣式 */
+        /* 新聞卡片樣式美化 */
         .news-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
-            margin: 2rem 0;
+            gap: 2.5rem;
+            margin: 3rem 0;
         }
 
         .news-card {
             background: var(--container-bg);
-            border-radius: 15px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 5px 15px var(--shadow-light);
-            transition: transform 0.3s ease;
+            box-shadow: 0 8px 25px var(--shadow-light);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 1px solid var(--border-color);
         }
 
         .news-card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px var(--shadow-medium);
         }
 
         .news-image {
@@ -612,256 +571,209 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s ease;
+            transition: transform 0.5s ease;
         }
 
         .news-card:hover .news-image img {
-            transform: scale(1.1);
+            transform: scale(1.08);
         }
 
         .news-content {
-            padding: 1.5rem;
+            padding: 1.5rem 2rem 2rem;
         }
 
         .news-content h3 {
-            font-size: 1.3rem;
+            font-family: 'Noto Serif TC', serif;
+            font-size: 1.4rem;
             color: var(--primary-color);
             margin-bottom: 1rem;
         }
 
         .news-content p {
-            color: var(--text-color);
+            color: var(--text-light);
             margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-
-        /* 產品卡片樣式 */
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-
-        .product-card {
-            background: var(--container-bg);
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px var(--shadow-light);
-            transition: all 0.3s ease;
-        }
-
-        .product-card:hover {
-            transform: translateY(-10px);
-        }
-
-        .product-image-container {
-            position: relative;
-            padding-bottom: 75%;
-            overflow: hidden;
-        }
-
-        .product-image {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-
-        .product-card:hover .product-image {
-            transform: scale(1.1);
-        }
-
-        .product-info {
-            padding: 1.5rem;
-            text-align: center;
-        }
-
-        .product-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .product-price {
-            font-size: 1.1rem;
-            color: var(--accent-color);
-            margin-bottom: 1rem;
-            font-weight: 600;
-        }
-
-        .add-to-cart {
-            width: 100%;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.8rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .add-to-cart:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
+            line-height: 1.7;
         }
         
-        /* 響應式設計 */
+        /* 響應式設計 (保持不變) */
         @media (max-width: 768px) {
-            .header {
-                padding: 4rem 0 3rem;
-            }
-            
-            .brand-title {
-                font-size: 2.5rem;
-            }
-            
-            .brand-subtitle {
-                font-size: 1.2rem;
-            }
-            
-            .nav-logo-text {
-                font-size: 1rem;
-            }
-            
-            .nav-fixed {
-                height: 50px;
-            }
-            
-            .nav-logo-icon {
-                width: 30px;
-                height: 30px;
-            }
+            .header { padding: 4rem 0 3rem; }
+            .brand-title { font-size: 2.5rem; }
+            .brand-subtitle { font-size: 1.2rem; }
+            .nav-logo-text { font-size: 1rem; }
+            .nav-fixed { height: 50px; }
+            .nav-logo-icon { width: 30px; height: 30px; }
+            .main-content { padding: 4rem 1.5rem; }
+            .section-title { font-size: 2.2rem; }
+            .news-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .features-grid { grid-template-columns: 1fr; gap: 2rem; }
         }
         
         @media (max-width: 480px) {
-            .main-content {
-                padding: 2rem 1rem;
-            }
-            
-            .header-content {
-                padding: 0 1rem;
-            }
-            
-            .feature-card {
-                padding: 1.5rem;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .feature-actions {
-                flex-direction: column;
-            }
-            
-            .news-grid {
-                grid-template-columns: 1fr;
-            }
-            .product-grid {
-                grid-template-columns: 1fr;
-            }
+            .main-content { padding: 3rem 1rem; }
+            .header-content { padding: 0 1rem; }
+            .feature-card { padding: 2rem; }
+            .feature-actions { flex-direction: column; }
         }
         
-        /* 登出確認模態框樣式 */
-        .logout-modal {
-            display: none;
+        /* 登出確認模態框樣式 (保持不變) */
+        .logout-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); z-index: 10000; opacity: 0; transition: opacity 0.3s ease; }
+        .logout-modal.show { display: flex; align-items: center; justify-content: center; opacity: 1; }
+        .logout-modal-content { background: var(--container-bg); border-radius: 20px; padding: 2.5rem; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); transform: scale(0.7); transition: transform 0.3s ease; border: 1px solid var(--border-color); }
+        .logout-modal.show .logout-modal-content { transform: scale(1); }
+        .logout-modal-icon { width: 80px; height: 80px; background: linear-gradient(135deg, #ff6b6b, #ee5a24); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: white; font-size: 2.5rem; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); } }
+        .logout-modal-title { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); margin-bottom: 1rem; }
+        .logout-modal-message { font-size: 1.1rem; color: var(--text-color); margin-bottom: 2rem; line-height: 1.6; }
+        .logout-modal-actions { display: flex; gap: 1rem; justify-content: center; }
+        .logout-btn { padding: 0.8rem 2rem; border: none; border-radius: 50px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; min-width: 120px; justify-content: center; }
+        .logout-btn-confirm { background: linear-gradient(135deg, #dc3545, #c82333); color: white; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3); }
+        .logout-btn-confirm:hover { background: linear-gradient(135deg, #c82333, #bd2130); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4); }
+        .logout-btn-cancel { background: var(--container-bg); color: var(--text-color); border: 2px solid var(--border-color); }
+        .logout-btn-cancel:hover { background: var(--bg-color); border-color: var(--primary-color); color: var(--primary-color); transform: translateY(-2px); }
+        .logout-loading { display: none; align-items: center; gap: 0.5rem; }
+        .logout-spinner { width: 20px; height: 20px; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 480px) { .logout-modal-content { padding: 2rem; margin: 1rem; } .logout-modal-actions { flex-direction: column; } .logout-btn { width: 100%; } }
+        
+        /* 動畫效果 (保持不變) */
+        .fade-in { animation: fadeIn 0.8s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .slide-in { animation: slideIn 0.6s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+        
+        /* 歡迎彈窗樣式 */
+        .welcome-popup {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            z-index: 10000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .logout-modal.show {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 10001;
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 1;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
         }
-
-        .logout-modal-content {
+        
+        .welcome-popup.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .welcome-popup-content {
             background: var(--container-bg);
-            border-radius: 20px;
-            padding: 2.5rem;
-            max-width: 450px;
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 550px;
             width: 90%;
             text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            transform: scale(0.7);
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--accent-color);
+            transform: scale(0.8) translateY(-30px);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .welcome-popup.show .welcome-popup-content {
+            transform: scale(1) translateY(0);
+        }
+        
+        .welcome-popup-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 24px 24px 0 0;
+        }
+        
+        .welcome-logo {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            margin: 0 auto 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
             transition: transform 0.3s ease;
-            border: 1px solid var(--border-color);
         }
-
-        .logout-modal.show .logout-modal-content {
-            transform: scale(1);
+        
+        .welcome-logo:hover {
+            transform: scale(1.05) rotate(2deg);
         }
-
-        .logout-modal-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            color: white;
-            font-size: 2.5rem;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
-            }
-            70% {
-                transform: scale(1.05);
-                box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
-            }
-            100% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
-            }
-        }
-
-        .logout-modal-title {
-            font-size: 1.8rem;
+        
+        .welcome-popup-title {
+            font-family: 'Noto Serif TC', serif;
+            font-size: 2.2rem;
             font-weight: 700;
             color: var(--primary-color);
             margin-bottom: 1rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
         }
-
-        .logout-modal-message {
+        
+        .welcome-popup-subtitle {
+            font-size: 1.3rem;
+            color: var(--accent-color);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .welcome-popup-message {
             font-size: 1.1rem;
-            color: var(--text-color);
-            margin-bottom: 2rem;
-            line-height: 1.6;
+            color: var(--text-light);
+            line-height: 1.8;
+            margin-bottom: 2.5rem;
+            padding: 0 1rem;
         }
-
-        .logout-modal-actions {
+        
+        .welcome-popup-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+        
+        .welcome-feature {
+            padding: 1rem;
+            background: var(--bg-color);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .welcome-feature:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--shadow-light);
+        }
+        
+        .welcome-feature-icon {
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .welcome-feature-text {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+        
+        .welcome-popup-actions {
             display: flex;
             gap: 1rem;
             justify-content: center;
+            flex-wrap: wrap;
         }
-
-        .logout-btn {
-            padding: 0.8rem 2rem;
+        
+        .welcome-btn {
+            padding: 1rem 2rem;
             border: none;
             border-radius: 50px;
             font-weight: 600;
@@ -871,130 +783,120 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            min-width: 120px;
+            text-decoration: none;
+            min-width: 140px;
             justify-content: center;
         }
-
-        .logout-btn-confirm {
-            background: linear-gradient(135deg, #dc3545, #c82333);
+        
+        .welcome-btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
             color: white;
-            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+            box-shadow: 0 6px 20px rgba(185, 143, 114, 0.3);
         }
-
-        .logout-btn-confirm:hover {
-            background: linear-gradient(135deg, #c82333, #bd2130);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        
+        .welcome-btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(185, 143, 114, 0.4);
         }
-
-        .logout-btn-cancel {
+        
+        .welcome-btn-secondary {
             background: var(--container-bg);
             color: var(--text-color);
             border: 2px solid var(--border-color);
         }
-
-        .logout-btn-cancel:hover {
-            background: var(--header-bg);
+        
+        .welcome-btn-secondary:hover {
+            background: var(--bg-color);
             border-color: var(--primary-color);
             color: var(--primary-color);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
         }
-
-        /* 載入動畫樣式 */
-        .logout-loading {
-            display: none;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .logout-spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+        
+        .welcome-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        
+        .welcome-close-btn:hover {
+            background: var(--bg-color);
+            color: var(--primary-color);
+            transform: rotate(90deg);
         }
-
-        /* 響應式模態框 */
-        @media (max-width: 480px) {
-            .logout-modal-content {
-                padding: 2rem;
+        
+        /* 歡迎彈窗響應式設計 */
+        @media (max-width: 768px) {
+            .welcome-popup-content {
+                padding: 2rem 1.5rem;
                 margin: 1rem;
             }
-
-            .logout-modal-actions {
+            
+            .welcome-popup-title {
+                font-size: 1.8rem;
+            }
+            
+            .welcome-popup-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .welcome-popup-features {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+            
+            .welcome-popup-actions {
                 flex-direction: column;
             }
-
-            .logout-btn {
+            
+            .welcome-btn {
                 width: 100%;
             }
         }
         
-        /* 動畫效果 */
-        .fade-in {
-            animation: fadeIn 0.8s ease-in;
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
+        @media (max-width: 480px) {
+            .welcome-logo {
+                width: 120px;
+                height: 120px;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .slide-in {
-            animation: slideIn 0.6s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
+            
+            .welcome-popup-content {
+                padding: 1.5rem 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Header 區域 -->
+    <!-- Header 區域 (保持不變) -->
     <header class="header">
-<!--         <div class="header-content"> -->
-<!--             <a href="http://localhost:8080/employee/login" class="admin-button"> -->
-<!--                 <i class="fas fa-cogs"></i> -->
-<!--                 後台管理 -->
-<!--             </a> -->
-            <div class="logo-section">
-<!--                 <div class="logo">🍳</div> -->
-                <h1 class="brand-title">EatFast 早餐店</h1>
-                <p class="brand-subtitle">新鮮美味，快速便利 · 您的美好一天從這裡開始</p>
-            </div>
-            <div class="quick-actions">
-                <a th:href="@{/member/register}" class="cta-button">
-                    <i class="fas fa-user-plus"></i>
-                    立即註冊
-                </a>
-                <a href="#features" class="cta-button">
-                    <i class="fas fa-arrow-down"></i>
-                    了解更多
-                </a>
-            </div>
+        <div class="logo-section">
+            <h1 class="brand-title">EatFast 早餐店</h1>
+            <p class="brand-subtitle">新鮮美味，快速便利 · 您的美好一天從這裡開始</p>
+        </div>
+        <div class="quick-actions">
+            <a th:href="@{/member/register}" class="cta-button">
+                <i class="fas fa-user-plus"></i>
+                立即註冊
+            </a>
+            <a href="#features" class="cta-button">
+                <i class="fas fa-arrow-down"></i>
+                了解更多
+            </a>
         </div>
     </header>
     
-    <!-- Navigation Bar -->
+    <!-- Navigation Bar (保持不變) -->
     <nav class="nav-fixed">
         <div class="nav-container">
             <a href="http://localhost:8080/employee/login" class="admin-button-nav">
@@ -1005,12 +907,10 @@
                 <img th:src="@{/images/123.png}" alt="EatFast Logo" class="nav-logo-icon">
                 <span class="nav-logo-text">EatFast 早餐店</span>
             </a>
-            
             <div class="nav-menu">
                 <a th:href="@{/news}" class="nav-link">最新消息</a>
                 <a href="/store/storelist" class="nav-link">門市據點</a>
                 <a href="/menu" class="nav-link">餐點菜單</a>
-                <!-- 根據登入狀態顯示不同內容 -->
                 <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
                    th:href="@{/member/dashboard}" class="nav-link">會員專區</a>
                 <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
@@ -1020,18 +920,14 @@
                    th:href="@{/cart}" class="nav-link">購物車</a>
                 <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
                    th:href="@{/api/v1/auth/member-login}" class="nav-link">購物車</a>
-                
             </div>
-            
-            <!-- 登入按鈕根據登入狀態變化 -->
             <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
                  class="nav-user-info" style="display: flex; align-items: center; gap: 1rem;">
-                <span style="color: var(--primary-color);">歡迎, <span th:text="${session.memberName}"></span></span>
+                <span style="color: var(--original-primary-color);">歡迎, <span th:text="${session.memberName}"></span></span>
                 <button type="button" class="nav-login" style="background-color: #dc3545; border: none; cursor: pointer;" 
                         onclick="confirmLogout()">
                     <i class="fas fa-sign-out-alt"></i> 登出
                 </button>
-                <!-- 隱藏的登出表單 -->
                 <form id="logout-form" th:action="@{/api/v1/auth/logout}" method="post" style="display: none;">
                     <input type="hidden" name="_method" value="POST">
                 </form>
@@ -1046,7 +942,6 @@
     <!-- 輪播圖區域 -->
     <div class="swiper hero-carousel">
         <div class="swiper-wrapper">
-            <!-- 輪播項目 1 -->
             <div class="swiper-slide hero-slide" style="background: url('/images/eatfast0001.png') center/cover;">
                 <div class="hero-content">
                     <h2 class="hero-title">新鮮現做，美味早餐</h2>
@@ -1054,7 +949,6 @@
                     <a href="/menu" class="hero-cta">立即點餐</a>
                 </div>
             </div>
-            <!-- 輪播項目 2 -->
             <div class="swiper-slide hero-slide" style="background: url('/images/eatfast0002.png') center/cover;">
                 <div class="hero-content">
                     <h2 class="hero-title">本月優惠特餐</h2>
@@ -1062,7 +956,6 @@
                     <a href="/menu" class="hero-cta">立即點餐</a>
                 </div>
             </div>
-            <!-- 輪播項目 3 -->
             <div class="swiper-slide hero-slide" style="background: url('/images/eatfast0003.png') center/cover;">
                 <div class="hero-content">
                     <h2 class="hero-title">會員專屬福利</h2>
@@ -1071,24 +964,13 @@
                 </div>
             </div>
         </div>
-        <!-- 導航按鈕 -->
         <div class="swiper-button-next"></div>
         <div class="swiper-button-prev"></div>
-        <!-- 分頁器 -->
         <div class="swiper-pagination"></div>
     </div>
     
     <!-- Main Content 區域 -->
     <main class="main-content">
-        <!-- 歡迎區域 -->
-        <section class="welcome-section fade-in">
-<!--             <h2 class="section-title">歡迎來到 EatFast 早餐店</h2> -->
-<!--             <p class="section-description"> -->
-<!--                 我們致力於為您提供最新鮮、最美味的早餐選擇。從經典的三明治到創新的健康輕食， -->
-<!--                 每一道餐點都是用心製作，讓您在忙碌的早晨也能享受到溫暖的美味。 -->
-<!--             </p> -->
-        </section>
-        
         <!-- 最新消息區域 -->
         <section class="news-section">
             <h2 class="section-title">最新消息</h2>
@@ -1126,101 +1008,41 @@
             </div>
         </section>
         
-<!--         熱門餐點區域 -->
-<!--         <section class="popular-items"> -->
-<!--             <h2 class="section-title">熱門餐點</h2> -->
-<!--             <div class="product-grid"> -->
-<!--                 <div class="product-card" data-aos="fade-up"> -->
-<!--                     <div class="product-image-container"> -->
-<!--                         <img src="/images/product1.png" alt="招牌三明治" class="product-image"> -->
-<!--                     </div> -->
-<!--                     <div class="product-info"> -->
-<!--                         <h3 class="product-title">招牌三明治</h3> -->
-<!--                         <p class="product-price">NT$ 60</p> -->
-<!--                         <button class="add-to-cart"> -->
-<!--                             <i class="fas fa-shopping-cart"></i> -->
-<!--                             加入購物車 -->
-<!--                         </button> -->
-<!--                     </div> -->
-<!--                 </div> -->
-<!--                 更多商品卡片 -->
-<!--             </div> -->
-<!--         </section> -->
-        
-<!--         門市資訊區域 -->
-<!--         <section class="store-info" data-aos="fade-up"> -->
-<!--             <div class="store-image"> -->
-<!--                 <img src="/images/store.jpg" alt="門市外觀"> -->
-<!--             </div> -->
-<!--             <div class="store-details"> -->
-<!--                 <h3>門市資訊</h3> -->
-<!--                 <div class="store-info-item"> -->
-<!--                     <i class="fas fa-map-marker-alt store-info-icon"></i> -->
-<!--                     <p>台北市大安區復興南路一段390號</p> -->
-<!--                 </div> -->
-<!--                 <div class="store-info-item"> -->
-<!--                     <i class="fas fa-phone store-info-icon"></i> -->
-<!--                     <p>(02) 2711-1234</p> -->
-<!--                 </div> -->
-<!--                 <div class="store-info-item"> -->
-<!--                     <i class="fas fa-clock store-info-icon"></i> -->
-<!--                     <p>營業時間：週一至週日 06:00-14:00</p> -->
-<!--                 </div> -->
-<!--                 <div class="store-info-item"> -->
-<!--                     <i class="fas fa-envelope store-info-icon"></i> -->
-<!--                     <p>service@eatfast.com.tw</p> -->
-<!--                 </div> -->
-<!--             </div> -->
-<!--         </section> -->
-        
         <!-- 功能特色區域 -->
         <section id="features" class="features-section">
+            <h2 class="section-title">為您打造的專屬服務</h2>
             <div class="features-grid">
-                <!-- 會員系統卡片 -->
-                <div class="feature-card slide-in">
+                <div class="feature-card" data-aos="fade-up">
                     <i class="fas fa-user-circle feature-icon"></i>
                     <h3 class="feature-title">會員專區</h3>
                     <p class="feature-description">
                         成為會員享受專屬優惠！管理個人資料、查看訂單記錄、收藏喜愛商品，
-                        還有個人化的餐點推薦，讓您的用餐體驗更加便利。
+                        讓您的用餐體驗更加便利。
                     </p>
                     <div class="feature-actions">
-<!--                         <a th:href="@{/api/v1/auth/member-login}" class="btn btn-primary"> -->
-<!--                             <i class="fas fa-sign-in-alt"></i> -->
-<!--                             立即登入 -->
-<!--                         </a> -->
                         <a th:href="@{/member/register}" class="btn btn-outline">
                             <i class="fas fa-user-plus"></i>
                             免費註冊
                         </a>
-                        
                     </div>
                 </div>
                 
-                <!-- 線上訂購卡片 -->
-                <div class="feature-card slide-in">
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
                     <i class="fas fa-shopping-cart feature-icon"></i>
                     <h3 class="feature-title">線上訂購</h3>
                     <p class="feature-description">
                         瀏覽完整菜單，輕鬆下單訂購。支援多種付款方式，
-                        可選擇外帶或外送服務，讓您隨時隨地享受美味早餐。
+                        讓您盡情的享受美味早餐。
                     </p>
                     <div class="feature-actions">
                         <a href="/menu" class="btn btn-success">
                             <i class="fas fa-utensils"></i>
                             瀏覽菜單
                         </a>
-                        <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
-		                   th:href="@{/cart}" class="btn btn-outline">
-                            <i class="fas fa-shopping-cart"></i>購物車</a>
-		                <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
-		                   th:href="@{/api/v1/auth/member-login}" class="btn btn-outline">
-		                   <i class="fas fa-shopping-cart"></i>購物車</a>
                     </div>
                 </div>
                 
-                <!-- 會員專屬功能卡片 -->
-                <div class="feature-card slide-in">
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
                     <i class="fas fa-heart feature-icon"></i>
                     <h3 class="feature-title">個人化服務</h3>
                     <p class="feature-description">
@@ -1232,66 +1054,17 @@
                             <i class="fas fa-tachometer-alt"></i>
                             會員中心
                         </a>
-                        <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
-		                   th:href="@{/member/favorites}" class="btn btn-outline">
-                            <i class="fas fa-heart"></i>我的收藏</a>
-		                <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
-		                   th:href="@{/api/v1/auth/member-login}" class="btn btn-outline">
-		                   <i class="fas fa-heart"></i>我的收藏</a>
-                    </div>
-                </div>
-                
-                <!-- 客服支援卡片 -->
-                <div class="feature-card slide-in">
-                    <i class="fas fa-headset feature-icon"></i>
-                    <h3 class="feature-title">客服支援</h3>
-                    <p class="feature-description">
-                        提供意見回饋、查看常見問題、聯繫客服團隊。
-                        我們重視每一位顧客的聲音，持續改善服務品質。
-                    </p>
-                    <div class="feature-actions">
-                        <a href="/contact" class="btn btn-primary">
-                            <i class="fas fa-phone"></i>
-                            聯繫我們
-                        </a>
-                        <a href="/faq" class="btn btn-outline">
-                            <i class="fas fa-question-circle"></i>
-                            常見問題
-                        </a>
                     </div>
                 </div>
             </div>
         </section>
-        
-<!--         統計數據區域 -->
-<!--         <section class="stats-section fade-in"> -->
-<!--             <h2 class="section-title" style="color: white; margin-bottom: 2rem;">EatFast 數據一覽</h2> -->
-<!--             <div class="stats-grid"> -->
-<!--                 <div class="stat-item"> -->
-<!--                     <div class="stat-number">50+</div> -->
-<!--                     <div class="stat-label">精選餐點</div> -->
-<!--                 </div> -->
-<!--                 <div class="stat-item"> -->
-<!--                     <div class="stat-number">1000+</div> -->
-<!--                     <div class="stat-label">滿意會員</div> -->
-<!--                 </div> -->
-<!--                 <div class="stat-item"> -->
-<!--                     <div class="stat-number">24/7</div> -->
-<!--                     <div class="stat-label">線上服務</div> -->
-<!--                 </div> -->
-<!--                 <div class="stat-item"> -->
-<!--                     <div class="stat-number">5★</div> -->
-<!--                     <div class="stat-label">服務評價</div> -->
-<!--                 </div> -->
-<!--             </div> -->
-<!--         </section> -->
     </main>
     
     <!-- Footer 區域 -->
     <footer class="footer">
-            <div class="copyright">
-                © 2025 EatFast 早餐店 - 版權所有 | 為您提供最優質的早餐服務
-            </div>
+        <div class="copyright">
+            © 2025 EatFast 早餐店 - 版權所有 | 為您提供最優質的早餐服務
+        </div>
     </footer>
     
     <!-- 登出確認模態框 -->
@@ -1313,186 +1086,100 @@
         </div>
     </div>
     
+    <!-- 歡迎彈窗 -->
+    <div class="welcome-popup" id="welcomePopup">
+        <div class="welcome-popup-content">
+            <img src="/images/EATFAST_Index.png" alt="EatFast 招牌" class="welcome-logo">
+            <h3 class="welcome-popup-title">歡迎光臨 EatFast 早餐店</h3>
+            <p class="welcome-popup-subtitle">新鮮美味，快速便利</p>
+            <p class="welcome-popup-message">
+                感謝您選擇 EatFast 作為您的早餐首選！我們承諾為您提供最新鮮、最美味的早餐選擇，
+                讓您每一天都能擁有美好的開始。
+            </p>
+            <div class="welcome-popup-features">
+                <div class="welcome-feature">
+                    <i class="fas fa-check-circle welcome-feature-icon"></i>
+                    <div class="welcome-feature-text">嚴選食材</div>
+                </div>
+                <div class="welcome-feature">
+                    <i class="fas fa-check-circle welcome-feature-icon"></i>
+                    <div class="welcome-feature-text">快速配送</div>
+                </div>
+                <div class="welcome-feature">
+                    <i class="fas fa-check-circle welcome-feature-icon"></i>
+                    <div class="welcome-feature-text">專屬優惠</div>
+                </div>
+            </div>
+            <div class="welcome-popup-actions">
+                <a href="/menu" class="welcome-btn welcome-btn-primary">
+                    <i class="fas fa-utensils"></i>
+                    瀏覽菜單
+                </a>
+                <a href="#features" class="welcome-btn welcome-btn-secondary">
+                    <i class="fas fa-info-circle"></i>
+                    了解更多
+                </a>
+            </div>
+            <button class="welcome-close-btn" onclick="closeWelcomePopup()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    
     <script>
-        // 等待 DOM 和 Swiper.js 都載入完成
         document.addEventListener('DOMContentLoaded', function() {
-            // 確保 Swiper 已經載入
             if (typeof Swiper !== 'undefined') {
-                // 初始化 Swiper
                 const swiper = new Swiper('.hero-carousel', {
-                    // 自動播放
-                    autoplay: {
-                        delay: 5000,
-                        disableOnInteraction: false,
-                    },
-                    // 循環播放
+                    autoplay: { delay: 5000, disableOnInteraction: false, },
                     loop: true,
-                    // 效果
                     effect: 'fade',
-                    fadeEffect: {
-                        crossFade: true
-                    },
-                    // 分頁器
-                    pagination: {
-                        el: '.swiper-pagination',
-                        clickable: true,
-                    },
-                    // 導航按鈕
-                    navigation: {
-                        nextEl: '.swiper-button-next',
-                        prevEl: '.swiper-button-prev',
-                    },
-                    // 確保載入後立即開始
+                    fadeEffect: { crossFade: true },
+                    pagination: { el: '.swiper-pagination', clickable: true, },
+                    navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev', },
                     observer: true,
                     observeParents: true,
                 });
-                
-                console.log('Swiper 初始化成功', swiper);
             } else {
                 console.error('Swiper.js 尚未載入');
-                // 如果 Swiper 還沒載入，等待一段時間後重試
-                setTimeout(function() {
-                    if (typeof Swiper !== 'undefined') {
-                        const swiper = new Swiper('.hero-carousel', {
-                            autoplay: {
-                                delay: 5000,
-                                disableOnInteraction: false,
-                            },
-                            loop: true,
-                            effect: 'fade',
-                            fadeEffect: {
-                                crossFade: true
-                            },
-                            pagination: {
-                                el: '.swiper-pagination',
-                                clickable: true,
-                            },
-                            navigation: {
-                                nextEl: '.swiper-button-next',
-                                prevEl: '.swiper-button-prev',
-                            },
-                        });
-                        console.log('Swiper 延遲初始化成功', swiper);
-                    }
-                }, 1000);
             }
             
-            // 初始化 AOS
             if (typeof AOS !== 'undefined') {
                 AOS.init({
-                    duration: 1000,
+                    duration: 800, // 稍微縮短動畫時間
                     once: true,
-                    offset: 100
+                    offset: 100,
+                    easing: 'ease-in-out-cubic' // 使用更平滑的動畫曲線
                 });
             }
         });
 
-        // 平滑滾动效果
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
-                
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
         });
         
-        // 滾動動畫效果
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-        
-        const observer = new IntersectionObserver(function(entries) {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-        
-        // 監聽所有卡片元素
-        document.querySelectorAll('.feature-card').forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            observer.observe(card);
-        });
-        
-        // 數字計數動畫
-        function animateNumbers() {
-            const statNumbers = document.querySelectorAll('.stat-number');
-            
-            statNumbers.forEach(stat => {
-                const target = stat.textContent;
-                const isNumber = target.match(/\d+/);
-                
-                if (isNumber) {
-                    const finalNumber = parseInt(isNumber[0]);
-                    const increment = finalNumber / 50;
-                    let current = 0;
-                    
-                    const updateNumber = () => {
-                        current += increment;
-                        if (current < finalNumber) {
-                            stat.textContent = target.replace(/\d+/, Math.floor(current));
-                            requestAnimationFrame(updateNumber);
-                        } else {
-                            stat.textContent = target;
-                        }
-                    };
-                    
-                    updateNumber();
-                }
-            });
-        }
-        
-        // 當統計區域進入視野時觸發數字動畫
-        const statsSection = document.querySelector('.stats-section');
-        if (statsSection) {
-            const statsObserver = new IntersectionObserver(function(entries) {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        animateNumbers();
-                        statsObserver.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.5 });
-            
-            statsObserver.observe(statsSection);
-        }
-        
-        // 頁面載入時的淡入效果
         window.addEventListener('load', function() {
             document.body.style.opacity = '1';
         });
         
-        // 初始化頁面透明度
         document.body.style.opacity = '0';
         document.body.style.transition = 'opacity 0.5s ease-in-out';
         
-        // 登出確認功能
         function confirmLogout() {
-            // 顯示登出確認模態框
             document.getElementById('logoutModal').classList.add('show');
         }
 
         function closeLogoutModal() {
-            // 隱藏登出確認模態框
             document.getElementById('logoutModal').classList.remove('show');
         }
 
         function logout() {
-            // 顯示載入動畫
             document.getElementById('logoutLoading').style.display = 'flex';
-
-            // 使用 fetch 發送 POST 請求到登出端點
             fetch('/api/v1/auth/logout', {
                 method: 'POST',
                 headers: {
@@ -1503,7 +1190,6 @@
             })
             .then(response => {
                 if (response.ok) {
-                    // 登出成功，重新載入當前頁面以更新 UI
                     window.location.reload();
                 } else {
                     alert('登出失敗，請稍後再試');
@@ -1516,6 +1202,16 @@
                 closeLogoutModal();
             });
         }
+        
+        function closeWelcomePopup() {
+            document.getElementById('welcomePopup').classList.remove('show');
+        }
+
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                document.getElementById('welcomePopup').classList.add('show');
+            }, 500);
+        });
     </script>
 </body>
 </html>
