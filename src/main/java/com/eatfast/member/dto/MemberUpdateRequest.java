@@ -58,11 +58,11 @@ public class MemberUpdateRequest {
     /**
      * 連絡電話。
      * - @Pattern: 使用正規表示式驗證格式，支援台灣常見的手機和市話格式。
-     * 修正版支援格式：0912345678, 0912-345-678, 09-12345678, (02)12345678, 02-12345678
+     * 修正版支援格式：0912345678, 0912-345-678, 09-12345678, 098-185-569, 098-702-696, (02)12345678, 02-12345678
      */
     @NotBlank(message = "連絡電話：請勿空白", groups = UpdateValidation.class)
-    @Pattern(regexp = "^(09\\d{8}|09\\d{2}[\\s-]\\d{3}[\\s-]\\d{3}|09[\\s-]\\d{8}|0[2-8][\\s-]?\\d{7,8}|\\(0[2-8]\\)\\d{7,8})$", 
-             message = "連絡電話：請填寫有效的電話號碼格式（如：0912345678、0912-345-678、02-12345678）", 
+    @Pattern(regexp = "^(09\\d{8}|09\\d{1}[\\s-]\\d{3}[\\s-]\\d{3}|09\\d{2}[\\s-]\\d{3}[\\s-]\\d{3}|09[\\s-]\\d{8}|0[2-8][\\s-]?\\d{7,8}|\\(0[2-8]\\)\\d{7,8})$", 
+             message = "連絡電話：請填寫有效的電話號碼格式（如：0912345678、0912-345-678、098-185-569、02-12345678）", 
              groups = UpdateValidation.class)
     private String phone;
     
@@ -91,7 +91,7 @@ public class MemberUpdateRequest {
      * 帳號啟用狀態。
      * 管理員可以啟用或停用會員帳號。
      */
-    private Boolean isEnabled;
+    private Boolean enabled; // 【修正】統一屬性名稱為 enabled
     
     /**
      * 會員註冊時間（唯讀顯示用）。
@@ -122,16 +122,20 @@ public class MemberUpdateRequest {
     public void setAccount(String account) { this.account = account; }
     
     /**
-     * 【修正】統一方法名稱 - 使用 isEnabled 而非 getIsEnabled
-     * 這樣與 MemberEntity 的方法名稱保持一致
+     * 【修正】統一方法名稱 - 使用 isEnabled 與 MemberEntity 保持一致
      */
-    public Boolean isEnabled() { return isEnabled; }
-    public void setEnabled(Boolean isEnabled) { this.isEnabled = isEnabled; }
+    public Boolean isEnabled() { return enabled; }
+    public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+    
+    /**
+     * 【修正】提供別名方法以維持向後兼容性
+     */
+    public Boolean getEnabled() { return enabled; }
     
     // 【棄用舊方法】為了向後兼容保留，但建議使用 isEnabled()
     @Deprecated
-    public Boolean getIsEnabled() { return isEnabled; }
-    public void setIsEnabled(Boolean isEnabled) { this.isEnabled = isEnabled; }
+    public Boolean getIsEnabled() { return enabled; }
+    public void setIsEnabled(Boolean enabled) { this.enabled = enabled; }
     
     public java.time.LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }
