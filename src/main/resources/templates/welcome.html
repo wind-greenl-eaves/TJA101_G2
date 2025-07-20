@@ -540,12 +540,12 @@
         
         /* Footer 區域美化 */
         .footer {
-            background: var(--bg-color); /* 與背景色統一 */
-            color: var(--text-light);
+            background: var(--original-primary-hover); /* 改為與其他頁面一致的深棕色 */
+            color: white; /* 改為白色文字 */
             text-align: center;
             padding: 3rem 2rem; /* 增加 padding */
             margin-top: 4rem;
-            border-top: 1px solid var(--border-color); /* 增加頂部細線 */
+            border-top: none; /* 移除頂部細線，因為背景色已經有區分 */
         }
         
         .footer-content {
@@ -556,6 +556,7 @@
         .copyright {
             opacity: 0.8;
             font-size: 0.9rem;
+            color: white; /* 確保版權文字為白色 */
         }
         
         /* 新聞卡片樣式美化 */
