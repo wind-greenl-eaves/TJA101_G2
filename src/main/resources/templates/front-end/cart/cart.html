@@ -58,17 +58,17 @@
             box-sizing: border-box;
         }
         
-        .body {
+        body {
             font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
             line-height: 1.6;
             color: var(--text-color);
             background: linear-gradient(135deg, var(--bg-color) 0%, var(--header-bg) 100%);
             min-height: 100vh;
             display: flex;
-    		flex-direction: column;
+            flex-direction: column;
         }
         
-		        /* 【新增】主內容容器樣式 */
+		        /* 【修改】主內容容器樣式 */
 		.main-container {
 		    max-width: 1200px;      /* 限制內容最大寬度，避免在寬螢幕上過寬 */
 		    margin-left: auto;      /* 左右 margin 設為 auto 來達成水平置中 */
@@ -76,10 +76,11 @@
 		    padding-top: 100px;     /* 關鍵：留出足夠空間給上方固定的導覽列 (60px) + 額外間距 */
 		    padding-left: 2rem;     /* 在小螢幕時，左右保留一些邊距，避免內容貼邊 */
 		    padding-right: 2rem;
-		    flex-grow: 1; /*新增這一行，讓主要內容區塊填滿剩餘空間*/
+		    padding-bottom: 2rem;   /* 新增底部間距 */
+		    flex: 1; /* 修改為 flex: 1，讓主要內容區塊填滿剩餘空間 */
 		    display: flex;
     		flex-direction: column;   /* 確保內容垂直排列 */
-    		justify-content: center;  /* 垂直置中 */
+    		justify-content: flex-start;  /* 改為 flex-start，讓內容從頂部開始排列 */
             align-items: center;    /* 水平置中 */
 		}
 
