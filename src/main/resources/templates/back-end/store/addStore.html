@@ -311,16 +311,20 @@
                 <i class="fas fa-user-plus"></i>
                 <span>新增門市</span>
             </div>
-            <a th:href="@{/store/listAll}" class="nav-item"
-               th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN' or session.loggedInEmployee?.role?.name() == 'MANAGER'}">
-                <i class="fas fa-list"></i>
-                <span>門市列表</span>
-            </a>
-            <a th:href="@{/employee/select_page}" class="nav-item">
-                <i class="fas fa-search"></i>
-                <span>返回管理首頁</span>
+            <a th:href="@{/store/listAll}" class="nav-item">
+                 <i class="fas fa-store"></i>
+                 <span>門市資料管理</span>
             </a>
         </div>
+        
+        <!-- 快速操作區塊 -->
+        <div class="mb-6">
+             <div class="nav-section-title">快速操作</div>
+             <a th:href="@{/employee/select_page}" class="nav-item">
+                  <i class="fas fa-arrow-left"></i>
+                  <span>返回管理首頁</span>
+                    </a>
+                </div>
 
         </aside>
 
@@ -427,8 +431,15 @@
                                th:field="*{storeStatus}" 
                                class="form-input">
                                <option value="" disabled selected>-- 請選擇門市狀態 --</option>
-                               <option th:each="statusOpt : ${T(com.eatfast.common.enums.StoreStatus).values()}"
-                                th:value="${statusOpt}" th:text="${statusOpt.description}"> </option>
+                               <!-- 在 th:each 迴圈中，加入了 th:if 條件判斷。
+                               th:if="${statusOpt.name() != 'HEADQUARTERS'}" 
+                               「只有當前這個選項的 Enum 名稱不是 'HEADQUARTERS' 時，才渲染這個 <option> 標籤。」
+                               過濾掉「總部營運」這個選項
+                           		-->
+                           		<option th:each="statusOpt : ${T(com.eatfast.common.enums.StoreStatus).values()}"
+                                   		th:if="${statusOpt.name() != 'HEADQUARTERS'}"
+                                   		th:value="${statusOpt}" 
+                                   		th:text="${statusOpt.description}">
                         </select>
                         <div class="error-storeStatus"  th:if="${#fields.hasErrors('storeStatus')}" th:errors="*{storeStatus}"></div>
                     </div>

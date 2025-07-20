@@ -39,8 +39,33 @@ public interface StoreRepository extends JpaRepository<StoreEntity, Long>, JpaSp
     // 定義只根據狀態查詢的方法 (精確匹配)
     List<StoreEntity> findByStoreStatus(StoreStatus storeStatus);
     
-    // 查詢門市名稱資料時，會按照中文字的排序
-    List<StoreEntity> findAllByOrderByStoreNameAsc();
+    // 查詢門市名稱資料時，會按照門市Id排序
+    List<StoreEntity> findAllByOrderByStoreIdAsc();
+    
+    /**
+     * 使用 JPQL 進行動態的多條件查詢。
+     * 這個查詢會檢查每個傳入的參數：
+     * - 如果參數是 NULL，則該條件會被忽略。
+     * - 如果參數有值，則會被納入 WHERE 子句中。
+     * 這完美地解決了因部分參數為 NULL 而導致查詢失敗的問題。
+     *
+     * @param storeName 門市名稱 (模糊查詢)
+     * @param storeLoc 門市地點 (模糊查詢)
+     * @param storeTime 營業時間 (模糊查詢)
+     * @param storeStatus 營業狀態 (精確匹配)
+     * @return 符合條件的門市實體列表
+     */
+    @Query("SELECT s FROM StoreEntity s WHERE " +
+            "(:storeName IS NULL OR s.storeName LIKE %:storeName%) AND " +
+            "(:storeLoc IS NULL OR s.storeLoc LIKE %:storeLoc%) AND " +
+            "(:storeTime IS NULL OR s.storeTime LIKE %:storeTime%) AND " +
+            "(:storeStatus IS NULL OR s.storeStatus = :storeStatus)")
+     List<StoreEntity> searchStores(
+             @Param("storeName") String storeName,
+             @Param("storeLoc") String storeLoc,
+             @Param("storeTime") String storeTime,
+             @Param("storeStatus") StoreStatus storeStatus);
+
     
     
  // 【新增方法 1】查詢所有「非總部」的門市，並按名稱排序

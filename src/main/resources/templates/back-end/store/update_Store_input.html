@@ -133,11 +133,9 @@
                        class="form-input bg-gray-100" readonly />
             </div>
             <div>
-                <label for="storeName" class="form-label">門市名稱</label>
+                <label for="storeName" class="form-label">門市名稱 (不可修改)</label>
                 <input type="text" id="storeName" name="storeName" th:field="*{storeName}" 
-                       class="form-input" required minlength="2" maxlength="10" pattern="[^\s].*" 
-                       title="名稱不能以空格開頭且至少需要3個字，例如：一號店" />
-                <div id="error-storeName" class="error-message" th:if="${#fields.hasErrors('storeName')}" th:errors="*{storeName}"></div>
+                       class="form-input bg-gray-100" readonly />
             </div>
             <div class="sm:col-span-2">
                 <label for="storeLoc" class="form-label">門市地點</label>
@@ -163,10 +161,10 @@
             <div>
                 <label for="storeStatus" class="form-label">營業狀態</label>
                 <select id="storeStatus" name="storeStatus" th:field="*{storeStatus}" class="form-input">
-                    <option th:each="statusOpt : ${T(com.eatfast.common.enums.StoreStatus).values()}"
-                            th:value="${statusOpt}"
-                            th:text="${statusOpt.description}"
-                            th:selected="(${statusOpt} == *{storeStatus})"></option>
+                            <option th:each="statusOpt : ${T(com.eatfast.common.enums.StoreStatus).values()}"
+                                   		th:if="${statusOpt.name() != 'HEADQUARTERS'}"
+                                   		th:value="${statusOpt}" 
+                                   		th:text="${statusOpt.description}">
                 </select>
                 <div id="error-storeStatus" class="error-message" th:if="${#fields.hasErrors('storeStatus')}" th:errors="*{storeStatus}"></div>
             </div>

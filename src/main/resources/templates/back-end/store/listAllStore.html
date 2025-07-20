@@ -492,33 +492,6 @@
                     <i class="fas fa-compass mr-2"></i>系統導航
                 </div>
 
-                <!-- 員工管理區塊 -->
-                <div class="mb-6">
-                    <div class="nav-section-title">員工管理</div>
-                    <a th:href="@{/employee/add}" class="nav-item">
-                        <i class="fas fa-user-plus"></i>
-                        <span>新增員工</span>
-                    </a>
-                    <a th:href="@{/employee/listAll}" class="nav-item"
-                       th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN' or session.loggedInEmployee?.role?.name() == 'MANAGER'}">
-                        <i class="fas fa-list"></i>
-                        <span>員工列表</span>
-                    </a>
-                    
-                    <!-- 員工申請管理 -->
-                    <a th:href="@{/employee/applications}" class="nav-item"
-                       th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
-                        <i class="fas fa-clipboard-check"></i>
-                        <span>員工申請管理</span>
-                    </a>
-                    
-                    <!-- 門市經理查看申請狀態 -->
-                    <a th:href="@{/employee/applications}" class="nav-item"
-                       th:if="${session.loggedInEmployee?.role?.name() == 'MANAGER'}">
-                        <i class="fas fa-eye"></i>
-                        <span>查看申請狀態</span>
-                    </a>
-                </div>
 
                 <!-- 門市管理區塊 -->
                 <div class="mb-6">
@@ -528,9 +501,8 @@
                         <i class="fas fa-store"></i>
                         <span>門市資料管理</span>
                     </div>
-                    <a th:href="@{/store/add}" class="nav-item"
-                       th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
-                        <i class="fas fa-plus"></i>
+                    <a th:href="@{/store/add}" class="nav-item">
+                        <i class="fas fa-user-plus"></i>
                         <span>新增門市</span>
                     </a>
                 </div>
@@ -608,10 +580,10 @@
                                 <label for="statusFilter" class="form-label">狀態篩選：</label>
                                 <select id="statusFilter" class="form-input w-32">
                                     <option value="">全部狀態</option>
-                                    <option value="OPERATING">營運中</option>
+                                    <option value="OPERATING">營業中</option>
                                     <option value="RESTING">休息中</option>
-                                    <option value="ENDED">已結束</option>
-                                    <option value="HEADQUARTERS">總部</option>
+                                    <option value="ENDED">已歇業</option>
+                                    <option value="HEADQUARTERS">總部營運</option>
                                 </select>
                             </div>
                             <div>
@@ -639,7 +611,7 @@
                              id="operatingCard">
                             <div class="flex items-center">
                                 <i class="fas fa-store text-green-600 mr-2"></i>
-                                <span class="form-label">營運中：</span>
+                                <span class="form-label">營頁中：</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <span id="operatingCount" class="text-lg font-bold text-green-600">0</span>
@@ -663,7 +635,7 @@
                              id="endedCard">
                             <div class="flex items-center">
                                 <i class="fas fa-times-circle text-red-600 mr-2"></i>
-                                <span class="form-label">已結束：</span>
+                                <span class="form-label">已歇業：</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <span id="endedCount" class="text-lg font-bold text-red-600">0</span>
@@ -675,7 +647,7 @@
                              id="headquartersCard">
                             <div class="flex items-center">
                                 <i class="fas fa-building text-blue-600 mr-2"></i>
-                                <span class="form-label">總部：</span>
+                                <span class="form-label">總部營運：</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <span id="headquartersCount" class="text-lg font-bold text-blue-600">0</span>
@@ -704,7 +676,6 @@
                             <table id="storeTable" class="table table-striped table-hover" style="width: 100%">
                                 <thead>
                                     <tr>
-                                        <th width="8%">計數</th>
                                         <th width="10%">門市編號</th>
                                         <th width="15%">門市名稱</th>
                                         <th width="20%">門市地點</th>
@@ -717,7 +688,6 @@
                                 </thead>
                                 <tbody>
                                     <tr th:each="storeVO, iterStat : ${storeList}">
-                                        <td class="text-center" th:text="${iterStat.count}"></td>
                                         <td class="text-center font-semibold" th:text="${storeVO.storeId}"></td>
                                         <td class="font-semibold" th:text="${storeVO.storeName}"></td>
                                         <td th:text="${storeVO.storeLoc}"></td>
@@ -769,15 +739,15 @@
     </div>
 
     <!-- 網頁比例提示 -->
-<!--     <div class="scale-indicator" id="scaleIndicator"> -->
-<!--         <i class="fas fa-search-plus"></i> -->
-<!--         <span class="scale-text">比例</span> -->
-<!--         <div class="scale-controls"> -->
-<!--             <button class="scale-btn" id="scaleDownBtn" title="縮小">−</button> -->
-<!--             <span class="scale-percentage" id="scalePercentage">100%</span> -->
-<!--             <button class="scale-btn" id="scaleUpBtn" title="放大">+</button> -->
-<!--         </div> -->
-<!--     </div> -->
+    <div class="scale-indicator" id="scaleIndicator"> 
+        <i class="fas fa-search-plus"></i> 
+         <span class="scale-text">比例</span> 
+         <div class="scale-controls"> 
+             <button class="scale-btn" id="scaleDownBtn" title="縮小">−</button> 
+            <span class="scale-percentage" id="scalePercentage">100%</span> 
+             <button class="scale-btn" id="scaleUpBtn" title="放大">+</button> 
+         </div> 
+     </div> 
 
     <!-- 引入 JavaScript 庫 -->
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
@@ -971,6 +941,26 @@
                     applyFilters();
                 }, 300);
             });
+            
+         // 【✔️ 核心修改 3】使用事件委派來處理統計卡片的點擊
+            if (statisticsContainer) {
+                statisticsContainer.addEventListener('click', function(event) {
+                    // 向上查找被點擊的元素是否在 .stat-card 內部
+                    const card = event.target.closest('.stat-card');
+                    
+                    // 如果確實點擊了卡片
+                    if (card) {
+                        const status = card.dataset.status; // 從 data-status 獲取狀態
+                        if (status) {
+                            // 執行篩選邏輯
+                            nameFilter.value = '';
+                            statusFilter.value = status;
+                            updateStatisticsCardState(status);
+                            applyFilters();
+                        }
+                    }
+                });
+            }
 
             // 重新載入按鈕
             refreshBtn.addEventListener('click', function() {
@@ -1023,6 +1013,8 @@
             const scaleDownBtn = document.getElementById('scaleDownBtn');
             const scalePercentage = document.getElementById('scalePercentage');
             const pageScaleContainer = document.getElementById('pageScaleContainer');
+            
+            
             
             // 縮放設定
             let currentScale = 1.0;

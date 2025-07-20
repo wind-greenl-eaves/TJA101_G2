@@ -128,18 +128,19 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public List<StoreDto> findAllStores() {
         // 【修改】從呼叫 findAll() 改為呼叫我們新定義的排序方法
-        List<StoreEntity> sortedStores = storeRepository.findAllByOrderByStoreNameAsc();
+        List<StoreEntity> sortedStores = storeRepository.findAllByOrderByStoreIdAsc();
 
         // 後續的 Mapper 轉換邏輯不變，將排序好的 Entity 列表轉為 DTO 列表
         return storeMapper.toDtoList(sortedStores); 
     }
     
     @Override
-    public List<StoreDto> searchStores(String storeName, String storeLoc, String storeTime, StoreStatus storeStatus) {
         // 調用 Repository 中定義的命名查詢方法
         // Spring Data JPA 會自動處理 null 參數，不將其納入查詢條件
-        List<StoreEntity> entities = storeRepository.findByStoreNameContainingAndStoreLocContainingAndStoreTimeContainingAndStoreStatus(
-                storeName, storeLoc, storeTime, storeStatus);
+    	public List<StoreDto> searchStores(String storeName, String storeLoc, String storeTime, StoreStatus storeStatus) {
+            // 呼叫我們在 Repository 中使用 @Query 定義的新方法
+            List<StoreEntity> entities = storeRepository.searchStores(
+                    storeName, storeLoc, storeTime, storeStatus);
 
         // 將查詢到的 Entity 列表轉換為 DTO 列表並返回
         return entities.stream()
@@ -147,17 +148,6 @@ public class StoreServiceImpl implements StoreService {
                 .collect(Collectors.toList());
     }
 
-   // @Override 會員拉取這方法可以先不用到了 前端不另外抓
- //   public List<StoreEntity> getAllStores() {
-    //    return List.of();
-    
-//     @Override
-//     public List<StoreDto> getAllStoreDTOs() {
-//         List<StoreEntity> stores = storeRepository.findAll();
-//         return stores.stream()
-//                      .map(store -> new StoreDto(store.getStoreId(), store.getStoreName()))
-//                      .toList();
-//     }
     
     
     @Override
