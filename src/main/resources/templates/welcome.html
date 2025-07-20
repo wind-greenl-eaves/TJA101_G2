@@ -895,6 +895,193 @@
                 padding: 1.5rem 1rem;
             }
         }
+
+        /* 最新消息區域樣式 - 優化版 */
+        .news-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 10002;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .news-modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .news-modal-content {
+            background: var(--container-bg);
+            border-radius: 20px;
+            padding: 0;
+            max-height: 85vh;
+            max-width: 450px;
+            width: 85%;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            position: relative;
+            transform: scale(0.7) translateY(-50px);
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .news-modal.show .news-modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .news-modal-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .news-modal-body {
+            padding: 1.5rem;
+        }
+
+        .news-modal-title {
+            font-family: 'Noto Serif TC', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .news-modal-date {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .news-modal-date i {
+            color: var(--accent-color);
+        }
+
+        .news-modal-message {
+            font-size: 0.95rem;
+            color: var(--text-color);
+            margin-bottom: 1.2rem;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .news-modal-details {
+            background: var(--bg-color);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .news-modal-details h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.8rem;
+            text-align: center;
+        }
+
+        .news-modal-details ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .news-modal-details li {
+            font-size: 0.85rem;
+            color: var(--text-color);
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .news-modal-details li i {
+            color: var(--accent-color);
+            width: 16px;
+            text-align: center;
+        }
+
+        .news-modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            padding: 1.2rem 1.5rem;
+            background: var(--bg-color);
+            border-radius: 0 0 20px 20px;
+            margin: 0 -1.5rem -1.5rem -1.5rem;
+        }
+
+        .news-btn {
+            padding: 0.8rem 1.8rem;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            justify-content: center;
+            max-width: 140px;
+            text-decoration: none;
+        }
+
+        .news-btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            box-shadow: 0 4px 15px rgba(185, 143, 114, 0.3);
+        }
+
+        .news-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(185, 143, 114, 0.4);
+        }
+
+        .news-btn-secondary {
+            background: var(--container-bg);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+        }
+
+        .news-btn-secondary:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .news-modal-content {
+                max-width: 95%;
+                width: 95%;
+            }
+            
+            .news-modal-actions {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+            
+            .news-btn {
+                max-width: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1004,7 +1191,7 @@
                     <div class="news-content">
                         <h3>新品上市</h3>
                         <p>全新健康早餐系列，以新鮮食材搭配特製醬料，讓您吃得健康美味。</p>
-                        <a href="/news/1" class="btn btn-outline">了解更多</a>
+                        <button class="btn btn-outline" onclick="openNewsModal('news1')">了解更多</button>
                     </div>
                 </div>
                 <div class="news-card" data-aos="fade-up" data-aos-delay="100">
@@ -1014,7 +1201,7 @@
                     <div class="news-content">
                         <h3>會員專屬優惠</h3>
                         <p>即日起至月底，會員購買指定套餐享有85折優惠。</p>
-                        <a href="/news/2" class="btn btn-outline">了解更多</a>
+                        <button class="btn btn-outline" onclick="openNewsModal('news2')">了解更多</button>
                     </div>
                 </div>
                 <div class="news-card" data-aos="fade-up" data-aos-delay="200">
@@ -1024,7 +1211,7 @@
                     <div class="news-content">
                         <h3>新門市開幕</h3>
                         <p>台北市大安區新門市盛大開幕，開幕期間消費即送精美贈品。</p>
-                        <a href="/news/3" class="btn btn-outline">了解更多</a>
+                        <button class="btn btn-outline" onclick="openNewsModal('news3')">了解更多</button>
                     </div>
                 </div>
             </div>
@@ -1148,6 +1335,41 @@
         </div>
     </div>
     
+    <!-- 最新消息模態框 - 增強版 -->
+    <div class="news-modal" id="newsModal">
+        <div class="news-modal-content">
+            <div class="news-modal-header">
+                <img id="newsModalImage" src="" alt="" class="news-modal-image">
+            </div>
+            <div class="news-modal-body">
+                <h3 class="news-modal-title" id="newsModalTitle">新品上市</h3>
+                <div class="news-modal-date" id="newsModalDate">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>2025年1月20日</span>
+                </div>
+                <p class="news-modal-message" id="newsModalMessage">全新健康早餐系列，以新鮮食材搭配特製醬料，讓您吃得健康美味。</p>
+                <div class="news-modal-details" id="newsModalDetails">
+                    <h4>活動詳情</h4>
+                    <ul id="newsModalDetailsList">
+                        <li><i class="fas fa-check"></i> 詳細資訊1</li>
+                        <li><i class="fas fa-check"></i> 詳細資訊2</li>
+                        <li><i class="fas fa-check"></i> 詳細資訊3</li>
+                    </ul>
+                </div>
+                <div class="news-modal-actions">
+                    <a href="/menu" class="news-btn news-btn-primary">
+                        <i class="fas fa-utensils"></i>
+                        立即體驗
+                    </a>
+                    <button class="news-btn news-btn-secondary" onclick="closeNewsModal()">
+                        <i class="fas fa-times"></i>
+                        關閉
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof Swiper !== 'undefined') {
@@ -1254,6 +1476,74 @@
                 });
             });
         });
+
+        function openNewsModal(newsType) {
+            const modal = document.getElementById('newsModal');
+            const title = modal.querySelector('.news-modal-title');
+            const message = modal.querySelector('.news-modal-message');
+            const date = modal.querySelector('.news-modal-date span');
+            const image = modal.querySelector('#newsModalImage');
+            const detailsList = modal.querySelector('#newsModalDetailsList');
+
+            // 根據 newsType 設定標題與內容
+            switch(newsType) {
+                case 'news1':
+                    title.innerHTML = '新品上市';
+                    message.innerHTML = '全新健康早餐系列，以新鮮食材搭配特製醬料，讓您吃得健康美味。';
+                    date.innerHTML = '2025年1月20日';
+                    image.src = '/images/news1.png';
+                    detailsList.innerHTML = `
+                        <li><i class="fas fa-check"></i> 嚴選新鮮食材</li>
+                        <li><i class="fas fa-check"></i> 獨家特製醬料</li>
+                        <li><i class="fas fa-check"></i> 健康美味雙重享受</li>
+                    `;
+                    break;
+                case 'news2':
+                    title.innerHTML = '會員專屬優惠';
+                    message.innerHTML = '即日起至月底，會員購買指定套餐享有85折優惠。';
+                    date.innerHTML = '2025年1月15日';
+                    image.src = '/images/news2.png';
+                    detailsList.innerHTML = `
+                        <li><i class="fas fa-check"></i> 立即註冊成為會員</li>
+                        <li><i class="fas fa-check"></i> 獲得專屬優惠碼</li>
+                        <li><i class="fas fa-check"></i> 享受快速結帳服務</li>
+                    `;
+                    break;
+                case 'news3':
+                    title.innerHTML = '新門市開幕';
+                    message.innerHTML = '台北市大安區新門市盛大開幕，開幕期間消費即送精美贈品。';
+                    date.innerHTML = '2025年1月10日';
+                    image.src = '/images/news3.png';
+                    detailsList.innerHTML = `
+                        <li><i class="fas fa-check"></i> 開幕期間消費滿額贈送精美小禮</li>
+                        <li><i class="fas fa-check"></i> 新品試吃活動</li>
+                        <li><i class="fas fa-check"></i> 會員專屬折扣</li>
+                    `;
+                    break;
+                default:
+                    title.innerHTML = '';
+                    message.innerHTML = '';
+                    date.innerHTML = '';
+                    image.src = '';
+                    detailsList.innerHTML = '';
+            }
+
+            modal.classList.add('show');
+        }
+     // 添加點擊外部關閉功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const newsModal = document.getElementById('newsModal');
+            
+            newsModal.addEventListener('click', function(e) {
+                if (e.target === newsModal) {
+                    closeNewsModal();
+                }
+            });
+        });
+
+        function closeNewsModal() {
+            document.getElementById('newsModal').classList.remove('show');
+        }
     </script>
 </body>
 </html>
