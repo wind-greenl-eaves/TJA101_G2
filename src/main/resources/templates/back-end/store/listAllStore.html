@@ -492,33 +492,6 @@
                     <i class="fas fa-compass mr-2"></i>系統導航
                 </div>
 
-                <!-- 員工管理區塊 -->
-                <div class="mb-6">
-                    <div class="nav-section-title">員工管理</div>
-                    <a th:href="@{/employee/add}" class="nav-item">
-                        <i class="fas fa-user-plus"></i>
-                        <span>新增員工</span>
-                    </a>
-                    <a th:href="@{/employee/listAll}" class="nav-item"
-                       th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN' or session.loggedInEmployee?.role?.name() == 'MANAGER'}">
-                        <i class="fas fa-list"></i>
-                        <span>員工列表</span>
-                    </a>
-                    
-                    <!-- 員工申請管理 -->
-                    <a th:href="@{/employee/applications}" class="nav-item"
-                       th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
-                        <i class="fas fa-clipboard-check"></i>
-                        <span>員工申請管理</span>
-                    </a>
-                    
-                    <!-- 門市經理查看申請狀態 -->
-                    <a th:href="@{/employee/applications}" class="nav-item"
-                       th:if="${session.loggedInEmployee?.role?.name() == 'MANAGER'}">
-                        <i class="fas fa-eye"></i>
-                        <span>查看申請狀態</span>
-                    </a>
-                </div>
 
                 <!-- 門市管理區塊 -->
                 <div class="mb-6">
@@ -528,9 +501,8 @@
                         <i class="fas fa-store"></i>
                         <span>門市資料管理</span>
                     </div>
-                    <a th:href="@{/store/add}" class="nav-item"
-                       th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
-                        <i class="fas fa-plus"></i>
+                    <a th:href="@{/store/add}" class="nav-item">
+                        <i class="fas fa-user-plus"></i>
                         <span>新增門市</span>
                     </a>
                 </div>
@@ -597,93 +569,8 @@
                     <span th:text="${errorMessage}"></span>
                 </div>
 
-                <!-- 篩選器區塊 -->
-                <section class="mb-6">
-                    <div class="section-title-container">
-                        <h2 class="section-title">篩選與搜尋</h2>
-                    </div>
-                    <div class="form-container">
-                        <div class="flex items-center gap-4">
-                            <div>
-                                <label for="statusFilter" class="form-label">狀態篩選：</label>
-                                <select id="statusFilter" class="form-input w-32">
-                                    <option value="">全部狀態</option>
-                                    <option value="OPERATING">營運中</option>
-                                    <option value="RESTING">休息中</option>
-                                    <option value="ENDED">已結束</option>
-                                    <option value="HEADQUARTERS">總部</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="nameFilter" class="form-label">名稱搜尋：</label>
-                                <input type="text" id="nameFilter" placeholder="門市名稱" class="form-input w-40">
-                            </div>
-                        </div>
-                        <button id="refreshBtn" class="submit-btn">
-                            <i class="fas fa-sync-alt mr-2"></i>重新載入
-                        </button>
-                    </div>
-                </section>
 
-                <!-- 統計資訊區塊 -->
-                <section class="mb-6">
-                    <div class="section-title-container">
-                        <h2 class="section-title">統計資訊</h2>
-                        <div class="text-xs text-gray-500">
-                            <i class="fas fa-info-circle mr-1"></i>點擊統計卡片可快速篩選
-                        </div>
-                    </div>
-                    <div id="statisticsContainer" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="form-container cursor-pointer hover:shadow-lg transition-all duration-200 hover:bg-green-50 border-l-4 border-green-500" 
-                             onclick="filterByStatus('OPERATING')" 
-                             id="operatingCard">
-                            <div class="flex items-center">
-                                <i class="fas fa-store text-green-600 mr-2"></i>
-                                <span class="form-label">營運中：</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span id="operatingCount" class="text-lg font-bold text-green-600">0</span>
-                                <i class="fas fa-filter text-green-600 text-sm opacity-50"></i>
-                            </div>
-                        </div>
-                        <div class="form-container cursor-pointer hover:shadow-lg transition-all duration-200 hover:bg-yellow-50 border-l-4 border-yellow-500" 
-                             onclick="filterByStatus('RESTING')" 
-                             id="restingCard">
-                            <div class="flex items-center">
-                                <i class="fas fa-pause-circle text-yellow-600 mr-2"></i>
-                                <span class="form-label">休息中：</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span id="restingCount" class="text-lg font-bold text-yellow-600">0</span>
-                                <i class="fas fa-filter text-yellow-600 text-sm opacity-50"></i>
-                            </div>
-                        </div>
-                        <div class="form-container cursor-pointer hover:shadow-lg transition-all duration-200 hover:bg-red-50 border-l-4 border-red-500" 
-                             onclick="filterByStatus('ENDED')" 
-                             id="endedCard">
-                            <div class="flex items-center">
-                                <i class="fas fa-times-circle text-red-600 mr-2"></i>
-                                <span class="form-label">已結束：</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span id="endedCount" class="text-lg font-bold text-red-600">0</span>
-                                <i class="fas fa-filter text-red-600 text-sm opacity-50"></i>
-                            </div>
-                        </div>
-                        <div class="form-container cursor-pointer hover:shadow-lg transition-all duration-200 hover:bg-blue-50 border-l-4 border-blue-500" 
-                             onclick="filterByStatus('HEADQUARTERS')" 
-                             id="headquartersCard">
-                            <div class="flex items-center">
-                                <i class="fas fa-building text-blue-600 mr-2"></i>
-                                <span class="form-label">總部：</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span id="headquartersCount" class="text-lg font-bold text-blue-600">0</span>
-                                <i class="fas fa-filter text-blue-600 text-sm opacity-50"></i>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                    
 
                 <!-- 門市列表區塊 -->
                 <section>
@@ -691,10 +578,6 @@
                         <h2 class="section-title">門市列表</h2>
                         <div class="flex items-center gap-2">
                             <span id="totalCount" class="text-sm text-gray-500">總計：<span th:text="${#lists.size(storeList)}">0</span> 筆</span>
-                            <a th:href="@{/store/add}" class="submit-btn text-sm"
-                               th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
-                                <i class="fas fa-plus mr-1"></i>新增門市
-                            </a>
                         </div>
                     </div>
                     
@@ -704,7 +587,6 @@
                             <table id="storeTable" class="table table-striped table-hover" style="width: 100%">
                                 <thead>
                                     <tr>
-                                        <th width="8%">計數</th>
                                         <th width="10%">門市編號</th>
                                         <th width="15%">門市名稱</th>
                                         <th width="20%">門市地點</th>
@@ -717,7 +599,6 @@
                                 </thead>
                                 <tbody>
                                     <tr th:each="storeVO, iterStat : ${storeList}">
-                                        <td class="text-center" th:text="${iterStat.count}"></td>
                                         <td class="text-center font-semibold" th:text="${storeVO.storeId}"></td>
                                         <td class="font-semibold" th:text="${storeVO.storeName}"></td>
                                         <td th:text="${storeVO.storeLoc}"></td>
@@ -768,16 +649,6 @@
         </div>
     </div>
 
-    <!-- 網頁比例提示 -->
-<!--     <div class="scale-indicator" id="scaleIndicator"> -->
-<!--         <i class="fas fa-search-plus"></i> -->
-<!--         <span class="scale-text">比例</span> -->
-<!--         <div class="scale-controls"> -->
-<!--             <button class="scale-btn" id="scaleDownBtn" title="縮小">−</button> -->
-<!--             <span class="scale-percentage" id="scalePercentage">100%</span> -->
-<!--             <button class="scale-btn" id="scaleUpBtn" title="放大">+</button> -->
-<!--         </div> -->
-<!--     </div> -->
 
     <!-- 引入 JavaScript 庫 -->
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
@@ -812,16 +683,9 @@
             const table = $('#storeTable').DataTable({
                 "lengthMenu": [5, 10, 20, 50],
                 "pageLength": 10,
-                "language": {
-                    "url": "https://cdn.datatables.net/plug-ins/1.13.5/i18n/zh-HANT.json"
-                },
-                "dom": "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-                       "<'row'<'col-sm-12'tr>>" +
-                       "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                "order": [[1, 'asc']], // 預設按門市編號排序
-                "columnDefs": [
-                    { "orderable": false, "targets": [8] } // 操作欄不可排序
-                ]
+                "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.5/i18n/zh-HANT.json" },
+                "order": [[0, 'asc']], // 預設按門市編號排序
+                "columnDefs": [ { "orderable": false, "targets": [7] } ] // 操作欄(第8欄)不可排序
             });
 
             // 錯誤訊息顯示函數
@@ -835,147 +699,8 @@
                 errorMessagesDiv.classList.add('hidden');
             }
 
-            // 更新統計資訊
-            function updateStatistics() {
-                const table = $('#storeTable').DataTable();
-                const data = table.rows({ search: 'applied' }).data();
-                
-                let operating = 0, resting = 0, ended = 0, headquarters = 0;
-                
-                for (let i = 0; i < data.length; i++) {
-                    const row = data[i];
-                    const statusCell = $(table.row(i).node()).find('td:eq(6)');
-                    const statusText = statusCell.text().trim();
-                    
-                    if (statusText.includes('營運中')) operating++;
-                    else if (statusText.includes('休息中')) resting++;
-                    else if (statusText.includes('已結束')) ended++;
-                    else if (statusText.includes('總部')) headquarters++;
-                }
 
-                operatingCount.textContent = operating;
-                restingCount.textContent = resting;
-                endedCount.textContent = ended;
-                headquartersCount.textContent = headquarters;
-                totalCount.innerHTML = `總計：${data.length} 筆`;
-            }
 
-            // 統計卡片篩選功能
-            window.filterByStatus = function(status) {
-                // 清除名稱篩選
-                nameFilter.value = '';
-                
-                // 設置狀態篩選
-                statusFilter.value = status;
-                
-                // 更新卡片的視覺狀態
-                updateStatisticsCardState(status);
-                
-                // 應用篩選
-                applyFilters();
-            };
-
-            // 更新統計卡片的視覺狀態
-            function updateStatisticsCardState(activeStatus) {
-                const cards = ['operatingCard', 'restingCard', 'endedCard', 'headquartersCard'];
-                const statusMap = {
-                    'OPERATING': 'operatingCard',
-                    'RESTING': 'restingCard', 
-                    'ENDED': 'endedCard',
-                    'HEADQUARTERS': 'headquartersCard'
-                };
-
-                cards.forEach(cardId => {
-                    const card = document.getElementById(cardId);
-                    if (card) {
-                        if (statusMap[activeStatus] === cardId) {
-                            // 啟用狀態 - 增強視覺效果
-                            card.classList.add('ring-2', 'ring-offset-2');
-                            if (cardId === 'operatingCard') {
-                                card.classList.add('ring-green-400', 'bg-green-50');
-                            } else if (cardId === 'restingCard') {
-                                card.classList.add('ring-yellow-400', 'bg-yellow-50');
-                            } else if (cardId === 'endedCard') {
-                                card.classList.add('ring-red-400', 'bg-red-50');
-                            } else if (cardId === 'headquartersCard') {
-                                card.classList.add('ring-blue-400', 'bg-blue-50');
-                            }
-                        } else {
-                            // 非啟用狀態 - 移除強調效果
-                            card.classList.remove('ring-2', 'ring-offset-2', 'ring-green-400', 'ring-yellow-400', 'ring-red-400', 'ring-blue-400', 'bg-green-50', 'bg-yellow-50', 'bg-red-50', 'bg-blue-50');
-                        }
-                    }
-                });
-            }
-
-            // 清除統計卡片選中狀態
-            function clearStatisticsCardState() {
-                const cards = ['operatingCard', 'restingCard', 'endedCard', 'headquartersCard'];
-                cards.forEach(cardId => {
-                    const card = document.getElementById(cardId);
-                    if (card) {
-                        card.classList.remove('ring-2', 'ring-offset-2', 'ring-green-400', 'ring-yellow-400', 'ring-red-400', 'ring-blue-400', 'bg-green-50', 'bg-yellow-50', 'bg-red-50', 'bg-blue-50');
-                    }
-                });
-            }
-
-            // 應用篩選條件
-            function applyFilters() {
-                const statusFilterValue = statusFilter.value;
-                const nameFilterValue = nameFilter.value.toLowerCase().trim();
-
-                // 狀態篩選
-                let statusSearchTerm = '';
-                switch(statusFilterValue) {
-                    case 'OPERATING':
-                        statusSearchTerm = '營運中';
-                        break;
-                    case 'RESTING':
-                        statusSearchTerm = '休息中';
-                        break;
-                    case 'ENDED':
-                        statusSearchTerm = '已結束';
-                        break;
-                    case 'HEADQUARTERS':
-                        statusSearchTerm = '總部';
-                        break;
-                    default:
-                        statusSearchTerm = '';
-                }
-
-                // 清除舊的搜尋
-                table.search('').columns().search('').draw();
-
-                // 應用狀態篩選
-                if (statusSearchTerm) {
-                    table.column(6).search(statusSearchTerm, false, false);
-                }
-
-                // 應用名稱篩選
-                if (nameFilterValue) {
-                    table.column(2).search(nameFilterValue, false, false);
-                }
-
-                table.draw();
-                updateStatistics();
-            }
-
-            // 篩選事件監聽器
-            statusFilter.addEventListener('change', applyFilters);
-            
-            // 門市名稱篩選支援即時搜尋
-            nameFilter.addEventListener('input', function() {
-                clearTimeout(this.searchTimeout);
-                this.searchTimeout = setTimeout(() => {
-                    clearStatisticsCardState(); // 清除卡片選中狀態
-                    applyFilters();
-                }, 300);
-            });
-
-            // 重新載入按鈕
-            refreshBtn.addEventListener('click', function() {
-                location.reload();
-            });
 
             // 登出功能
             logoutBtn.addEventListener('click', function() {
@@ -1016,125 +741,11 @@
                     logoutModal.classList.remove('flex');
                 }
             });
-
-            // 頁面縮放功能
-            const scaleIndicator = document.getElementById('scaleIndicator');
-            const scaleUpBtn = document.getElementById('scaleUpBtn');
-            const scaleDownBtn = document.getElementById('scaleDownBtn');
-            const scalePercentage = document.getElementById('scalePercentage');
-            const pageScaleContainer = document.getElementById('pageScaleContainer');
             
-            // 縮放設定
-            let currentScale = 1.0;
-            const scaleStep = 0.1;
-            const minScale = 0.5;
-            const maxScale = 2.0;
-            
-            // 更新縮放顯示
-            function updateScaleDisplay() {
-                const percentage = Math.round(currentScale * 100);
-                scalePercentage.textContent = `${percentage}%`;
-                
-                // 根據縮放比例調整提示文字顏色
-                if (percentage === 100) {
-                    scaleIndicator.style.background = 'rgba(166, 123, 91, 0.9)';
-                } else if (percentage === 80) {
-                    scaleIndicator.style.background = 'rgba(76, 175, 80, 0.9)';
-                } else {
-                    scaleIndicator.style.background = 'rgba(255, 152, 0, 0.9)';
-                }
-                
-                // 更新按鈕狀態
-                scaleUpBtn.disabled = currentScale >= maxScale;
-                scaleDownBtn.disabled = currentScale <= minScale;
-                
-                // 更新按鈕樣式
-                scaleUpBtn.style.opacity = currentScale >= maxScale ? '0.5' : '1';
-                scaleDownBtn.style.opacity = currentScale <= minScale ? '0.5' : '1';
-            }
-            
-            // 應用縮放變換
-            function applyScale() {
-                if (pageScaleContainer) {
-                    pageScaleContainer.style.transform = `scale(${currentScale})`;
-                    
-                    // 調整 body 的尺寸以適應縮放
-                    if (currentScale !== 1.0) {
-                        document.body.classList.add('scaled');
-                        // 計算縮放後的實際尺寸
-                        const scaledWidth = window.innerWidth / currentScale;
-                        const scaledHeight = window.innerHeight / currentScale;
-                        pageScaleContainer.style.width = `${scaledWidth}px`;
-                        pageScaleContainer.style.height = `${scaledHeight}px`;
-                    } else {
-                        document.body.classList.remove('scaled');
-                        pageScaleContainer.style.width = '100%';
-                        pageScaleContainer.style.height = '100%';
-                    }
-                    
-                    updateScaleDisplay();
-                }
-            }
-            
-            // 放大按鈕
-            scaleUpBtn.addEventListener('click', function() {
-                if (currentScale < maxScale) {
-                    currentScale = Math.min(currentScale + scaleStep, maxScale);
-                    applyScale();
-                }
-            });
-            
-            // 縮小按鈕
-            scaleDownBtn.addEventListener('click', function() {
-                if (currentScale > minScale) {
-                    currentScale = Math.max(currentScale - scaleStep, minScale);
-                    applyScale();
-                }
-            });
-            
-            // 點擊比例指示器重置為 100%
-            scaleIndicator.addEventListener('click', function() {
-                currentScale = 1.0;
-                applyScale();
-            });
-            
-            // 鍵盤快捷鍵
-            document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && (e.key === '+' || e.key === '=')) {
-                    e.preventDefault();
-                    scaleUpBtn.click();
-                } else if (e.ctrlKey && e.key === '-') {
-                    e.preventDefault();
-                    scaleDownBtn.click();
-                } else if (e.ctrlKey && e.key === '0') {
-                    e.preventDefault();
-                    currentScale = 1.0;
-                    applyScale();
-                }
-            });
-            
-            // 滑鼠滾輪縮放（按住 Ctrl 鍵時）
-            document.addEventListener('wheel', function(e) {
-                if (e.ctrlKey) {
-                    e.preventDefault();
-                    
-                    if (e.deltaY < 0) {
-                        scaleUpBtn.click();
-                    } else if (e.deltaY > 0) {
-                        scaleDownBtn.click();
-                    }
-                }
-            }, { passive: false });
             
             // 初始化縮放顯示
             updateScaleDisplay();
             
-            // 設置推薦的 80% 縮放比例
-            setTimeout(() => {
-                currentScale = 0.8;
-                applyScale();
-            }, 500);
-
             // 初始化統計資訊
             updateStatistics();
 

@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController // 標記這是一個 RESTful Controller，所有方法預設返回 JSON/XML
-@RequestMapping("/api/store") // 【重要】定義 RESTful API 的基礎 URL，與頁面請求區分開
+@RequestMapping("/api/store") 
 public class StoreRestController {
 
     private final StoreService storeService; // 注入介面
@@ -46,7 +46,7 @@ public class StoreRestController {
      * @param storeId 門市ID
      * @return 門市詳細資訊 (JSON 格式)，如果找不到則返回 404 Not Found
      */
-    @GetMapping("/{storeId}") // 處理 GET /api/store/{storeId}
+    @GetMapping("/{storeId}") 
     public ResponseEntity<StoreDto> getStoreByIdApi(@PathVariable Long storeId) {
         try {
             StoreDto storeDto = storeService.findStoreById(storeId);
@@ -67,33 +67,34 @@ public class StoreRestController {
      * @param storestatus 營業狀態
      * @return 符合條件的門市列表
      */
+    /**
+     * 這個版本無論是否查詢到資料，都會回傳 HTTP 200 OK 狀態碼。
+     * - 如果有結果，回應內容是包含資料的 JSON 陣列。
+     * - 如果無結果，回應內容是一個空的 JSON 陣列 `[]`。
+     */
     @GetMapping("/search")
     public ResponseEntity<List<StoreDto>> searchStoresApi(
             @RequestParam(required = false) String storename,
             @RequestParam(required = false) String storeloc,
             @RequestParam(required = false) String storetime,
-            @RequestParam(required = false) String storestatus){
-    	
+            @RequestParam(required = false) String storestatus) {
+        
         StoreStatus statusEnum = null;
         if (storestatus != null && !storestatus.isEmpty()) {
             try {
                 statusEnum = StoreStatus.valueOf(storestatus.toUpperCase());
             } catch (IllegalArgumentException e) {
-                // 如果轉換失敗，表示前端傳入的狀態值無效
-                System.err.println("收到無效的門市狀態字串: " + storestatus + ", 錯誤: " + e.getMessage());
-                // 【路徑 1: 錯誤處理】: 返回 400 Bad Request
+                // 如果狀態字串無效，直接回傳 400 錯誤請求
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         }
 
+        // 執行查詢 (假設 service 層在無結果時會回傳空 List)
         List<StoreDto> filteredStores = storeService.searchStores(storename, storeloc, storetime, statusEnum);
 
-        if (filteredStores.isEmpty()) {
-            // 【路徑 2: 查詢無結果】: 返回 204 No Content
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        // 【路徑 3: 查詢有結果】: 返回 200 OK 和查詢到的數據
-        return new ResponseEntity<>(filteredStores, HttpStatus.OK);
+        // 【核心修改】移除 if (filteredStores.isEmpty()) 的判斷
+        // 直接使用 ResponseEntity.ok()，它會自動處理空列表和有資料的列表
+        return ResponseEntity.ok(filteredStores);
     }
         
 
