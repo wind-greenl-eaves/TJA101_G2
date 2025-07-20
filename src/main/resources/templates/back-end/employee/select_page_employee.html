@@ -517,7 +517,7 @@
 
         <div class="mb-6" th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
             <div class="nav-section-title">門市管理</div>
-            <a th:href="@{/store/select_page}" class="nav-item">
+            <a th:href="@{/store/listAll}" class="nav-item">
                 <i class="fas fa-users"></i>
                 <span>門市資料管理</span>
             </a>
