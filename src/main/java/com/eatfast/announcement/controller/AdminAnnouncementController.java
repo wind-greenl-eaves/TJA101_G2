@@ -1,42 +1,44 @@
 package com.eatfast.announcement.controller;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import com.eatfast.feedback.model.FeedbackEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
 import com.eatfast.announcement.model.AnnouncementEntity;
 import com.eatfast.announcement.service.AnnouncementService;
 import com.eatfast.common.enums.AnnouncementStatus;
 import com.eatfast.employee.model.EmployeeEntity;
 import com.eatfast.store.model.StoreEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Controller
 @RequestMapping("/announcement")
-public class AdminAnnouncementController {
+public class AdminAnnouncementController { // 建議類別名稱與檔案名一致
+
+    private final AnnouncementService announcementService;
 
     @Autowired
-    private AnnouncementService announcementService;
+    public AdminAnnouncementController(AnnouncementService announcementService) {
+        this.announcementService = announcementService;
+    }
 
-    // ✅ 查詢頁（GET）
+    // ==========================================================
+    // == 公告查詢與列表
+    // ==========================================================
+
     @GetMapping("/select_page_announcement")
     public String showSelectPage(Model model) {
         model.addAttribute("statusOptions", AnnouncementStatus.values());
+        List<AnnouncementEntity> allAnnouncements = announcementService.findAll(); // 預設載入全部
+        model.addAttribute("announcements", allAnnouncements);
         return "back-end/announcement/select_page_announcement";
     }
 
-    // ✅ 查詢頁（POST）
     @PostMapping("/select_page_announcement")
     public String searchAnnouncements(
             @RequestParam(required = false) String title,
@@ -44,142 +46,86 @@ public class AdminAnnouncementController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
             Model model) {
-
         List<AnnouncementEntity> results = announcementService.search(title, status, startTime, endTime);
         model.addAttribute("announcements", results);
         model.addAttribute("statusOptions", AnnouncementStatus.values());
         return "back-end/announcement/select_page_announcement";
     }
 
-    // ✅ 顯示目前上架公告
     @GetMapping("/listAll")
     public String listAllCurrentlyActive(Model model) {
         List<AnnouncementEntity> list = announcementService.findCurrentlyActive();
         model.addAttribute("announcements", list);
-        return "back-end/announcement/listAllAnnouncement";
+        // 這頁也需要刪除功能，所以回傳查詢主頁更合適
+        return "redirect:/announcement/select_page_announcement";
     }
-    // ✅ 顯示新增公告的表單-->新增按鈕按下後
+
+    // ==========================================================
+    // == 新增與編輯公告
+    // ==========================================================
+
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         AnnouncementEntity announcement = new AnnouncementEntity();
         announcement.setStartTime(LocalDateTime.now());
-        announcement.setEndTime(LocalDateTime.now().plusDays(1));
-        announcement.setStatus(AnnouncementStatus.INACTIVE); // 預設草稿狀態
-
+        announcement.setEndTime(LocalDateTime.now().plusDays(7));
+        announcement.setStatus(AnnouncementStatus.INACTIVE); // 預設草稿
         model.addAttribute("announcement", announcement);
+        model.addAttribute("isEditMode", false); // 標示為新增模式
         model.addAttribute("statusOptions", AnnouncementStatus.values());
-        return "back-end/announcement/form"; // 對應 form.html 畫面
+        return "back-end/announcement/form";
     }
+
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable("id") Long id, Model model) {
+        AnnouncementEntity announcement = announcementService.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("無效的公告ID: " + id));
+        model.addAttribute("announcement", announcement);
+        model.addAttribute("isEditMode", true); // 標示為編輯模式
+        model.addAttribute("statusOptions", AnnouncementStatus.values());
+        return "back-end/announcement/form";
+    }
+
     @PostMapping("/save")
-    public String save(
-            @ModelAttribute("announcement") AnnouncementEntity announcement,
-            @RequestParam("action") String action,
-            Model model) {
-
-
-        //       設定狀態依據按鈕
-        if ("publish".equals(action)) {
-            announcement.setStatus(AnnouncementStatus.ACTIVE);
-        } else {
-            announcement.setStatus(AnnouncementStatus.INACTIVE);
-        }
-
-        // 🔒 模擬登入使用者（正式版需從登入中取得）
+    public String saveAnnouncement(@ModelAttribute("announcement") AnnouncementEntity announcement,
+                                   RedirectAttributes redirectAttributes) {
+        // 模擬登入使用者（未來應從 SecurityContextHolder 取得）
         EmployeeEntity emp = new EmployeeEntity();
         emp.setEmployeeId(1L);
-
         StoreEntity store = new StoreEntity();
         store.setStoreId(1L);
-
         announcement.setEmployee(emp);
         announcement.setStore(store);
 
         announcementService.save(announcement);
-
+        redirectAttributes.addFlashAttribute("successMessage", "公告已成功儲存！");
         return "redirect:/announcement/select_page_announcement";
     }
-    //草稿相關
-    // 顯示草稿清單
+
+    // ==========================================================
+    // == 草稿相關操作
+    // ==========================================================
+
     @GetMapping("/drafts")
     public String showDrafts(Model model) {
         List<AnnouncementEntity> drafts = announcementService.findByStatus(AnnouncementStatus.INACTIVE);
         model.addAttribute("announcements", drafts);
-        return "back-end/announcement/listDrafts";
+        return "back-end/announcement/listDrafts"; // 顯示草稿專用頁面
     }
 
-    // ✅ 發佈草稿（改為 ACTIVE）
-// 我們把回傳類型從 String 改為 ResponseEntity<String>
-    @GetMapping("/publish/{id}")
-    public ResponseEntity<String> publishDraft(@PathVariable Long id) {
-        System.out.println("====== DEBUG: 成功進入 publishDraft 方法！準備發布 ID = " + id + " ======");
+    // ==========================================================
+    // == ★★★ 唯一的刪除功能 ★★★
+    // ==========================================================
+
+    @PostMapping("/{id}/delete")
+    public String deleteAnnouncement(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
         try {
-            // 我們嘗試執行發布的業務邏輯
-            announcementService.publishById(id);
-
-            // 如果上面那行沒有報錯，就代表成功了
-            // 我們回傳一個 HTTP 200 OK 狀態，並在 body 裡帶上一句成功訊息
-            return ResponseEntity.ok("發布成功！ID: " + id);
-
+            announcementService.deleteAnnouncementById(id);
+            redirectAttributes.addFlashAttribute("successMessage", "公告 (ID: " + id + ") 已成功刪除！");
         } catch (Exception e) {
-            // 如果在 try 的過程中發生任何錯誤 (例如 service 拋出找不到id的例外)
-            // 我們就捕捉這個錯誤，並回傳一個 HTTP 500 Internal Server Error 狀態
-            // 這樣前端的 JS 也能更明確地知道是後端出錯了
-            return ResponseEntity.internalServerError().body("發布失敗: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "刪除失敗：" + e.getMessage());
         }
+        // 無論從哪個頁面刪除，都統一回到查詢主頁
+        return "redirect:/announcement/select_page_announcement";
     }
-    @GetMapping("/delete/{id}")
-    public String deleteAnnouncement(@PathVariable Long id) {
-        // 加上偵錯訊息，確認請求有進來
-        System.out.println("====== DEBUG: 準備刪除 ID 為 " + id + " 的公告 ======");
-
-        // 呼叫 Service 層去執行刪除的業務邏輯
-        announcementService.deleteById(id);
-
-        // 刪除完成後，將頁面重新導向到草稿列表頁
-        return "redirect:/announcement/drafts";
-    }
-
-    @GetMapping("/") // 監聽對網站根目錄 (首頁) 的請求
-    public String showWelcomePage() {
-        return "welcome"; // 告訴 Thymeleaf 去渲染 templates/welcome.html
-    }
-    /**
-     * 顯示「編輯公告」的表單
-     * @param id 這是從 URL 路徑中抓下來的公告 ID
-     * @param model 我們用 Model 把舊資料帶到前端畫面
-     * @return 回傳到 form.html 頁面
-     */
-    @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable("id") Long id, Model model) {
-
-        // 為了讓您看到請求真的進來了，我們印出一行訊息
-        System.out.println("====== DEBUG: 成功進入 showEditForm 方法！收到的 ID = " + id + " ======");
-
-        // 根據 ID 從資料庫中找出這筆公告的舊資料
-        AnnouncementEntity announcement = announcementService.findById(id).orElse(null);
-
-        // 檢查公告是否存在
-        if (announcement == null) {
-            // 如果找不到這筆資料，就重新導向到查詢列表頁
-            return "redirect:/announcement/select_page_announcement";
-        }
-
-        // 如果找到了，就把這包舊資料放進 Model 裡面，準備帶到前端
-        model.addAttribute("announcement", announcement);
-        // 也把狀態選項放進去，讓前端的下拉選單能顯示
-        model.addAttribute("statusOptions", AnnouncementStatus.values());
-
-        // 將 Model 帶到 form.html 頁面，Thymeleaf 會自動把舊資料填入表單
-        return "back-end/announcement/form";
-    }
-
-
-
-
-
 }
-
-
-
-
-

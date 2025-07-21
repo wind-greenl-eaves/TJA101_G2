@@ -17,7 +17,7 @@ public interface AnnouncementService {
 
 	// 新增或更新
 	AnnouncementEntity save(AnnouncementEntity announcement);
-
+	void deleteAnnouncementById(Long id); // <-- 新增這個方法
 	// 刪除
 	void deleteById(Long id);
 
