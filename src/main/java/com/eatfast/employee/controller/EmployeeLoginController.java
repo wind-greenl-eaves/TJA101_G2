@@ -384,6 +384,9 @@ public class EmployeeLoginController {
      * 處理忘記密碼表單提交
      * 路徑: POST /employee/forgot-password
      * 新增頻率限制功能，防止同一帳號或IP在30秒內重複請求
+     * @BindingResult : 用於處理表單驗證錯誤
+     * @ModelAttribute : 用於綁定表單數據到 DTO
+     * @POSTMapping : 處理忘記密碼請求的表單提交
      */
     @PostMapping("/forgot-password")
     public String processForgotPassword(@Valid @ModelAttribute("forgotPasswordRequest") com.eatfast.employee.dto.ForgotPasswordRequest forgotPasswordRequest,
