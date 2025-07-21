@@ -757,6 +757,118 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     /**
+     * 【新增方法實作】- 批量上傳員工照片
+     * 一次性為多個員工上傳照片，主要用於初始化或批量更新
+     */
+    @Override
+    @Transactional
+    public Map<String, Object> batchUploadPhotos(MultipartFile[] photos, Long[] employeeIds) throws IOException {
+        log.info("開始批量上傳照片 - 照片數量: {}, 員工數量: {}", photos.length, employeeIds.length);
+        
+        // 驗證參數
+        if (photos.length != employeeIds.length) {
+            throw new IllegalArgumentException("照片數量與員工編號數量不匹配");
+        }
+        
+        if (photos.length == 0) {
+            throw new IllegalArgumentException("請選擇要上傳的照片");
+        }
+        
+        // 結果統計
+        int successCount = 0;
+        int failureCount = 0;
+        List<Map<String, Object>> results = new ArrayList<>();
+        List<Map<String, Object>> failures = new ArrayList<>();
+        
+        // 逐一處理每張照片
+        for (int i = 0; i < photos.length; i++) {
+            MultipartFile photo = photos[i];
+            Long employeeId = employeeIds[i];
+            
+            try {
+                // 驗證員工是否存在
+                EmployeeEntity employee = employeeRepository.findById(employeeId)
+                        .orElseThrow(() -> new ResourceNotFoundException("找不到 ID 為 " + employeeId + " 的員工"));
+                
+                // 驗證照片檔案
+                if (photo == null || photo.isEmpty()) {
+                    throw new IllegalArgumentException("照片檔案不能為空");
+                }
+                
+                // 檢查檔案格式
+                String contentType = photo.getContentType();
+                if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
+                    throw new IllegalArgumentException("只支援 JPG 或 PNG 格式的圖片");
+                }
+                
+                // 檢查檔案大小 (5MB)
+                if (photo.getSize() > 5 * 1024 * 1024) {
+                    throw new IllegalArgumentException("圖片大小不能超過 5MB");
+                }
+                
+                // 刪除舊照片（如果存在）
+                if (employee.getPhotoUrl() != null) {
+                    String oldFileName = employee.getPhotoUrl().substring(employee.getPhotoUrl().lastIndexOf("/") + 1);
+                    try {
+                        fileService.deleteEmployeePhoto(oldFileName);
+                    } catch (Exception e) {
+                        log.warn("刪除舊照片失敗 - 員工ID: {}, 檔案: {}", employeeId, oldFileName);
+                    }
+                }
+                
+                // 上傳新照片
+                String fileName = fileService.saveEmployeePhoto(photo);
+                String photoUrl = "/employee-photos/" + fileName;
+                
+                // 更新員工照片URL
+                employee.setPhotoUrl(photoUrl);
+                employeeRepository.save(employee);
+                
+                // 記錄成功
+                successCount++;
+                Map<String, Object> successResult = Map.of(
+                    "employeeId", employeeId,
+                    "employeeName", employee.getUsername(),
+                    "photoUrl", photoUrl,
+                    "status", "success"
+                );
+                results.add(successResult);
+                
+                log.info("員工照片上傳成功 - 員工ID: {}, 姓名: {}, 檔案: {}", 
+                         employeeId, employee.getUsername(), fileName);
+                
+            } catch (Exception e) {
+                // 記錄失敗
+                failureCount++;
+                Map<String, Object> failureResult = Map.of(
+                    "employeeId", employeeId,
+                    "error", e.getMessage(),
+                    "status", "failure"
+                );
+                failures.add(failureResult);
+                
+                log.error("員工照片上傳失敗 - 員工ID: {}, 錯誤: {}", employeeId, e.getMessage());
+            }
+        }
+        
+        // 組裝返回結果
+        Map<String, Object> result = Map.of(
+            "successCount", successCount,
+            "failureCount", failureCount,
+            "totalCount", photos.length,
+            "results", Map.of(
+                "successes", results,
+                "failures", failures
+            )
+        );
+        
+        log.info("批量上傳照片完成 - 成功: {}, 失敗: {}, 總計: {}", 
+                 successCount, failureCount, photos.length);
+        
+        return result;
+    }
+
+    /**
      * 【新增方法實作】- 重置員工登入失敗次數
      * 管理員可以使用此方法重置員工的登入失敗次數，解鎖被鎖定的帳號
      */
