@@ -609,4 +609,63 @@ public class EmployeeController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+    
+    // ========================
+    // 11. 批量上傳員工照片
+    // ========================
+    // 這個方法支援一次上傳多個員工的照片，主要用於初始化或批量更新
+    // 對應 API 路徑：POST /api/v1/employees/photos/batch
+    @PostMapping(value = "/photos/batch", consumes = "multipart/form-data")
+    public ResponseEntity<?> batchUploadPhotos(
+            @RequestParam("photos") MultipartFile[] photos,
+            @RequestParam("employeeIds") Long[] employeeIds,
+            HttpSession session) {
+        
+        employeeLogger.logInfo("收到批量上傳照片請求: photoCount={}, employeeIds={}", 
+                   photos.length, java.util.Arrays.toString(employeeIds));
+        
+        try {
+            // 檢查登入狀態
+            EmployeeDTO currentEmployee = (EmployeeDTO) session.getAttribute("loggedInEmployee");
+            if (currentEmployee == null) {
+                employeeLogger.logWarn("未登入用戶嘗試批量上傳照片");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "請重新登入"));
+            }
+
+            // 檢查權限（只有總部管理員可以批量上傳）
+            if (currentEmployee.getRole() != EmployeeRole.HEADQUARTERS_ADMIN) {
+                employeeLogger.logWarn("用戶 {} (ID: {}) 嘗試批量上傳照片但權限不足", 
+                           currentEmployee.getUsername(), currentEmployee.getEmployeeId());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "權限不足：只有總部管理員可以批量上傳照片"));
+            }
+
+            // 驗證參數
+            if (photos.length != employeeIds.length) {
+                employeeLogger.logWarn("批量上傳參數不匹配: photoCount={}, employeeIdCount={}", 
+                           photos.length, employeeIds.length);
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "照片數量與員工編號數量不匹配"));
+            }
+
+            if (photos.length == 0) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "請選擇要上傳的照片"));
+            }
+
+            // 批量處理照片上傳
+            Map<String, Object> result = employeeService.batchUploadPhotos(photos, employeeIds);
+            
+            employeeLogger.logInfo("【成功】批量上傳照片完成: successCount={}, failureCount={}", 
+                       result.get("successCount"), result.get("failureCount"));
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            employeeLogger.logError("【失敗】批量上傳照片失敗: error={}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "批量上傳失敗：" + e.getMessage()));
+        }
+    }
 }

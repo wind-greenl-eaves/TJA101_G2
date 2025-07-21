@@ -236,41 +236,77 @@ document.addEventListener('DOMContentLoaded', function() {
         batchStartUpload.disabled = true;
         batchCancelBtn.disabled = true;
         
-        let successCount = 0;
-        let failureCount = 0;
-        
-        for (let i = 0; i < selectedFiles.length; i++) {
-            const file = selectedFiles[i];
-            const employeeId = targetEmployeeIds[i];
+        try {
+            // 【修正】使用專用的批量上傳 API 而不是循環調用
+            const formData = new FormData();
             
-            try {
-                await uploadSinglePhoto(employeeId, file);
-                successCount++;
-                showToast(`員工 ${employeeId} 照片上傳成功`);
-            } catch (error) {
-                failureCount++;
-                showToast(`員工 ${employeeId} 照片上傳失敗: ${error.message}`, true);
+            // 添加所有照片文件
+            selectedFiles.forEach((file, index) => {
+                formData.append('photos', file);
+            });
+            
+            // 添加員工ID數組
+            targetEmployeeIds.forEach(id => {
+                formData.append('employeeIds', id);
+            });
+            
+            // 顯示上傳進度
+            batchProgressBar.style.width = '50%';
+            batchProgressText.textContent = '上傳中...';
+            
+            // 調用批量上傳 API
+            const response = await fetch(`${API_BASE_URL}/photos/batch`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.message || '批量上傳失敗');
             }
             
-            // 更新進度
-            const progress = ((i + 1) / selectedFiles.length) * 100;
-            batchProgressBar.style.width = `${progress}%`;
-            batchProgressText.textContent = `${i + 1}/12`;
+            // 完成進度
+            batchProgressBar.style.width = '100%';
+            batchProgressText.textContent = '12/12';
             
-            // 稍微延遲以避免服務器過載
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
-        
-        // 完成後的處理
-        setTimeout(() => {
+            // 顯示結果
+            const { successCount, failureCount, results } = result;
+            
             if (successCount > 0) {
                 showBatchUploadSuccess(successCount);
+                
+                // 刷新員工列表以顯示新照片
+                setTimeout(() => {
+                    loadEmployees();
+                }, 1000);
             }
+            
             if (failureCount > 0) {
-                showToast(`有 ${failureCount} 張照片上傳失敗，請檢查錯誤訊息`, true);
+                let errorMessage = `有 ${failureCount} 張照片上傳失敗:\n`;
+                if (results && results.failures) {
+                    results.failures.forEach(failure => {
+                        errorMessage += `員工${failure.employeeId}: ${failure.error}\n`;
+                    });
+                }
+                showToast(errorMessage, true);
             }
-            closeBatchUploadModal();
-        }, 1000);
+            
+        } catch (error) {
+            console.error('批量上傳錯誤:', error);
+            showToast(`批量上傳失敗: ${error.message}`, true);
+            
+            // 重置進度條
+            batchProgressBar.style.width = '0%';
+            batchProgressText.textContent = '0/12';
+        } finally {
+            // 延遲關閉 Modal
+            setTimeout(() => {
+                closeBatchUploadModal();
+                batchStartUpload.disabled = false;
+                batchCancelBtn.disabled = false;
+            }, 2000);
+        }
     }
     
     // 新增：批量上傳成功專用提示函數

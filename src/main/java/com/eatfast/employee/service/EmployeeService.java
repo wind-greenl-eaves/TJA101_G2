@@ -150,4 +150,15 @@ public interface EmployeeService {
 	 * @return 所有已停權的員工實體列表
 	 */
 	List<com.eatfast.employee.model.EmployeeEntity> findAllInactiveEmployeeEntities();
+
+	/**
+	 * 【修正批量上傳方法】: 批量上傳員工照片
+	 * 一次性為多個員工上傳照片，主要用於初始化或批量更新
+	 * 
+	 * @param photos 照片檔案陣列
+	 * @param employeeIds 對應的員工編號陣列
+	 * @return 包含上傳結果的 Map，包括成功數量、失敗數量等資訊
+	 * @throws IOException 檔案處理異常
+	 */
+	Map<String, Object> batchUploadPhotos(MultipartFile[] photos, Long[] employeeIds) throws IOException;
 }

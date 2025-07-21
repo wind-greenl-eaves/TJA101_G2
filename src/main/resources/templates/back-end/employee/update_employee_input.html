@@ -819,6 +819,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const successModalMessage = document.getElementById('success-modal-message');
     const successModalConfirm = document.getElementById('success-modal-confirm');
     
+    // 密碼顯示/隱藏功能
+    if (passwordInput && toggleIcon) {
+        toggleIcon.addEventListener('click', function() {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        });
+    }
+    
     // 添加即時驗證（不依賴 HTML5 驗證）
     const inputs = form.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"]');
     inputs.forEach(input => {
