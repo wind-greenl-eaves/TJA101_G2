@@ -44,6 +44,44 @@ public class FeedbackDTO {
     @Size(max = 500, message = "意見內容最多不能超過 500 字")
     private String feedbackContent;
 
-    // 只需要定義好欄位和註解，底下完全保持空白！
-    // Lombok 會在背景幫你處理好一切。
+    // 手動添加 getter 和 setter 方法以解決編譯錯誤
+    public String getMemberName() {
+        return memberName;
+    }
+
+    public void setMemberName(String memberName) {
+        this.memberName = memberName;
+    }
+
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
+    }
+
+    public LocalDateTime getDiningTime() {
+        return diningTime;
+    }
+
+    public void setDiningTime(LocalDateTime diningTime) {
+        this.diningTime = diningTime;
+    }
+
+    public Long getStoreId() {
+        return storeId;
+    }
+
+    public void setStoreId(Long storeId) {
+        this.storeId = storeId;
+    }
+
+    public String getFeedbackContent() {
+        return feedbackContent;
+    }
+
+    public void setFeedbackContent(String feedbackContent) {
+        this.feedbackContent = feedbackContent;
+    }
 }
