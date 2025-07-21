@@ -43,7 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 
 @Service
-@Transactional(readOnly = true) 
+@Transactional(readOnly = true) // 預設所有方法為只讀事務，除非特別標註 @Transactional
 public class MemberService {
 
     private static final Logger log = LoggerFactory.getLogger(MemberService.class);

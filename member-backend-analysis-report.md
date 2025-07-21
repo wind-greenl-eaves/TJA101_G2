@@ -82,11 +82,19 @@
 - **對應檔案**: `MemberRepository.java` 中的查詢方法
 - **查詢邏輯**: `memberService.getDeletedMembers()`
 
+
 #### 會員復原功能  
 - **Spring技術**: `@PostMapping("/member/restore")` 
 - **功能**: 將刪除狀態 `isEnabled=false` 改回 `isEnabled=true`
 - **對應檔案**: `MemberService.java` 中的 `restoreMemberById()` 方法
 - **事務管理**: `@Transactional` 確保資料一致性
+
+Spring技術:
+
+	•  @PostMapping("/restore") - POST請求處理
+	•  @RequestParam("memberId") - 接收表單參數
+	•  RedirectAttributes - 跨重定向傳遞訊息
+	•  PRG模式（Post-Redirect-Get）防止重複提交
 
 #### 管理員權限驗證
 - **Spring技術**: HttpSession 管理員身份驗證
