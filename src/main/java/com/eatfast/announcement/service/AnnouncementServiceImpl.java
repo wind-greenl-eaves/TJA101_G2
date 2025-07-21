@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,15 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     public AnnouncementEntity save(AnnouncementEntity announcement) {
         // 直接呼叫 Repository 的方法
         return announcementRepository.save(announcement);
+    }
+
+    @Override
+    public void deleteAnnouncementById(Long id) {
+        // 先檢查這筆資料是否存在，不存在就拋出例外
+        if (!announcementRepository.existsById(id)) {
+            throw new EntityNotFoundException("找不到 ID 為 " + id + " 的公告，無法刪除。");
+        }
+        announcementRepository.deleteById(id);
     }
 
     @Override

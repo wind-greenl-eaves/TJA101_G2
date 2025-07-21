@@ -144,22 +144,38 @@
             <th>狀態</th>
             <th>起始</th>
             <th>結束</th>
+            <th>操作</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="a : ${announcements}">
+
             <td th:text="${a.title}">標題</td>
+
             <td>
-                <span th:switch="${a.status.name()}">
-                    <span th:case="'ACTIVE'">上架中</span>
-                    <span th:case="'INACTIVE'">草稿</span>
-                    <span th:case="'VISIBLE'">前台可見</span>
-                    <span th:case="'HIDDEN'">已隱藏</span>
-                    <span th:case="*">未知</span>
-                </span>
+            <span th:switch="${a.status.name()}">
+                <span th:case="'ACTIVE'">上架中</span>
+                <span th:case="'INACTIVE'">草稿</span>
+                <span th:case="'VISIBLE'">前台可見</span>
+                <span th:case="'HIDDEN'">已隱藏</span>
+                <span th:case="*">未知</span>
+            </span>
             </td>
             <td th:text="${#temporals.format(a.startTime, 'yyyy-MM-dd HH:mm')}">起始</td>
             <td th:text="${#temporals.format(a.endTime, 'yyyy-MM-dd HH:mm')}">結束</td>
+            <td>
+                <a th:href="@{/announcement/edit/{id}(id=${a.announcementId})}" class="btn btn-sm btn-info">
+                    <i class="fas fa-edit"></i> 編輯
+                </a>
+
+                <form th:action="@{/announcement/{id}/delete(id=${a.announcementId})}" method="post"
+                      style="display: inline-block; margin-left: 5px;"
+                      onsubmit="return confirm('您確定要永久刪除這則公告嗎？');">
+                    <button type="submit" class="btn btn-sm btn-danger">
+                        <i class="fas fa-trash-alt"></i> 刪除
+                    </button>
+                </form>
+            </td>
         </tr>
         </tbody>
     </table>

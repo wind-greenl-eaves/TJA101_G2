@@ -49,8 +49,9 @@ public class FeedbackEntity {
     @Column(name = "content", nullable = false, length = 5000)
     private String content;
 
-    @Column(name = "dining_time", length = 255) // 根據 DDL 調整長度
-    private String diningTime;
+    @Column(name = "dining_time")
+    private LocalDateTime diningTime; // ✅ 型別改成 LocalDateTime
+
 
     @Column(name = "dining_store", length = 255) // 根據 DDL 調整長度
     private String diningStore;
@@ -130,11 +131,11 @@ public class FeedbackEntity {
         this.content = content;
     }
 
-    public String getDiningTime() {
+    public LocalDateTime getDiningTime() { // ✅ Getter 回傳型別也要改
         return diningTime;
     }
 
-    public void setDiningTime(String diningTime) {
+    public void setDiningTime(LocalDateTime diningTime) { // ✅ Setter 參數型別也要改
         this.diningTime = diningTime;
     }
 

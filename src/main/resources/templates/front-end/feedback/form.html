@@ -38,62 +38,62 @@
             justify-content: space-between; align-items: center;
             height: 100%; padding: 0 2rem;
         }
-        .nav-logo { 
-            display: flex; 
-            align-items: center; 
-            gap: 1rem; 
-            text-decoration: none; 
-            color: var(--primary-color); 
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: var(--primary-color);
         }
-        .nav-logo-icon { 
-            width: 35px; 
-            height: 35px; 
-            object-fit: contain; 
+        .nav-logo-icon {
+            width: 35px;
+            height: 35px;
+            object-fit: contain;
         }
-        .nav-logo-text { 
-            font-size: 1.2rem; 
-            font-weight: 700; 
+        .nav-logo-text {
+            font-size: 1.2rem;
+            font-weight: 700;
         }
-        .nav-menu { 
-            display: flex; 
-            gap: 2rem; 
-            align-items: center; 
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
         }
-        .nav-link { 
-            color: var(--text-color); 
-            text-decoration: none; 
-            font-weight: 500; 
+        .nav-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
             transition: color 0.3s ease;
-            position: relative; 
+            position: relative;
         }
-        .nav-link::after { 
-            content: ''; 
-            position: absolute; 
-            bottom: -5px; 
-            left: 0; 
-            width: 0; 
-            height: 2px; 
-            background: var(--primary-color); 
-            transition: width 0.3s ease; 
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
         }
-        .nav-link:hover::after { 
-            width: 100%; 
+        .nav-link:hover::after {
+            width: 100%;
         }
         .nav-link:hover {
             color: var(--primary-color);
         }
-        .nav-login { 
-            background: var(--primary-color); 
-            color: white; 
-            padding: 0.5rem 1.5rem; 
-            border-radius: 50px; 
-            text-decoration: none; 
-            transition: all 0.3s ease; 
+        .nav-login {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
         }
-        .nav-login:hover { 
-            background: var(--primary-hover); 
-            transform: translateY(-2px); 
-            color: white; 
+        .nav-login:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            color: white;
         }
 
         /* 響應式設計 */
@@ -101,27 +101,27 @@
             .nav-logo-text {
                 font-size: 1rem;
             }
-            
+
             .nav-fixed {
                 height: 50px;
             }
-            
+
             .nav-logo-icon {
                 width: 30px;
                 height: 30px;
             }
-            
+
             .nav-menu {
                 gap: 1rem;
             }
         }
-        
+
         @media (max-width: 480px) {
             .nav-container {
                 padding: 0 1rem;
             }
         }
-        
+
         /* --- 頁尾樣式 --- */
         .footer {
             background: var(--primary-hover);
@@ -175,13 +175,13 @@
             background-color: #f5f5f5;
             cursor: not-allowed;
         }
-        
+
         /* 文字區域特別調整 */
         textarea.form-control {
             min-height: 150px; /* 增加文字區域高度 */
             resize: vertical;
         }
-        
+
         .btn-submit {
             background: var(--primary-color);
             border: none;
@@ -200,13 +200,13 @@
             transform: translateY(-3px); /* 增加懸浮效果 */
             box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4);
         }
-        
+
         /* 回到首頁按鈕區域 */
         .mt-3 {
             margin-top: 2rem !important; /* 增加間距 */
             text-align: center;
         }
-        
+
         .btn-secondary {
             padding: 12px 30px; /* 增加按鈕大小 */
             font-size: 1rem;
@@ -218,7 +218,7 @@
             transition: all 0.3s ease;
             display: inline-block;
         }
-        
+
         .btn-secondary:hover {
             background: var(--primary-color);
             border-color: var(--primary-color);
@@ -314,6 +314,12 @@
             background: var(--primary-color);
             color: white;
         }
+        .error-text {
+            color: #D9534F; /*這是一個比較柔和的紅色*/
+            font-size: 0.9em; /*讓錯誤訊息字體稍微小一點*/
+            display: block; /*確保它會換行顯示*/
+            margin-top: 8px; /*和上面的輸入框增加一點間距*/
+        }
     </style>
 </head>
 <body>
@@ -330,22 +336,22 @@
             <a href="/store/storelist" class="nav-link">門市據點</a>
             <a href="/menu" class="nav-link">餐點菜單</a>
             <!-- 根據登入狀態顯示不同內容 -->
-            <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+            <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
                th:href="@{/member/dashboard}" class="nav-link">會員專區</a>
-            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
                th:href="@{/api/v1/auth/member-login}" class="nav-link">會員專區</a>
             <a href="/feedback/form" class="nav-link">聯繫我們</a>
-            <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+            <a th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
                th:href="@{/cart}" class="nav-link">購物車</a>
-            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+            <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
                th:href="@{/api/v1/auth/member-login}" class="nav-link">購物車</a>
         </div>
 
         <!-- 登入按鈕根據登入狀態變化 -->
-        <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+        <div th:if="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
              class="nav-user-info" style="display: flex; align-items: center; gap: 1rem;">
             <span style="color: var(--primary-color);">歡迎, <span th:text="${session.memberName}"></span></span>
-            <button type="button" class="nav-login" style="background-color: #dc3545; border: none; cursor: pointer;" 
+            <button type="button" class="nav-login" style="background-color: #dc3545; border: none; cursor: pointer;"
                     onclick="confirmLogout()">
                 <i class="fas fa-sign-out-alt"></i> 登出
             </button>
@@ -354,7 +360,7 @@
                 <input type="hidden" name="_method" value="POST">
             </form>
         </div>
-        <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}" 
+        <a th:unless="${session.loggedInMemberId != null && session.isLoggedIn != null && session.isLoggedIn}"
            th:href="@{/api/v1/auth/member-login}" class="nav-login">
             <i class="fas fa-sign-in-alt"></i> 會員登入
         </a>
@@ -375,35 +381,47 @@
         </div>
     </div>
 </div>
-
 <div class="feedback-container">
     <h3><i class="fas fa-comment-dots"></i> 顧客意見回饋</h3>
 
     <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
     <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-    <form th:action="@{/feedback/submit}" method="post" th:object="${feedback}">
+    <form th:action="@{/feedback/submit}" method="post" th:object="${feedbackDTO}">
+
         <div class="form-group">
             <label for="memberName">會員姓名</label>
-            <input type="text" class="form-control" id="memberName" th:value="${memberName}" readonly>
+            <input type="text" class="form-control" id="memberName" th:field="*{memberName}" readonly>
         </div>
+
         <div class="form-group">
-            <label for="phone">連絡電話</label>
-            <input type="text" class="form-control" id="phone" th:field="*{phone}" readonly>
+            <label for="contactPhone">連絡電話</label>
+            <input type="text" class="form-control" id="contactPhone" th:field="*{contactPhone}" readonly>
         </div>
+
         <div class="form-group">
             <label for="diningTime">用餐時間</label>
-            <input type="text" class="form-control" id="diningTime" th:field="*{diningTime}" placeholder="例如：2025-07-14 晚上7點" required>
+            <input type="datetime-local" class="form-control" id="diningTime" th:field="*{diningTime}">
+            <span class="error-text" th:if="${#fields.hasErrors('diningTime')}" th:errors="*{diningTime}"></span>
         </div>
+
         <div class="form-group">
-            <label for="diningStore">用餐門市</label>
-            <input type="text" class="form-control" id="diningStore" th:field="*{diningStore}" placeholder="例如：台北南西店" required>
+            <label for="store">用餐門市</label>
+            <select class="form-control" id="store" th:field="*{storeId}">
+                <option value="">請選擇門市</option>
+                <option th:each="s : ${storeList}" th:value="${s.storeId}" th:text="${s.storeName}"></option>
+            </select>
+            <span class="error-text" th:if="${#fields.hasErrors('storeId')}" th:errors="*{storeId}"></span>
         </div>
+
         <div class="form-group">
-            <label for="content">您的意見</label>
-            <textarea class="form-control" id="content" rows="5" th:field="*{content}" required placeholder="請在此輸入您的寶貴意見..."></textarea>
+            <label for="feedbackContent">您的意見</label>
+            <textarea class="form-control" id="feedbackContent" rows="5" th:field="*{feedbackContent}" placeholder="請在此輸入您的寶貴意見..."></textarea>
+            <span class="error-text" th:if="${#fields.hasErrors('feedbackContent')}" th:errors="*{feedbackContent}"></span>
         </div>
-        <button type="submit" class="btn btn-submit">送出意見</button>
+
+        <button type="submit" class="btn-submit">送出意見</button>
+
     </form>
 </div>
 
