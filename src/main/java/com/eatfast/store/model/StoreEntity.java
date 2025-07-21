@@ -16,6 +16,7 @@ import com.eatfast.orderlist.model.OrderListEntity;
 import com.eatfast.announcement.model.AnnouncementEntity;
 import com.eatfast.cart.model.CartEntity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -93,7 +94,7 @@ public class StoreEntity {
     // ================================================================
     // 反向一對多關聯 (Bidirectional @OneToMany)
     // ================================================================
-    
+    @JsonIgnore
     @OneToMany(mappedBy = "store", fetch = FetchType.LAZY)
     private Set<EmployeeEntity> employees = new HashSet<>();
     

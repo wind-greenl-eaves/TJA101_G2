@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 
 @Controller
-@RequestMapping("/news") // 👈 關鍵一：確保有這個，代表這個 Controller 負責處理 /news 開頭的所有路徑
+@RequestMapping("/news")
 public class NewsController {
 
     private final NewsService newsService;
@@ -25,10 +25,14 @@ public class NewsController {
     /**
      * 處理對 /news 的 GET 請求
      */
-    @GetMapping // 👈 關鍵二：確保是 @GetMapping，不是 @GetMapping("/") 或 @GetMapping("/list")
+    @GetMapping
     public String showPublicNewsList(Model model) {
         try {
-            List<NewsEntity> publicNews = newsService.getActivePublishedNews();
+            //Redis功能
+            // List<NewsEntity> publicNews = newsService.getActivePublishedNews(); // 舊的呼叫
+            List<NewsEntity> publicNews = newsService.getLatestNewsWithCache(); // 新的呼叫，會走 Redis 快取
+
+
             model.addAttribute("publicNewsList", publicNews);
             return "front-end/news/public-list";
         } catch (Exception e) {
