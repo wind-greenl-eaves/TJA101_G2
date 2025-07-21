@@ -459,7 +459,7 @@
 ```
 1. GET /employee/forgot-password
    ↓
-2. EmployeeSecurityController.forgotPasswordPage()
+2. EmployeeLoginController.java.forgotPasswordPage()
    ↓
 3. model.addAttribute("forgotPasswordRequest", new ForgotPasswordRequest())
    ↓
