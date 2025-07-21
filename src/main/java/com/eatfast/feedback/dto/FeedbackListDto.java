@@ -1,41 +1,29 @@
 package com.eatfast.feedback.dto;
 
+import lombok.Data;
 import java.time.LocalDateTime;
 
+/**
+ * 用於後台意見回饋列表的資料傳輸物件 (DTO)
+ * 使用 Lombok 的 @Data 註解，自動產生所有 getter, setter 等方法。
+ */
+@Data
 public class FeedbackListDto {
 
-    // 原有欄位
+    // == 欄位定義 ==
+
     private Long feedbackId;
     private Long memberId;
+    private String memberName;
     private String phone;
     private String content;
     private LocalDateTime createTime;
     private String status;
-    private String memberName;
-
-    // ★★★ 新增的欄位 ★★★
-    private String diningTime;
     private String diningStore;
 
-    // Getters and Setters for all fields...
-    public Long getFeedbackId() { return feedbackId; }
-    public void setFeedbackId(Long feedbackId) { this.feedbackId = feedbackId; }
-    public Long getMemberId() { return memberId; }
-    public void setMemberId(Long memberId) { this.memberId = memberId; }
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-    public LocalDateTime getCreateTime() { return createTime; }
-    public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-    public String getMemberName() { return memberName; }
-    public void setMemberName(String memberName) { this.memberName = memberName; }
+    // ✅ 只保留一個 LocalDateTime 型別的 diningTime
+    private LocalDateTime diningTime;
 
-    // ★★★ 新增欄位的 Getters/Setters ★★★
-    public String getDiningTime() { return diningTime; }
-    public void setDiningTime(String diningTime) { this.diningTime = diningTime; }
-    public String getDiningStore() { return diningStore; }
-    public void setDiningStore(String diningStore) { this.diningStore = diningStore; }
+    // 注意：底下完全空白！
+    // 因為 @Data 註解會幫我們處理好所有事情，不需要再手寫任何 getter 或 setter。
 }
