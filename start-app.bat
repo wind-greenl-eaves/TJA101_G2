@@ -31,4 +31,4 @@ echo.
 REM Start the application with Maven
 mvn spring-boot:run -Dspring-boot.run.jvmArguments="%JVM_OPTS%"
 
-pause
+pause 
