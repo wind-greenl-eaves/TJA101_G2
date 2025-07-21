@@ -6,3 +6,5 @@ module.exports = {
   },
   plugins: [],
 }
+
+// This Tailwind CSS configuration file specifies the content paths to scan for class names
