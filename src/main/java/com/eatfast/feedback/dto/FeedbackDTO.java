@@ -8,7 +8,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 顧客意見回饋表單的資料傳輸物件 (DTO)
+ * 顧客意見回饋表單的資料傳輸物件 (DTO) 
  * 使用 Lombok 的 @Data 註解自動產生 getter, setter, toString 等方法
  */
 @Data
