@@ -1,7 +1,7 @@
 -- =======================================================================================
 -- 檔案名稱：eatfast_db_initialization_integrated.sql
 -- 資料庫：eatfast_db
--- 版本：v1.5.1 - 已整合員工申請功能
+-- 版本：v1.5.6 - 已整合員工申請功能
 -- 功能：此腳本為早餐店系統「eatfast_db」的完整初始化腳本。
 --      它會執行以下操作：
 --      1. 建立資料庫 (如果不存在)。
@@ -93,36 +93,36 @@ CREATE TABLE IF NOT EXISTS member (
 -- =================================================================
 
 INSERT INTO member (username, account, password, email, phone, birthday, gender) VALUES
-('陳威宇', 'yijun.chen', 'password001', 'yijun.chen@gmail.com', '0912-345-678', '1990-05-15', 'M'),
-('林佳蓉', 'chiming.lin', 'password002', 'chiming.lin@gmail.com', '0928-765-432', '1985-11-22', 'F'),
-('黃冠霖', 'meiling.huang', 'password003', 'meiling.huang@gmail.com', '0933-123-789', '1995-02-10', 'M'),
-('張雅筑', 'chiahao.chang', 'password004', 'chiahao.chang@gmail.com', '0955-987-654', '1988-08-08', 'F'),
-('李俊賢', 'yating.wu', 'password005', 'yating.wu@gmail.com', '0966-555-222', '1992-12-01', 'M'),
-('王志明', 'chienhung.liu', 'password006', 'chienhung.liu@gmail.com', '0910-111-333', '1979-07-25', 'M'),
-('陳靜香', 'shufen.tsai', 'password007', 'shufen.tsai@gmail.com', '0978-222-444', '1998-03-30', 'F'),
-('林承翰', 'wenhsiung.hsu', 'password008', 'wenhsiung.hsu@gmail.com', '0988-333-555', '1982-09-18', 'M'),
-('黃詩涵', 'hsiaohan.cheng', 'password009', 'hsiaohan.cheng@gmail.com', '0919-444-666', '2001-01-05', 'F'),
-('張志偉', 'chihwei.wang', 'password010', 'chihwei.wang@gmail.com', '0921-888-777', '1993-06-12', 'M'),
-('李美芳', 'yachu.fang', 'password011', 'yachu.fang@gmail.com', '0930-121-212', '1996-04-20', 'F'),
-('王淑芬', 'minghui.kao', 'password012', 'minghui.kao@gmail.com', '0952-343-434', '1980-10-10', 'F'),
-('陳俊傑', 'chialing.sung', 'password013', 'chialing.sung@gmail.com', '0970-565-656', '1991-08-25', 'M'),
-('林心怡', 'chunhsien.li', 'password014', 'chunhsien.li@gmail.com', '0911-787-878', '1987-01-15', 'F'),
-('黃俊彥', 'hsinyi.chou', 'password015', 'hsinyi.chou@gmail.com', '0939-909-190', '1999-05-05', 'M'),
-('張文傑', 'shauman.hsu', 'password016', 'shauman.hsu@gmail.com', '0963-111-999', '2000-02-29', 'M'),
-('李宗霖', 'weilun.chao', 'password017', 'weilun.chao@gmail.com', '0925-123-456', '1994-03-18', 'M'),
-('王建民', 'hsiaomei.sun', 'password018', 'hsiaomei.sun@gmail.com', '0935-234-567', '1989-07-07', 'M'),
-('陳雅涵', 'tayun.chien', 'password019', 'tayun.chien@gmail.com', '0916-345-678', '1997-11-11', 'F'),
-('林建宏', 'meifang.li', 'password020', 'meifang.li@gmail.com', '0977-456-789', '1991-09-20', 'M'),
-('黃美玲', 'yuyen.peng', 'password021', 'yuyen.peng@test.com', '0911-111-111', '1982-03-24', 'F'),
-('張惠婷', 'ning.chang', 'password022', 'ning.chang@test.com', '0922-222-222', '1982-09-04', 'F'),
-('李靜怡', 'ethan.juan', 'password023', 'ethan.juan@test.com', '0933-333-333', '1982-11-08', 'F'),
-('王心妤', 'lunmei.kwei', 'password024', 'lunmei.kwei@test.com', '0944-444-444', '1983-12-25', 'F'),
-('陳宗翰', 'jay.chou', 'password025', 'jay.chou@test.com', '0955-555-555', '1979-01-18', 'M'),
-('林曉慧', 'jolin.tsai', 'password026', 'jolin.tsai@test.com', '0966-666-666', '1980-09-15', 'F'),
-('黃家豪', 'ashin.chen', 'password027', 'ashin.chen@test.com', '0977-777-777', '1975-12-06', 'M'),
-('張博翔', 'hebe.tien', 'password028', 'hebe.tien@test.com', '0988-888-888', '1983-03-30', 'M'),
-('李婉婷', 'jj.lin', 'password029', 'jj.lin@test.com', '0918-181-818', '1981-03-27', 'F'),
-('王冠廷', 'gem.tang', 'password030', 'gem.tang@test.com', '0928-282-828', '1991-08-16', 'M');
+('陳威宇', 'yijun.chen', 'Password001', 'yijun.chen@gmail.com', '0912-345-678', '1990-05-15', 'M'),
+('林佳蓉', 'chiming.lin', 'Password002', 'chiming.lin@gmail.com', '0928-765-432', '1985-11-22', 'F'),
+('黃冠霖', 'meiling.huang', 'Password003', 'meiling.huang@gmail.com', '0933-123-789', '1995-02-10', 'M'),
+('張雅筑', 'chiahao.chang', 'Password004', 'chiahao.chang@gmail.com', '0955-987-654', '1988-08-08', 'F'),
+('李俊賢', 'yating.wu', 'Password005', 'yating.wu@gmail.com', '0966-555-222', '1992-12-01', 'M'),
+('王志明', 'chienhung.liu', 'Password006', 'chienhung.liu@gmail.com', '0910-111-333', '1979-07-25', 'M'),
+('陳靜香', 'shufen.tsai', 'Password007', 'shufen.tsai@gmail.com', '0978-222-444', '1998-03-30', 'F'),
+('林承翰', 'wenhsiung.hsu', 'Password008', 'wenhsiung.hsu@gmail.com', '0988-333-555', '1982-09-18', 'M'),
+('黃詩涵', 'hsiaohan.cheng', 'Password009', 'hsiaohan.cheng@gmail.com', '0919-444-666', '2001-01-05', 'F'),
+('張志偉', 'chihwei.wang', 'Password010', 'chihwei.wang@gmail.com', '0921-888-777', '1993-06-12', 'M'),
+('李美芳', 'yachu.fang', 'Password011', 'yachu.fang@gmail.com', '0930-121-212', '1996-04-20', 'F'),
+('王淑芬', 'minghui.kao', 'Password012', 'minghui.kao@gmail.com', '0952-343-434', '1980-10-10', 'F'),
+('陳俊傑', 'chialing.sung', 'Password013', 'chialing.sung@gmail.com', '0970-565-656', '1991-08-25', 'M'),
+('林心怡', 'chunhsien.li', 'Password014', 'chunhsien.li@gmail.com', '0911-787-878', '1987-01-15', 'F'),
+('黃俊彥', 'hsinyi.chou', 'Password015', 'hsinyi.chou@gmail.com', '0939-909-190', '1999-05-05', 'M'),
+('張文傑', 'shauman.hsu', 'Password016', 'shauman.hsu@gmail.com', '0963-111-999', '2000-02-29', 'M'),
+('李宗霖', 'weilun.chao', 'Password017', 'weilun.chao@gmail.com', '0925-123-456', '1994-03-18', 'M'),
+('王建民', 'hsiaomei.sun', 'Password018', 'hsiaomei.sun@gmail.com', '0935-234-567', '1989-07-07', 'M'),
+('陳雅涵', 'tayun.chien', 'Password019', 'tayun.chien@gmail.com', '0916-345-678', '1997-11-11', 'F'),
+('林建宏', 'meifang.li', 'Password020', 'meifang.li@gmail.com', '0977-456-789', '1991-09-20', 'M'),
+('黃美玲', 'yuyen.peng', 'Password021', 'yuyen.peng@test.com', '0911-111-111', '1982-03-24', 'F'),
+('張惠婷', 'ning.chang', 'Password022', 'ning.chang@test.com', '0922-222-222', '1982-09-04', 'F'),
+('李靜怡', 'ethan.juan', 'Password023', 'ethan.juan@test.com', '0933-333-333', '1982-11-08', 'F'),
+('王心妤', 'lunmei.kwei', 'Password024', 'lunmei.kwei@test.com', '0944-444-444', '1983-12-25', 'F'),
+('陳宗翰', 'jay.chou', 'Password025', 'jay.chou@test.com', '0955-555-555', '1979-01-18', 'M'),
+('林曉慧', 'jolin.tsai', 'Password026', 'jolin.tsai@test.com', '0966-666-666', '1980-09-15', 'F'),
+('黃家豪', 'ashin.chen', 'Password027', 'ashin.chen@test.com', '0977-777-777', '1975-12-06', 'M'),
+('張博翔', 'hebe.tien', 'Password028', 'hebe.tien@test.com', '0988-888-888', '1983-03-30', 'M'),
+('李婉婷', 'jj.lin', 'Password029', 'jj.lin@test.com', '0918-181-818', '1981-03-27', 'F'),
+('王冠廷', 'gem.tang', 'Password030', 'gem.tang@test.com', '0928-282-828', '1991-08-16', 'M');
 
 
 -- =================================================================
@@ -160,9 +160,9 @@ CREATE TABLE store (
  * -----------------------------------------------------
  */
 INSERT INTO store (store_name,store_type, store_loc, store_phone, store_time, store_status, google_map_url) VALUES
-('中山南京店','BRANCH','台北市中山區南京東路三段219號4F','0227120589','05:00~14:00 周三公休','OPERATING','https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=%E5%8F%B0%E5%8C%97%E5%B8%82%E4%B8%AD%E5%B1%B1%E5%8D%80%E5%8D%97%E4%BA%AC%E6%9D%B1%E8%B7%AF%E4%B8%89%E6%AE%B5219%E8%99%9F4F'), -- '一般門市營業中' -> 'BRANCH,OPERATING'
-('中壢復興店','BRANCH','桃園市中壢區復興路46號9樓','034251108','05:00~14:00 周一公休','OPERATING','https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=%E6%A1%83%E5%9C%92%E5%B8%82%E4%B8%AD%E5%A3%A2%E5%8D%80%E5%BE%A9%E8%88%88%E8%B7%AF46%E8%99%9F9%E6%A8%93'),    -- '一般門市營業中' -> 'BRANCH,OPERATING'
-('總部', 'HEADQUARTERS','台北市中山區南京東路三段219號5F', '0281017777', '不適用', 'HEADQUARTERS','https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=%E5%8F%B0%E5%8C%97%E5%B8%82%E4%B8%AD%E5%B1%B1%E5%8D%80%E5%8D%97%E4%BA%AC%E6%9D%B1%E8%B7%AF%E4%B8%89%E6%AE%B5219%E8%99%9F5F'); -- '總部營運' -> 'HEADQUARTERS''HEADQUARTERS'
+('中山南京店','BRANCH','台北市中山區南京東路三段219號4F','0227120589','05:00~14:00 週三公休','OPERATING','https://www.google.com/maps/embed/v1/place?key=AIzaSyB36pLOxEmnvBRe4fi6v5QWGJ1WusayILg&q=%E5%8F%B0%E5%8C%97%E5%B8%82%E4%B8%AD%E5%B1%B1%E5%8D%80%E5%8D%97%E4%BA%AC%E6%9D%B1%E8%B7%AF%E4%B8%89%E6%AE%B5219%E8%99%9F4F'), -- '一般門市營業中' -> 'BRANCH,OPERATING'
+('中壢復興店','BRANCH','桃園市中壢區復興路46號9樓','034251108','05:00~14:00 週一公休','OPERATING','https://www.google.com/maps/embed/v1/place?key=AIzaSyB36pLOxEmnvBRe4fi6v5QWGJ1WusayILg&q=%E6%A1%83%E5%9C%92%E5%B8%82%E4%B8%AD%E5%A3%A2%E5%8D%80%E5%BE%A9%E8%88%88%E8%B7%AF46%E8%99%9F9%E6%A8%93'),    -- '一般門市營業中' -> 'BRANCH,OPERATING'
+('總部', 'HEADQUARTERS','台北市中山區南京東路三段219號5F', '0281017777', '不適用', 'HEADQUARTERS','https://www.google.com/maps/embed/v1/place?key=AIzaSyB36pLOxEmnvBRe4fi6v5QWGJ1WusayILg&q=%E5%8F%B0%E5%8C%97%E5%B8%82%E4%B8%AD%E5%B1%B1%E5%8D%80%E5%8D%97%E4%BA%AC%E6%9D%B1%E8%B7%AF%E4%B8%89%E6%AE%B5219%E8%99%9F5F'); -- '總部營運' -> 'HEADQUARTERS''HEADQUARTERS'
 
 
 -- =======================================================================================
@@ -228,8 +228,8 @@ INSERT INTO employee (store_id, username, account, created_by, password, email, 
 (1, '赤楚衛二', 'jason.liu', 2, 'jason.liu', 'jason.liu@gmail.com', '0970-777-888', 'STAFF', 'ACTIVE', 'M', 'A161978784'),
 (2, '今田美櫻', 'joyce.tsai', 1, 'joyce.tsai', 'joyce.tsai@gmail.com', '0980-888-999', 'STAFF', 'ACTIVE', 'F', 'C213892240'),
 (1, '高橋文哉', 'minghan.hsu', 2, 'minghan.hsu', 'minghan.hsu@gmail.com', '0911-123-456', 'STAFF', 'ACTIVE', 'M', 'E196350396'),
-(1, '張婷婷', 'cindy.cheng', 1, 'cindy.cheng', 'cindy.cheng@gmail.com', '0922-234-567', 'STAFF', 'ACTIVE', 'F', 'E283693295'),
-(2, '鄧佳華', 'maggie.fang', 2, 'maggie.fang', 'maggie.fang@gmail.com', '0955-567-890', 'STAFF', 'INACTIVE', 'O', 'E263360866');
+(1, '張O婷', 'cindy.cheng', 1, 'cindy.cheng', 'cindy.cheng@gmail.com', '0922-234-567', 'STAFF', 'ACTIVE', 'F', 'E283693295'),
+(2, '鄧O華', 'maggie.fang', 2, 'maggie.fang', 'maggie.fang@gmail.com', '0955-567-890', 'STAFF', 'INACTIVE', 'O', 'E263360866');
 
 -- =======================================================================================
 -- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
@@ -499,7 +499,7 @@ ALTER TABLE meal AUTO_INCREMENT = 101;
  */
 -- 吐司類（meal_type_id = 1）
 INSERT INTO meal (meal_type_id, meal_name, meal_pic, meal_price, status) VALUES
-(1, '花生厚片吐司', NULL, 35, 1),
+(1, '花生吐司', NULL, 35, 1),
 (1, '奶酥吐司', NULL, 35, 1),
 (1, '草莓吐司', NULL, 30, 1),
 (1, '起司火腿吐司', NULL, 40, 1);
@@ -532,84 +532,6 @@ INSERT INTO meal (meal_type_id, meal_name, meal_pic, meal_price, status) VALUES
 (5, '鮮奶茶', NULL, 40, 1),
 (5, '拿鐵', NULL, 45, 1);
 
-
--- =======================================================================================
--- 資料表: store_meal_status (門市餐點狀態表) - [已修改為代理主鍵版本]
--- 功能: 建立特定門市與特定餐點的供應狀態，實現分店層級的即時庫存管理 (例如：今日售完)。
--- 備註: 此表的紀錄會覆蓋 meal 表的總狀態。若此表無紀錄，則依 meal 表的 status 為準。
---
--- [修改說明]:
--- 1. 新增 `sms_id` 欄位作為此表的代理主鍵 (Surrogate Key)，並設定為自動增長。
--- 2. 將原本的複合主鍵 (store_id, meal_id) 改為唯一鍵約束 (UNIQUE KEY)，
---    以確保同一間門市的同一個餐點不會有重複的狀態紀錄，維持業務邏輯的正確性。
--- =======================================================================================
-CREATE TABLE store_meal_status (
-    sms_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '門市餐點狀態編號 (主鍵，自動增長)',
-    store_id BIGINT NOT NULL COMMENT '門市編號 (外鍵)',
-    meal_id BIGINT NOT NULL COMMENT '餐點編號 (外鍵)',
-    status TINYINT(1) NOT NULL COMMENT '該門市的此餐點狀態 (1=供應中, 0=已售完)',
-    last_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '狀態最後更新時間',
-    PRIMARY KEY (sms_id),
-    -- 唯一鍵約束，確保資料的唯一性
-    UNIQUE KEY uk_store_meal (store_id, meal_id),
-    -- 外鍵約束維持不變
-    CONSTRAINT fk_sms_store FOREIGN KEY (store_id) REFERENCES store(store_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_sms_meal FOREIGN KEY (meal_id) REFERENCES meal(meal_id) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='門市對應餐點的即時狀態表 (多對多，使用代理主鍵)。';
-
-/*
- * -----------------------------------------------------
- * 範例資料: store_meal_status
- * 說明: INSERT 陳述式與原版相同，因為我們不需要手動插入主鍵 `sms_id`。
- * -----------------------------------------------------
- */
-INSERT INTO store_meal_status (store_id, meal_id, status) VALUES
-(1, 101, 0), -- 一號店的起司火腿吐司售完
-(2, 103, 1), -- 二號店的玉米蛋餅正常供應
-(2, 104, 0), -- 二號店的黑胡椒鐵板麵售完
-(1, 106, 0), -- 一號店的花生厚片吐司售完
-(1, 102, 1), -- 一號店的豬排漢堡正常供應
-(1, 108, 1), -- 一號店的起司蛋餅正常供應
-(2, 102, 1), -- 二號店的豬排漢堡正常供應
-(1, 103, 0); -- 一號店的玉米蛋餅售完
-
--- =======================================================================================
--- 資料表: cart (購物車紀錄表)
--- 功能: 暫存會員選擇的餐點，直到結帳為止。結帳後此處的資料應被清除。
--- =======================================================================================
-CREATE TABLE cart (
-    cart_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '購物車項目編號 (主鍵)',
-    member_id BIGINT NOT NULL COMMENT '所屬會員編號 (外鍵)',
-    meal_id BIGINT NOT NULL COMMENT '選擇的餐點編號 (外鍵)',
-    store_id BIGINT NOT NULL COMMENT '選擇的門市編號 (外鍵)',
-    quantity BIGINT NOT NULL COMMENT '餐點數量',
-    meal_customization VARCHAR(255) COMMENT '餐點客製化備註',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '加入購物車的時間',
-    PRIMARY KEY (cart_id),
-    FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (meal_id) REFERENCES meal(meal_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (store_id) REFERENCES store(store_id) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='購物車暫存資料表。';
-
-/*
- * -----------------------------------------------------
- * 範例資料: cart
- * 說明: 模擬多位會員將不同商品加入購物車的情境。
- * -----------------------------------------------------
- */
-INSERT INTO cart (member_id, meal_id, store_id, quantity, meal_customization) VALUES
-(5, 105, 1, 5, '去冰'),      -- 會員 5 (吳雅婷) 在一號店將 5 份 鮮奶茶 加入購物車，備註：去冰
-(8, 101, 1, 2, '加蛋'),          -- 會員 8 (許文雄) 在一號店將 2 份 起司火腿吐司 加入購物車，備註：加蛋
-(9, 104, 2, 1, NULL),           -- 會員 9 (鄭曉涵) 在二號店將 1 份 黑胡椒鐵板麵 加入購物車
-(10, 101, 2, 2, NULL),          -- 會員 10 (王志偉) 在二號店將 2 份 起司火腿吐司 加入購物車
-(5, 105, 1, 3, '去冰'),          -- 會員 5 (吳雅婷) 在一號店將 3 份 鮮奶茶 加入購物車，備註：去冰
-(1, 108, 2, 1, '加火腿'),        -- 會員 1 (陳怡君) 在二號店將 1 份 起司蛋餅 加入購物車，備註：加火腿
-(4, 110, 1, 2, '少冰'),          -- 會員 4 (張家豪) 在一號店將 2 份 冰美式咖啡 加入購物車，備註：少冰
-(8, 106, 2, 5, '多醬'),          -- 會員 8 (許文雄) 在二號店將 5 份 花生厚片吐司 加入購物車，備註：多醬
-(10, 102, 2, 1, '加起司'),       -- 會員 10 (王志偉) 在二號店將 1 份 豬排漢堡 加入購物車，備註：加起司
-(1, 103, 1, 2, NULL),           -- 會員 1 (陳怡君) 在一號店將 2 份 玉米蛋餅 加入購物車
-(17, 102, 1, 1, '不要洋蔥'),     -- 會員 17 (趙偉倫) 在一號店將 1 份 豬排漢堡 加入購物車，備註：不要洋蔥
-(20, 107, 2, 2, '加辣');         -- 會員 20 (李美芳) 在二號店將 2 份 雞腿漢堡 加入購物車，備註：加辣
 
 -- =======================================================================================
 -- 資料表: order_list (訂單主表)
@@ -820,6 +742,7 @@ INSERT INTO fav (member_id, meal_id) VALUES
 (20, 107);-- 會員 20 (李美芳) 收藏了 雞腿漢堡
 
 
+-- =======================================================================================
 -- 更新後的「顧客意見回饋表」
 -- 功能: 儲存顧客意見，並增加了處理狀態與回覆內容的欄位。
 -- 版本: 已移除 Foreign Key (外鍵) 限制，以簡化開發。
@@ -831,44 +754,34 @@ CREATE TABLE feedback (
   create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '建檔時間',
   phone VARCHAR(20) NOT NULL COMMENT '連絡電話',
   content VARCHAR(5000) NOT NULL COMMENT '內文',
-  dining_time VARCHAR(255) NULL COMMENT '顧客填寫的用餐時間',
+  -- ★★★ 核心修正：將 dining_time 的型別改為 DATETIME 或 TIMESTAMP ★★★
+  -- 這將確保它能正確儲存來自 Java LocalDateTime 的物件，並解決之前的資料庫錯誤
+  dining_time DATETIME NULL COMMENT '顧客填寫的用餐時間',
   dining_store VARCHAR(255) NULL COMMENT '顧客填寫的用餐門市',
-
-
-
   status VARCHAR(20) NOT NULL DEFAULT '待處理' COMMENT '狀態 (例如: 待處理, 已處理)',
   reply_content TEXT NULL COMMENT '管理員回覆的內容',
   replied_at TIMESTAMP NULL COMMENT '回覆送出的時間',
-  
+  processed_by_admin_id BIGINT NULL COMMENT '處理此回饋的管理員ID',
   PRIMARY KEY (feedback_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='顧客意見回饋紀錄表。';
+
 /*
- * -----------------------------------------------------
- * 範例資料: feedback
- * 說明: 模擬 20 位會員提出的各式意見回饋。
+* -----------------------------------------------------
+ * 範例資料: feedback (已修正 store_id)
+ * 說明: 模擬10 位會員提出的各式意見回饋。
+ * store_id 已根據 dining_store 的名稱對應填入正確的 ID。
  * -----------------------------------------------------
  */
-INSERT INTO feedback (member_id, store_id, phone, content) VALUES
-(1, 1, '0912-345-678', '餐點很美味，服務也很好。'),
-(2, 2, '0928-765-432', '出餐速度稍慢，希望能改善。'),
-(3, 1, '0933-123-789', '飲料太甜了，下次希望能調整。'),
-(4, 2, '0955-987-654', '門市環境整潔舒適，讚！'),
-(5, 1, '0966-555-222', '服務人員態度不佳。'),
-(6, 2, '0910-111-333', '希望增加更多素食選項。'),
-(7, 1, '0978-222-444', '第一次來吃，體驗很不錯！'),
-(8, 2, '0988-333-555', '訂單內容有誤，少了一項餐點。'),
-(9, 1, '0919-444-666', '希望可以有更多優惠活動。'),
-(10, 2, '0921-888-777', '結帳時等太久，希望改善流程。'),
-(11, 1, '0930-121-212', '飲料好喝!!!'),
-(12, 2, '0952-343-434', '吐司超好吃，下次還會再來！'),
-(13, 1, '0970-565-656', '希望可以開中午時段。'),
-(14, 2, '0911-787-878', '價格合理，CP 值高。'),
-(15, 1, '0939-909-090', '服務人員態度非常親切！'),
-(16, 2, '0963-111-999', '漢堡好吃下次還點!'),
-(17, 1, '0925-123-456', '網站的介面設計很漂亮，點餐很方便。'),
-(18, 2, '0935-234-567', '雞腿漢堡的肉很多汁，非常好吃。'),
-(19, 1, '0916-345-678', '希望可以支援更多的付款方式。'),
-(20, 2, '0977-456-789', '二號店的店員服務很熱情，值得推薦。');
+INSERT INTO feedback (member_id, store_id, phone, content, dining_time, dining_store, status) VALUES
+(1, 1, '0912-345-678', '餐點很美味，服務也很好。', '2025-06-30 19:00:00', '中山南京店', '待處理'),
+(3, 1, '0933-123-789', '飲料太甜了，下次希望能調整。', '2025-06-29 18:45:00', '中山南京店', '待處理'),
+(5, 1, '0966-555-222', '服務人員態度不佳。', '2025-06-28 20:10:00', '中山南京店', '待處理'),
+(7, 1, '0978-222-444', '第一次來吃，體驗很不錯！', '2025-06-27 17:30:00', '中山南京店', '待處理'),
+(11, 1, '0930-121-212', '飲料好喝!!!', '2025-06-24 15:20:00', '中山南京店', '已處理'),
+(13, 1, '0970-565-656', '希望可以開中午時段。', NULL, '中山南京店', '待處理'),
+(15, 1, '0939-909-090', '服務人員態度非常親切！', '2025-06-21 11:30:00', '中山南京店', '已處理'),
+(20, 2, '0977-456-789', '二號店的店員服務很熱情，值得推薦。', '2025-06-16 20:30:00', '中壢復興店', '待處理');
+
 
 -- =======================================================================================
 -- 資料表: news (最新消息表) - 【已修正，加入 update_time】
@@ -896,10 +809,10 @@ CREATE TABLE news (
  * -----------------------------------------------------
  */
 INSERT INTO news (employee_id, title, content, start_time, end_time, status) VALUES
-(2, '會員專屬優惠開跑', '即日起加入會員即可享有消費滿 $300 折 $50 的專屬優惠，只到 2025-08-30，別錯過！', '2025-06-01 10:00:00', '2025-08-30 23:59:59', 1),
-(7, '中壢復興店內部整修公告', '為提供更舒適的用餐環境，二號店將於 2025-07-01 至 2025-08-15 進行內部整修，暫停營業，造成不便敬請見諒。', '2025-08-15 09:00:00', NULL, 1),
-(1, '新品上市：草莓戀人吐司 (草稿)', '夢幻新品「草莓戀人吐司」即將上市，敬請期待！', '2025-06-20 00:00:00', '2025-09-20 00:00:00', 0);
-
+(2, '會員專屬優惠開跑', '即日起加入會員即可享有專屬優惠，只到 2025-08-30，別錯過！', '2025-06-01 10:00:00', '2025-08-30 23:59:59', 1),
+(7, '中壢復興店內部整修公告', '為提供更舒適的用餐環境，二號店將於 2025-07-01 至 2025-08-15 進行內部整修，暫停營業，造成不便敬請見諒。', '2025-07-15 09:00:00','2025-08-15 09:00:00' , 1),
+(1, '新品上市：草莓戀人吐司 ', '夢幻新品「草莓戀人吐司」即將上市，敬請期待！', '2025-07-20 00:00:00', '2025-09-20 00:00:00', 1),
+(3, '靜岡抹茶紅豆白吐司', '嚴選靜岡抹茶與綿密紅豆的完美結合，品味最道地的日式風味。', '2025-07-01 00:00:00', '2025-10-01 00:00:00', 0);
 -- =======================================================================================
 -- 資料表: announcement (門市公告表)
 -- 功能: 儲存由「各分店」獨立發布的專屬公告。
@@ -926,8 +839,9 @@ CREATE TABLE announcement (
  * -----------------------------------------------------
  */
 INSERT INTO announcement (employee_id, store_id, title, content, start_time, end_time, status) VALUES
-(2, 1, '中山南京店公休時間調整', '親愛的顧客您好，本店因應端午節連假，6/22(六)公休一日，祝您佳節愉快！', '2025-06-10 00:00:00', '2025-06-22 23:59:59', 1),
-(4, 2, '中壢復興號店限定！鐵板麵套餐優惠', '即日起至月底，凡點購任一鐵板麵，即可以 $10 加購一杯中杯紅茶！', '2025-06-01 08:00:00', '2025-06-30 23:59:59', 1);
+(2, 1, '中山南京店公休時間調整', '因應端午節連假，7/22公休一日，祝您佳節愉快！', '2025-07-10 00:00:00', '2025-08-22 23:59:59', 1),
+(7, 1, '店內環境清消作業公告', '訂於 8/25(一) 進行全店深度清潔與消毒作業，當日公休一日。', '2025-07-14 00:00:00', '2025-08-30 23:59:59', 1),
+(4, 2, '員工體檢時間訂於8/15前完成', '即日起至指定日期前請完成員工體檢時間', '2025-07-15 08:00:00', '2025-08-15 23:59:59', 1);
 
 
 -- =======================================================================================
