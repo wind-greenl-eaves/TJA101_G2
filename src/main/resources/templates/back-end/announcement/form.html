@@ -46,7 +46,7 @@
 <div class="container mt-5">
     <h2 class="mb-4 text-center">📝 公告編輯</h2>
 
-    <form th:action="@{/announcement/save}" th:object="${announcement}"
+    <form th:action="@{/admin/announcement/save}" th:object="${announcement}"
           method="post">
 
         <input type="hidden" th:field="*{announcementId}" />
@@ -101,7 +101,7 @@
         </div>
 
         <div class="text-right mt-4">
-            <a th:href="@{/announcement/select_page_announcement}"
+            <a th:href="@{/admin/announcement/select_page_announcement}"
                class="btn btn-secondary"> <i class="fas fa-arrow-left"></i>
                 返回清單
             </a>

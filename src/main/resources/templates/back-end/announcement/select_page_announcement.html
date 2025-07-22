@@ -85,13 +85,13 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <a class="btn btn-success" th:href="@{/announcement/new}">
+            <a class="btn btn-success" th:href="@{/admin/announcement/new}">
                 <i class="fas fa-plus"></i> 新增公告
             </a>
-            <a class="btn btn-warning" th:href="@{/announcement/drafts}">
+            <a class="btn btn-warning" th:href="@{/admin/announcement/drafts}">
                 <i class="fas fa-folder"></i> 草稿列表
             </a>
-            <a class="btn btn-outline-secondary" th:href="@{/announcement/listAll}">
+            <a class="btn btn-outline-secondary" th:href="@{/admin/announcement/listAll}">
                 <i class="fas fa-list"></i> 顯示目前所有公告
             </a>
         </div>
@@ -102,40 +102,41 @@
         </div>
     </div>
 
-    <hr> <form th:action="@{/announcement/select_page_announcement}" method="post" class="mb-4">
-    <div class="form-row">
-        <div class="col-md-3">
-            <label for="title">標題關鍵字</label>
-            <input type="text" id="title" name="title" class="form-control" placeholder="輸入公告標題">
+    <hr>
+    <form th:action="@{/admin/announcement/select_page_announcement}" method="post" class="mb-4">
+        <div class="form-row">
+            <div class="col-md-3">
+                <label for="title">標題關鍵字</label>
+                <input type="text" id="title" name="title" class="form-control" placeholder="輸入公告標題">
+            </div>
+            <div class="col-md-2">
+                <label for="status">狀態</label>
+                <select id="status" name="status" class="form-control">
+                    <option value="">-- 全部 --</option>
+                    <option th:each="opt : ${statusOptions}" th:value="${opt}">
+                        <th:block th:switch="${opt.name()}">
+                            <span th:case="'ACTIVE'">上架中</span>
+                            <span th:case="'INACTIVE'">草稿</span>
+                            <span th:case="'VISIBLE'">前台可見</span>
+                            <span th:case="'HIDDEN'">已隱藏</span>
+                            <span th:case="*">未知狀態</span>
+                        </th:block>
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="startTime">起始時間</label>
+                <input type="datetime-local" id="startTime" name="startTime" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label for="endTime">結束時間</label>
+                <input type="datetime-local" id="endTime" name="endTime" class="form-control">
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary btn-block">查詢</button>
+            </div>
         </div>
-        <div class="col-md-2">
-            <label for="status">狀態</label>
-            <select id="status" name="status" class="form-control">
-                <option value="">-- 全部 --</option>
-                <option th:each="opt : ${statusOptions}" th:value="${opt}">
-                    <th:block th:switch="${opt.name()}">
-                        <span th:case="'ACTIVE'">上架中</span>
-                        <span th:case="'INACTIVE'">草稿</span>
-                        <span th:case="'VISIBLE'">前台可見</span>
-                        <span th:case="'HIDDEN'">已隱藏</span>
-                        <span th:case="*">未知狀態</span>
-                    </th:block>
-                </option>
-            </select>
-        </div>
-        <div class="col-md-3">
-            <label for="startTime">起始時間</label>
-            <input type="datetime-local" id="startTime" name="startTime" class="form-control">
-        </div>
-        <div class="col-md-3">
-            <label for="endTime">結束時間</label>
-            <input type="datetime-local" id="endTime" name="endTime" class="form-control">
-        </div>
-        <div class="col-md-1 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary btn-block">查詢</button>
-        </div>
-    </div>
-</form>
+    </form>
 
     <table class="table table-bordered text-center" th:if="${announcements != null and not #lists.isEmpty(announcements)}">
         <thead class="thead-light">
@@ -164,11 +165,11 @@
             <td th:text="${#temporals.format(a.startTime, 'yyyy-MM-dd HH:mm')}">起始</td>
             <td th:text="${#temporals.format(a.endTime, 'yyyy-MM-dd HH:mm')}">結束</td>
             <td>
-                <a th:href="@{/announcement/edit/{id}(id=${a.announcementId})}" class="btn btn-sm btn-info">
+                <a th:href="@{/admin/announcement/edit/{id}(id=${a.announcementId})}" class="btn btn-sm btn-info">
                     <i class="fas fa-edit"></i> 編輯
                 </a>
 
-                <form th:action="@{/announcement/{id}/delete(id=${a.announcementId})}" method="post"
+                <form th:action="@{/admin/announcement/{id}/delete(id=${a.announcementId})}" method="post"
                       style="display: inline-block; margin-left: 5px;"
                       onsubmit="return confirm('您確定要永久刪除這則公告嗎？');">
                     <button type="submit" class="btn btn-sm btn-danger">

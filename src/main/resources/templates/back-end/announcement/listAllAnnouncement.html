@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>目前上架公告 - 員工專用</title>
-    <!-- 奶茶風樣式 -->
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -65,7 +64,7 @@
             <td th:text="${#temporals.format(a.endTime, 'yyyy-MM-dd HH:mm')}">end</td>
             <td>
                 <a class="btn btn-sm btn-primary"
-                   th:href="@{/announcements/{id}(id=${a.announcementId})}">
+                   th:href="@{/announcement/{id}(id=${a.announcementId})}">
                     查看
                 </a>
             </td>
