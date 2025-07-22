@@ -1,9 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+===============================================================================
+Maven POM 配置文件 - TJA101 G2  Project
+===============================================================================
+這是一個基於 Spring Boot 3.x 的企業級 Web 應用程序配置
+包含完整的前後端開發框架和企業級功能組件
+===============================================================================
+	•  核心 Spring Boot Starters - 基礎框架組件
+	•  數據持久化相關依賴 - JPA、Redis、數據庫驅動
+	•  JSON 序列化/反序列化 - Jackson、Gson 相關庫
+	•  安全框架 - Spring Security
+	•  日誌框架 - Log4j2 配置
+	•  Web 容器和 Servlet - Jakarta EE、JSP、WebSocket 支持
+	•  模板引擎 - Thymeleaf 相關組件
+	•  郵件服務 - Spring Boot Mail
+	•  數據驗證 - Hibernate Validator
+	•  開發工具 - DevTools、Lombok
+	•  前端 WebJars - Bootstrap、jQuery、Popper.js
+===============================================================================	
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
+	<!-- 
+	===============================================================================
+	父項目配置 - Spring Boot Starter Parent
+	=============================================================================== 
+	使用 Spring Boot 官方父項目來管理依賴版本和插件配置
+	-->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -11,65 +37,139 @@
 		<relativePath />
 	</parent>
 
+	<!-- 
+	===============================================================================
+	項目基本信息配置
+	=============================================================================== 
+	-->
 	<groupId>demo</groupId>
 	<artifactId>demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>demo</name>
-	<description>demo</description>
+	<description>TJA101 G2 Final Project - Enterprise Web Application</description>
 
+	<!-- 
+	===============================================================================
+	全局屬性配置
+	=============================================================================== 
+	定義項目中使用的版本號和配置參數
+	-->
 	<properties>
+		<!-- Java 版本：使用 Java 17 LTS 版本 -->
 		<java.version>17</java.version>
+		<!-- Hibernate Validator 版本：用於數據驗證 -->
 		<hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
 	</properties>
 
+	<!-- 
+	===============================================================================
+	項目依賴配置
+	=============================================================================== 
+	按功能模塊分組管理所有依賴項
+	-->
 	<dependencies>
 
+		<!-- 
+		=============================================================================
+		核心 Spring Boot Starters - 基礎框架組件
+		=============================================================================
+		-->
+		<!-- Spring Boot Web Starter：提供 Spring MVC、REST API、內嵌 Tomcat -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+		<!-- Spring Boot Test Starter：提供測試框架（JUnit、Mockito、TestContainers 等）-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Spring Boot Tomcat Starter：外部部署時提供的 Tomcat 支持 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-tomcat</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- 
+		=============================================================================
+		數據持久化相關依賴
+		=============================================================================
+		-->
+		<!-- Spring Data JPA：提供 JPA/Hibernate ORM 支持 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
+		<!-- Spring Data Redis：提供 Redis 緩存和會話管理支持 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
 
+		<!-- Oracle JDBC 驅動：連接 Oracle 數據庫 -->
+		<dependency>
+			<groupId>com.oracle.database.jdbc</groupId>
+			<artifactId>ojdbc8</artifactId>
+		</dependency>
+
+		<!-- MySQL JDBC 驅動：連接 MySQL 數據庫 -->
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+		</dependency>
+
+		<!-- 
+		=============================================================================
+		JSON 序列化/反序列化相關依賴
+		=============================================================================
+		-->
+		<!-- Jackson Core：JSON 數據綁定核心庫 -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
 
+		<!-- Jackson JSR310：Java 8 時間 API 支持 -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
 		</dependency>
+
+		<!-- Jackson Hibernate6：Hibernate 懶加載處理 -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-hibernate6</artifactId>
 		</dependency>
+
+		<!-- Google Gson：Google 的 JSON 處理庫 -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+
+		<!-- 
+		=============================================================================
+		安全框架相關依賴
+		=============================================================================
+		-->
+		<!-- Spring Security：提供認證、授權、CSRF 防護等安全功能 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
+		<!-- 
+		=============================================================================
+		日誌框架相關依賴
+		=============================================================================
+		-->
+		<!-- Spring Boot Starter：排除默認 Logback 日誌框架 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
@@ -80,110 +180,143 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+
+		<!-- Log4j2：高性能的日誌框架 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-log4j2</artifactId>
 		</dependency>
 
+		<!-- 
+		=============================================================================
+		Web 容器和 Servlet 相關依賴
+		=============================================================================
+		-->
+		<!-- Jakarta Servlet API：Servlet 規範實現 -->
 		<dependency>
 			<groupId>jakarta.servlet</groupId>
 			<artifactId>jakarta.servlet-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- Tomcat JSP 編譯器：支持 JSP 頁面編譯 -->
 		<dependency>
 			<groupId>org.apache.tomcat.embed</groupId>
 			<artifactId>tomcat-embed-jasper</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- JSTL 標籤庫：JSP 標準標籤庫 -->
 		<dependency>
 			<groupId>org.glassfish.web</groupId>
 			<artifactId>jakarta.servlet.jsp.jstl</artifactId>
 		</dependency>
 
+		<!-- WebSocket API：支持 WebSocket 實時通信 -->
 		<dependency>
 			<groupId>jakarta.websocket</groupId>
 			<artifactId>jakarta.websocket-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- Jakarta EL：表達式語言支持 -->
 		<dependency>
 			<groupId>org.glassfish</groupId>
 			<artifactId>jakarta.el</artifactId>
 			<version>4.0.2</version>
 		</dependency>
 
+		<!-- 
+		=============================================================================
+		模板引擎相關依賴
+		=============================================================================
+		-->
+		<!-- Thymeleaf：現代化的服務端模板引擎 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
+		<!-- Thymeleaf Spring Security 集成：在模板中使用安全功能 -->
+		<dependency>
+			<groupId>org.thymeleaf.extras</groupId>
+			<artifactId>thymeleaf-extras-springsecurity6</artifactId>
+		</dependency>
+
+		<!-- Thymeleaf Layout Dialect：支持模板布局 -->
+		<dependency>
+			<groupId>nz.net.ultraq.thymeleaf</groupId>
+			<artifactId>thymeleaf-layout-dialect</artifactId>
+		</dependency>
+
+		<!-- 
+		=============================================================================
+		郵件服務相關依賴
+		=============================================================================
+		-->
+		<!-- Spring Boot Mail Starter：提供郵件發送功能 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
+		<!-- 
+		=============================================================================
+		數據驗證相關依賴
+		=============================================================================
+		-->
+		<!-- Spring Boot Validation Starter：提供 Bean Validation 支持 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
+		<!-- Hibernate Validator：Bean Validation 的參考實現 -->
 		<dependency>
 			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
 			<version>${hibernate-validator.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.oracle.database.jdbc</groupId>
-			<artifactId>ojdbc8</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.thymeleaf.extras</groupId>
-			<artifactId>thymeleaf-extras-springsecurity6</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.mysql</groupId>
-			<artifactId>mysql-connector-j</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-thymeleaf</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>nz.net.ultraq.thymeleaf</groupId>
-			<artifactId>thymeleaf-layout-dialect</artifactId>
-		</dependency>
-
+		<!-- 
+		=============================================================================
+		開發工具相關依賴
+		=============================================================================
+		-->
+		<!-- Spring Boot DevTools：提供熱部署和開發時工具 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
 			<optional>true</optional>
 		</dependency>
 
+		<!-- Lombok：減少樣板代碼的註解處理器 -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-		</dependency>
-
+		<!-- 
+		=============================================================================
+		前端 WebJars 依賴 - 靜態資源管理
+		=============================================================================
+		-->
+		<!-- Bootstrap：響應式前端 CSS 框架 -->
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>bootstrap</artifactId>
 			<version>4.2.1</version>
 		</dependency>
 
+		<!-- jQuery：JavaScript 函式庫 -->
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>jquery</artifactId>
 			<version>3.4.1</version>
 		</dependency>
 
+		<!-- Popper.js：Bootstrap 彈出框和工具提示定位引擎 -->
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>popper.js</artifactId>
@@ -192,8 +325,15 @@
 
 	</dependencies>
 
+	<!-- 
+	===============================================================================
+	構建配置
+	=============================================================================== 
+	Maven 插件配置用於項目構建、打包和部署
+	-->
 	<build>
 		<plugins>
+			<!-- Spring Boot Maven Plugin：提供 Spring Boot 應用的打包和運行支持 -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
