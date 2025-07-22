@@ -1,5 +1,5 @@
 public class PhoneTest {
-    public static void main(String[] args) {
+    public static void main(String[] args) { 
         // 當前的正則表達式
         String currentPattern = "^(\\(0\\d{1,2}\\)|0\\d{1,2})[\\s-]?\\d{3,4}[\\s-]?\\d{3,4}$";
         
