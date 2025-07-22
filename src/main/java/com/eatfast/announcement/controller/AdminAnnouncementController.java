@@ -7,7 +7,6 @@ import com.eatfast.employee.model.EmployeeEntity;
 import com.eatfast.store.model.StoreEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +16,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
-@RequestMapping("/announcement")
-public class AdminAnnouncementController { // 建議類別名稱與檔案名一致
+@RequestMapping("/admin/announcement") // <<< 1. 修改後：加上 /admin 前綴，區分前後台
+public class AdminAnnouncementController {
 
     private final AnnouncementService announcementService;
 
@@ -54,10 +53,16 @@ public class AdminAnnouncementController { // 建議類別名稱與檔案名一�
 
     @GetMapping("/listAll")
     public String listAllCurrentlyActive(Model model) {
+        // 查詢上架中的公告
+        System.out.println("====== 按鈕點擊成功，listAllCurrentlyActive 方法被呼叫了！ ======");
         List<AnnouncementEntity> list = announcementService.findCurrentlyActive();
         model.addAttribute("announcements", list);
-        // 這頁也需要刪除功能，所以回傳查詢主頁更合適
-        return "redirect:/announcement/select_page_announcement";
+
+        // 也把查詢欄位的狀態選項放回去，保持頁面完整
+        model.addAttribute("statusOptions", AnnouncementStatus.values());
+
+        // <<< 修改後：直接渲染視圖，把 model 裡的資料帶過去
+        return "back-end/announcement/select_page_announcement";
     }
 
     // ==========================================================
@@ -99,7 +104,7 @@ public class AdminAnnouncementController { // 建議類別名稱與檔案名一�
 
         announcementService.save(announcement);
         redirectAttributes.addFlashAttribute("successMessage", "公告已成功儲存！");
-        return "redirect:/announcement/select_page_announcement";
+        return "redirect:/admin/announcement/select_page_announcement"; // <<< 3. 修改後：同步 redirect 路徑
     }
 
     // ==========================================================
@@ -126,6 +131,6 @@ public class AdminAnnouncementController { // 建議類別名稱與檔案名一�
             redirectAttributes.addFlashAttribute("errorMessage", "刪除失敗：" + e.getMessage());
         }
         // 無論從哪個頁面刪除，都統一回到查詢主頁
-        return "redirect:/announcement/select_page_announcement";
+        return "redirect:/admin/announcement/select_page_announcement"; // <<< 4. 修改後：同步 redirect 路徑
     }
 }

@@ -533,10 +533,12 @@
                 <span>最新消息管理</span>
             </a>
             <a th:href="@{/announcement/listAll}" class="nav-item" th:if="${session.loggedInEmployee != null}">
+
+
                 <i class="fas fa-bullhorn"></i>
                 <span>門市公告清單</span>
             </a>
-            <a th:href="@{/announcement/select_page_announcement}" class="nav-item"
+            <a th:href="@{/admin/announcement/select_page_announcement}" class="nav-item"
                th:if="${session.loggedInEmployee?.role?.name() == 'HEADQUARTERS_ADMIN'}">
                 <i class="fas fa-bullhorn"></i>
                 <span>門市公告管理</span>

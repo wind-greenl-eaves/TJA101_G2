@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
  * 用於後台意見回饋列表的資料傳輸物件 (DTO)
  * 使用 Lombok 的 @Data 註解，自動產生所有 getter, setter 等方法。
  */
-@Data
+
 public class FeedbackListDto {
 
     // == 欄位定義 ==

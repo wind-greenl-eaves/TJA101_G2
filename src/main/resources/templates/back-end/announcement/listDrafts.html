@@ -3,14 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>公告草稿列表 - 奶茶風</title>
-    <!-- 員工用草稿列表 -->
-
-    <!-- Bootstrap & Font -->
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
 
-    <!-- 奶茶風樣式 -->
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
@@ -74,25 +70,25 @@
             <td th:text="${#temporals.format(a.startTime, 'yyyy-MM-dd HH:mm')}">start</td>
             <td th:text="${#temporals.format(a.endTime, 'yyyy-MM-dd HH:mm')}">end</td>
             <td>
-                <a class="btn btn-sm btn-info" th:href="@{'/announcement/edit/' + ${a.announcementId}}">編輯</a>
+                <a class="btn btn-sm btn-info" th:href="@{/admin/announcement/edit/{id}(id=${a.announcementId})}">編輯</a>
 
-                <a class="btn btn-sm btn-danger"
-                   th:href="@{'/announcement/delete/' + ${a.announcementId}}"
-                   onclick="return confirm('您確定要刪除這篇草稿嗎？');">刪除</a>
+                <form th:action="@{/admin/announcement/{id}/delete(id=${a.announcementId})}" method="post"
+                      style="display: inline-block; margin-left: 5px;"
+                      onsubmit="return confirm('您確定要永久刪除這篇草稿嗎？');">
+                    <button type="submit" class="btn btn-sm btn-danger">刪除</button>
+                </form>
             </td>
         </tr>
         </tbody>
     </table>
 
-    <!-- 返回查詢頁按鈕 -->
     <div class="text-right mt-4">
-        <a class="btn btn-secondary" th:href="@{/announcement/select_page_announcement}">
+        <a class="btn btn-secondary" th:href="@{/admin/announcement/select_page_announcement}">
             <i class="fas fa-arrow-left"></i> 返回查詢頁
         </a>
     </div>
 </div>
 
-<!-- 🎉 發佈成功提示 Modal -->
 <div class="modal fade" id="publishedModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
      aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -110,44 +106,11 @@
     </div>
 </div>
 
-<!-- Bootstrap JS -->
 <script th:src="@{/webjars/jquery/3.6.0/jquery.min.js}"></script>
 <script th:src="@{/webjars/bootstrap/4.2.1/js/bootstrap.min.js}"></script>
 
-<!-- Modal 控制 -->
 <script>
-    function showPublishedModal(event) {
 
-        // 探員1號: 檢查函式是否被呼叫
-        alert("探員1號：函式已執行！");
-
-        event.preventDefault();
-        const url = event.currentTarget.getAttribute("href");
-
-        // 探員2號: 檢查我們準備發出的 URL 是否正確
-        alert("探員2號：準備發送到這個網址：" + url);
-
-        fetch(url)
-            .then(response => {
-                // 探員3號: 檢查後端的回應狀態
-                alert("探員3號：後端已回應，狀態碼：" + response.status + "，回應OK嗎？" + response.ok);
-
-                if (response.ok) {
-                    // 如果一切正常，就會執行這裡
-                    $('#publishedModal').modal('show');
-                    setTimeout(() => {
-                        window.location.href = "/announcement/listAll";
-                    }, 2000);
-                } else {
-                    // 如果後端有回應，但狀態不是 200 OK，就會執行這裡
-                    alert("發佈失敗，請稍後再試 (這是 response.ok = false 的結果)");
-                }
-            })
-            .catch(error => {
-                // 探員4號: 如果連網路請求都發不出去，就會執行這裡
-                alert("探員4號：Fetch 請求失敗！錯誤：" + error);
-            });
-    }
 </script>
 </body>
 </html>
