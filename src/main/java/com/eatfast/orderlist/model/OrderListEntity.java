@@ -1,12 +1,4 @@
-/*
- * ================================================================
- * 檔案 2: OrderListEntity.java (★★ 核心修正 ★★)
- * ================================================================
- * - 存放目錄: src/main/java/com/eatfast/orderlist/model/OrderListEntity.java
- * - 核心改動:
- * 1. 移除內部的 Enum 定義。
- * 2. 欄位 orderStatus 的型別直接引用公開的 OrderStatus Enum。
- */
+
 package com.eatfast.orderlist.model;
 
 import com.eatfast.member.model.MemberEntity;
@@ -45,11 +37,11 @@ public class OrderListEntity {
     @Column(name = "card_number", nullable = false, length = 20)
     private String cardNumber;
 
-    // 【新增】取餐時間欄位
+    
     @Column(name = "pickup_time")
     private LocalDateTime pickupTime;
 
-    // 【新增】客製化備註欄位
+    
     @Column(name = "meal_customization", length = 255)
     private String mealCustomization;
 
@@ -64,7 +56,7 @@ public class OrderListEntity {
     @OneToMany(mappedBy = "orderList", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<OrderListInfoEntity> orderListInfos = new HashSet<>();
 
-    // Constructors, Getters, Setters, etc. (維持不變)
+    
     public OrderListEntity() {}
     public String getOrderListId() { return orderListId; }
     public void setOrderListId(String orderListId) { this.orderListId = orderListId; }
@@ -84,7 +76,6 @@ public class OrderListEntity {
     public void setStore(StoreEntity store) { this.store = store; }
     public Set<OrderListInfoEntity> getOrderListInfos() { return orderListInfos; }
     public void setOrderListInfos(Set<OrderListInfoEntity> orderListInfos) { this.orderListInfos = orderListInfos; }
-    // 【新增】pickupTime 的 getter 和 setter 方法
     public LocalDateTime getPickupTime() { 
         return pickupTime; 
     }
@@ -92,7 +83,6 @@ public class OrderListEntity {
     public void setPickupTime(LocalDateTime pickupTime) { 
         this.pickupTime = pickupTime; 
     }
-    // 【新增】mealCustomization 的 getter 和 setter 方法
     public String getMealCustomization() {
         return mealCustomization;
     }

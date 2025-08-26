@@ -228,7 +228,7 @@ public class OrderController {
     
     @GetMapping("/payment-success")
     public String showPaymentSuccess(Model model, HttpSession session) {
-        // 【修正】從 URL 參數中獲取訂單ID，或者使用 Session 備份
+        // 從 URL 參數中獲取訂單ID，或者使用 Session 備份
         String orderId = (String) session.getAttribute("currentOrderId");
         
         // 如果 Session 中沒有訂單ID，重定向到菜單頁面
@@ -291,7 +291,7 @@ public class OrderController {
                 return ResponseEntity.status(400).body(response);
             }
             
-            // 【修正】使用 addReview 方法來更新評分
+            // 使用 addReview 方法來更新評分
             try {
                 OrderListInfoEntity updatedOrderInfo = orderListInfoService.addReview(orderInfoId, rating.longValue());
                 

@@ -79,7 +79,7 @@ public class OrderListController {
 	@PostMapping("/getOne_For_Display")
 	public String getOne_For_Display(@RequestParam("orderListId") String orderListId, ModelMap model, HttpSession session) {
 	    
-	    // 【新增】門市權限檢查
+	    // 門市權限檢查
 	    Long employeeId = (Long) session.getAttribute("employeeId");
 	    if (employeeId == null) {
 	        model.addAttribute("errorMessage", "請先登入系統");
@@ -93,18 +93,18 @@ public class OrderListController {
 	        return "back-end/orderlist/select_page_OrderList";
 	    }
 
-	    // 【修復】確保員工資訊也被傳遞到查詢結果頁面
+	    // 確保員工資訊也被傳遞到查詢結果頁面
 	    String employeeName = (String) session.getAttribute("employeeName");
 	    Object employeeIdObj = session.getAttribute("employeeId");
 	    Object employeeRoleObj = session.getAttribute("employeeRole");
 	    
-	    // 【修復】安全地轉換employeeId
+	    // 安全地轉換employeeId
 	    String employeeIdStr = null;
 	    if (employeeIdObj != null) {
 	        employeeIdStr = employeeIdObj.toString();
 	    }
 	    
-	    // 【修復】安全地轉換employeeRole
+	    // 安全地轉換employeeRole
 	    String employeeRole = null;
 	    if (employeeRoleObj != null) {
 	        employeeRole = employeeRoleObj.toString();
@@ -121,26 +121,26 @@ public class OrderListController {
 	    if (orderListVO == null) {
 	        model.addAttribute("errorMessage", "查無資料");
 	    } else {
-	        // 【新增】檢查訂單是否屬於該員工的門市
+	        // 檢查訂單是否屬於該員工的門市
 	        if (!orderListVO.getStore().getStoreId().equals(employee.getStoreId())) {
 	            model.addAttribute("errorMessage", "您無權限查看此訂單，該訂單屬於其他門市");
 	            return "back-end/orderlist/select_page_OrderList";
 	        }
 	        
-	        // 【關鍵修改】如果找到了，將訂單物件放入 model 中
+	        // 如果找到了，將訂單物件放入 model 中
 	        model.addAttribute("orderListVO", orderListVO);
 	    }
 	    
-	    // 【關鍵修改】無論成功或失敗，都返回原本的查詢頁面
+	    // 無論成功或失敗，都返回原本的查詢頁面
 	    return "back-end/orderlist/select_page_OrderList";
 	}
 
 	/**
-	 * 導向至修改訂單的頁面 - 【修改】添加門市權限檢查
+	 * 添加門市權限檢查
 	 */
 	@PostMapping("/getOne_For_Update")
 	public String getOne_For_Update(@RequestParam("orderListId") String orderListId, ModelMap model, HttpSession session) {
-	    // 【新增】門市權限檢查
+	    // 門市權限檢查
 	    Long employeeId = (Long) session.getAttribute("employeeId");
 	    if (employeeId == null) {
 	        model.addAttribute("errorMessage", "請先登入系統");
@@ -161,7 +161,7 @@ public class OrderListController {
 	        return "redirect:/orderlist/listAllOrderList";
 	    }
 
-	    // 【新增】檢查訂單是否屬於該員工的門市
+	    // 檢查訂單是否屬於該員工的門市
 	    if (!orderListVO.getStore().getStoreId().equals(employee.getStoreId())) {
 	        model.addAttribute("errorMessage", "您無權限修改此訂單，該訂單屬於其他門市");
 	        return "redirect:/orderlist/listAllOrderList";
@@ -220,12 +220,12 @@ public class OrderListController {
 	}
 
 	/**
-	 * 刪除(取消)訂單的請求處理 - 【修改】添加門市權限檢查
+	 * 刪除(取消)訂單的請求處理 -
 	 */
 	@PostMapping("/delete")
 	public String delete(@RequestParam("orderListId") String orderListId, RedirectAttributes redirectAttributes, HttpSession session) {
 	    
-	    // 【新增】門市權限檢查
+	    // 門市權限檢查
 	    Long employeeId = (Long) session.getAttribute("employeeId");
 	    if (employeeId == null) {
 	        redirectAttributes.addFlashAttribute("errorMessage", "請先登入系統");
@@ -247,7 +247,7 @@ public class OrderListController {
 	        return "redirect:/orderlist/listAllOrderList";
 	    }
 
-	    // 【新增】檢查訂單是否屬於該員工的門市
+	    // 檢查訂單是否屬於該員工的門市
 	    if (!order.getStore().getStoreId().equals(employee.getStoreId())) {
 	        redirectAttributes.addFlashAttribute("errorMessage", "您無權限操作此訂單，該訂單屬於其他門市");
 	        return "redirect:/orderlist/listAllOrderList";
@@ -273,24 +273,24 @@ public class OrderListController {
 	@GetMapping("/select_page_OrderList")
 	public String selectPage(Model model, HttpSession session) {
 		try {
-			// 【修復】正確獲取當前登入的員工資訊 - 注意所有類型轉換
+			// 正確獲取當前登入的員工資訊 - 注意所有類型轉換
 			String employeeName = (String) session.getAttribute("employeeName");
 			Object employeeIdObj = session.getAttribute("employeeId");
 			Object employeeRoleObj = session.getAttribute("employeeRole");
 			
-			// 【修復】安全地轉換employeeId
+			// 安全地轉換employeeId
 			String employeeId = null;
 			if (employeeIdObj != null) {
 				employeeId = employeeIdObj.toString();
 			}
 			
-			// 【修復】安全地轉換employeeRole
+			// 安全地轉換employeeRole
 			String employeeRole = null;
 			if (employeeRoleObj != null) {
 				employeeRole = employeeRoleObj.toString();
 			}
 			
-			// 【調試】輸出Session中的員工資訊
+			// 輸出Session中的員工資訊
 			System.out.println("=== 調試信息 ===");
 			System.out.println("Session ID: " + session.getId());
 			System.out.println("Employee Name: " + employeeName);
@@ -310,7 +310,7 @@ public class OrderListController {
 				System.out.println("警告：Session中沒有找到員工資訊");
 			}
 			
-			// 【新增】計算各種狀態的訂單數量，提供給前端統計卡片顯示
+			// 計算各種狀態的訂單數量，提供給前端統計卡片顯示
 			List<OrderListEntity> allOrders = orderSvc.findAll();
 			
 			// 確保 allOrders 不為 null
@@ -379,7 +379,7 @@ public class OrderListController {
 	}
 
 	/**
-	 * 顯示所有訂單列表 - 【修改】添加門市權限檢查
+	 * 顯示所有訂單列表 
 	 */
 	@GetMapping("/listAllOrderList")
 	public String listAllOrderList(Model model, HttpSession session) {
@@ -418,7 +418,7 @@ public class OrderListController {
 	@PostMapping("/markAsCompleted")
 	public String markAsCompleted(@RequestParam("orderListId") String orderListId, RedirectAttributes redirectAttributes, HttpSession session) {
 	    
-	    // 【新增】門市權限檢查
+	    // 門市權限檢查
 	    Long employeeId = (Long) session.getAttribute("employeeId");
 	    if (employeeId == null) {
 	        redirectAttributes.addFlashAttribute("errorMessage", "請先登入系統");
@@ -439,7 +439,7 @@ public class OrderListController {
 	        return "redirect:/orderlist/listAllOrderList";
 	    }
 
-	    // 【新增】檢查訂單是否屬於該員工的門市
+	    // 檢查訂單是否屬於該員工的門市
 	    if (!order.getStore().getStoreId().equals(employee.getStoreId())) {
 	        redirectAttributes.addFlashAttribute("errorMessage", "您無權限操作此訂單，該訂單屬於其他門市");
 	        return "redirect:/orderlist/listAllOrderList";

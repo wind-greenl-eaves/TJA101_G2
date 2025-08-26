@@ -11,7 +11,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**
- * 訂單明細實體 (Order List Info Entity) - 【路徑已修正】
+ * 訂單明細實體 (Order List Info Entity) 
  * <p>
  * 此實體對應資料庫中的 `order_list_info` 表，詳細記錄了每一筆訂單中購買的各個餐點資訊。
  * 它是構成一張完整訂單的原子單位。

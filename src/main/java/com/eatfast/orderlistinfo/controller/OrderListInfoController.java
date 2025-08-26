@@ -1,13 +1,3 @@
-/*
- * ================================================================
- * 檔案 4: OrderListInfoController.java (★★ 核心重構 ★★)
- * ================================================================
- * - 存放目錄: src/main/java/com/eatfast/orderlistinfo/controller/OrderListInfoController.java
- * - 核心改動:
- * 1. 【移除 DTO】: 遵循您的指示，將 `submitReview` 方法的參數從 DTO 改為 @RequestParam，
- * 使其與 Feedback 模組的風格保持一致。
- * 2. 【錯誤處理強化】: 捕獲更精準的 EntityNotFoundException。
- */
 package com.eatfast.orderlistinfo.controller;
 
 import java.util.List;

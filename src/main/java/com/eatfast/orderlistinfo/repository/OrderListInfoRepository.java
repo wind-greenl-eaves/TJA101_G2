@@ -14,9 +14,8 @@ import com.eatfast.orderlistinfo.model.OrderListInfoEntity;
  * OrderListInfoEntity 的 Repository 介面。
  * 繼承 JpaRepository 來獲得所有標準的資料庫操作方法。
  */
-@Repository // 📌【不可變】建議加上此註解，明確標示這是一個由 Spring 管理的 Repository Bean。
+@Repository // 建議加上此註解，明確標示這是一個由 Spring 管理的 Repository Bean。
 public interface OrderListInfoRepository extends JpaRepository<OrderListInfoEntity, Long> {
-    // 🔹【可自定義】介面名稱通常是 "Entity名稱" + "Repository"。
     // 📌【不可變】JpaRepository<OrderListInfoEntity, Long>
     //            第一個參數 OrderListInfoEntity: 指定這個 Repository 是為哪個 Entity 服務的。
     //            第二個參數 Long:                 指定這個 Entity 的主鍵(Primary Key)是什麼型別。
@@ -58,7 +57,7 @@ public interface OrderListInfoRepository extends JpaRepository<OrderListInfoEnti
     List<OrderListInfoEntity> findByOrderListAndReviewStars(OrderListEntity orderList, Long reviewStars);
 
     /**
-     * 【新增】根據會員ID查詢其所有訂單明細
+     * 根據會員ID查詢其所有訂單明細
      * 使用 JPQL 查詢，透過 orderList.member.memberId 關聯查詢
      * @param memberId 會員ID
      * @return 該會員的所有訂單明細列表
@@ -67,7 +66,7 @@ public interface OrderListInfoRepository extends JpaRepository<OrderListInfoEnti
     List<OrderListInfoEntity> findByMemberId(@Param("memberId") Long memberId);
 
     /**
-     * 【新增】根據會員ID和評論狀態查詢訂單明細
+     * 根據會員ID和評論狀態查詢訂單明細
      * @param memberId 會員ID
      * @param reviewStars 評論星等 (0 表示未評論)
      * @return 符合條件的訂單明細列表
@@ -76,7 +75,7 @@ public interface OrderListInfoRepository extends JpaRepository<OrderListInfoEnti
     List<OrderListInfoEntity> findByMemberIdAndReviewStars(@Param("memberId") Long memberId, @Param("reviewStars") Long reviewStars);
 
     /**
-     * 【新增】查詢會員的可評論訂單明細（訂單已完成且未評論）
+     * 查詢會員的可評論訂單明細（訂單已完成且未評論）
      * @param memberId 會員ID
      * @return 可評論的訂單明細列表
      */
@@ -87,7 +86,7 @@ public interface OrderListInfoRepository extends JpaRepository<OrderListInfoEnti
     List<OrderListInfoEntity> findReviewableByMemberId(@Param("memberId") Long memberId);
 
     /**
-     * 【新增】統計會員的訂單明細數量
+     * 統計會員的訂單明細數量
      * @param memberId 會員ID
      * @return 該會員的訂單明細總數
      */

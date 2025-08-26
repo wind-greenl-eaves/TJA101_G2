@@ -32,7 +32,6 @@ public class OrderListService {
 	private final OrderListRepository orderListRepository;
 	private final MemberRepository memberRepository; // 【新】為了 getOrdersByMemberId 而依賴
 
-	// 【優化】: 改用建構子注入。
 	public OrderListService(OrderListRepository orderListRepository, MemberRepository memberRepository) {
 		this.orderListRepository = orderListRepository;
 		this.memberRepository = memberRepository;
@@ -40,7 +39,7 @@ public class OrderListService {
 
 	@Transactional
 	public OrderListEntity createOrder(OrderListEntity order) {
-		// 【優化】: 儲存前，應先從資料庫撈取真實的 Member 和 Store 實體並設定回去，
+		// 儲存前，應先從資料庫撈取真實的 Member 和 Store 實體並設定回去，
 		// 避免傳入的 order 物件中含有不完整的 detached entity。
 		var member = memberRepository.findById(order.getMember().getMemberId())
 				.orElseThrow(() -> new EntityNotFoundException("建立訂單失敗：找不到會員 ID " + order.getMember().getMemberId()));
@@ -59,7 +58,7 @@ public class OrderListService {
 		return orderListRepository.findById(orderId);
 	}
 
-	// 【優化】: 讓 Controller 可以直接透過 ID 查詢，而無需先取得 MemberEntity 物件。
+	// 讓 Controller 可以直接透過 ID 查詢，而無需先取得 MemberEntity 物件。
 	public List<OrderListEntity> getOrdersByMemberId(Long memberId) {
 		return memberRepository.findById(memberId).map(orderListRepository::findByMemberOrderByOrderDateDesc)
 				.orElse(Collections.emptyList());
@@ -73,7 +72,7 @@ public class OrderListService {
 		OrderListEntity order = orderListRepository.findById(orderId)
 				.orElseThrow(() -> new EntityNotFoundException("找不到訂單，ID: " + orderId));
 
-		// 【優化】: 加入狀態轉換的業務規則檢查。
+		// 加入狀態轉換的業務規則檢查。
 		// 例如：已完成或已取消的訂單，不允許再變更回其他狀態。
 		if (order.getOrderStatus() == OrderStatus.COMPLETED || order.getOrderStatus() == OrderStatus.CANCELLED) {
 			throw new IllegalStateException("無法更新一個已完成或已取消的訂單。");
@@ -87,12 +86,12 @@ public class OrderListService {
 		return orderListRepository.findAll();
 	}
 
-	// 【新增】按門市過濾訂單的方法
+	// 按門市過濾訂單的方法
 	public List<OrderListEntity> findByStore(StoreEntity store) {
 		return orderListRepository.findByStoreOrderByOrderDateDesc(store);
 	}
 
-	// 【新增】按門市ID過濾訂單的方法
+	// 按門市ID過濾訂單的方法
 	public List<OrderListEntity> findByStoreId(Long storeId) {
 		return orderListRepository.findByStore_StoreIdOrderByOrderDateDesc(storeId);
 	}

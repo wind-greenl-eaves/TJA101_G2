@@ -5,12 +5,11 @@ public class OrderListInfoDTO {
     private String mealName;
     private Long quantity;
     private Long mealPrice;
-    private Long reviewStars; // ⭐【修改】評論星等欄位（移除 mealCustomization）
-    private String mealCustomization; // ⭐【新增】客製化備註欄位
+    private Long reviewStars; 
+    private String mealCustomization; 
 
     // --- 建構子、Getters、Setters ---
     
-    // ⭐【修改】更新建構子，添加 mealCustomization 參數
     public OrderListInfoDTO(String mealName, Long quantity, Long mealPrice, Long reviewStars, String mealCustomization) {
         this.mealName = mealName;
         this.quantity = quantity;
@@ -19,7 +18,6 @@ public class OrderListInfoDTO {
         this.mealCustomization = mealCustomization;
     }
 
-    // ... (保留原本的 Getters/Setters) ...
     public String getMealName() { return mealName; }
     public void setMealName(String mealName) { this.mealName = mealName; }
     public Long getQuantity() { return quantity; }
@@ -27,7 +25,6 @@ public class OrderListInfoDTO {
     public Long getMealPrice() { return mealPrice; }
     public void setMealPrice(Long mealPrice) { this.mealPrice = mealPrice; }
 
-    // ⭐【修改】reviewStars 的 Getter 和 Setter
     public Long getReviewStars() {
         return reviewStars;
     }
@@ -36,7 +33,6 @@ public class OrderListInfoDTO {
         this.reviewStars = reviewStars;
     }
 
-    // ⭐【新增】客製化備註的 Getter 和 Setter
     public String getMealCustomization() {
         return mealCustomization;
     }

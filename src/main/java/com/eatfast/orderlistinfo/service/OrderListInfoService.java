@@ -59,7 +59,7 @@ public class OrderListInfoService {
         OrderListInfoEntity info = orderListInfoRepository.findById(orderListInfoId)
                 .orElseThrow(() -> new EntityNotFoundException("找不到指定的訂單明細項目，ID: " + orderListInfoId));
 
-        // 【新增】檢查訂單狀態 - 只有已完成的訂單才能評論
+        // 檢查訂單狀態 - 只有已完成的訂單才能評論
         if (info.getOrderList() != null && 
             info.getOrderList().getOrderStatus() != com.eatfast.orderlist.model.OrderStatus.COMPLETED) {
             throw new IllegalStateException("只有已完成的訂單才能進行評論");
@@ -118,7 +118,7 @@ public class OrderListInfoService {
     }
 
     /**
-     * 【新增】獲取會員的所有訂單明細（用於統計和分析）
+     * 獲取會員的所有訂單明細（用於統計和分析）
      * @param memberId 會員 ID
      * @return 該會員的所有訂單明細列表
      */
@@ -132,7 +132,7 @@ public class OrderListInfoService {
     }
 
     /**
-     * 【新增】檢查訂單明細是否可以評論
+     * 檢查訂單明細是否可以評論
      * @param orderListInfoId 訂單明細 ID
      * @return true 如果可以評論
      */
